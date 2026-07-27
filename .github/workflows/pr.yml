@@ -95,13 +95,14 @@ jobs:
 
           if git show "origin/${BASE_REF}:Cargo.toml" > /tmp/base-Cargo.toml 2>/dev/null; then
             echo "Found Cargo.toml at root of base branch"
+            BASE_VER="$(read_version /tmp/base-Cargo.toml)"
           elif git show "origin/${BASE_REF}:src/Cargo.toml" > /tmp/base-Cargo.toml 2>/dev/null; then
             echo "Found Cargo.toml at src/Cargo.toml of base branch"
+            BASE_VER="$(read_version /tmp/base-Cargo.toml)"
           else
-            echo "::error::Cargo.toml not found in base branch"
-            exit 1
+            echo "Cargo.toml not found in base branch — using default 0.0.0 for initial setup"
+            BASE_VER="0.0.0"
           fi
-          BASE_VER="$(read_version /tmp/base-Cargo.toml)"
           PR_VER="$(read_version Cargo.toml)"
 
           KIND="patch"
