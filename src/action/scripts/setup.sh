@@ -84,19 +84,22 @@ raise SystemExit(1)
 VERSION="${INPUT_VERSION}"
 if [ "${VERSION}" = "latest" ] || [ -z "${VERSION}" ]; then
   info "Resolving latest ODS release..."
-  API_RESPONSE=$(api_curl -H "Accept: application/vnd.github+json" "${API}/releases/latest" 2>/dev/null) || {
-    fatal "Could not reach GitHub API to resolve latest release. Verify GitHub token permissions."
-  }
-  VERSION=$(printf '%s' "${API_RESPONSE}" | grep '"tag_name"' | head -1 | sed 's/.*"tag_name": *"\([^"]*\)".*/\1/')
-  [ -n "${VERSION}" ] || fatal "Could not parse release tag from GitHub API."
+  API_RESPONSE=$(api_curl -H "Accept: application/vnd.github+json" "${API}/releases/latest" 2>/dev/null || true)
+  if [ -n "${API_RESPONSE}" ]; then
+    VERSION=$(printf '%s' "${API_RESPONSE}" | grep '"tag_name"' | head -1 | sed 's/.*"tag_name": *"\([^"]*\)".*/\1/' || true)
+  fi
 fi
 
-# Ensure version begins with 'v' for tag fetching
-TAG="${VERSION}"
-if [[ ! "${TAG}" =~ ^v ]]; then
-  TAG="v${VERSION}"
+if [ -n "${VERSION}" ] && [ "${VERSION}" != "latest" ]; then
+  TAG="${VERSION}"
+  if [[ ! "${TAG}" =~ ^v ]]; then
+    TAG="v${VERSION}"
+  fi
+  CLEAN_VERSION="${TAG#v}"
+else
+  TAG="latest"
+  CLEAN_VERSION="latest"
 fi
-CLEAN_VERSION="${TAG#v}"
 
 info "Target ODS version: ${TAG} (${ASSET})"
 
@@ -122,38 +125,48 @@ if [ "${INSTALLED}" = "false" ]; then
 
   info "Downloading ${FILENAME}..."
   if ! download_asset "${TAG}" "${FILENAME}" "${TMPDIR_ODS}/${FILENAME}"; then
-    fatal "Failed to download release asset ${FILENAME} for release ${TAG}."
+    if command -v cargo >/dev/null 2>&1; then
+      info "Release asset ${FILENAME} not available via GitHub API — compiling local Cargo fallback binary..."
+      cargo build --release --bin ods
+      install -m 755 "target/release/ods" "${ODS_BIN}"
+      info "ODS installed successfully to ${ODS_BIN}"
+      INSTALLED=true
+    else
+      fatal "Failed to download release asset ${FILENAME} for release ${TAG} and Cargo is not installed."
+    fi
   fi
 
-  info "Verifying SHA256 checksum..."
-  if download_asset "${TAG}" "SHA256SUMS" "${TMPDIR_ODS}/SHA256SUMS"; then
-    EXPECTED=$(grep " ${FILENAME}$" "${TMPDIR_ODS}/SHA256SUMS" | awk '{print $1}')
-    if [ -n "${EXPECTED}" ]; then
-      if command -v sha256sum >/dev/null 2>&1; then
-        ACTUAL=$(sha256sum "${TMPDIR_ODS}/${FILENAME}" | awk '{print $1}')
-      elif command -v shasum >/dev/null 2>&1; then
-        ACTUAL=$(shasum -a 256 "${TMPDIR_ODS}/${FILENAME}" | awk '{print $1}')
-      else
-        ACTUAL="${EXPECTED}"
+  if [ "${INSTALLED}" = "false" ]; then
+    info "Verifying SHA256 checksum..."
+    if download_asset "${TAG}" "SHA256SUMS" "${TMPDIR_ODS}/SHA256SUMS"; then
+      EXPECTED=$(grep " ${FILENAME}$" "${TMPDIR_ODS}/SHA256SUMS" | awk '{print $1}')
+      if [ -n "${EXPECTED}" ]; then
+        if command -v sha256sum >/dev/null 2>&1; then
+          ACTUAL=$(sha256sum "${TMPDIR_ODS}/${FILENAME}" | awk '{print $1}')
+        elif command -v shasum >/dev/null 2>&1; then
+          ACTUAL=$(shasum -a 256 "${TMPDIR_ODS}/${FILENAME}" | awk '{print $1}')
+        else
+          ACTUAL="${EXPECTED}"
+        fi
+        [ "${EXPECTED}" = "${ACTUAL}" ] || fatal "Checksum mismatch for ${FILENAME}! Expected ${EXPECTED}, got ${ACTUAL}."
+        info "Checksum verified OK."
       fi
-      [ "${EXPECTED}" = "${ACTUAL}" ] || fatal "Checksum mismatch for ${FILENAME}! Expected ${EXPECTED}, got ${ACTUAL}."
-      info "Checksum verified OK."
     fi
-  fi
 
-  info "Extracting ODS binary..."
-  tar xzf "${TMPDIR_ODS}/${FILENAME}" -C "${TMPDIR_ODS}"
-  EXTRACTED="${TMPDIR_ODS}/ods-${TAG}-${ASSET}"
-  if [ ! -f "${EXTRACTED}/ods" ]; then
-    ODS_FIND=$(find "${TMPDIR_ODS}" -type f -name ods 2>/dev/null | head -1 || true)
-    if [ -n "${ODS_FIND}" ]; then
-      EXTRACTED=$(dirname "${ODS_FIND}")
+    info "Extracting ODS binary..."
+    tar xzf "${TMPDIR_ODS}/${FILENAME}" -C "${TMPDIR_ODS}"
+    EXTRACTED="${TMPDIR_ODS}/ods-${TAG}-${ASSET}"
+    if [ ! -f "${EXTRACTED}/ods" ]; then
+      ODS_FIND=$(find "${TMPDIR_ODS}" -type f -name ods 2>/dev/null | head -1 || true)
+      if [ -n "${ODS_FIND}" ]; then
+        EXTRACTED=$(dirname "${ODS_FIND}")
+      fi
     fi
-  fi
 
-  [ -f "${EXTRACTED}/ods" ] || fatal "Binary 'ods' not found in archive."
-  install -m 755 "${EXTRACTED}/ods" "${ODS_BIN}"
-  info "ODS installed successfully to ${ODS_BIN}"
+    [ -f "${EXTRACTED}/ods" ] || fatal "Binary 'ods' not found in archive."
+    install -m 755 "${EXTRACTED}/ods" "${ODS_BIN}"
+    info "ODS installed successfully to ${ODS_BIN}"
+  fi
 fi
 
 # Add to GITHUB_PATH if running in GitHub Actions environment

@@ -40,13 +40,18 @@ if ($Version -eq "latest" -or [string]::IsNullOrWhiteSpace($Version)) {
         $Release = Invoke-RestMethod -Uri "$Api/releases/latest" -Headers (Get-Headers) -UseBasicParsing
         $Version = $Release.tag_name
     } catch {
-        Write-Fatal "Could not reach GitHub API to resolve latest release tag."
+        Write-Info "No published GitHub release found yet via API."
     }
 }
 
-$Tag = $Version
-if (-not $Tag.StartsWith("v")) { $Tag = "v$Version" }
-$CleanVersion = $Tag.TrimStart("v")
+if ([string]::IsNullOrWhiteSpace($Version) -or $Version -eq "latest") {
+    $Tag = "latest"
+    $CleanVersion = "latest"
+} else {
+    $Tag = $Version
+    if (-not $Tag.StartsWith("v")) { $Tag = "v$Version" }
+    $CleanVersion = $Tag.TrimStart("v")
+}
 
 Write-Info "Target ODS version: $Tag ($Asset)"
 
@@ -72,28 +77,41 @@ if (-not $Installed) {
 
     try {
         Write-Info "Fetching release information for asset $Filename..."
-        $Release = Invoke-RestMethod -Uri "$Api/releases/tags/$Tag" -Headers (Get-Headers) -UseBasicParsing
-        $AssetObj = $Release.assets | Where-Object { $_.name -eq $Filename }
-        if (-not $AssetObj) {
-            Write-Fatal "Asset '$Filename' not found in release $Tag."
+        $Downloaded = $false
+        try {
+            $Release = Invoke-RestMethod -Uri "$Api/releases/tags/$Tag" -Headers (Get-Headers) -UseBasicParsing
+            $AssetObj = $Release.assets | Where-Object { $_.name -eq $Filename }
+            if ($AssetObj) {
+                $AssetUrl = "$Api/releases/assets/$($AssetObj.id)"
+                $ZipPath = Join-Path $TmpDir $Filename
+
+                Write-Info "Downloading $Filename..."
+                $DownloadHeaders = Get-Headers
+                $DownloadHeaders["Accept"] = "application/octet-stream"
+                Invoke-WebRequest -Uri $AssetUrl -Headers $DownloadHeaders -OutFile $ZipPath -UseBasicParsing
+
+                Write-Info "Extracting $Filename..."
+                Expand-Archive -Path $ZipPath -DestinationPath $TmpDir -Force
+
+                $ExtractedBin = Get-ChildItem -Path $TmpDir -Recurse -Filter "ods.exe" | Select-Object -First 1
+                if ($ExtractedBin) {
+                    Copy-Item -Path $ExtractedBin.FullName -Destination $OdsBin -Force
+                    Write-Info "ODS installed successfully to $OdsBin"
+                    $Downloaded = $true
+                }
+            }
+        } catch {}
+
+        if (-not $Downloaded) {
+            if (Get-Command cargo -ErrorAction SilentlyContinue) {
+                Write-Info "Release asset $Filename not available — compiling local Cargo fallback binary..."
+                cargo build --release --bin ods
+                Copy-Item -Path "target\release\ods.exe" -Destination $OdsBin -Force
+                Write-Info "ODS built and installed successfully to $OdsBin"
+            } else {
+                Write-Fatal "Failed to download release asset $Filename and Cargo is not installed."
+            }
         }
-
-        $AssetUrl = "$Api/releases/assets/$($AssetObj.id)"
-        $ZipPath = Join-Path $TmpDir $Filename
-
-        Write-Info "Downloading $Filename..."
-        $DownloadHeaders = Get-Headers
-        $DownloadHeaders["Accept"] = "application/octet-stream"
-        Invoke-WebRequest -Uri $AssetUrl -Headers $DownloadHeaders -OutFile $ZipPath -UseBasicParsing
-
-        Write-Info "Extracting $Filename..."
-        Expand-Archive -Path $ZipPath -DestinationPath $TmpDir -Force
-
-        $ExtractedBin = Get-ChildItem -Path $TmpDir -Recurse -Filter "ods.exe" | Select-Object -First 1
-        if (-not $ExtractedBin) { Write-Fatal "Binary 'ods.exe' not found in archive." }
-
-        Copy-Item -Path $ExtractedBin.FullName -Destination $OdsBin -Force
-        Write-Info "ODS installed successfully to $OdsBin"
     } finally {
         Remove-Item -Path $TmpDir -Recurse -Force -ErrorAction SilentlyContinue
     }
