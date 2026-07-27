@@ -28,7 +28,7 @@ fn large_workspace_with_10k_documents_lints() {
     }
 
     let root_index =
-        "---\nprofile: index\nods: 0.1\nods-cli: \">=0.1.18\"\n---\n\n# Large Workspace\n";
+        "---\nprofile: index\nods: 0.1\nods-cli: \">=0.0.1\"\n---\n\n# Large Workspace\n";
     fs::write(temp.join("index.md"), root_index).expect("root index");
 
     // Generate indexes first (root + every group directory) so the hand-written
@@ -54,7 +54,7 @@ fn test_case_insensitive_ids() {
     let temp = temp_workspace();
     fs::write(
         temp.join("index.md"),
-        "---\nprofile: index\nods: 0.1\nods-cli: \">=0.1.18\"\n---\n\n# Root\n\n- [Auth/](Auth/index.md)\n- [login.md](login.md)\n",
+        "---\nprofile: index\nods: 0.1\nods-cli: \">=0.0.1\"\n---\n\n# Root\n\n- [Auth/](Auth/index.md)\n- [login.md](login.md)\n",
     )
     .expect("root index");
 
@@ -87,7 +87,7 @@ fn test_index_generation_with_description() {
     let temp = temp_workspace();
     fs::write(
         temp.join("index.md"),
-        "---\nprofile: index\nods: 0.1\nods-cli: \">=0.1.18\"\n---\n\n# Root\n\n- [doc.md](doc.md)\n",
+        "---\nprofile: index\nods: 0.1\nods-cli: \">=0.0.1\"\n---\n\n# Root\n\n- [doc.md](doc.md)\n",
     )
     .expect("root index");
 
@@ -110,7 +110,7 @@ fn test_body_link_validation() {
     let temp = temp_workspace();
     fs::write(
         temp.join("index.md"),
-        "---\nprofile: index\nods: 0.1\nods-cli: \">=0.1.18\"\n---\n\n# Root\n\n- [doc.md](doc.md)\n",
+        "---\nprofile: index\nods: 0.1\nods-cli: \">=0.0.1\"\n---\n\n# Root\n\n- [doc.md](doc.md)\n",
     )
     .expect("root index");
 
@@ -138,7 +138,7 @@ fn context_ignore_skips_matching_paths() {
     let temp = temp_workspace();
     fs::write(
         temp.join("index.md"),
-        "---\nprofile: index\nods: 0.1\nods-cli: \">=0.1.18\"\n---\n\n# Root\n\n- [main.md](main.md)\n- [archive/](archive/index.md)\n",
+        "---\nprofile: index\nods: 0.1\nods-cli: \">=0.0.1\"\n---\n\n# Root\n\n- [main.md](main.md)\n- [archive/](archive/index.md)\n",
     )
     .expect("root");
     fs::create_dir_all(temp.join("archive")).expect("archive");
@@ -173,7 +173,7 @@ fn depends_and_related_references_resolve_without_dangling() {
     let temp = temp_workspace();
     fs::write(
         temp.join("index.md"),
-        "---\nprofile: index\nods: 0.1\nods-cli: \">=0.1.18\"\n---\n\n# Root\n\n- [product.md](product.md)\n- [pricing.md](pricing.md)\n- [service.md](service.md)\n",
+        "---\nprofile: index\nods: 0.1\nods-cli: \">=0.0.1\"\n---\n\n# Root\n\n- [product.md](product.md)\n- [pricing.md](pricing.md)\n- [service.md](service.md)\n",
     )
     .expect("root index");
     fs::write(
@@ -211,7 +211,7 @@ fn adopt_write_adds_minimal_frontmatter() {
     let temp = temp_workspace();
     fs::write(
         temp.join("index.md"),
-        "---\nprofile: index\nods: 0.1\nods-cli: \">=0.1.18\"\n---\n\n# Root\n\n- [plain.md](plain.md)\n",
+        "---\nprofile: index\nods: 0.1\nods-cli: \">=0.0.1\"\n---\n\n# Root\n\n- [plain.md](plain.md)\n",
     )
     .expect("root");
     fs::write(temp.join("plain.md"), "# Plain\n\nJust prose.\n").expect("plain");
@@ -229,7 +229,7 @@ fn test_context_share_private_filtering() {
     let temp = temp_workspace();
     fs::write(
         temp.join("index.md"),
-        "---\nprofile: index\nods: 0.1\nods-cli: \">=0.1.18\"\n---\n\n# Root\n",
+        "---\nprofile: index\nods: 0.1\nods-cli: \">=0.0.1\"\n---\n\n# Root\n",
     )
     .expect("root");
     fs::write(

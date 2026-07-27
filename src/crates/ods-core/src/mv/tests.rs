@@ -9,7 +9,7 @@ mod tests_move_b {
         fs::create_dir_all(dir.join("a/b/c")).unwrap();
         fs::write(
             dir.join("index.md"),
-            "---\nprofile: index\nods: 0.1\nods-cli: \">=0.1.18\"\n---\n\n# R\n",
+            "---\nprofile: index\nods: 0.1\nods-cli: \">=0.0.1\"\n---\n\n# R\n",
         )
         .unwrap();
         fs::write(
@@ -37,7 +37,7 @@ mod tests_move_b {
         fs::create_dir_all(dir.join("vendor/pkg")).unwrap();
         fs::write(
             dir.join("index.md"),
-            "---\nprofile: index\nods: 0.1\nods-cli: \">=0.1.18\"\nignore:\n  - vendor\n---\n\n# R\n",
+            "---\nprofile: index\nods: 0.1\nods-cli: \">=0.0.1\"\nignore:\n  - vendor\n---\n\n# R\n",
         )
         .unwrap();
         fs::write(
@@ -58,7 +58,7 @@ mod tests_move_b {
         // Fix index to ignore legacy
         fs::write(
             dir.join("index.md"),
-            "---\nprofile: index\nods: 0.1\nods-cli: \">=0.1.18\"\nignore:\n  - legacy\n---\n\n# R\n\n- [legacy/](legacy/index.md)\n",
+            "---\nprofile: index\nods: 0.1\nods-cli: \">=0.0.1\"\nignore:\n  - legacy\n---\n\n# R\n\n- [legacy/](legacy/index.md)\n",
         )
         .unwrap();
         fs::write(
@@ -83,7 +83,7 @@ mod tests_move_b {
         fs::create_dir_all(dir.join("products")).unwrap();
         fs::write(
             dir.join("index.md"),
-            "---\nprofile: index\nods: 0.1\nods-cli: \">=0.1.18\"\n---\n\n# R\n",
+            "---\nprofile: index\nods: 0.1\nods-cli: \">=0.0.1\"\n---\n\n# R\n",
         )
         .unwrap();
         // File path is clay-mask.md but id still says clay-mask-new (missed rename rewrite).

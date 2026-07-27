@@ -52,7 +52,7 @@ Rules:
 ---
 profile: index
 ods: 0.1
-ods-cli: ">=0.1.18"
+ods-cli: ">=0.0.1"
 packs:
   - vendor/engineering-pack
 ---
@@ -84,7 +84,7 @@ In addition, the **root** `index.md` MAY declare workspace-level excludes:
 ---
 profile: index
 ods: 0.1
-ods-cli: ">=0.1.18"
+ods-cli: ">=0.0.1"
 ignore:
   - src
   - apps/web

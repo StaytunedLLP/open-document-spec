@@ -204,7 +204,7 @@ mod tests {
         write(
             dir.as_path(),
             "index.md",
-            "---\nprofile: index\nods: 0.1\nods-cli: \">=0.1.18\"\n---\n\n# R\n",
+            "---\nprofile: index\nods: 0.1\nods-cli: \">=0.0.1\"\n---\n\n# R\n",
         );
         write(
             dir.as_path(),
@@ -223,7 +223,7 @@ mod tests {
         write(
             dir.as_path(),
             "index.md",
-            "---\nprofile: index\nods: 0.1\nods-cli: \">=0.1.18\"\n---\n\n# R\n",
+            "---\nprofile: index\nods: 0.1\nods-cli: \">=0.0.1\"\n---\n\n# R\n",
         );
         write(
             dir.as_path(),
@@ -242,7 +242,7 @@ mod tests {
         write(
             dir.as_path(),
             "index.md",
-            "---\nprofile: index\nods: 0.1\nods-cli: \">=0.1.18\"\n---\n\n# R\n",
+            "---\nprofile: index\nods: 0.1\nods-cli: \">=0.0.1\"\n---\n\n# R\n",
         );
         write(
             dir.as_path(),
@@ -266,7 +266,7 @@ mod tests {
         write(
             dir.as_path(),
             "index.md",
-            "---\nprofile: index\nods: 0.1\nods-cli: \">=0.1.18\"\n---\n\n# R\n",
+            "---\nprofile: index\nods: 0.1\nods-cli: \">=0.0.1\"\n---\n\n# R\n",
         );
         write(
             dir.as_path(),
@@ -290,7 +290,7 @@ mod tests {
         write(
             dir.as_path(),
             "index.md",
-            "---\nprofile: index\nods: 0.1\nods-cli: \">=0.1.18\"\nshare: private\n---\n\n# R\n",
+            "---\nprofile: index\nods: 0.1\nods-cli: \">=0.0.1\"\nshare: private\n---\n\n# R\n",
         );
         write(
             dir.as_path(),
@@ -321,7 +321,7 @@ mod tests {
         write(
             &root,
             "index.md",
-            "---\nprofile: index\nods: 0.1\nods-cli: \">=0.1.18\"\n---\n\n# R\n",
+            "---\nprofile: index\nods: 0.1\nods-cli: \">=0.0.1\"\n---\n\n# R\n",
         );
         write(
             &root,
@@ -340,7 +340,7 @@ mod tests {
         write(
             dir.as_path(),
             "index.md",
-            "---\nprofile: index\nods: 0.1\nods-cli: \">=0.1.18\"\n---\n\n# R\n",
+            "---\nprofile: index\nods: 0.1\nods-cli: \">=0.0.1\"\n---\n\n# R\n",
         );
         write(
             dir.as_path(),
@@ -359,7 +359,7 @@ mod tests {
         write(
             dir.as_path(),
             "index.md",
-            "---\nprofile: index\nods: 0.1\nods-cli: \">=0.1.18\"\n---\n\n# R\n",
+            "---\nprofile: index\nods: 0.1\nods-cli: \">=0.0.1\"\n---\n\n# R\n",
         );
         write(
             dir.as_path(),
@@ -397,7 +397,7 @@ mod tests {
         write(
             dir.as_path(),
             "index.md",
-            "---\nprofile: index\nods: 0.1\nods-cli: \">=0.1.18\"\n---\n\n# R\n",
+            "---\nprofile: index\nods: 0.1\nods-cli: \">=0.0.1\"\n---\n\n# R\n",
         );
         write(
             dir.as_path(),
@@ -437,7 +437,7 @@ mod tests {
         write(
             dir.as_path(),
             "index.md",
-            "---\nprofile: index\nods: 0.1\nods-cli: \">=0.1.18\"\n---\n\n# R\n",
+            "---\nprofile: index\nods: 0.1\nods-cli: \">=0.0.1\"\n---\n\n# R\n",
         );
         write(
             dir.as_path(),
@@ -470,7 +470,7 @@ mod tests {
         write(
             dir.as_path(),
             "index.md",
-            "---\nprofile: index\nods: 0.1\nods-cli: \">=0.1.18\"\n---\n\n# R\n",
+            "---\nprofile: index\nods: 0.1\nods-cli: \">=0.0.1\"\n---\n\n# R\n",
         );
         write(
             dir.as_path(),
@@ -506,7 +506,7 @@ mod tests {
         write(
             dir.as_path(),
             "index.md",
-            "---\nprofile: index\nods: 0.1\nods-cli: \">=0.1.18\"\n---\n\n# R\n",
+            "---\nprofile: index\nods: 0.1\nods-cli: \">=0.0.1\"\n---\n\n# R\n",
         );
         write(
             dir.as_path(),
@@ -536,7 +536,7 @@ mod tests {
         write(
             dir.as_path(),
             "index.md",
-            "---\nprofile: index\nods: 0.1\nods-cli: \">=0.1.18\"\n---\n\n# R\n",
+            "---\nprofile: index\nods: 0.1\nods-cli: \">=0.0.1\"\n---\n\n# R\n",
         );
         write(
             dir.as_path(),

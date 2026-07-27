@@ -19,7 +19,7 @@ GitHub Releases use GitHub’s auto-generated notes. Edit this file by hand when
 
 - **Strict Workspace Targeting**: `find_workspace_root` no longer falls back to arbitrary directories. ODS CLI commands now verify local `ods:` root index markers or global registry tracking before executing, preventing accidental folder pollution.
 
-## [0.1.18] - 2026-07-19
+## [0.0.1] - 2026-07-19
 
 ### Added
 

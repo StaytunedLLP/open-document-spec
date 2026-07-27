@@ -185,7 +185,7 @@ fn parse_ignore_and_profiles_lists() {
     let text = r#"---
 profile: index
 ods: 0.1
-ods-cli: ">=0.1.18"
+ods-cli: ">=0.0.1"
 profiles:
   - ods-profiles
 ignore:
@@ -200,7 +200,7 @@ ignore:
         panic!("parse failed");
     };
     assert_eq!(fm.ods.as_deref(), Some("0.1"));
-    assert_eq!(fm.ods_cli.as_deref(), Some(">=0.1.18"));
+    assert_eq!(fm.ods_cli.as_deref(), Some(">=0.0.1"));
     assert_eq!(fm.profiles, vec!["ods-profiles".to_string()]);
     assert_eq!(fm.ignore, vec!["src".to_string(), "apps/web".to_string()]);
 }

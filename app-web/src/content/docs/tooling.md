@@ -20,7 +20,7 @@ Reference implementation: the **`ods` CLI** only. There is no language server or
 | --- | --- |
 | Version | `ods --version` |
 | First-run setup | `ods setup` |
-| Workspace | Root `index.md` with spec `ods: 0.1` and CLI requirement `ods-cli: ">=0.1.18"` |
+| Workspace | Root `index.md` with spec `ods: 0.1` and CLI requirement `ods-cli: ">=0.0.1"` |
 | Local clean | `ods index && ods lint` |
 | CI | `ods index --check` + `ods lint` |
 | Automation | `ods start` (background) or `ods watch` (foreground) |

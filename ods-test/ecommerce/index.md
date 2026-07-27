@@ -1,7 +1,7 @@
 ---
 profile: index
 ods: 0.1
-ods-cli: ">=0.1.18"
+ods-cli: ">=0.0.1"
 profiles:
   - ods-profiles
 packs:
