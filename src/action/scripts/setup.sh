@@ -128,7 +128,11 @@ if [ "${INSTALLED}" = "false" ]; then
     if command -v cargo >/dev/null 2>&1; then
       info "Release asset ${FILENAME} not available via GitHub API — compiling local Cargo fallback binary..."
       cargo build --release --bin ods
-      install -m 755 "target/release/ods" "${ODS_BIN}"
+      FOUND_CARGO_BIN="$(find target .artifacts/target -type f -name ods 2>/dev/null | grep release | head -1 || true)"
+      if [ -z "${FOUND_CARGO_BIN}" ]; then
+        FOUND_CARGO_BIN="target/release/ods"
+      fi
+      install -m 755 "${FOUND_CARGO_BIN}" "${ODS_BIN}"
       info "ODS installed successfully to ${ODS_BIN}"
       INSTALLED=true
     else

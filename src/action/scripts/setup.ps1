@@ -106,8 +106,13 @@ if (-not $Installed) {
             if (Get-Command cargo -ErrorAction SilentlyContinue) {
                 Write-Info "Release asset $Filename not available — compiling local Cargo fallback binary..."
                 cargo build --release --bin ods
-                Copy-Item -Path "target\release\ods.exe" -Destination $OdsBin -Force
-                Write-Info "ODS built and installed successfully to $OdsBin"
+                $ExtractedBin = Get-ChildItem -Path "." -Recurse -Filter "ods.exe" | Where-Object { $_.FullName -like "*release*" } | Select-Object -First 1
+                if ($ExtractedBin) {
+                    Copy-Item -Path $ExtractedBin.FullName -Destination $OdsBin -Force
+                    Write-Info "ODS built and installed successfully to $OdsBin"
+                } else {
+                    Write-Fatal "Cargo build completed but ods.exe binary not found."
+                }
             } else {
                 Write-Fatal "Failed to download release asset $Filename and Cargo is not installed."
             }
