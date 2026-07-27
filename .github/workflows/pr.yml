@@ -1,0 +1,476 @@
+# Single unified workflow for PR checks, main branch validation, and release triggers.
+# Workflow 1 of 2 in repository (pr.yml + release.yml).
+
+name: pr
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review, labeled, unlabeled]
+    branches: ['**']
+  push:
+    branches: ['**']
+  workflow_dispatch:
+
+env:
+  CARGO_TERM_COLOR: always
+  CARGO_INCREMENTAL: "1"
+  RUST_BACKTRACE: "1"
+
+# Cancel superseded runs for the same PR or ref.
+concurrency:
+  group: pr-${{ github.head_ref || github.ref_name }}
+  cancel-in-progress: true
+
+permissions:
+  contents: write
+  actions: read
+  checks: write
+  pull-requests: write
+
+jobs:
+  # Job 1: Keep PR workspace version ahead of main (semver). Labels: release:major|minor|patch
+  bump-version:
+    name: Ensure next release version on PR
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    outputs:
+      pushed: ${{ steps.bump.outputs.pushed }}
+    steps:
+      - name: Checkout PR head
+        uses: actions/checkout@v5
+        with:
+          repository: ${{ github.event.pull_request.head.repo.full_name }}
+          ref: ${{ github.event.pull_request.head.ref }}
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Compute and apply next version
+        id: bump
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_NUM: ${{ github.event.pull_request.number }}
+          IS_FORK: ${{ github.event.pull_request.head.repo.full_name != github.repository }}
+          LABELS: ${{ join(github.event.pull_request.labels.*.name, ',') }}
+          BASE_REF: ${{ github.base_ref }}
+          HEAD_REF: ${{ github.event.pull_request.head.ref }}
+        run: |
+          set -euo pipefail
+          echo "pushed=false" >> "$GITHUB_OUTPUT"
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          pr_comment() {
+            local pr="$1" body="$2"
+            if command -v gh &>/dev/null; then
+              gh pr comment "${pr}" --body "${body}"
+            else
+              local payload
+              payload="$(python3 -c 'import json, sys; print(json.dumps({"body": sys.stdin.read()}))' <<< "${body}")"
+              curl -s -S -X POST \
+                -H "Authorization: token ${GH_TOKEN}" \
+                -H "Accept: application/vnd.github.v3+json" \
+                "https://api.github.com/repos/${GITHUB_REPOSITORY}/issues/${pr}/comments" \
+                -d "${payload}" > /dev/null
+            fi
+          }
+
+          git fetch origin "${BASE_REF}" --depth=1
+
+          read_version() {
+            local file="$1"
+            grep -E '^version[[:space:]]*=' "$file" | head -1 | sed -E 's/.*"([^"]+)".*/\1/'
+          }
+
+          bump_semver() {
+            local v="$1" kind="$2"
+            local major minor patch
+            IFS=. read -r major minor patch <<<"${v}"
+            case "$kind" in
+              major) echo "$((major + 1)).0.0" ;;
+              minor) echo "${major}.$((minor + 1)).0" ;;
+              *)     echo "${major}.${minor}.$((patch + 1))" ;;
+            esac
+          }
+
+          if git show "origin/${BASE_REF}:Cargo.toml" > /tmp/base-Cargo.toml 2>/dev/null; then
+            echo "Found Cargo.toml at root of base branch"
+          elif git show "origin/${BASE_REF}:src/Cargo.toml" > /tmp/base-Cargo.toml 2>/dev/null; then
+            echo "Found Cargo.toml at src/Cargo.toml of base branch"
+          else
+            echo "::error::Cargo.toml not found in base branch"
+            exit 1
+          fi
+          BASE_VER="$(read_version /tmp/base-Cargo.toml)"
+          PR_VER="$(read_version Cargo.toml)"
+
+          KIND="patch"
+          case ",${LABELS}," in
+            *,release:major,*) KIND="major" ;;
+            *,release:minor,*) KIND="minor" ;;
+            *,release:patch,*) KIND="patch" ;;
+          esac
+
+          NEXT="$(bump_semver "${BASE_VER}" "${KIND}")"
+          export NEXT
+          echo "Base (main) version: ${BASE_VER}"
+          echo "PR version: ${PR_VER}"
+          echo "Target next version: ${NEXT} (bump=${KIND})"
+
+          if [ "${PR_VER}" = "${NEXT}" ]; then
+            echo "PR already has target version ${NEXT}"
+            exit 0
+          fi
+
+          if [ "${IS_FORK}" = "true" ]; then
+            BODY=$(cat <<EOF
+          ### Release version
+
+          This PR should set \`Cargo.toml\` workspace version to **\`${NEXT}\`** (main is \`${BASE_VER}\`, bump=\`${KIND}\`).
+
+          Fork PRs cannot be updated by the bot — please bump the version manually:
+
+          \`\`\`toml
+          [workspace.package]
+          version = "${NEXT}"
+          \`\`\`
+          EOF
+          )
+            BODY="$(printf '%s\n' "${BODY}" | sed 's/^          //')"
+            pr_comment "${PR_NUM}" "${BODY}"
+            echo "::error::Fork PR: set workspace version to ${NEXT} in Cargo.toml"
+            exit 1
+          fi
+
+          python3 <<'PY'
+          import os, re
+          new_v = os.environ["NEXT"]
+          path = "Cargo.toml"
+          text = open(path, encoding="utf-8").read()
+          text2, n = re.subn(r'(?m)^version\s*=\s*"[^"]+"', f'version = "{new_v}"', text, count=1)
+          if n != 1:
+              raise SystemExit(f"expected 1 version replace, got {n}")
+          open(path, "w", encoding="utf-8").write(text2)
+          lock_path = "Cargo.lock"
+          lock = open(lock_path, encoding="utf-8").read()
+          for name in ("ods", "ods-core", "ods-test-support"):
+              def repl(m, nv=new_v):
+                  return m.group(1) + nv + m.group(2)
+              lock, n = re.subn(
+                  rf'(name = "{name}"\nversion = ")[^"]+(")',
+                  repl,
+                  lock,
+                  count=1,
+              )
+              if n != 1:
+                  raise SystemExit(f"expected 1 lock version for {name}, got {n}")
+          open(lock_path, "w", encoding="utf-8").write(lock)
+          PY
+
+          if git diff --quiet -- Cargo.toml Cargo.lock; then
+            echo "No file change after write (unexpected)"
+            exit 0
+          fi
+
+          head_oid=$(git rev-parse HEAD)
+          payload=$(mktemp)
+          response=$(mktemp)
+          trap 'rm -f "$payload" "$response"' EXIT
+          export head_oid payload
+          python3 <<'PY'
+          import base64
+          import json
+          import os
+
+          query = """mutation($repositoryNameWithOwner: String!, $branchName: String!, $expectedHeadOid: GitObjectID!, $message: String!, $tomlPath: String!, $tomlContent: Base64String!, $lockPath: String!, $lockContent: Base64String!) { createCommitOnBranch(input: { branch: { repositoryNameWithOwner: $repositoryNameWithOwner, branchName: $branchName }, message: { headline: $message }, expectedHeadOid: $expectedHeadOid, fileChanges: { additions: [ { path: $tomlPath, contents: $tomlContent }, { path: $lockPath, contents: $lockContent } ] } }) { commit { oid } } }"""
+          variables = {
+              "repositoryNameWithOwner": os.environ["GITHUB_REPOSITORY"],
+              "branchName": os.environ["HEAD_REF"],
+              "expectedHeadOid": os.environ["head_oid"],
+              "message": f"chore: prepare release v{os.environ['NEXT']}",
+              "tomlPath": "Cargo.toml",
+              "tomlContent": base64.b64encode(open("Cargo.toml", "rb").read()).decode(),
+              "lockPath": "Cargo.lock",
+              "lockContent": base64.b64encode(open("Cargo.lock", "rb").read()).decode(),
+          }
+          with open(os.environ["payload"], "w", encoding="utf-8") as f:
+              json.dump({"query": query, "variables": variables}, f)
+          PY
+
+          curl --fail --silent --show-error \
+            -H "Authorization: bearer ${GH_TOKEN}" \
+            -H "Content-Type: application/json" \
+            --data-binary "@${payload}" \
+            https://api.github.com/graphql > "$response"
+          RESPONSE="$response" python3 <<'PY'
+          import json
+          import os
+
+          result = json.load(open(os.environ["RESPONSE"], encoding="utf-8"))
+          if result.get("errors") or not result.get("data", {}).get("createCommitOnBranch", {}).get("commit", {}).get("oid"):
+              raise SystemExit(json.dumps(result, indent=2))
+          PY
+
+          echo "pushed=true" >> "$GITHUB_OUTPUT"
+
+          BODY=$(cat <<EOF
+          ### Release version updated
+
+          Set workspace version to **\`v${NEXT}\`** (from main \`${BASE_VER}\`, bump=\`${KIND}\`).
+
+          On merge to main, CI + release will publish multi-OS artifacts for **\`v${NEXT}\`**.
+
+          Labels: \`release:major\` · \`release:minor\` · \`release:patch\` (default).
+          EOF
+          )
+          BODY="$(printf '%s\n' "${BODY}" | sed 's/^          //')"
+          pr_comment "${PR_NUM}" "${BODY}"
+
+  # Job 2: Linux quality gate (fmt, clippy, test, release build, 10k scale test, coverage)
+  linux-test:
+    name: linux (fmt, clippy, test, cov)
+    needs: [bump-version]
+    if: always()
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Rust Cache
+        uses: swatinem/rust-cache@v2
+
+      - name: Ensure build tools (PATH, cc, Rust)
+        timeout-minutes: 10
+        working-directory: ${{ github.workspace }}
+        run: |
+          set -euo pipefail
+          export PATH="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:${HOME}/.cargo/bin:${PATH:-}"
+          export RUSTUP_TOOLCHAIN="${RUSTUP_TOOLCHAIN:-stable}"
+          export CARGO_TERM_PROGRESS_WHEN=never
+
+          {
+            echo "/usr/local/sbin"
+            echo "/usr/local/bin"
+            echo "/usr/sbin"
+            echo "/usr/bin"
+            echo "/sbin"
+            echo "/bin"
+            echo "${HOME}/.cargo/bin"
+          } >> "${GITHUB_PATH}"
+
+          run_to() {
+            local secs="$1"; shift
+            if command -v timeout >/dev/null 2>&1; then
+              timeout --foreground --signal=TERM --kill-after=15s "${secs}" "$@"
+            else
+              "$@"
+            fi
+          }
+
+          echo "==> PATH=${PATH}"
+          echo "==> Ensure C linker (required to link Rust binaries/tests)"
+
+          find_linker() {
+            for c in cc gcc clang; do
+              if command -v "$c" >/dev/null 2>&1; then
+                command -v "$c"
+                return 0
+              fi
+            done
+            for c in /usr/bin/cc /usr/bin/gcc /usr/bin/clang /bin/cc; do
+              if [ -x "$c" ]; then
+                echo "$c"
+                return 0
+              fi
+            done
+            return 1
+          }
+
+          LINKER="$(find_linker || true)"
+          if [ -z "${LINKER}" ]; then
+            echo "No cc/gcc/clang on PATH — attempting install of build-essential"
+            if command -v apt-get >/dev/null 2>&1; then
+              if command -v sudo >/dev/null 2>&1 && sudo -n true 2>/dev/null; then
+                run_to 300 sudo -n DEBIAN_FRONTEND=noninteractive apt-get update -y
+                run_to 600 sudo -n DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
+                  build-essential gcc libc6-dev
+              elif [ "$(id -u)" -eq 0 ]; then
+                run_to 300 DEBIAN_FRONTEND=noninteractive apt-get update -y
+                run_to 600 DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
+                  build-essential gcc libc6-dev
+              else
+                echo "error: no C linker and cannot install packages (need passwordless sudo or root)." >&2
+                exit 1
+              fi
+            else
+              echo "error: no C linker and no apt-get available" >&2
+              exit 1
+            fi
+            LINKER="$(find_linker || true)"
+          fi
+
+          if [ -z "${LINKER}" ]; then
+            echo "error: still no C linker after ensure step" >&2
+            exit 1
+          fi
+          echo "Using linker: ${LINKER}"
+          echo "CARGO_TARGET_X86_64_UNKNOWN_LINUX_GNU_LINKER=${LINKER}" >> "${GITHUB_ENV}"
+          echo "CC=${LINKER}" >> "${GITHUB_ENV}"
+          export CARGO_TARGET_X86_64_UNKNOWN_LINUX_GNU_LINKER="${LINKER}"
+          export CC="${LINKER}"
+
+          rust_works() {
+            command -v rustc >/dev/null 2>&1 \
+              && command -v cargo >/dev/null 2>&1 \
+              && run_to 20 rustc --version >/dev/null 2>&1 \
+              && run_to 20 cargo --version >/dev/null 2>&1
+          }
+
+          if rust_works; then
+            echo "Rust already working — skipping install"
+          else
+            echo "Rust missing or not responding — installing stable (minimal profile)"
+            if ! command -v rustup >/dev/null 2>&1; then
+              echo "→ downloading rustup-init"
+              run_to 120 curl --proto '=https' --tlsv1.2 --retry 3 --retry-delay 2 \
+                --connect-timeout 20 --max-time 90 -sSf https://sh.rustup.rs -o /tmp/rustup-init.sh
+              run_to 420 sh /tmp/rustup-init.sh -y --no-modify-path \
+                --default-toolchain stable --profile minimal
+              rm -f /tmp/rustup-init.sh
+            else
+              echo "→ rustup present; ensuring stable toolchain"
+              run_to 420 rustup toolchain install stable --profile minimal -c rustfmt -c clippy
+              run_to 30 rustup default stable
+            fi
+            if [ -f "${HOME}/.cargo/env" ]; then
+              # shellcheck source=/dev/null
+              . "${HOME}/.cargo/env"
+            fi
+            export PATH="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:${HOME}/.cargo/bin:${PATH:-}"
+          fi
+
+          if ! rust_works; then
+            echo "error: rustc/cargo still not usable after ensure step" >&2
+            exit 1
+          fi
+
+          rustc --version
+          cargo --version
+
+          if command -v rustup >/dev/null 2>&1; then
+            echo "→ ensuring rustfmt + clippy + llvm-tools-preview components"
+            run_to 180 rustup component add rustfmt clippy llvm-tools-preview --toolchain stable
+          fi
+
+          run_to 20 rustfmt --version
+          run_to 30 cargo clippy -V
+
+          echo "→ linker smoke (empty main)"
+          SMOKE="$(mktemp -d)"
+          printf 'fn main() {}\n' > "${SMOKE}/main.rs"
+          run_to 60 rustc -C linker="${LINKER}" -o "${SMOKE}/main" "${SMOKE}/main.rs"
+          rm -rf "${SMOKE}"
+          echo "Build tools OK"
+
+      - name: local check gate
+        working-directory: ${{ github.workspace }}
+        env:
+          SKIP_RELEASE_BUILD: "true"
+        run: ./src/scripts/check-local.sh
+
+      - name: Large-workspace scale test (10k docs, ignored by default)
+        working-directory: ${{ github.workspace }}
+        run: cargo test --workspace --locked -- --ignored large_workspace_with_10k_documents_lints
+
+      - name: Coverage (llvm-cov, enforced floor)
+        run: |
+          if ! command -v cargo-llvm-cov >/dev/null 2>&1; then
+            cargo install cargo-llvm-cov --locked
+          fi
+          cargo llvm-cov --workspace --locked --fail-under-lines 73
+
+  # Job 3: Windows native quality gate
+  windows-test:
+    name: windows (msvc test)
+    needs: [bump-version]
+    if: always()
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    env:
+      CARGO_TERM_COLOR: always
+      CARGO_INCREMENTAL: "1"
+      RUST_BACKTRACE: "1"
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Rust Cache
+        uses: swatinem/rust-cache@v2
+
+      - name: Ensure build tools (PATH, cc, Rust)
+        timeout-minutes: 10
+        working-directory: ${{ github.workspace }}
+        run: |
+          set -euo pipefail
+          export PATH="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:${HOME}/.cargo/bin:${PATH:-}"
+          export RUSTUP_TOOLCHAIN="${RUSTUP_TOOLCHAIN:-stable}"
+          export CARGO_TERM_PROGRESS_WHEN=never
+
+          {
+            echo "/usr/local/sbin"
+            echo "/usr/local/bin"
+            echo "/usr/sbin"
+            echo "/usr/bin"
+            echo "/sbin"
+            echo "/bin"
+            echo "${HOME}/.cargo/bin"
+          } >> "${GITHUB_PATH}"
+
+          rustc --version || true
+          cargo --version || true
+
+      - name: rustc/cargo version
+        run: |
+          rustc --version
+          cargo --version
+
+      - name: cargo test --workspace (native x86_64-pc-windows-msvc)
+        working-directory: ${{ github.workspace }}
+        run: cargo test --workspace --locked
+
+  # Job 4: ODS GitHub Action matrix test (Linux, macOS, Windows)
+  action-test:
+    name: action (${{ matrix.os }})
+    needs: [bump-version]
+    if: always()
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 30
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Test Action Setup Mode
+        uses: ./
+        with:
+          command: 'none'
+
+      - name: Verify CLI in PATH
+        run: ods --version
+
+      - name: Test Action Lint Mode
+        uses: ./
+        with:
+          command: 'lint'
+          path: 'ods-test/ecommerce'
+
+      - name: Test Action Index Check Mode
+        uses: ./
+        with:
+          command: 'index-check'
+          path: 'ods-test/ecommerce'
+

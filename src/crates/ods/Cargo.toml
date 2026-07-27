@@ -1,0 +1,77 @@
+[package]
+name = "ods"
+description = "ODS CLI — workspace init, lint, watch, update"
+default-run = "ods"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+
+[dependencies]
+ods-core = { path = "../ods-core" }
+ctrlc = { version = "3", features = ["termination"] }
+flate2 = "1"
+notify-debouncer-mini = "0.7"
+sha2 = "0.10"
+tar = "0.4"
+ureq = { version = "2.12", default-features = true, features = ["tls"] }
+zip = { version = "2", default-features = false, features = ["deflate"] }
+
+[[bin]]
+name = "ods"
+path = "src/main.rs"
+
+[dev-dependencies]
+ods-test-support = { path = "../ods-test-support" }
+tempfile = "3"
+
+[target.'cfg(unix)'.dev-dependencies]
+libc = "0.2"
+
+[[test]]
+name = "adopt_test"
+path = "tests/adopt.test.rs"
+
+[[test]]
+name = "commands_1_test"
+path = "tests/commands_1.test.rs"
+
+[[test]]
+name = "commands_2_test"
+path = "tests/commands_2.test.rs"
+
+[[test]]
+name = "export_and_service_test"
+path = "tests/export_and_service.test.rs"
+
+[[test]]
+name = "lifecycle_bench_service_test"
+path = "tests/lifecycle_bench_service.test.rs"
+
+[[test]]
+name = "features_service_test"
+path = "tests/features_service.test.rs"
+
+[[test]]
+name = "memory_serve_test"
+path = "tests/memory_serve.test.rs"
+
+[[test]]
+name = "production_matrix_1_test"
+path = "tests/production_matrix_1.test.rs"
+
+[[test]]
+name = "production_matrix_2_test"
+path = "tests/production_matrix_2.test.rs"
+
+[[test]]
+name = "profiles_test"
+path = "tests/profiles.test.rs"
+
+[[test]]
+name = "sync_test"
+path = "tests/sync.test.rs"
+
+[[test]]
+name = "share_command_test"
+path = "tests/share_command.test.rs"
