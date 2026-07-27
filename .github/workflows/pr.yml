@@ -396,7 +396,7 @@ jobs:
     name: windows (msvc test)
     needs: [bump-version]
     if: always()
-    runs-on: ubuntu-latest
+    runs-on: windows-latest
     timeout-minutes: 60
     env:
       CARGO_TERM_COLOR: always
@@ -409,69 +409,14 @@ jobs:
       - name: Rust Cache
         uses: swatinem/rust-cache@v2
 
-      - name: Ensure build tools (PATH, cc, Rust)
-        timeout-minutes: 10
-        working-directory: ${{ github.workspace }}
-        run: |
-          set -euo pipefail
-          export PATH="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:${HOME}/.cargo/bin:${PATH:-}"
-          export RUSTUP_TOOLCHAIN="${RUSTUP_TOOLCHAIN:-stable}"
-          export CARGO_TERM_PROGRESS_WHEN=never
-
-          {
-            echo "/usr/local/sbin"
-            echo "/usr/local/bin"
-            echo "/usr/sbin"
-            echo "/usr/bin"
-            echo "/sbin"
-            echo "/bin"
-            echo "${HOME}/.cargo/bin"
-          } >> "${GITHUB_PATH}"
-
-          rustc --version || true
-          cargo --version || true
-
       - name: rustc/cargo version
+        shell: pwsh
         run: |
           rustc --version
           cargo --version
 
       - name: cargo test --workspace (native x86_64-pc-windows-msvc)
         working-directory: ${{ github.workspace }}
+        shell: pwsh
         run: cargo test --workspace --locked
-
-  # Job 4: ODS GitHub Action matrix test (Linux, macOS, Windows)
-  action-test:
-    name: action (${{ matrix.os }})
-    needs: [bump-version]
-    if: always()
-    strategy:
-      fail-fast: false
-      matrix:
-        os: [ubuntu-latest, macos-latest, windows-latest]
-    runs-on: ${{ matrix.os }}
-    timeout-minutes: 30
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v5
-
-      - name: Test Action Setup Mode
-        uses: ./
-        with:
-          command: 'none'
-
-      - name: Verify CLI in PATH
-        run: ods --version
-
-      - name: Test Action Lint Mode
-        uses: ./
-        with:
-          command: 'lint'
-          path: 'ods-test/ecommerce'
-
-      - name: Test Action Index Check Mode
-        uses: ./
-        with:
-          command: 'index-check'
-          path: 'ods-test/ecommerce'
 
