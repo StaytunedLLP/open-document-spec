@@ -1,7 +1,0 @@
-[build]
-target-dir = ".artifacts/target"
-# Cargo's native incremental compilation for all profiles (including release,
-# which cargo otherwise disables by default) — speeds up the local edit/build/
-# test/benchmark loop; CARGO_INCREMENTAL=0 still overrides this if ever needed
-# for a fully reproducible/optimized release artifact build.
-incremental = true

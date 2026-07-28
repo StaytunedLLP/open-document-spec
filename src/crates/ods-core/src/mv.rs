@@ -1,9 +1,0 @@
-include!("mv/remover.rs");
-include!("mv/renamer.rs");
-include!("mv/rewriter.rs");
-include!("mv/classifier.rs");
-include!("mv/applier.rs");
-include!("mv/healer.rs");
-include!("mv/canonicalizer.rs");
-include!("mv/migrator.rs");
-include!("mv/tests.rs");
