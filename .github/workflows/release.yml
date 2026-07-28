@@ -293,7 +293,7 @@ jobs:
           echo "Release package version: ${TAG}"
 
       - name: Ensure build tools — Linux (ubuntu-latest)
-        if: matrix.runs-on == 'ubuntu-latest'
+        if: matrix.runs-on == 'ubuntu-latest' && matrix.use-cross != true
         timeout-minutes: 10
         working-directory: ${{ github.workspace }}
         run: |
