@@ -1,0 +1,83 @@
+#![forbid(unsafe_code)]
+
+pub mod adopt;
+pub mod bench;
+pub mod context;
+pub mod export;
+pub mod fs;
+pub mod index;
+pub mod lifecycle;
+pub mod lint;
+pub mod model;
+pub mod mv;
+pub mod observe;
+pub mod parse;
+pub mod profiles;
+pub mod refs;
+pub mod share;
+pub mod tags;
+
+pub use bench::{
+    BenchRestoreReport, BenchRunReport, BenchStatsReport, BenchStripOptions, BenchStripReport,
+    bench_calculate_stats, bench_restore_workspace, bench_run_simulation, bench_strip_workspace,
+    compute_repo_hash, get_backup_dir,
+};
+
+pub use adopt::{AdoptOptions, AdoptReport, adopt_workspace};
+pub use context::resolve_context;
+pub use export::{export_workspace_graph, render_graph_markdown};
+pub use fs::{
+    find_workspace_root, index_has_ods_field, load_workspace, load_workspace_with_options,
+    normalize_join, normalize_path, path_matches_workspace_ignore, rebuild_indexes,
+    remove_document, upsert_document,
+};
+pub use lifecycle::{
+    DisableOptions, DisableReport, InitOptions, InitReport, NewDocumentOptions, NewDocumentReport,
+    RemoveDocumentOptions, RemoveDocumentReport, atomic_delete_document, disable_workspace,
+    init_workspace, ods_enabled, ods_enabled_for_path, scaffold_new_document,
+    strip_ods_from_document_text,
+};
+pub use observe::{
+    TreeSnapshot, WatchTree, observe_renames, paired_from_paths, scan_markdown_tree,
+    scan_markdown_tree_with_code_paths,
+};
+pub mod path_util {
+    pub use crate::fs::{normalize_join, normalize_path};
+}
+pub use index::{generate_indexes, index_directories, indexes_are_current, render_index};
+pub use lint::{
+    known_profiles, lint_document_in_workspace, lint_workspace, lint_workspace_with_level,
+    lint_workspace_with_ref_style, profile_section_labels, profile_sections,
+    workspace_alias_suggestions, workspace_aliases,
+};
+pub use model::{
+    CodeRef, CodeRole, Diagnostic, Document, Frontmatter, FrontmatterState, LintLevel, LoadOptions,
+    ProfileCatalog, ProfileConflict, ProfileDefinition, ResourceRef, Severity, Workspace,
+    current_ods_cli_requirement, current_ods_spec_version, current_ods_version,
+    ods_cli_requirement_satisfied,
+};
+pub use mv::{
+    PathChange, PathChangeReport, apply_path_changes, canonicalize_workspace_document_refs,
+    canonicalize_workspace_document_refs_with_workspace, classify_watch_events,
+    compute_path_change_edits, heal_orphan_path_ids, migrate_frontmatter_to_canonical,
+    migrate_workspace_frontmatter, migrate_workspace_frontmatter_with_workspace,
+    move_document_and_rewrite_refs, move_document_and_rewrite_refs_report,
+    normalize_frontmatter_body_spacing, normalize_workspace_frontmatter_spacing,
+    normalize_workspace_frontmatter_spacing_with_workspace, reindex_workspace,
+    rewrite_references_in_text, rewrite_refs_after_moves,
+};
+pub use parse::{
+    document_id, extract_heading_groups, extract_headings, parse_document_text, split_frontmatter,
+    split_markdown_link_target,
+};
+pub use profiles::{load_profile_catalog, profile_catalog_roots, standard_profile_catalog};
+pub use refs::{
+    canonical_document_ref, canonical_document_ref_for_reference, document_ref_to_id,
+    document_ref_to_path, is_file_like_ref, is_markdown_ref,
+};
+pub use share::{ShareLevel, ShareOptions, SharePublishReport, effective_share, publish_workspace};
+pub use tags::{
+    TagRenameReport, builtin_tags, completion_tags, docs_with_any_tag, docs_with_tag,
+    is_builtin_tag, normalize_tag, normalize_tag_list, observed_tags, rename_tag_in_workspace,
+    rewrite_tags_in_text, tag_usage, tag_usage_with_builtins,
+};

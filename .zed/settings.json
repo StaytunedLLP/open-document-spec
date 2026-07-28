@@ -1,0 +1,16 @@
+{
+  "languages": {
+    "Markdown": {
+      "language_servers": ["ods-lsp"],
+      "enable_language_server": true
+    }
+  },
+  "lsp": {
+    "ods-lsp": {
+      "binary": {
+        "path": "ods-lsp",
+        "arguments": []
+      }
+    }
+  }
+}
