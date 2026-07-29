@@ -4,7 +4,7 @@ ods:
   status: draft
 ---
 
-# Open  Document Spec (ODS)
+# Open Document Spec (ODS)
 
 [![ci](https://github.com/StaytunedLLP/open-document-spec/actions/workflows/ci.yml/badge.svg)](https://github.com/StaytunedLLP/open-document-spec/actions/workflows/ci.yml)
 
