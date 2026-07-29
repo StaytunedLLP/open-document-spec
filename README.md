@@ -7,9 +7,6 @@ ods:
 # Open Document Spec (ODS)
 
 [![ci](https://github.com/StaytunedLLP/open-document-spec/actions/workflows/ci.yml/badge.svg)](https://github.com/StaytunedLLP/open-document-spec/actions/workflows/ci.yml)
-[![License: Proprietary](https://img.shields.io/badge/License-Proprietary-red.svg)](LICENSE)
-l test cases
-**License:** Proprietary — © Staytuned LLP · **Contributing:** [CONTRIBUTING.md](CONTRIBUTING.md) · **Security:** [SECURITY.md](SECURITY.md) · **Changelog:** [CHANGELOG.md](CHANGELOG.md)
 
 Open Document Spec (ODS) is a lightweight, human-first convention built on plain Markdown. It enriches Markdown repositories with machine-readable YAML frontmatter metadata, explicit graph relationships, and deterministic AI context loading—all managed via a single native CLI binary (**`ods`**).
 
