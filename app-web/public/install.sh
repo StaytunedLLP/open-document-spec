@@ -111,19 +111,21 @@ if [ "${DOWNLOADED}" -eq 1 ]; then
 fi
 
 # Fallback to Rust Cargo Installation if Binary Release is unavailable
-if [ "${INSTALLED}" -eq 0 ] && command -v cargo >/dev/null 2>&1; then
-    echo -e "${YELLOW}Pre-compiled binary release not available yet. Building via Cargo...${RESET}"
-    if cargo install --git "https://github.com/${REPO}" ods || cargo install ods; then
-        INSTALLED=1
-        TARGET_DIR="$HOME/.cargo/bin"
+if [ "${INSTALLED}" -eq 0 ]; then
+    echo -e "${YELLOW}Could not download pre-compiled binary for ${ASSET}.${RESET}"
+    if command -v cargo >/dev/null 2>&1; then
+        echo -e "${YELLOW}Rust/Cargo is available. Falling back to building via Cargo...${RESET}"
+        if cargo install --git "https://github.com/${REPO}" ods || cargo install ods-cli; then
+            INSTALLED=1
+            TARGET_DIR="$HOME/.cargo/bin"
+        fi
     fi
 fi
 
 if [ "${INSTALLED}" -eq 0 ]; then
-    echo -e "${YELLOW}Could not download pre-compiled binary for ${ASSET}.${RESET}"
     echo "To install ODS on your system:"
     echo "1. Install Rust toolchain from https://rustup.rs"
-    echo "2. Run: cargo install --git https://github.com/${REPO} ods"
+    echo "2. Run: cargo install ods-cli"
     exit 1
 fi
 
