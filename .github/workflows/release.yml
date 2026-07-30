@@ -32,6 +32,7 @@ permissions:
 env:
   CARGO_TERM_COLOR: always
   CARGO_INCREMENTAL: "1"
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: "true"
 
 jobs:
   # Resolve version on tip of main, tag, push (no stale workflow_run SHA)
@@ -53,7 +54,7 @@ jobs:
     steps:
       # Always tip of main so version bumps can push fast-forward (never stale CI SHA).
       - name: Checkout main tip
-        uses: actions/checkout@v5
+        uses: actions/checkout@v7
         with:
           fetch-depth: 0
           token: ${{ secrets.GITHUB_TOKEN }}
@@ -276,7 +277,7 @@ jobs:
 
     steps:
       - name: Checkout release SHA
-        uses: actions/checkout@v5
+        uses: actions/checkout@v7
         with:
           fetch-depth: 0
           ref: ${{ needs.prepare.outputs.release_sha }}
@@ -522,6 +523,7 @@ jobs:
           $Version = "${{ steps.version.outputs.tag }}"
           $Asset   = "${{ matrix.asset }}"
           $Out     = "odc-$Version-$Asset"
+          $Legacy  = "ods-$Version-$Asset"
           New-Item -ItemType Directory -Force -Path "dist\$Out" | Out-Null
 
           Copy-Item "${{ steps.bins.outputs.odc }}" "dist\$Out\odc.exe"
@@ -547,13 +549,18 @@ jobs:
 
           Compress-Archive -Path "dist\$Out" -DestinationPath "dist\$Out.zip" -Force
 
-          $Hash = (Get-FileHash "dist\$Out.zip" -Algorithm SHA256).Hash.ToLowerInvariant()
-          "$Hash  $Out.zip" | Add-Content "dist\SHA256SUMS.$Asset"
+          Copy-Item -Recurse "dist\$Out" "dist\$Legacy"
+          Compress-Archive -Path "dist\$Legacy" -DestinationPath "dist\$Legacy.zip" -Force
+
+          $HashOut = (Get-FileHash "dist\$Out.zip" -Algorithm SHA256).Hash.ToLowerInvariant()
+          $HashLegacy = (Get-FileHash "dist\$Legacy.zip" -Algorithm SHA256).Hash.ToLowerInvariant()
+          "$HashOut  $Out.zip" | Add-Content "dist\SHA256SUMS.$Asset"
+          "$HashLegacy  $Legacy.zip" | Add-Content "dist\SHA256SUMS.$Asset"
 
           Get-ChildItem dist | Format-Table Name, Length
 
       - name: Upload workflow artifact
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: ods-release-${{ matrix.asset }}
           path: |
@@ -574,7 +581,7 @@ jobs:
     timeout-minutes: 30
     steps:
       - name: Download all platform artifacts
-        uses: actions/download-artifact@v6
+        uses: actions/download-artifact@v8
         with:
           path: dist
           pattern: ods-release-*
@@ -590,7 +597,7 @@ jobs:
           test -s dist/SHA256SUMS
 
       - name: Upload merged SHA256SUMS
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: ods-release-checksums
           path: dist/SHA256SUMS
@@ -611,7 +618,7 @@ jobs:
 
     steps:
       - name: Download all release artifacts
-        uses: actions/download-artifact@v6
+        uses: actions/download-artifact@v8
         with:
           path: dist
           pattern: ods-release-*
