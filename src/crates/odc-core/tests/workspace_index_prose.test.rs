@@ -88,6 +88,7 @@ fn context_query_fallback_and_code_ref_tests() {
 
     assert!(odc_core::resolve_context(&ws, "nonexistent", true).is_empty());
 
+    let res = odc_core::resolve_context(&ws, "my-doc", true);
     let my_doc = dir.join("my-doc.md");
     let my_doc_canon = my_doc.canonicalize().unwrap_or_else(|_| my_doc.clone());
     let lib_rs = dir.join("src/lib.rs");
