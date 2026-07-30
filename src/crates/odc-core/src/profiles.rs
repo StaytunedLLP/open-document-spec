@@ -290,7 +290,12 @@ mod tests {
             true,
         );
         let roots = profile_catalog_roots(root, Some(&index_doc));
-        assert!(roots.contains(&pack_dir) || roots.contains(&root.join("ods-profiles")));
+        let pack_dir_canon = pack_dir.canonicalize().unwrap_or_else(|_| pack_dir.clone());
+        assert!(
+            roots.contains(&pack_dir)
+                || roots.contains(&pack_dir_canon)
+                || roots.contains(&root.join("ods-profiles"))
+        );
 
         let prof_dir = root.join("ods-profiles").join("sub");
         fs::create_dir_all(&prof_dir).unwrap();

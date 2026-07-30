@@ -60,8 +60,8 @@ fn is_index_md(path: &Path) -> bool {
 /// directory-level default (walking up to, and including, `workspace.root`);
 /// otherwise `ShareLevel::Public`.
 pub fn effective_share(doc_path: &Path, workspace: &Workspace) -> ShareLevel {
-    if let Some(&idx) = workspace.by_path.get(doc_path)
-        && let Some(fm) = parsed_fm(&workspace.documents[idx])
+    if let Some(doc) = workspace.document_by_path(doc_path)
+        && let Some(fm) = parsed_fm(doc)
         && let Some(level) = fm.share.as_deref().and_then(ShareLevel::parse)
     {
         return level;
@@ -74,8 +74,8 @@ pub fn effective_share(doc_path: &Path, workspace: &Workspace) -> ShareLevel {
     loop {
         let index_path = current.join("index.md");
         if index_path != doc_path
-            && let Some(&idx) = workspace.by_path.get(&index_path)
-            && let Some(fm) = parsed_fm(&workspace.documents[idx])
+            && let Some(doc) = workspace.document_by_path(&index_path)
+            && let Some(fm) = parsed_fm(doc)
             && let Some(level) = fm.share.as_deref().and_then(ShareLevel::parse)
         {
             return level;

@@ -267,6 +267,7 @@ impl Workspace {
     pub fn document_by_path(&self, path: &std::path::Path) -> Option<&Document> {
         self.by_path
             .get(path)
+            .or_else(|| path.canonicalize().ok().as_ref().and_then(|p| self.by_path.get(p)))
             .and_then(|&idx| self.documents.get(idx))
     }
 }
