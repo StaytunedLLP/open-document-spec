@@ -472,9 +472,7 @@ jobs:
           set -euo pipefail
           VERSION="${{ steps.version.outputs.tag }}"
           ASSET="${{ matrix.asset }}"
-          # Primary archive name is odc-*; also publish legacy ods-* alias for installers mid-transition
           OUT="odc-${VERSION}-${ASSET}"
-          LEGACY="ods-${VERSION}-${ASSET}"
           mkdir -p "dist/${OUT}"
 
           cp "${{ steps.bins.outputs.odc }}" "dist/${OUT}/odc"
@@ -507,14 +505,11 @@ jobs:
           rm -f "dist/${OUT}/INSTALL.txt.bak"
 
           (cd dist && tar czf "${OUT}.tar.gz" "${OUT}")
-          # Legacy alias archive (same payload) for mid-transition installers
-          cp -a "dist/${OUT}" "dist/${LEGACY}"
-          (cd dist && tar czf "${LEGACY}.tar.gz" "${LEGACY}")
 
           if command -v sha256sum >/dev/null 2>&1; then
-            (cd dist && sha256sum "${OUT}.tar.gz" "${LEGACY}.tar.gz" >> "SHA256SUMS.${ASSET}")
+            (cd dist && sha256sum "${OUT}.tar.gz" >> "SHA256SUMS.${ASSET}")
           elif command -v shasum >/dev/null 2>&1; then
-            (cd dist && shasum -a 256 "${OUT}.tar.gz" "${LEGACY}.tar.gz" >> "SHA256SUMS.${ASSET}")
+            (cd dist && shasum -a 256 "${OUT}.tar.gz" >> "SHA256SUMS.${ASSET}")
           fi
 
           ls -lh dist/
@@ -665,12 +660,12 @@ jobs:
           cd verify
 
           expected=(
-            "ods-${TAG}-linux-x86_64.tar.gz"
-            "ods-${TAG}-linux-arm64.tar.gz"
-            "ods-${TAG}-macos-x86_64.tar.gz"
-            "ods-${TAG}-macos-arm64.tar.gz"
-            "ods-${TAG}-windows-x86_64.zip"
-            "ods-${TAG}-windows-arm64.zip"
+            "odc-${TAG}-linux-x86_64.tar.gz"
+            "odc-${TAG}-linux-arm64.tar.gz"
+            "odc-${TAG}-macos-x86_64.tar.gz"
+            "odc-${TAG}-macos-arm64.tar.gz"
+            "odc-${TAG}-windows-x86_64.zip"
+            "odc-${TAG}-windows-arm64.zip"
             "SHA256SUMS"
           )
 
