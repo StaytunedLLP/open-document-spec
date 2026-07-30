@@ -217,12 +217,11 @@ or stale, run `ods setup <path>` to repair it before `lint`/`index`/`start`.
 - Refactor: with `start`/`watch` on, renames map automatically; otherwise `ods mv` (offline) or `ods sync` (after a git rename).
 - Feed an agent: prefer `ods context <id>` (bounded) over full `ods export`.
 
-**Workspace Migration Best Practices:**
-1. **Document-Relative Code Paths:** `code[].path` in document frontmatter is evaluated relative to the document file location (e.g. `../../src/...` for a doc 1 level down, `../../../src/...` for 2 levels down). Always count relative navigation steps from the doc file back to the target code file.
-2. **Profile Selection (`note` vs `guide`/`sop`):** Use `profile: note` for overview pages, landing indexes, and architecture blueprints. Standard `guide` or `sop` profiles enforce required section headings (`Overview`, `Prerequisites`, `Steps`, `Troubleshooting`). Using `note` retains all metadata checks (`code`, `owner`, `tags`, `depends`) without section warnings.
-3. **Excluding Legacy Content:** Exclude legacy folders containing unmaintained external links or absolute paths by setting `ignore: [changelog/, plan/, reports/, research/]` in the root `index.md` frontmatter.
-4. **Dangling Body Links:** Level-3 linting checks Markdown file links in body text. If referencing illustrative or non-existent starter files, format them as inline code ticks (`` `stayarch.schema.ts` ``) instead of markdown links (`[stayarch.schema.ts](...)`).
-5. **NPM Script Integration:** Expose `"docs:lint": "ods lint docs --level 3"`, `"docs:index-check": "ods index docs --check"`, and `"docs:doctor": "ods doctor docs"` in `package.json` to lock verification into CI/CD.
+**Workspace Migration Guidelines:**
+1. **Document-Relative Code Paths:** `code[].path` in document frontmatter is evaluated relative to the document file location (e.g. `../../src/...` for 1 level down, `../../../src/...` for 2 levels down).
+2. **Excluding Legacy Content:** Exclude legacy folders containing unmaintained external links by setting `ignore: [changelog/, plan/, reports/, research/]` in root `index.md` frontmatter.
+3. **NPM Integration:** Expose `"docs:lint": "ods lint docs --level 3"`, `"docs:index-check": "ods index docs --check"`, and `"docs:doctor": "ods doctor docs"` in `package.json`.
+*(Note: Case-insensitive reference lookups and index prose preservation are handled natively by the ODS CLI binary via PR #14).*
 
 **Troubleshooting & Health Diagnostics:**
 - Check if background watch service is running: `ods start --status [path]` (returns `installed=true/false running=true/false`).
