@@ -32,6 +32,14 @@ pub fn document_ref_to_path(
             if let Some(target) = workspace.document_by_path(&candidate) {
                 return Some(target.path.clone());
             }
+            let candidate_lower = candidate.to_string_lossy().to_lowercase();
+            if let Some(target) = workspace
+                .documents
+                .iter()
+                .find(|doc| doc.path.to_string_lossy().to_lowercase() == candidate_lower)
+            {
+                return Some(target.path.clone());
+            }
         }
 
         let without_md = reference
@@ -54,6 +62,14 @@ pub fn document_ref_to_path(
         normalize_join(&workspace.root, Path::new(&markdown_reference)),
     ] {
         if let Some(target) = workspace.document_by_path(&candidate) {
+            return Some(target.path.clone());
+        }
+        let candidate_lower = candidate.to_string_lossy().to_lowercase();
+        if let Some(target) = workspace
+            .documents
+            .iter()
+            .find(|doc| doc.path.to_string_lossy().to_lowercase() == candidate_lower)
+        {
             return Some(target.path.clone());
         }
     }

@@ -214,6 +214,12 @@ or stale, run `odc setup <path>` to repair it before `lint`/`index`/`start`.
 - Refactor: with `start`/`watch` on, renames map automatically; otherwise `odc ods mv` (offline) or `odc ods sync` (after a git rename).
 - Feed an agent: prefer `odc ods context <id>` (bounded) over full `odc ods export`.
 
+**Workspace Migration Guidelines:**
+1. **Document-Relative Code Paths:** `code[].path` in document frontmatter is evaluated relative to the document file location (e.g. `../../src/...` for 1 level down, `../../../src/...` for 2 levels down).
+2. **Excluding Legacy Content:** Exclude legacy folders containing unmaintained external links by setting `ignore: [changelog/, plan/, reports/, research/]` in root `index.md` frontmatter.
+3. **NPM Integration:** Expose `"docs:lint": "ods lint docs --level 3"`, `"docs:index-check": "ods index docs --check"`, and `"docs:doctor": "ods doctor docs"` in `package.json`.
+*(Note: Case-insensitive reference lookups and index prose preservation are handled natively by the ODS CLI binary via PR #14).*
+
 **Troubleshooting & Health Diagnostics:**
 - Check if background watch service is running: `odc ods start --status [path]` (returns `installed=true/false running=true/false`).
 - Validate complete workspace health: `odc ods doctor [path]` (verifies CLI version, document counts, index freshness, profile conflicts, pending git renames, and background service state; exits 1 on failure).
