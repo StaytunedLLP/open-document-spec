@@ -62,7 +62,11 @@ GitHub Releases use GitHub’s auto-generated notes. Edit this file by hand when
   - Graph commands (`lint`, `doctor`, `index`, `context`, `graph`, `find`, `tags`, `profiles`) load with `include_body: false` (note bodies dropped; **`index.md` bodies kept** for child-list rules).
   - `odc watch` / `serve` keep a long-lived workspace and reparse **dirty paths only** (full reload only on first tick or large dirty sets). `ODC_JOBS` caps parse threads.
   - Lint report `.odc/odc-errors.md` capped at 500 diagnostics + summary.
-- **Strict Workspace Targeting**: `find_workspace_root` no longer falls back to arbitrary directories. ODS CLI commands now verify local `ods:` root index markers or global registry tracking before executing, preventing accidental folder pollution.
+- **Codebase Refactoring & <300 Line File Modularization**:
+  - Restructured and modularized 100% of Rust files in `src/crates/` (`odc-core` & `odc`) to be strictly under 300 lines of code (0 files exceeding 300 lines).
+  - Extracted sub-modules semantically across test suites, entry dispatchers, configuration helpers, watch handlers, and rename algorithms (`entry_dispatch.rs`, `okf_watch.rs`, `agents_command.rs`, `pack_subcommands.rs`, `rename_pairing.rs`, `classifier_rewriter.rs`, `workspaces_config.rs`, `lint_tests.rs`).
+  - Renamed generic test file names to explicit semantic names (`parse_refs_and_links.test.rs`, `cli_service_lifecycle.test.rs`, `cli_frontmatter_commands.test.rs`, `cli_workspaces_command.test.rs`).
+  - Resolved all merge conflicts with `origin/main` branch (`v0.0.5`), aligning lockfiles, documentation, and dependencies.
 - Auto-update respects `ODC_AUTO_UPDATE` as well as `ODS_AUTO_UPDATE`.
 
 ## [0.0.1] - 2026-07-19

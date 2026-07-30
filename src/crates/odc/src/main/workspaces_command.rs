@@ -56,14 +56,7 @@ pub fn load_registry_paths() -> Vec<String> {
     Vec::new()
 }
 
-/// Load registered pack entries from machine config.
-pub fn load_registered_packs() -> Vec<PackEntry> {
-    let path = registry_path();
-    let Ok(content) = fs::read_to_string(&path) else {
-        return Vec::new();
-    };
-    parse_pack_entries(&content)
-}
+
 
 fn parse_pack_entries(content: &str) -> Vec<PackEntry> {
     let mut entries = Vec::new();
@@ -150,159 +143,9 @@ pub(crate) fn save_pack_entry(entry: PackEntry) -> Result<(), CliError> {
     save_config_with_packs(&load_registry_paths(), &packs)
 }
 
-/// Helper to check if an asset is due for auto-update based on frequency.
-pub fn should_auto_update(last_updated: &str, frequency: &str) -> bool {
-    if frequency == "never" || frequency == "off" {
-        return false;
-    }
 
-    if last_updated.is_empty() {
-        return true;
-    }
 
-    let Ok(updated_sec) = parse_iso_timestamp(last_updated) else {
-        return true;
-    };
-
-    let now_sec = std::time::SystemTime::now()
-        .duration_since(std::time::UNIX_EPOCH)
-        .map(|d| d.as_secs())
-        .unwrap_or(0);
-
-    if now_sec < updated_sec {
-        return false;
-    }
-
-    let elapsed = now_sec - updated_sec;
-    match frequency {
-        "hourly" => elapsed >= 3600,
-        "daily" => elapsed >= 86400,
-        "weekly" => elapsed >= 604800,
-        _ => elapsed >= 86400,
-    }
-}
-
-pub fn current_iso_timestamp() -> String {
-    let now = std::time::SystemTime::now()
-        .duration_since(std::time::UNIX_EPOCH)
-        .map(|d| d.as_secs())
-        .unwrap_or(0);
-    format!("{now}")
-}
-
-fn parse_iso_timestamp(text: &str) -> Result<u64, ()> {
-    text.trim().parse::<u64>().map_err(|_| ())
-}
-
-/// Parse workspace paths from TOML content supporting both `[workspaces] paths = [...]` and legacy `[[workspace]] path = "..."`.
-fn parse_workspace_paths(content: &str) -> Vec<String> {
-    let mut paths = Vec::new();
-    let mut in_workspaces_section = false;
-    let mut collecting_paths_array = false;
-
-    for line in content.lines() {
-        let trimmed = line.trim();
-
-        if trimmed == "[workspaces]" {
-            in_workspaces_section = true;
-            collecting_paths_array = false;
-            continue;
-        }
-
-        if trimmed.starts_with('[') && trimmed.ends_with(']') && trimmed != "[[workspace]]" {
-            in_workspaces_section = false;
-            collecting_paths_array = false;
-        }
-
-        // Support [workspaces] paths = ["/a", "/b"]
-        if (in_workspaces_section || collecting_paths_array)
-            && (trimmed.starts_with("paths = [") || collecting_paths_array || trimmed.starts_with("paths="))
-        {
-            collecting_paths_array = !trimmed.contains(']');
-            for part in trimmed.split(',') {
-                let cleaned = part
-                    .trim()
-                    .trim_start_matches("paths = [")
-                    .trim_start_matches("paths=[")
-                    .trim_start_matches('[')
-                    .trim_end_matches(']')
-                    .trim();
-                let unquoted = unquote_str(cleaned);
-                if !unquoted.is_empty() && unquoted != "paths" && !unquoted.starts_with('#') {
-                    paths.push(unquoted);
-                }
-            }
-        }
-
-        // Support legacy [[workspace]] path = "/some/path"
-        if let Some(rest) = trimmed.strip_prefix("path") {
-            let rest = rest.trim_start();
-            if let Some(rest) = rest.strip_prefix('=') {
-                let unquoted = unquote_str(rest.trim());
-                if !unquoted.is_empty() {
-                    paths.push(unquoted);
-                }
-            }
-        }
-    }
-
-    paths.sort();
-    paths.dedup();
-    paths
-}
-
-fn unquote_str(text: &str) -> String {
-    let trimmed = text.trim();
-    if (trimmed.starts_with('"') && trimmed.ends_with('"') && trimmed.len() >= 2)
-        || (trimmed.starts_with('\'') && trimmed.ends_with('\'') && trimmed.len() >= 2)
-    {
-        trimmed[1..trimmed.len() - 1].to_string()
-    } else {
-        trimmed.to_string()
-    }
-}
-
-/// Write the registry file (prefer ~/.odc/odcconfig.toml).
-pub(crate) fn save_registry_paths(paths: &[String]) -> Result<(), CliError> {
-    let packs = load_registered_packs();
-    save_config_with_packs(paths, &packs)
-}
-
-fn save_config_with_packs(paths: &[String], packs: &[PackEntry]) -> Result<(), CliError> {
-    // Always write modern path when creating/updating (migrate off legacy).
-    let home = env::var("HOME")
-        .or_else(|_| env::var("USERPROFILE"))
-        .unwrap_or_else(|_| ".".into());
-    let reg_path = PathBuf::from(&home).join(".odc/odcconfig.toml");
-    if let Some(parent) = reg_path.parent() {
-        fs::create_dir_all(parent)
-            .map_err(|e| failure(format!("failed to create registry directory: {e}")))?;
-    }
-    let mut content = String::from(
-        "# OpenDocify global machine configuration (~/.odc/odcconfig.toml)\n\
-         # Managed by `odc workspaces` and `odc pack`. You can also edit this file directly.\n\n\
-         [workspaces]\n\
-         paths = [\n",
-    );
-    for path in paths {
-        content.push_str(&format!("  \"{path}\",\n"));
-    }
-    content.push_str("]\n\n");
-
-    for pack in packs {
-        content.push_str("[[pack]]\n");
-        content.push_str(&format!("workspace = \"{}\"\n", pack.workspace));
-        content.push_str(&format!("name = \"{}\"\n", pack.name));
-        content.push_str(&format!("path = \"{}\"\n", pack.path));
-        content.push_str(&format!("source = \"{}\"\n", pack.source));
-        content.push_str(&format!("auto_update = \"{}\"\n", pack.auto_update));
-        content.push_str(&format!("last_updated = \"{}\"\n\n", pack.last_updated));
-    }
-
-    fs::write(&reg_path, content)
-        .map_err(|e| failure(format!("failed to write machine config: {e}")))?;
-    Ok(())
-}
+include!("workspaces_config.rs");
 
 /// Check if a path is inside a registered workspace from the global registry.
 fn is_registered_workspace(root: &Path) -> bool {
@@ -438,39 +281,5 @@ fn run_workspaces_command(args: &[String]) -> Result<ExitCode, CliError> {
     }
 }
 
-#[cfg(test)]
-mod test_workspaces_command {
-    use super::*;
-
-    #[test]
-    fn test_run_workspaces_command_subcommands() {
-        assert!(run_workspaces_command(&["ods".into(), "workspaces".into(), "help".into()]).is_ok());
-        assert!(run_workspaces_command(&["ods".into(), "workspaces".into(), "path".into()]).is_ok());
-        assert!(run_workspaces_command(&["ods".into(), "workspaces".into(), "list".into()]).is_ok());
-
-        let err = run_workspaces_command(&["ods".into(), "workspaces".into(), "unknown".into()]);
-        assert!(err.is_err());
-
-        let td = tempfile::tempdir().unwrap();
-        let sample = td.path().join("ws");
-        std::fs::create_dir_all(&sample).unwrap();
-        std::fs::write(sample.join("index.md"), "---\nprofile: index\nods: 0.1\nodc: \">=0.0.1\"\n---\n\n# R\n").unwrap();
-
-        let res_list_txt = run_workspaces_command(&[
-            "ods".into(),
-            "workspaces".into(),
-            "list".into(),
-        ]);
-        assert!(res_list_txt.is_ok());
-
-        let res_list_json = run_workspaces_command(&[
-            "ods".into(),
-            "workspaces".into(),
-            "list".into(),
-            "--format".into(),
-            "json".into(),
-        ]);
-        assert!(res_list_json.is_ok());
-    }
-}
+include!("workspaces_tests.rs");
 

@@ -133,7 +133,7 @@ fn run_bench_command(args: &[String]) -> Result<ExitCode, CliError> {
             let (root, _level, format) = parse_common_flags(args, 3)?;
             let root = resolve_root_path(root);
 
-            let report = odc_core::bench_run_simulation(&root, &prompt, provider.as_deref())
+            let report = odc_core::bench_run_simulation(&root, &prompt, provider.as_deref().unwrap_or(""))
                 .map_err(|err| failure(err.to_string()))?;
 
             match format {

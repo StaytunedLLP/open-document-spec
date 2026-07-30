@@ -41,12 +41,12 @@ Coverage: see [docs/maintainer/coverage.md](docs/maintainer/coverage.md). Run `.
 
 - Prefer unit tests next to pure logic and integration tests under `crates/*/tests/`.
 - Production bar: high line coverage on `odc-core` (aim ≥85% workspace over time).
-- CI enforces a coverage floor (`--fail-under-lines`, currently 73%, see `.github/workflows/ci.yml`) that ratchets upward as coverage improves — never lower it to make a PR pass; add tests instead.
+- CI enforces a coverage floor (`--fail-under-lines`, currently 75%, see `.github/workflows/pr.yml`) that ratchets upward as coverage improves — never lower it to make a PR pass; add tests instead.
 - Always keep `odc ods index --check .` and `odc ods lint .` green at repo root.
 
 ```bash
 cargo install cargo-llvm-cov --locked
-cd src && cargo llvm-cov --workspace --locked --fail-under-lines 73
+cd src && cargo llvm-cov --workspace --locked --fail-under-lines 75
 ```
 
 ## CI

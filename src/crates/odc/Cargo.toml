@@ -37,12 +37,20 @@ name = "adopt_test"
 path = "tests/adopt.test.rs"
 
 [[test]]
-name = "commands_1_test"
-path = "tests/commands_1.test.rs"
+name = "cli_core_graph_commands_test"
+path = "tests/cli_core_graph_commands.test.rs"
 
 [[test]]
-name = "commands_2_test"
-path = "tests/commands_2.test.rs"
+name = "cli_frontmatter_commands_test"
+path = "tests/cli_frontmatter_commands.test.rs"
+
+[[test]]
+name = "cli_utility_commands_test"
+path = "tests/cli_utility_commands.test.rs"
+
+[[test]]
+name = "cli_tag_commands_test"
+path = "tests/cli_tag_commands.test.rs"
 
 [[test]]
 name = "export_and_service_test"
@@ -53,6 +61,10 @@ name = "lifecycle_bench_service_test"
 path = "tests/lifecycle_bench_service.test.rs"
 
 [[test]]
+name = "cli_service_lifecycle_test"
+path = "tests/cli_service_lifecycle.test.rs"
+
+[[test]]
 name = "features_service_test"
 path = "tests/features_service.test.rs"
 
@@ -61,12 +73,12 @@ name = "memory_serve_test"
 path = "tests/memory_serve.test.rs"
 
 [[test]]
-name = "production_matrix_1_test"
-path = "tests/production_matrix_1.test.rs"
+name = "cli_matrix_core_commands_test"
+path = "tests/cli_matrix_core_commands.test.rs"
 
 [[test]]
-name = "production_matrix_2_test"
-path = "tests/production_matrix_2.test.rs"
+name = "cli_matrix_lifecycle_and_lint_test"
+path = "tests/cli_matrix_lifecycle_and_lint.test.rs"
 
 [[test]]
 name = "profiles_test"
@@ -85,5 +97,9 @@ name = "okf_commands_test"
 path = "tests/okf_commands.test.rs"
 
 [[test]]
-name = "coverage_cli_extra_test"
-path = "tests/coverage_cli_extra.test.rs"
+name = "cli_upgrade_and_workspaces_test"
+path = "tests/cli_upgrade_and_workspaces.test.rs"
+
+[[test]]
+name = "cli_workspaces_command_test"
+path = "tests/cli_workspaces_command.test.rs"

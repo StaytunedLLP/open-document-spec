@@ -39,16 +39,24 @@ name = "features_tags_test"
 path = "tests/features_tags.test.rs"
 
 [[test]]
-name = "lint_rules_1_test"
-path = "tests/lint_rules_1.test.rs"
+name = "lint_profile_sections_test"
+path = "tests/lint_profile_sections.test.rs"
 
 [[test]]
-name = "lint_rules_2_test"
-path = "tests/lint_rules_2.test.rs"
+name = "lint_heading_aliases_test"
+path = "tests/lint_heading_aliases.test.rs"
+
+[[test]]
+name = "lint_share_and_pack_rules_test"
+path = "tests/lint_share_and_pack_rules.test.rs"
 
 [[test]]
 name = "parse_frontmatter_test"
 path = "tests/parse_frontmatter.test.rs"
+
+[[test]]
+name = "parse_refs_and_links_test"
+path = "tests/parse_refs_and_links.test.rs"
 
 [[test]]
 name = "migrate_frontmatter_test"
@@ -59,20 +67,28 @@ name = "path_changes_test"
 path = "tests/path_changes.test.rs"
 
 [[test]]
+name = "path_changes_healer_test"
+path = "tests/path_changes_healer.test.rs"
+
+[[test]]
 name = "watch_rename_e2e_test"
 path = "tests/watch_rename_e2e.test.rs"
 
 [[test]]
-name = "workspace_1_test"
-path = "tests/workspace_1.test.rs"
+name = "workspace_profiles_and_aliases_test"
+path = "tests/workspace_profiles_and_aliases.test.rs"
 
 [[test]]
-name = "workspace_2_test"
-path = "tests/workspace_2.test.rs"
+name = "workspace_context_and_links_test"
+path = "tests/workspace_context_and_links.test.rs"
 
 [[test]]
-name = "workspace_3_test"
-path = "tests/workspace_3.test.rs"
+name = "workspace_index_prose_test"
+path = "tests/workspace_index_prose.test.rs"
+
+[[test]]
+name = "workspace_explicit_ids_and_ignores_test"
+path = "tests/workspace_explicit_ids_and_ignores.test.rs"
 
 [[test]]
 name = "bench_test"

@@ -132,7 +132,7 @@ fn map_abs_through_moves(
     abs.to_path_buf()
 }
 
-fn rewrite_one_link_target(
+pub(super) fn rewrite_one_link_target(
     target: &str,
     doc_dir: &Path,
     root: &Path,

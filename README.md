@@ -145,7 +145,7 @@ For complete documentation, tutorials, specification rules, and guides, refer to
 | **[Open-Source Strategy](docs/strategy/open-source-strategy.md)**                             | Topography, repository organization, and governance strategy.                                                  |
 | **[Enterprise Pricing & Services](docs/strategy/enterprise-services-and-pricing.md)**         | Enterprise offerings, commercial service catalog, and SaaS pricing model.                                      |
 | **[Repository Visibility Guide](docs/maintainer/repository-visibility-guide.md)**             | Maintainer guide on public open-source vs private commercial repository boundaries.                            |
-| **[FEATURE_MATRIX.md](docs/FEATURE_MATRIX.md)**                                               | Complete matrix of frontmatter keys, specs, and auto-update behaviors.                                         |
+| **[Frontmatter Keys & Specs](docs/specs/frontmatter-keys-ods-vs-okf.md)**                     | Complete matrix of frontmatter keys, ODS vs OKF specs, and auto-update behaviors.                              |
 | **[specs/SPEC.md](specs/SPEC.md)**                                                            | Normative Open Document Specification (the formal spec rules).                                                 |
 | **[CONTRIBUTING.md](CONTRIBUTING.md#versioning--release-workflow-maintainers)**               | Developer guide, build instructions, and maintainer release workflows.                                         |
 

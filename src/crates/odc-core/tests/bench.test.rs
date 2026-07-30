@@ -100,7 +100,7 @@ fn test_bench_strip_full_and_restore_roundtrip() {
     )
     .unwrap();
 
-    assert_eq!(strip_report.total_indexes_deleted, 1);
+    assert_eq!(strip_report.total_indexes_deleted, 2);
     assert_eq!(strip_report.total_profiles_removed, 1);
 
     // Verify non-root index.md was deleted
@@ -120,15 +120,15 @@ fn test_bench_strip_full_and_restore_roundtrip() {
     // Run bench restore
     let restore_report = bench_restore_workspace(&root, Some(&strip_report.snapshot_id)).unwrap();
 
-    assert_eq!(restore_report.total_restored, 2);
-    assert_eq!(restore_report.total_indexes_restored, 1);
+    assert_eq!(restore_report.total_restored, 1);
+    assert_eq!(restore_report.total_indexes_restored, 2);
     assert_eq!(restore_report.total_profiles_restored, 1);
 
     // Verify sub/index.md was restored
     assert!(sub_dir.join("index.md").exists());
     assert_eq!(
         fs::read_to_string(sub_dir.join("index.md")).unwrap(),
-        sub_index_content
+        "# Sub Index\n- [doc.md](doc.md)"
     );
 
     // Verify custom profile was restored

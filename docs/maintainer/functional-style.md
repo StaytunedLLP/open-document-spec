@@ -1,3 +1,4 @@
+
 # Functional style for OpenDocify (`odc-core` / `odc`)
 
 Prefer **data + free functions** over OOP service objects.

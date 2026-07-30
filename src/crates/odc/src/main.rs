@@ -1,3 +1,4 @@
+// OpenDocify primary binary entrypoint
 #![forbid(unsafe_code)]
 
 mod service;

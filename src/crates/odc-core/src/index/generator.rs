@@ -8,12 +8,10 @@
 use crate::fs::{
     normalize_join, path_matches_workspace_ignore, paths_equal_normalized, should_ignore_name,
 };
-use crate::model::Workspace;
 use crate::parse::split_markdown_link_target;
 use std::collections::BTreeSet;
 use std::fs;
 use std::io;
-use std::path::{Path, PathBuf};
 
 /// Generate or update `index.md` for every directory that contains documents
 /// (and all ancestors up to the workspace root). Writes only when content would
