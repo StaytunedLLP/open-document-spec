@@ -1,10 +1,8 @@
 /// Detect engines from CWD/path markers and run ODS and/or OKF handlers.
 fn dispatch_auto_detect(args: &[String]) -> Result<ExitCode, CliError> {
     let cmd = args.get(1).map(String::as_str).unwrap_or("");
-    let probe = args
-        .iter()
-        .skip(2)
-        .find(|a| !a.starts_with('-'))
+    let probe = positional_args(args, 2)
+        .first()
         .map(PathBuf::from)
         .unwrap_or_else(|| env::current_dir().unwrap_or_else(|_| PathBuf::from(".")));
     let root = resolve_root_path(probe);

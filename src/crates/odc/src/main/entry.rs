@@ -65,11 +65,13 @@ fn failure<T: Into<String>>(message: T) -> CliError {
 
 /// Binary basename (e.g. `ods`, `odc`) — used for argv0 compat routing.
 fn invoked_name(args: &[String]) -> String {
-    Path::new(args.first().map(String::as_str).unwrap_or("odc"))
-        .file_name()
-        .and_then(|s| s.to_str())
-        .unwrap_or("odc")
-        .to_string()
+    let arg = args.first().map(String::as_str).unwrap_or("odc");
+    let name = arg
+        .rsplit(['/', '\\'])
+        .next()
+        .unwrap_or(arg)
+        .to_ascii_lowercase();
+    name.strip_suffix(".exe").unwrap_or(&name).to_string()
 }
 
 /// When the process is invoked as `ods` (legacy binary / symlink), bare document
@@ -239,3 +241,22 @@ fn run(args: Vec<String>) -> Result<ExitCode, CliError> {
 }
 
 include!("entry_dispatch.rs");
+
+#[cfg(test)]
+mod entry_tests {
+    use super::*;
+
+    #[test]
+    fn test_invoked_name_and_allows_bare_ods_commands() {
+        assert_eq!(invoked_name(&["ods".into()]), "ods");
+        assert_eq!(invoked_name(&["C:\\path\\to\\ods.exe".into()]), "ods");
+        assert_eq!(invoked_name(&["C:\\path\\to\\ODS.EXE".into()]), "ods");
+        assert_eq!(invoked_name(&["/usr/bin/ods".into()]), "ods");
+        assert_eq!(invoked_name(&["odc".into()]), "odc");
+        assert_eq!(invoked_name(&["C:\\path\\to\\odc.exe".into()]), "odc");
+
+        assert!(allows_bare_ods_commands(&["C:\\path\\to\\ods.exe".into(), "lint".into()]));
+        assert!(allows_bare_ods_commands(&["ods".into(), "doctor".into()]));
+        assert!(!allows_bare_ods_commands(&["odc.exe".into(), "lint".into()]));
+    }
+}
