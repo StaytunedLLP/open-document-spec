@@ -94,9 +94,9 @@ pub fn render_index(workspace: &Workspace, directory: &Path, existing: Option<&s
     }
 
     if !footer_prose.is_empty() {
-        out.push_str("\n");
+        out.push('\n');
         out.push_str(&footer_prose);
-        out.push_str("\n");
+        out.push('\n');
     }
 
     out
@@ -164,13 +164,13 @@ fn extract_prose(existing: &str, entries: &[IndexEntry]) -> (String, String) {
         }
 
         if let Some(t_idx) = title_idx {
-            for i in (t_idx + 1)..first {
-                header_lines.push(lines[i]);
+            if t_idx + 1 < first {
+                header_lines.extend_from_slice(&lines[(t_idx + 1)..first]);
             }
         }
 
-        for i in (last + 1)..lines.len() {
-            footer_lines.push(lines[i]);
+        if last + 1 < lines.len() {
+            footer_lines.extend_from_slice(&lines[(last + 1)..]);
         }
     } else {
         let mut title_idx = None;
@@ -190,8 +190,8 @@ fn extract_prose(existing: &str, entries: &[IndexEntry]) -> (String, String) {
             }
         }
         if let Some(t_idx) = title_idx {
-            for i in (t_idx + 1)..lines.len() {
-                header_lines.push(lines[i]);
+            if t_idx + 1 < lines.len() {
+                header_lines.extend_from_slice(&lines[(t_idx + 1)..]);
             }
         }
     }

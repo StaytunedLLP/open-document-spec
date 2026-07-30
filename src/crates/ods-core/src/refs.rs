@@ -33,9 +33,11 @@ pub fn document_ref_to_path(
                 return Some(target.path.clone());
             }
             let candidate_lower = candidate.to_string_lossy().to_lowercase();
-            if let Some(target) = workspace.documents.iter().find(|doc| {
-                doc.path.to_string_lossy().to_lowercase() == candidate_lower
-            }) {
+            if let Some(target) = workspace
+                .documents
+                .iter()
+                .find(|doc| doc.path.to_string_lossy().to_lowercase() == candidate_lower)
+            {
                 return Some(target.path.clone());
             }
         }
@@ -63,9 +65,11 @@ pub fn document_ref_to_path(
             return Some(target.path.clone());
         }
         let candidate_lower = candidate.to_string_lossy().to_lowercase();
-        if let Some(target) = workspace.documents.iter().find(|doc| {
-            doc.path.to_string_lossy().to_lowercase() == candidate_lower
-        }) {
+        if let Some(target) = workspace
+            .documents
+            .iter()
+            .find(|doc| doc.path.to_string_lossy().to_lowercase() == candidate_lower)
+        {
             return Some(target.path.clone());
         }
     }

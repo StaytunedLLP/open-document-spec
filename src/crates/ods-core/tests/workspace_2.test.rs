@@ -168,7 +168,7 @@ It explains where to report issues.
     assert!(generated.iter().any(|path| path.ends_with("index.md")));
 
     let rendered = fs::read_to_string(temp.join("index.md")).expect("read index");
-    
+
     assert!(rendered.contains("profile: index"));
     assert!(rendered.contains("# Root Index"));
     assert!(rendered.contains("Welcome to this workspace."));
