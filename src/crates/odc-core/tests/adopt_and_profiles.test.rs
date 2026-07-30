@@ -118,7 +118,9 @@ fn adopt_all_remaining_profiles_and_invalid_frontmatter() {
 
     let ws = load_workspace(&dir).unwrap();
     let report = adopt_workspace(&ws, AdoptOptions { write: true }).unwrap();
-    assert!(report.skipped.contains(&dir.join("bad.md")));
+    let bad_path = dir.join("bad.md");
+    let bad_canon = bad_path.canonicalize().unwrap_or_else(|_| bad_path.clone());
+    assert!(report.skipped.contains(&bad_path) || report.skipped.contains(&bad_canon));
 
     assert!(
         fs::read_to_string(dir.join("d.md"))
