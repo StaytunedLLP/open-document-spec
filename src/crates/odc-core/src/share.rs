@@ -578,4 +578,18 @@ mod tests {
         let _ = fs::remove_dir_all(&dir);
         let _ = fs::remove_dir_all(&out);
     }
+
+    #[test]
+    fn share_level_methods_and_edge_cases() {
+        assert_eq!(ShareLevel::parse("invalid"), None);
+        assert_eq!(ShareLevel::Public.as_str(), "public");
+        assert_eq!(ShareLevel::Org.as_str(), "org");
+        assert_eq!(ShareLevel::Private.as_str(), "private");
+
+        let ws = Workspace::empty(PathBuf::from("/ws"));
+        // parent is None
+        assert_eq!(effective_share(Path::new(""), &ws), ShareLevel::Public);
+        // parent outside workspace.root
+        assert_eq!(effective_share(Path::new("/other/dir/doc.md"), &ws), ShareLevel::Public);
+    }
 }

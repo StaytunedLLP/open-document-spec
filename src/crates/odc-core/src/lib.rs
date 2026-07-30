@@ -91,9 +91,9 @@ pub use tags::{
 pub use okf::{
     ActorEvent, DateRange, OkfAuditClass, OkfAuditReport, OkfBundle, OkfDocument, OkfFrontmatter,
     OkfFrontmatterState, OkfInitOptions, OkfInitReport, OkfLintLevel, OkfParameter, OkfSource,
-    OkfStatus, OkfTrustTier, ResourceRefFields, audit_okf_bundle, current_okf_version,
-    derive_trust_tier, export_okf_graph, fmt_okf_bundle, generate_okf_indexes, init_okf_bundle,
-    lint_okf_bundle, lint_okf_bundle_with_level, load_okf_bundle, okf_context, okf_enabled,
-    okf_indexes_are_current, okf_version_from_root, parse_okf_frontmatter_block,
+    OkfStatus, OkfTrustTier, ResourceRefFields, audit_okf_bundle, concept_id_for_path,
+    current_okf_version, derive_trust_tier, export_okf_graph, fmt_okf_bundle, generate_okf_indexes,
+    init_okf_bundle, lint_okf_bundle, lint_okf_bundle_with_level, load_okf_bundle, okf_context,
+    okf_enabled, okf_indexes_are_current, okf_version_from_root, parse_okf_frontmatter_block,
     render_okf_audit_markdown,
 };

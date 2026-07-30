@@ -451,24 +451,26 @@ mod test_workspaces_command {
         let err = run_workspaces_command(&["ods".into(), "workspaces".into(), "unknown".into()]);
         assert!(err.is_err());
 
-        let sample = std::path::Path::new("ods-test/ecommerce");
-        if sample.exists() {
-            let res_add = run_workspaces_command(&[
-                "ods".into(),
-                "workspaces".into(),
-                "add".into(),
-                sample.to_str().unwrap().into(),
-            ]);
-            assert!(res_add.is_ok());
+        let td = tempfile::tempdir().unwrap();
+        let sample = td.path().join("ws");
+        std::fs::create_dir_all(&sample).unwrap();
+        std::fs::write(sample.join("index.md"), "---\nprofile: index\nods: 0.1\nodc: \">=0.0.1\"\n---\n\n# R\n").unwrap();
 
-            let res_rem = run_workspaces_command(&[
-                "ods".into(),
-                "workspaces".into(),
-                "remove".into(),
-                sample.to_str().unwrap().into(),
-            ]);
-            assert!(res_rem.is_ok());
-        }
+        let res_list_txt = run_workspaces_command(&[
+            "ods".into(),
+            "workspaces".into(),
+            "list".into(),
+        ]);
+        assert!(res_list_txt.is_ok());
+
+        let res_list_json = run_workspaces_command(&[
+            "ods".into(),
+            "workspaces".into(),
+            "list".into(),
+            "--format".into(),
+            "json".into(),
+        ]);
+        assert!(res_list_json.is_ok());
     }
 }
 

@@ -115,3 +115,25 @@ fn dangling_pack_path_error() {
             .contains("missing pack path: vendor/non-existent-pack")
     }));
 }
+
+#[test]
+fn lint_code_line_suffix_and_extra_index_entries() {
+    let dir = temp_workspace();
+    fs::create_dir_all(dir.join("src")).unwrap();
+    fs::write(dir.join("src/main.rs"), "fn main() {}\n").unwrap();
+
+    // Index with extra non-existent entry
+    write_root(&dir, "- [a.md](a.md)\n- [extra_ghost.md](extra_ghost.md)\n");
+
+    // Code ref with line suffix and body with external URLs / anchors
+    fs::write(
+        dir.join("a.md"),
+        "---\nprofile: note\nstatus: draft\ncode:\n  - path: src/main.rs:L10\n    role: implementation\n---\n\n# A\n\n[Ext](https://example.com) [Anchor](#a) [Mail](mailto:user@test.com)\n",
+    )
+    .unwrap();
+
+    let ws = load_workspace(&dir).unwrap();
+    let diags = lint_workspace(&ws);
+    assert!(diags.iter().any(|d| d.message.contains("code path must not contain line number suffix")));
+    assert!(diags.iter().any(|d| d.message.contains("index has extra entries: extra_ghost.md")));
+}

@@ -27,3 +27,16 @@ fn run_share_command(args: &[String]) -> Result<ExitCode, CliError> {
     println!("(this only writes files; run git init/add/commit/push yourself to publish {})", out.display());
     Ok(ExitCode::from(0))
 }
+
+#[cfg(test)]
+mod test_share_command {
+    use super::*;
+
+    #[test]
+    fn share_command_not_an_ods_workspace_error() {
+        let td = tempfile::tempdir().unwrap();
+        let args = vec!["odc".into(), "share".into(), td.path().to_string_lossy().to_string(), "--out".into(), td.path().join("out").to_string_lossy().to_string()];
+        let res = run_share_command(&args);
+        assert!(res.is_err());
+    }
+}

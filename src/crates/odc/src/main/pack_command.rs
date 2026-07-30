@@ -328,6 +328,29 @@ mod test_pack_command {
             pack_path.to_str().unwrap().to_string(),
         ]);
         assert!(res_prev.is_ok() || res_prev.is_err());
+
+        // Test pack add and pack rm
+        let ws = td.path().join("ws");
+        std::fs::create_dir_all(&ws).unwrap();
+        std::fs::write(ws.join("index.md"), "---\nprofile: index\nods: 0.1\nodc: \">=0.0.1\"\n---\n\n# Root\n").unwrap();
+
+        let res_add = run_pack_add(&[
+            "ods".into(),
+            "pack".into(),
+            "add".into(),
+            ws.to_string_lossy().to_string(),
+            pack_path.to_string_lossy().to_string(),
+        ]);
+        assert!(res_add.is_ok());
+
+        let res_rm = run_pack_remove(&[
+            "ods".into(),
+            "pack".into(),
+            "rm".into(),
+            ws.to_string_lossy().to_string(),
+            pack_path.to_string_lossy().to_string(),
+        ]);
+        assert!(res_rm.is_ok());
     }
 }
 

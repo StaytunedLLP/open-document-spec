@@ -35,6 +35,8 @@ cargo install --path src/crates/odc --bin odc --bin ods --locked --force
 
 New engine code should follow [functional style](docs/maintainer/functional-style.md): data + free functions, no `*Manager` types.
 
+Coverage: see [docs/maintainer/coverage.md](docs/maintainer/coverage.md). Run `./src/scripts/coverage.sh`. CI enforces a line floor (currently 75%).
+
 ## Tests & coverage
 
 - Prefer unit tests next to pure logic and integration tests under `crates/*/tests/`.

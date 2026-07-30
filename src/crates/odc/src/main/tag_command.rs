@@ -135,20 +135,34 @@ mod test_tag_command {
         ]);
         assert!(err4.is_err());
 
-        let sample = std::path::Path::new("ods-test/ecommerce");
-        if sample.exists() {
-            let res = run_tag_command(&[
-                "ods".into(),
-                "tag".into(),
-                "rename".into(),
-                sample.to_str().unwrap().into(),
-                "oldtag".into(),
-                "newtag".into(),
-                "--format".into(),
-                "json".into(),
-            ]);
-            assert!(res.is_ok());
-        }
+        let td = tempfile::tempdir().unwrap();
+        std::fs::write(td.path().join("index.md"), "---\nprofile: index\nods: 0.1\nodc: \">=0.0.1\"\n---\n\n# R\n").unwrap();
+        std::fs::write(td.path().join("doc.md"), "---\nprofile: note\ntags:\n  - oldtag\n---\n\n# D\n").unwrap();
+
+        let res_txt = run_tag_command(&[
+            "ods".into(),
+            "tag".into(),
+            "rename".into(),
+            td.path().to_string_lossy().to_string(),
+            "oldtag".into(),
+            "newtag".into(),
+            "--format".into(),
+            "text".into(),
+        ]);
+        assert!(res_txt.is_ok());
+
+        let res_json = run_tag_command(&[
+            "ods".into(),
+            "tag".into(),
+            "rename".into(),
+            td.path().to_string_lossy().to_string(),
+            "oldtag".into(),
+            "newtag".into(),
+            "--write".into(),
+            "--format".into(),
+            "json".into(),
+        ]);
+        assert!(res_json.is_ok());
     }
 }
 

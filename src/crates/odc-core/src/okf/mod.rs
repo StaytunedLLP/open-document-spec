@@ -21,6 +21,6 @@ pub use lint::{lint_okf_bundle, lint_okf_bundle_with_level};
 pub use model::{
     ActorEvent, DateRange, OkfBundle, OkfDocument, OkfFrontmatter, OkfFrontmatterState,
     OkfLintLevel, OkfParameter, OkfSource, OkfStatus, OkfTrustTier, ResourceRefFields,
-    current_okf_version, derive_trust_tier,
+    concept_id_for_path, current_okf_version, derive_trust_tier,
 };
 pub use parse::parse_okf_frontmatter_block;

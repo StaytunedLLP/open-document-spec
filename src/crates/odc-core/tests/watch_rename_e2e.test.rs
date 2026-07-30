@@ -177,3 +177,28 @@ fn stable_id_without_slash_not_healed() {
     assert!(body.contains("id: stable-handle"));
     let _ = fs::remove_dir_all(&dir);
 }
+
+#[test]
+fn heal_orphan_path_ids_edge_cases() {
+    let _guard = WATCH_RENAME_TEST_LOCK.lock().unwrap();
+    let dir = tmp();
+    init_workspace(&dir, InitOptions::default()).unwrap();
+    fs::create_dir_all(dir.join("sub")).unwrap();
+    // Document a.md claims id sub/b, but sub/b.md actually exists (owned_path_ids collision)
+    fs::write(
+        dir.join("sub/a.md"),
+        "---\nprofile: note\nstatus: draft\nid: sub/b\n---\n\n# A\n",
+    ).unwrap();
+    fs::write(
+        dir.join("sub/b.md"),
+        "---\nprofile: note\nstatus: draft\n---\n\n# B\n",
+    ).unwrap();
+
+    // Plain doc with no frontmatter
+    fs::write(dir.join("plain.md"), "# Plain\n").unwrap();
+
+    let report = heal_orphan_path_ids(&dir).unwrap();
+    // sub/a.md shouldn't be healed because sub/b is owned by real sub/b.md
+    assert!(!report.rewritten_files.contains(&dir.join("sub/a.md")));
+    let _ = fs::remove_dir_all(&dir);
+}

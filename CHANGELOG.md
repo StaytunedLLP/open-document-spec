@@ -40,6 +40,7 @@ GitHub Releases use GitHub’s auto-generated notes. Edit this file by hand when
 
 ### Changed
 
+- **Test coverage:** policy in `docs/maintainer/coverage.md`; scripts `coverage.sh` + `coverage-100-check.sh`; CI floor **75%** lines. New tests: OKF audit/model/init/parse (full surface), pipeline apply, model `CodeRole`/`odc` pin, CLI okf/upgrade/share/export/help. Engine (`odc-core`) ~**84%** lines; first modules at **100%**: `okf/audit`, `okf/model`, `pipeline/apply`.
 - **10K-oriented performance (no disk cache):**
   - Functional pipeline modules (`odc-core/src/pipeline/`): discover → parallel parse (`rayon`) → index.
   - Graph commands (`lint`, `doctor`, `index`, `context`, `graph`, `find`, `tags`, `profiles`) load with `include_body: false` (note bodies dropped; **`index.md` bodies kept** for child-list rules).

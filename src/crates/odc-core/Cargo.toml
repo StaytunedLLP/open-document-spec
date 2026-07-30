@@ -77,3 +77,19 @@ path = "tests/workspace_3.test.rs"
 [[test]]
 name = "bench_test"
 path = "tests/bench.test.rs"
+
+[[test]]
+name = "pipeline_test"
+path = "tests/pipeline.test.rs"
+
+[[test]]
+name = "okf_engine_test"
+path = "tests/okf_engine.test.rs"
+
+[[test]]
+name = "okf_full_coverage_test"
+path = "tests/okf_full_coverage.test.rs"
+
+[[test]]
+name = "model_and_pipeline_extra_test"
+path = "tests/model_and_pipeline_extra.test.rs"

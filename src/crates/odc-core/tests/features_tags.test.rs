@@ -42,3 +42,23 @@ fn tags_normalize_find_and_rename() {
     assert!(next.contains("customer-care"), "{next}");
     assert!(!next.contains("old-cx"), "{next}");
 }
+
+#[test]
+fn rename_tag_edge_cases() {
+    let dir = tempfile::tempdir().unwrap();
+    fs::write(
+        dir.path().join("index.md"),
+        "---\nods: 0.1\nodc: \">=0.0.1\"\n---\n\n# R\n",
+    )
+    .unwrap();
+    fs::write(dir.path().join("plain.md"), "# Plain Doc No FM\n").unwrap();
+
+    let workspace = load_workspace(dir.path()).unwrap();
+    // Same tag early return
+    let same_rep = rename_tag_in_workspace(&workspace, "billing", "Billing", false).unwrap();
+    assert_eq!(same_rep.matched_docs, 0);
+
+    // Empty tag error
+    assert!(rename_tag_in_workspace(&workspace, "", "target", false).is_err());
+    assert!(rename_tag_in_workspace(&workspace, "source", "", false).is_err());
+}

@@ -335,6 +335,43 @@ fn nested_ods_block_tolerates_key_order() {
 }
 
 #[test]
+fn frontmatter_parser_exhaustive_coverage() {
+    let td = tempfile::tempdir().unwrap();
+    let root = td.path();
+    let path = root.join("test.md");
+    std::fs::write(&path, "---\nprofile: note\nowner:\n  - alice\n  - bob\nunknown_key: val\nods:\n  profile: note\n  unknown_sub: subval\n---\n\n# Body\n").unwrap();
+
+    let doc = odc_core::parse::parse_document(root, path).unwrap();
+    if let FrontmatterState::Parsed(fm) = doc.frontmatter {
+        assert_eq!(fm.owner.as_deref(), Some("alice, bob"));
+    } else {
+        panic!("expected parsed frontmatter");
+    }
+
+    // Bad header prefix
+    let (fm, _) = split_frontmatter("---extra\nprofile: note\n---\n");
+    assert!(fm.is_none());
+
+    // Frontmatter without closing end marker
+    let (fm, body) = split_frontmatter("---\nprofile: note\n");
+    assert!(fm.is_some());
+    assert!(body.is_empty());
+
+    // CRLF ending with empty body
+    let (fm, body) = split_frontmatter("---\r\nprofile: note\r\n---\r\n");
+    assert!(fm.is_some());
+    assert!(body.is_empty());
+
+    // Invalid line in frontmatter
+    let doc_bad = parse_document_text(root, root.join("bad.md"), "---\nno_colon_line\n---\n", true);
+    assert!(matches!(doc_bad.frontmatter, FrontmatterState::Invalid(_)));
+
+    // Nested ods map with blank line and invalid inner line
+    let doc_nested_bad = parse_document_text(root, root.join("nbad.md"), "---\nods:\n  profile: note\n\n  no_colon_inner\n---\n", true);
+    assert!(matches!(doc_nested_bad.frontmatter, FrontmatterState::Invalid(_)));
+}
+
+#[test]
 fn test_frontmatter_title_prohibited() {
     let root = PathBuf::from("/ws");
     let text = "---\ntitle: Invalid Title Key\nprofile: guide\n---\n\n# Document Header\n";

@@ -123,4 +123,60 @@ mod tests {
         assert!(idx.contains("New desc"), "{idx}");
         assert!(!idx.contains("Old"), "{idx}");
     }
+
+    #[test]
+    fn index_generator_and_checker_edge_cases() {
+        let dir = temp_workspace();
+        fs::write(
+            dir.join("index.md"),
+            "---\nprofile: index\nods: 0.1\nodc: \">=0.0.1\"\n---\n\n# Root\n",
+        )
+        .unwrap();
+
+        // Custom hand-authored index in empty subfolder — should NOT be pruned
+        fs::create_dir_all(dir.join("custom_dir")).unwrap();
+        fs::write(
+            dir.join("custom_dir/index.md"),
+            "---\nprofile: custom_manual_profile\n---\n\n# Custom\n",
+        )
+        .unwrap();
+
+        // Managed orphan index in another empty subfolder — should be pruned and cause indexes_are_current -> false
+        fs::create_dir_all(dir.join("auto_orphan")).unwrap();
+        fs::write(
+            dir.join("auto_orphan/index.md"),
+            "---\nprofile: index\n---\n\n# Auto\n",
+        )
+        .unwrap();
+
+        let ws = load_workspace(&dir).unwrap();
+        assert_eq!(indexes_are_current(&ws).unwrap(), false);
+
+        let touched = generate_indexes(&ws).unwrap();
+        assert!(touched.iter().any(|p| p.ends_with("auto_orphan/index.md")));
+        assert!(!dir.join("auto_orphan/index.md").exists());
+        assert!(dir.join("custom_dir/index.md").exists());
+    }
+
+    #[test]
+    fn index_checker_resource_and_unquote_tests() {
+        let dir = temp_workspace();
+        fs::write(
+            dir.join("index.md"),
+            "---\nprofile: index\nods: '0.1'\nodc: '>=0.0.1'\nother_list:\n  - item\n---\n\n# Root\n",
+        )
+        .unwrap();
+        fs::create_dir_all(dir.join("res")).unwrap();
+        fs::write(dir.join("res/data.json"), "{}").unwrap();
+        fs::write(
+            dir.join("doc.md"),
+            "---\nprofile: note\nresources:\n  - path: ./res/data.json\n---\n\n# Doc\n",
+        )
+        .unwrap();
+
+        let ws = load_workspace(&dir).unwrap();
+        let rendered = render_index(&ws, &dir, Some(&fs::read_to_string(dir.join("index.md")).unwrap()));
+        assert!(rendered.contains("doc.md"));
+        assert!(rendered.contains("ods: 0.1") || rendered.contains("ods: '0.1'"));
+    }
 }

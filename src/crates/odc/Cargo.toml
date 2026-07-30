@@ -23,7 +23,7 @@ path = "src/main.rs"
 
 [[bin]]
 name = "ods"
-path = "src/main.rs"
+path = "src/ods_main.rs"
 
 [dev-dependencies]
 odc-test-support = { path = "../odc-test-support" }
@@ -83,3 +83,7 @@ path = "tests/share_command.test.rs"
 [[test]]
 name = "okf_commands_test"
 path = "tests/okf_commands.test.rs"
+
+[[test]]
+name = "coverage_cli_extra_test"
+path = "tests/coverage_cli_extra.test.rs"

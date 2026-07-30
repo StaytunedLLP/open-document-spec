@@ -271,3 +271,29 @@ fn profile(name: &str, sections: Vec<Vec<&str>>) -> ProfileDefinition {
 fn section<'a>(values: &'a [&'a str]) -> Vec<&'a str> {
     values.to_vec()
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn profiles_pack_and_alias_edge_cases() {
+        let td = tempfile::tempdir().unwrap();
+        let root = td.path();
+        let pack_dir = root.join("pack_without_profiles");
+        fs::create_dir_all(&pack_dir).unwrap();
+
+        let index_doc = parse_document_text(root, root.join("index.md"), "---\npacks:\n  - pack_without_profiles\n---\n", true);
+        let roots = profile_catalog_roots(root, Some(&index_doc));
+        assert!(roots.contains(&pack_dir) || roots.contains(&root.join("ods-profiles")));
+
+        let prof_dir = root.join("ods-profiles").join("sub");
+        fs::create_dir_all(&prof_dir).unwrap();
+        fs::write(prof_dir.join(".hidden"), "ignored").unwrap();
+        fs::write(prof_dir.join("subprof.md"), "---\naliases:\n  NewCanonical:\n    - AliasOne\n---\n# Subprof\n").unwrap();
+
+        let roots = profile_catalog_roots(root, None);
+        let cat = load_profile_catalog(root, &roots).unwrap();
+        assert!(cat.definitions.contains_key("subprof"));
+    }
+}

@@ -171,3 +171,26 @@ fn init_on_existing_index_updates_stale_ods_version() {
     );
     assert!(!root.contains("ods: draft-1"), "{root}");
 }
+
+#[test]
+fn disable_workspace_remove_root_index_and_already_disabled() {
+    let dir = temp_workspace();
+    init_workspace(&dir, InitOptions::default()).unwrap();
+    assert!(ods_enabled(&dir));
+
+    let rep = disable_workspace(
+        &dir,
+        DisableOptions {
+            write: true,
+            remove_root_index: true,
+            ..DisableOptions::default()
+        },
+    )
+    .unwrap();
+    assert!(!rep.deleted.is_empty());
+    assert!(!dir.join("index.md").exists());
+
+    // Second call: already disabled
+    let rep2 = disable_workspace(&dir, DisableOptions::default()).unwrap();
+    assert!(rep2.already_disabled);
+}

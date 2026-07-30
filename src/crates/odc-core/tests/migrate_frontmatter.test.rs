@@ -103,3 +103,27 @@ fn migrate_preserves_universal_top_level_owner_list_formatting() {
     let migrated = migrate_frontmatter_to_canonical(text).expect("should migrate");
     assert!(migrated.contains("owner:\n  - a\n  - b\n"), "{migrated}");
 }
+
+#[test]
+fn migrate_workspace_frontmatter_helper_and_edge_cases() {
+    let dir = temp_workspace();
+    fs::write(
+        dir.join("index.md"),
+        "---\nprofile: index\nods: 0.1\nodc: \">=0.0.1\"\n---\n\n# R\n",
+    ).unwrap();
+    // Empty body document needing migration
+    fs::write(
+        dir.join("empty_body.md"),
+        "---\nprofile: note\nstatus: draft\n---\n",
+    ).unwrap();
+
+    let changed = odc_core::migrate_workspace_frontmatter(&dir).unwrap();
+    assert_eq!(changed.len(), 1);
+
+    // Frontmatter with empty block / line without colon
+    let empty_fm = "---\n---\n";
+    assert!(migrate_frontmatter_to_canonical(empty_fm).is_none());
+
+    let no_colon_fm = "---\nno_colon_raw_line\n---\n";
+    assert!(migrate_frontmatter_to_canonical(no_colon_fm).is_none());
+}

@@ -261,4 +261,30 @@ mod tests {
 
         let _ = fs::remove_dir_all(&dir);
     }
+
+    #[test]
+    fn export_description_resources_code_and_relative_out() {
+        let td = tempfile::tempdir().unwrap();
+        let dir = td.path();
+        fs::write(
+            dir.join("index.md"),
+            "---\nprofile: index\nods: 0.1\nodc: \">=0.0.1\"\ndescription: Root index\nresources:\n  - path: res.txt\ncode:\n  - path: src/main.rs\n    role: entrypoint\n    symbol: main\n---\n\n# R\n",
+        ).unwrap();
+        fs::write(
+            dir.join("plain.md"),
+            "# Plain Doc No FM\n",
+        ).unwrap();
+
+        let ws = load_workspace(dir).unwrap();
+        let md = render_graph_markdown(&ws, true);
+        assert!(md.contains("description:** Root index"));
+        assert!(md.contains("resources:**"));
+        assert!(md.contains("code:**"));
+        assert!(md.contains("#main"));
+
+        let out_rel = dir.join("out_graph.md");
+        let res = export_workspace_graph(dir, &out_rel, true);
+        assert!(res.is_ok());
+        assert!(out_rel.exists());
+    }
 }

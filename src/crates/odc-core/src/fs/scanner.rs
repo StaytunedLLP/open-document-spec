@@ -223,3 +223,24 @@ pub fn normalize_path(path: &Path) -> PathBuf {
 pub fn paths_equal_normalized(a: &Path, b: &Path) -> bool {
     normalize_path(a) == normalize_path(b)
 }
+
+#[cfg(test)]
+mod test_scanner {
+    use super::*;
+
+    #[test]
+    fn scanner_helper_edge_cases() {
+        assert_eq!(normalize_path(Path::new("a/./b")), PathBuf::from("a/b"));
+        assert!(!path_matches_workspace_ignore(Path::new("/root"), Path::new("/root/a.md"), &["".into(), "  ".into()]));
+
+        let mut ws = Workspace::empty(PathBuf::from("/root"));
+        ws.ignore = vec!["ignored".into()];
+        let mut d = crate::parse::parse_document_text(&ws.root, PathBuf::from("/root/ignored/doc.md"), "---\nprofile: note\n---\n\n# Doc\n", true);
+        d.directory = PathBuf::from("/root/ignored");
+        ws.documents.push(d);
+        rebuild_indexes(&mut ws);
+
+        let children = directory_children_for(&ws, Path::new("/nonexistent_dir_12345"));
+        assert!(children.is_empty());
+    }
+}

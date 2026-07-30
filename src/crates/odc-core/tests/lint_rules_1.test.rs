@@ -340,3 +340,26 @@ status: draft
         "{diags:?}"
     );
 }
+
+#[test]
+fn lint_canonical_edge_cases() {
+    let dir = temp_workspace();
+    // Missing root index.md
+    let ws_no_root = load_workspace(&dir).unwrap();
+    let diags_no_root = odc_core::lint_workspace(&ws_no_root);
+    assert!(diags_no_root.iter().any(|d| d.message.contains("missing root index.md")));
+
+    write_root(&dir, "- [a.md](a.md)\n");
+    // Non-root declaring ods/odc
+    fs::write(
+        dir.join("a.md"),
+        "---\nprofile: note\nstatus: draft\nods: 0.1\ncontext:\n  load:\n    - missing_res.csv\n    - dangling_id\n  ignore:\n    - nonexistent_target\n---\n\n# A\n",
+    )
+    .unwrap();
+    let ws = load_workspace(&dir).unwrap();
+    let diags = lint_workspace(&ws);
+    assert!(diags.iter().any(|d| d.message.contains("ods and odc should be declared only in root index.md")));
+    assert!(diags.iter().any(|d| d.message.contains("missing context resource")));
+    assert!(diags.iter().any(|d| d.message.contains("dangling context reference")));
+    assert!(diags.iter().any(|d| d.message.contains("context ignore target not found")));
+}

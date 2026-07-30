@@ -133,6 +133,12 @@ pub fn render_okf_audit_markdown(bundle_root: &std::path::Path, report: &OkfAudi
     }
     section(
         &mut md,
+        "Compliant concepts",
+        report,
+        OkfAuditClass::Compliant,
+    );
+    section(
+        &mut md,
         "Plain Markdown (adoption candidates)",
         report,
         OkfAuditClass::Plain,

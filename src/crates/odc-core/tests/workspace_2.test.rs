@@ -169,6 +169,29 @@ fn context_ignore_skips_matching_paths() {
 }
 
 #[test]
+fn context_query_fallback_and_code_ref_tests() {
+    let dir = temp_workspace();
+    fs::write(dir.join("index.md"), "---\nprofile: index\nods: 0.1\nodc: \">=0.0.1\"\n---\n\n# R\n").unwrap();
+    fs::create_dir_all(dir.join("src")).unwrap();
+    fs::write(dir.join("src/lib.rs"), "pub fn f() {}\n").unwrap();
+    fs::write(
+        dir.join("my-doc.md"),
+        "---\nprofile: note\ncode:\n  - path: ./src/lib.rs\n    role: implementation\n---\n\n# Doc\n",
+    )
+    .unwrap();
+
+    let ws = load_workspace(&dir).unwrap();
+
+    // Non-existent query
+    assert!(odc_core::resolve_context(&ws, "nonexistent", true).is_empty());
+
+    // File stem match fallback
+    let res = odc_core::resolve_context(&ws, "my-doc", true);
+    assert!(res.contains(&dir.join("my-doc.md")));
+    assert!(res.contains(&dir.join("src/lib.rs")));
+}
+
+#[test]
 fn depends_and_related_references_resolve_without_dangling() {
     let temp = temp_workspace();
     fs::write(

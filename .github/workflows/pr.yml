@@ -389,7 +389,8 @@ jobs:
           if ! command -v cargo-llvm-cov >/dev/null 2>&1; then
             cargo install cargo-llvm-cov --locked
           fi
-          cargo llvm-cov --workspace --locked --fail-under-lines 73
+          # Ratchet only upward (was 73). Workspace ~76% after pipeline/OKF coverage work.
+          cargo llvm-cov --workspace --locked --fail-under-lines 75
 
   # Job 3: Windows native quality gate
   windows-test:

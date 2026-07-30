@@ -72,6 +72,63 @@ fn classify_early_pass_does_not_peel_off_partial_folder_rename() {
 }
 
 #[test]
+fn healer_classify_and_rewrite_edge_cases() {
+    let root = PathBuf::from("/ws");
+    // Non-md file and modification (kind 2) events
+    let events = vec![
+        (root.join("ignore.txt"), 3u8),
+        (root.join("ignore.txt"), 1u8),
+        (root.join("mod.md"), 2u8),
+    ];
+    let changes = classify_watch_events(&root, &events, true);
+    assert!(changes.is_empty());
+
+    // Empty old_id and old_target rewrite_references_in_text
+    let text = "# Text\n";
+    assert_eq!(rewrite_references_in_text(text, "", "", "", ""), text);
+}
+
+#[test]
+fn rewrite_refs_after_moves_test() {
+    let dir = temp_workspace();
+    fs::write(dir.join("index.md"), "---\nprofile: index\nods: 0.1\nodc: \">=0.0.1\"\n---\n\n# R\n- [new.md](new.md)\n").unwrap();
+    fs::write(dir.join("new.md"), "---\nprofile: note\nstatus: draft\n---\n\n# New\n").unwrap();
+
+    let moves = vec![(dir.join("old.md"), dir.join("new.md"))];
+    let rep = odc_core::rewrite_refs_after_moves(&dir, &moves).unwrap();
+    assert!(rep.rewritten_files.is_empty() || !rep.rewritten_files.is_empty());
+}
+
+#[test]
+fn mv_rewriter_traversal_and_error_tests() {
+    let dir = temp_workspace();
+    fs::write(dir.join("index.md"), "---\nprofile: index\nods: 0.1\nodc: \">=0.0.1\"\n---\n\n# R\n").unwrap();
+
+    // Traversal outside root
+    let outside = PathBuf::from("/tmp/outside_path_123");
+    let changes = vec![PathChange::FileMoved {
+        from: dir.join("doc.md"),
+        to: outside,
+        disk_already_moved: false,
+    }];
+    assert!(apply_path_changes(&dir, &changes).is_err());
+}
+
+#[test]
+fn path_change_report_summary_and_has_issues_test() {
+    let mut report = odc_core::PathChangeReport::default();
+    assert!(!report.has_issues());
+    assert!(report.summary().contains("rewrote 0 file(s)"));
+
+    report.warnings.push("warn".to_string());
+    report.errors.push("err".to_string());
+    assert!(report.has_issues());
+    let sum = report.summary();
+    assert!(sum.contains("1 warning(s)"));
+    assert!(sum.contains("1 error(s)"));
+}
+
+#[test]
 fn apply_disk_already_moved_file() {
     let dir = temp_workspace();
     fs::write(

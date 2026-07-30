@@ -94,3 +94,35 @@ fn known_profiles_lists_standards() {
     assert!(names.iter().any(|n| n == "feature"));
     assert!(names.iter().any(|n| n == "guide"));
 }
+
+#[test]
+fn adopt_all_remaining_profiles_and_invalid_frontmatter() {
+    let dir = temp_workspace();
+    fs::write(
+        dir.join("index.md"),
+        "---\nprofile: index\nods: 0.1\nodc: \">=0.0.1\"\n---\n\n# R\n",
+    )
+    .unwrap();
+    // Invalid frontmatter file
+    fs::write(dir.join("bad.md"), "---\nno_colon_here\n---\n# Bad\n").unwrap();
+    // Decision profile
+    fs::write(dir.join("d.md"), "# D\n\n## Decision\n").unwrap();
+    // SOP profile
+    fs::write(dir.join("sop.md"), "# S\n\n## Rollback\n").unwrap();
+    // API profile
+    fs::write(dir.join("api.md"), "# A\n\n## Endpoint\n").unwrap();
+    // Meeting profile
+    fs::write(dir.join("m.md"), "# M\n\n## Agenda\n").unwrap();
+    // FAQ profile
+    fs::write(dir.join("faq.md"), "# F\n\n## Questions\n").unwrap();
+
+    let ws = load_workspace(&dir).unwrap();
+    let report = adopt_workspace(&ws, AdoptOptions { write: true }).unwrap();
+    assert!(report.skipped.contains(&dir.join("bad.md")));
+
+    assert!(fs::read_to_string(dir.join("d.md")).unwrap().contains("profile: decision"));
+    assert!(fs::read_to_string(dir.join("sop.md")).unwrap().contains("profile: sop"));
+    assert!(fs::read_to_string(dir.join("api.md")).unwrap().contains("profile: api"));
+    assert!(fs::read_to_string(dir.join("m.md")).unwrap().contains("profile: meeting"));
+    assert!(fs::read_to_string(dir.join("faq.md")).unwrap().contains("profile: faq"));
+}
