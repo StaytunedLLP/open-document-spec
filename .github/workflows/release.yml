@@ -54,7 +54,7 @@ jobs:
     steps:
       # Always tip of main so version bumps can push fast-forward (never stale CI SHA).
       - name: Checkout main tip
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           fetch-depth: 0
           token: ${{ secrets.GITHUB_TOKEN }}
@@ -277,7 +277,7 @@ jobs:
 
     steps:
       - name: Checkout release SHA
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           fetch-depth: 0
           ref: ${{ needs.prepare.outputs.release_sha }}
@@ -565,7 +565,7 @@ jobs:
           Get-ChildItem dist | Format-Table Name, Length
 
       - name: Upload workflow artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: ods-release-${{ matrix.asset }}
           path: |
@@ -586,7 +586,7 @@ jobs:
     timeout-minutes: 30
     steps:
       - name: Download all platform artifacts
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           path: dist
           pattern: ods-release-*
@@ -602,7 +602,7 @@ jobs:
           test -s dist/SHA256SUMS
 
       - name: Upload merged SHA256SUMS
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: ods-release-checksums
           path: dist/SHA256SUMS
@@ -623,7 +623,7 @@ jobs:
 
     steps:
       - name: Download all release artifacts
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           path: dist
           pattern: ods-release-*
