@@ -85,12 +85,12 @@ Adoption never rewrites prose body content. Plain Markdown without frontmatter r
 
 Tools that implement tag discovery SHOULD treat the **workspace tag set** as the observed union of document `tags` values after normalization. A built-in suggestion list, when present, is for completions and documentation only and MUST NOT make documents invalid.
 
-For the `ods: 0.1` core field set (`profile`, `status`, `share`, `description`, `id`, `depends`, `related`, `resources`, `code`, `context`, `owner`, `tags`, and root `ods` / `ods-cli` / `profiles` / `packs` / `ignore` / `aliases`):
+For the `ods: 0.1` core field set (`profile`, `status`, `share`, `description`, `id`, `depends`, `related`, `resources`, `code`, `context`, `owner`, `tags`, and root `ods` / `odc` / `profiles` / `packs` / `ignore` / `aliases`):
 
 - A workspace root `ods:` value SHOULD equal the current ODS spec version.
-- A workspace root `ods-cli:` value SHOULD be an exact CLI version or minimum range such as `>=0.0.1`.
+- A workspace root `odc:` value SHOULD be an exact CLI version or minimum range such as `>=0.0.1`.
 - Workspace discovery SHOULD remain tolerant of older `ods:` values so setup can upgrade them in place.
-- `odc ods lint` and `odc ods doctor` (legacy: `ods lint` / `ods doctor`) MUST report missing or stale root `ods:` values and missing, invalid, or unsatisfied `ods-cli:` values.
-- `odc ods init` and `odc setup` (legacy: `ods init` / `ods setup`) MUST write the current spec version to `ods:` and the current CLI minimum requirement to `ods-cli:`.
+- `odc ods lint` and `odc ods doctor` (legacy: `ods lint` / `ods doctor`) MUST report missing or stale root `ods:` values and missing, invalid, or unsatisfied `odc:` values.
+- `odc ods init` and `odc setup` (legacy: `ods init` / `ods setup`) MUST write the current spec version to `ods:` and the current CLI minimum requirement to `odc:`.
 - Unknown frontmatter keys MUST continue to be ignored by core tools.
 - Breaking changes to core field meaning require a new `ods` version string on the root index.

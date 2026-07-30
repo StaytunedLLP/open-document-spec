@@ -1,5 +1,5 @@
 use odc_core::{
-    DisableOptions, InitOptions, current_ods_cli_requirement, current_ods_spec_version,
+    DisableOptions, InitOptions, current_odc_requirement, current_ods_spec_version,
     disable_workspace, init_workspace, load_workspace, ods_enabled,
 };
 use odc_test_support::temp_workspace;
@@ -76,7 +76,7 @@ fn disable_keep_frontmatter_only_drops_ods_marker() {
     assert!(doc.contains("profile: note"));
     let root = fs::read_to_string(dir.join("index.md")).unwrap();
     assert!(!root.lines().any(|l| l.trim().starts_with("ods:")));
-    assert!(!root.lines().any(|l| l.trim().starts_with("ods-cli:")));
+    assert!(!root.lines().any(|l| l.trim().starts_with("odc:")));
 }
 
 #[test]
@@ -143,7 +143,7 @@ fn init_on_existing_index_injects_ods() {
         "{root}"
     );
     assert!(
-        root.contains(&format!("ods-cli: \"{}\"", current_ods_cli_requirement())),
+        root.contains(&format!("odc: \"{}\"", current_odc_requirement())),
         "{root}"
     );
     let _ = load_workspace(&dir).unwrap();
@@ -166,7 +166,7 @@ fn init_on_existing_index_updates_stale_ods_version() {
         "{root}"
     );
     assert!(
-        root.contains(&format!("ods-cli: \"{}\"", current_ods_cli_requirement())),
+        root.contains(&format!("odc: \"{}\"", current_odc_requirement())),
         "{root}"
     );
     assert!(!root.contains("ods: draft-1"), "{root}");

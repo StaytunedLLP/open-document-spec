@@ -206,7 +206,7 @@ fn parse_frontmatter(block: &str) -> Result<Frontmatter, String> {
                     index = next;
                 }
             }
-            "ods-cli" => frontmatter.ods_cli = scalar_value(rest),
+            "odc" => frontmatter.odc = scalar_value(rest),
             "profiles" => {
                 let (items, next) = parse_string_list(&lines, index, 2, rest);
                 frontmatter.profiles.extend(items);

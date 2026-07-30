@@ -1,4 +1,4 @@
-# ODS installer for Windows (PowerShell 5.1+)
+# OpenDocify (odc) installer for Windows (PowerShell 5.1+)
 #
 # Supported platforms (auto-detected):
 #   Windows x64   — windows-x86_64
@@ -13,8 +13,8 @@
 # itself also needs GH_TOKEN/GITHUB_TOKEN in the environment to download assets.
 #
 # Options via environment variables:
-#   ODS_VERSION   — pin a release tag, e.g. "v0.1.0"             (default: latest)
-#   ODS_PREFIX    — directory to install binaries into            (default: %LOCALAPPDATA%\Programs\ods)
+#   ODS_VERSION / ODC_VERSION — pin a release tag, e.g. "v0.1.0"  (default: latest)
+#   ODS_PREFIX / ODC_PREFIX   — install dir (default: %LOCALAPPDATA%\Programs\odc)
 #   ODS_NO_VERIFY — set to "1" to skip SHA256 checksum verification
 #   GH_TOKEN / GITHUB_TOKEN — required while the repo is private
 #
@@ -76,7 +76,7 @@ function Get-InstalledOdsVersion {
         if ($out -match '(?:odc|ods)\s+([^\s]+)') { return $Matches[1] }
     }
     $prefix = $env:ODS_PREFIX
-    if (-not $prefix) { $prefix = Join-Path $env:LOCALAPPDATA "Programs\ods" }
+    if (-not $prefix) { $prefix = Join-Path $env:LOCALAPPDATA "Programs\odc" }
     $candidate = Join-Path $prefix "ods.exe"
     if (Test-Path $candidate) {
         $out = & $candidate --version 2>$null
@@ -161,7 +161,7 @@ if ($InstalledVersion -and ((Compare-OdsVersion $InstalledVersion $Version) -ge 
         & $cmd.Source --version
     } else {
         $prefix = $env:ODS_PREFIX
-        if (-not $prefix) { $prefix = Join-Path $env:LOCALAPPDATA "Programs\ods" }
+        if (-not $prefix) { $prefix = Join-Path $env:LOCALAPPDATA "Programs\odc" }
         & (Join-Path $prefix "ods.exe") --version
     }
     return

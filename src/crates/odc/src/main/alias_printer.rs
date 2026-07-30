@@ -1,14 +1,3 @@
-fn load_light(root: &std::path::Path) -> Result<odc_core::Workspace, String> {
-    load_workspace_with_options(
-        root,
-        LoadOptions {
-            include_body: false,
-            respect_gitignore: true,
-        },
-    )
-    .map_err(|e| e.to_string())
-}
-
 /// Current process RSS in KB, using a native OS API where available so this
 /// works without shelling out (and without depending on `ps` existing).
 #[cfg(target_os = "linux")]

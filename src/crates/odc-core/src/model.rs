@@ -9,23 +9,23 @@ pub fn current_ods_spec_version() -> &'static str {
     "0.1"
 }
 
-pub fn current_ods_cli_requirement() -> String {
+pub fn current_odc_requirement() -> String {
     format!(">={}", current_ods_version())
 }
 
-pub fn ods_cli_requirement_satisfied(requirement: &str) -> Result<bool, String> {
+pub fn odc_requirement_satisfied(requirement: &str) -> Result<bool, String> {
     let requirement = requirement.trim();
     if requirement.is_empty() {
-        return Err("empty ods-cli requirement".to_string());
+        return Err("empty odc requirement".to_string());
     }
     let required = requirement.strip_prefix(">=").unwrap_or(requirement).trim();
     if required.is_empty() || required.starts_with('<') || required.starts_with('=') {
-        return Err(format!("invalid ods-cli requirement: {requirement}"));
+        return Err(format!("invalid odc requirement: {requirement}"));
     }
     let current = parse_semver_triplet(current_ods_version())
         .ok_or_else(|| format!("invalid current CLI version: {}", current_ods_version()))?;
     let required = parse_semver_triplet(required)
-        .ok_or_else(|| format!("invalid ods-cli requirement: {requirement}"))?;
+        .ok_or_else(|| format!("invalid odc requirement: {requirement}"))?;
     if requirement.starts_with(">=") {
         Ok(current >= required)
     } else {
@@ -148,7 +148,7 @@ pub struct Frontmatter {
     pub owner: Option<String>,
     pub tags: Vec<String>,
     pub ods: Option<String>,
-    pub ods_cli: Option<String>,
+    pub odc: Option<String>,
     pub aliases: BTreeMap<String, Vec<String>>,
     /// Workspace-relative path prefixes to exclude from scan/index (root `index.md` only).
     pub ignore: Vec<String>,

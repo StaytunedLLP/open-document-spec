@@ -2,23 +2,29 @@ fn print_help() {
     println!(
         "odc — OpenDocify CLI (multi-spec)
 
-Spec namespaces (required when invoked as `odc`):
-  odc ods <command>        ODS codebase document graphs
-  odc okf <command>        Google OKF v0.2 knowledge bundles
-  odc agents <command>     Agent instruction graphs (MVP)
+OpenDocify (`odc`) is the tool. ODS and OKF are formats.
+
+  odc lint / init / doctor …   Auto-detect engine from root markers
+  odc init                     ODS workspace (ods: + odc: CLI pin)
+  odc init --okf               OKF bundle (okf_version: \"0.2\")
+
+Optional explicit engines:
+  odc ods <command>            Force ODS document graph
+  odc okf <command>            Force Google OKF v0.2
+  odc agents <command>         Agent instruction graph
 
 Platform:
   update                   Self-update binary from GitHub Releases
-  upgrade [path]           Forward machine/workspace cutover (dry-run; --write)
+  upgrade [path]           Forward cutover (ods-cli→odc rewrite; --write)
   setup [path]             Machine service + health
   workspaces …             Global workspace registry
   skill install            Install skill into an AI agent
   version / help
 
-Legacy: invoking the binary as `ods` still accepts bare ODS commands
-(equivalent to `odc ods <command>`).
+Root markers: ods: (spec) · odc: (CLI pin) · okf_version: (OKF)
+Legacy: binary name `ods` accepts bare ODS commands.
 
-ODS commands (via `odc ods …` or bare `ods …`):
+Commands (auto-detect or via `odc ods` / `odc okf`):
   init [path]              Make folder/repo ODS-compliant (add root index.md + ods: spec, generate indexes)
   disable [path]           Opt-out dry-run: strip ODS metadata (alias: revert)
   disable --write [path]   Apply disable / revert to plain Markdown
@@ -101,7 +107,7 @@ fn print_ods_help() {
         "odc ods <command> [path] [flags]
 
 ODS (Open Document Spec) — codebase documentation graphs.
-Markdown keys remain ods: / ods-cli: (unchanged).
+Markdown keys remain ods: / odc: (unchanged).
 
 Common commands: init, lint, index, context, doctor, audit, adopt, fmt, export, watch, serve
 Run `odc help` for the full list. Bare `ods <command>` is an alias for `odc ods <command>`.
@@ -115,7 +121,7 @@ fn run_setup_command(args: &[String]) -> Result<ExitCode, CliError> {
         match args[i].as_str() {
             "--help" | "-h" => {
                 println!(
-                    "ods setup [path]\n\nChecks release freshness, detects an ODS workspace, starts the user service when possible, and runs doctor."
+                    "odc setup [path]\n\nChecks release freshness, detects an ODS workspace, starts the user service when possible, and runs doctor."
                 );
                 return Ok(ExitCode::from(0));
             }
@@ -168,7 +174,7 @@ fn run_setup_command(args: &[String]) -> Result<ExitCode, CliError> {
                     .unwrap_or_else(|| PathBuf::from("."))
             };
             println!("setup: no ODS workspace found at or above {}", probe.display());
-            println!("setup: run 'ods init {}' to make this folder ODS-compliant", target.display());
+            println!("setup: run 'odc init {}' to make this folder ODS-compliant", target.display());
             return Ok(ExitCode::from(0));
         }
     };
@@ -177,9 +183,9 @@ fn run_setup_command(args: &[String]) -> Result<ExitCode, CliError> {
         .map_err(|err| failure(err.to_string()))?;
     if init.initialized {
         println!(
-            "setup: root index ensured with ods: {} and ods-cli: \"{}\"",
+            "setup: root index ensured with ods: {} and odc: \"{}\"",
             odc_core::current_ods_spec_version(),
-            odc_core::current_ods_cli_requirement()
+            odc_core::current_odc_requirement()
         );
     }
 

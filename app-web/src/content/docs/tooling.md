@@ -20,7 +20,7 @@ Reference implementation: the **`odc` (legacy `ods`) CLI** only. There is no lan
 | --- | --- |
 | Version | `odc --version` |
 | First-run setup | `odc setup` |
-| Workspace | Root `index.md` with spec `ods: 0.1` and CLI requirement `ods-cli: ">=0.0.1"` |
+| Workspace | Root `index.md` with spec `ods: 0.1` and CLI requirement `odc: ">=0.0.1"` |
 | Local clean | `odc ods index && odc ods lint` |
 | CI | `odc ods index --check` + `odc ods lint` |
 | Automation | `odc ods start` (background) or `odc ods watch` (foreground) |
@@ -46,7 +46,7 @@ Happy path: [Quickstart Guide](/docs/quickstart).
 | `odc ods watch [path]` | Foreground live rename map + re-lint terminal loop. |
 | `odc ods logs [path] [-f]` | Alias for `odc ods watch` (foreground re-lint loop). |
 | `odc ods serve --root <path>` | Headless daemon loop executed by background service (`--mode auto\|watch\|poll`, `--memory-report`, `--poll-secs`). |
-| `odc ods lint [path]` | Validate graph & schemas (`--level 1\|3`, `--format text\|json`, `--canonical-refs`). Generates or clears `ods-error.md`. |
+| `odc lint` / `odc ods lint [path]` | Validate graph & schemas (`--level 1\|3`, `--format text\|json`, `--canonical-refs`). Generates or clears `.odc/odc-errors.md`. |
 | `odc ods index [path]` | Generate `index.md` lockfiles (`--check` exits 1 if stale in CI). |
 | `odc ods mv <from> <to>` | Offline document move + rewrite graph references workspace-wide. |
 | `odc ods sync [path]` | Reconcile git-tracked renames (`git status --porcelain`) and rewrite graph references. |
@@ -61,7 +61,7 @@ Happy path: [Quickstart Guide](/docs/quickstart).
 | `odc ods tags [path]` | List document tags with counts (`--all` includes default unused tags). |
 | `odc ods find [path] --tag <t>` | Find and list documents by tag (repeat `--tag` for OR query). |
 | `odc ods tag rename <old> <new>` | Workspace-wide tag rename (dry-run; `--write`). |
-| `odc workspaces <subcommand>` | Manage globally tracked ODS workspaces in `~/.ods/odsconfig.toml` (`add`, `remove`, `list`, `path`). |
+| `odc workspaces <subcommand>` | Manage globally tracked ODS workspaces in `~/.odc/odcconfig.toml` (`add`, `remove`, `list`, `path`; legacy `~/.ods` is read). |
 | `odc pack <subcommand>` | Manage reusable ODS Packs (`add`, `sync`, `list`, `preview`, `remove`, `init`). |
 | `odc ods bench <subcommand>` | ROI benchmarking & frontmatter snapshot (`stats`, `strip`, `restore`, `run`). |
 | `odc ods doctor [path]` | Workspace health check (version, doc count, index freshness, profile conflicts, service status, pending git renames). |
@@ -75,7 +75,7 @@ Happy path: [Quickstart Guide](/docs/quickstart).
 | :--- | :--- | :--- |
 | **Execution Architecture** | Headless OS Daemon (systemd user unit, launchd agent, Windows Scheduled Task). Registered via `odc ods start` / `odc setup`. | Interactive Foreground Process running in an open terminal tab (`odc ods watch .`). |
 | **User Visibility** | Invisible ("Set and Forget"). Zero terminal output. | Displays live event logs, rename mappings, and lint warnings in stdout. |
-| **Workspace Scope** | Global machine service tracking registered workspace paths (`~/.ods/odsconfig.toml`). | Single workspace directory tree (defaults to `.`). |
+| **Workspace Scope** | Global machine service tracking registered workspace paths (`~/.odc/odcconfig.toml`). | Single workspace directory tree (defaults to `.`). |
 | **Process Lifecycle** | Automatically starts on OS boot/login. Runs persistently in background. | Runs until terminal tab is closed or `Ctrl+C` is pressed. |
 | **Extra Responsibilities** | Background auto-update check (~daily) and remote Git pack auto-sync (`odc pack sync`). | Dedicated filesystem event watching and instant re-linting. |
 | **Ideal For** | Everyday background automation for devs and non-tech users. | Active refactoring sessions, debugging graph renames, containerized environments. |

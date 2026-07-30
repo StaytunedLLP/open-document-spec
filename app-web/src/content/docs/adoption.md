@@ -36,7 +36,7 @@ Installing `odc` (legacy `ods`) does **not** change Markdown until you opt in. P
 
 | Step | Action |
 | --- | --- |
-| 1 | `odc setup` — check/update path and create or repair root `ods:` / `ods-cli:` |
+| 1 | `odc setup` — check/update path and create or repair root `ods:` / `odc:` |
 | 2 | `odc ods init .` — explicit opt-in alternative for root `ods:` + indexes |
 | 3 | Optional: `odc ods init . --adopt` or `odc ods adopt --write` — draft `profile` + `status: draft` |
 | 4 | Root `ignore:` for code trees if needed, then `odc ods index` |

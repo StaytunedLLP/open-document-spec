@@ -1,13 +1,14 @@
 use odc_core::{
-    AdoptOptions, Diagnostic, DisableOptions, FrontmatterState, InitOptions, LintLevel, LoadOptions, Severity,
-    WatchTree, adopt_workspace, apply_path_changes,
+    AdoptOptions, Diagnostic, DisableOptions, FrontmatterState, InitOptions, LintLevel, Severity,
+    WatchTree, Workspace, adopt_workspace, apply_document_removes,
+    apply_document_upserts, apply_path_changes,
     canonicalize_workspace_document_refs_with_workspace, disable_workspace, docs_with_any_tag,
     export_workspace_graph, generate_indexes, heal_orphan_path_ids, indexes_are_current,
     init_workspace, known_profiles, lint_workspace_with_level, lint_workspace_with_ref_style,
-    load_workspace, load_workspace_with_options, migrate_workspace_frontmatter_with_workspace,
-    move_document_and_rewrite_refs_report,
+    load_options_graph, load_workspace, load_workspace_with_options,
+    migrate_workspace_frontmatter_with_workspace, move_document_and_rewrite_refs_report,
     normalize_workspace_frontmatter_spacing_with_workspace, observe_renames, paired_from_paths,
-    rename_tag_in_workspace, resolve_context, scan_markdown_tree,
+    parse_paths_parallel, rename_tag_in_workspace, resolve_context,
     scan_markdown_tree_with_code_paths, tag_usage_with_builtins, workspace_alias_suggestions,
     workspace_aliases,
 };
@@ -72,8 +73,8 @@ fn invoked_name(args: &[String]) -> String {
 }
 
 /// When the process is invoked as `ods` (legacy binary / symlink), bare document
-/// commands are treated as `odc ods <cmd>`. When invoked as `odc`/`opendocify`,
-/// document commands require an explicit `ods` or `okf` namespace.
+/// commands always use the ODS engine. When invoked as `odc`, bare document
+/// commands auto-detect ODS vs OKF (see `dispatch_auto_detect`).
 fn allows_bare_ods_commands(args: &[String]) -> bool {
     let name = invoked_name(args);
     name == "ods" || name.ends_with("-ods")
@@ -189,7 +190,7 @@ fn run(args: Vec<String>) -> Result<ExitCode, CliError> {
     }
     // `odc okf …` skips auto-update (fast, offline-friendly knowledge lint path)
 
-    // Spec namespaces (mandatory for odc binary)
+    // Spec namespaces (optional force; bare commands auto-detect)
     match first {
         "ods" => {
             if args.get(2).map(String::as_str) == Some("--help")
@@ -224,18 +225,93 @@ fn run(args: Vec<String>) -> Result<ExitCode, CliError> {
         return dispatch_platform_command(&args);
     }
 
-    // Bare document command
+    // Bare document command: auto-detect ODS vs OKF from workspace root markers.
+    // Explicit `odc ods` / `odc okf` remain available. Binary name `ods` always
+    // routes to ODS (legacy argv0).
     if is_ods_document_command(first) {
         if allows_bare_ods_commands(&args) {
             return dispatch_ods_command(&args);
         }
-        return Err(usage(format!(
-            "specify a spec namespace: `odc ods {first}` or `odc okf {first}`\n\
-             (document commands require `ods` or `okf`; platform: update|upgrade|setup|…)"
-        )));
+        return dispatch_auto_detect(&args);
     }
 
     Err(usage(format!("unknown command: {first}")))
+}
+
+/// Detect engines from CWD/path markers and run ODS and/or OKF handlers.
+fn dispatch_auto_detect(args: &[String]) -> Result<ExitCode, CliError> {
+    let cmd = args.get(1).map(String::as_str).unwrap_or("");
+    // Resolve probe root from common path args (best-effort; handlers re-parse).
+    let probe = args
+        .iter()
+        .skip(2)
+        .find(|a| !a.starts_with('-'))
+        .map(PathBuf::from)
+        .unwrap_or_else(|| env::current_dir().unwrap_or_else(|_| PathBuf::from(".")));
+    let root = resolve_root_path(probe);
+
+    let has_ods = odc_core::ods_enabled(&root);
+    let has_okf = odc_core::okf_enabled(&root);
+
+    // init without markers: default ODS (okf via --okf flag on init handler)
+    if matches!(cmd, "init" | "enable") {
+        if args.iter().any(|a| a == "--okf") {
+            let mut okf_args = vec![args[0].clone(), "okf".into(), "init".into()];
+            okf_args.extend(args.iter().skip(2).filter(|a| a.as_str() != "--okf").cloned());
+            return dispatch_okf_command(&okf_args);
+        }
+        return dispatch_ods_command(args);
+    }
+
+    // Commands that only make sense for one engine
+    let okf_only = matches!(cmd, "lint" | "index" | "doctor" | "audit" | "adopt" | "fmt" | "export" | "context" | "watch" | "serve");
+    let ods_only_extra = matches!(
+        cmd,
+        "profiles" | "tags" | "find" | "tag" | "graph" | "mv" | "new" | "rm" | "remove"
+            | "archive" | "disable" | "revert" | "sync" | "start" | "stop" | "share" | "bench"
+            | "sandbox" | "logs"
+    );
+
+    if has_ods && has_okf && okf_only && matches!(cmd, "lint" | "doctor" | "audit") {
+        // Hybrid: run both for lint/doctor/audit; prefer non-zero if either fails
+        let ods_code = dispatch_ods_command(args)?;
+        let mut okf_args = vec![args[0].clone(), "okf".into()];
+        okf_args.extend(args.iter().skip(1).cloned());
+        let okf_code = dispatch_okf_command(&okf_args)?;
+        if ods_code != ExitCode::SUCCESS {
+            return Ok(ods_code);
+        }
+        return Ok(okf_code);
+    }
+
+    if has_okf && !has_ods && okf_only {
+        let mut okf_args = vec![args[0].clone(), "okf".into()];
+        okf_args.extend(args.iter().skip(1).cloned());
+        return dispatch_okf_command(&okf_args);
+    }
+
+    if has_ods {
+        return dispatch_ods_command(args);
+    }
+
+    if has_okf && okf_only {
+        let mut okf_args = vec![args[0].clone(), "okf".into()];
+        okf_args.extend(args.iter().skip(1).cloned());
+        return dispatch_okf_command(&okf_args);
+    }
+
+    if ods_only_extra || okf_only {
+        return Err(failure(format!(
+            "not an ODS or OKF workspace: {}\n\n\
+             • ODS: root index.md with `ods:` (+ `odc:` CLI pin) — run `odc init`\n\
+             • OKF: root index.md with `okf_version:` — run `odc init --okf`\n\
+             • Or use explicit: `odc ods {cmd}` / `odc okf {cmd}`",
+            root.display(),
+            cmd = cmd
+        )));
+    }
+
+    dispatch_ods_command(args)
 }
 
 fn dispatch_platform_command(args: &[String]) -> Result<ExitCode, CliError> {

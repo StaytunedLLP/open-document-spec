@@ -70,7 +70,7 @@ cd existing-docs
 odc ods init . --adopt
 ```
 
-`odc ods init` makes the folder ODS-compliant by creating a root `index.md` with `ods: 0.1` and `ods-cli: ">=0.0.1"` metadata and generating child index files.
+`odc ods init` makes the folder ODS-compliant by creating a root `index.md` with `ods: 0.1` and `odc: ">=0.0.1"` metadata and generating child index files.
 
 ---
 

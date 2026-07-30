@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-# ODS skill bootstrap — install / update the `ods` binary and keep the
-# background watch service running, with zero manual release/download work.
+# OpenDocify skill bootstrap — install / update the `odc` binary (optional `ods`
+# alias) and keep the background watch service running.
 #
 # This script is self-contained: it depends only on the vendored
 # install-from-release.sh (next to it) plus `gh` (GitHub CLI) auth. It never

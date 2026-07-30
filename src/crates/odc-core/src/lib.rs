@@ -13,6 +13,7 @@ pub mod mv;
 pub mod observe;
 pub mod okf;
 pub mod parse;
+pub mod pipeline;
 pub mod profiles;
 pub mod refs;
 pub mod share;
@@ -28,9 +29,13 @@ pub use adopt::{AdoptOptions, AdoptReport, adopt_workspace};
 pub use context::resolve_context;
 pub use export::{export_workspace_graph, render_graph_markdown};
 pub use fs::{
-    find_workspace_root, index_has_ods_field, load_workspace, load_workspace_with_options,
-    normalize_join, normalize_path, path_matches_workspace_ignore, rebuild_indexes,
-    remove_document, upsert_document,
+    find_workspace_root, index_has_ods_field, load_options_graph, load_workspace,
+    load_workspace_with_options, normalize_join, normalize_path, path_matches_workspace_ignore,
+    rebuild_indexes, remove_document, upsert_document,
+};
+pub use pipeline::{
+    apply_document_removes, apply_document_upserts, discover_markdown_paths, parse_path,
+    parse_paths_parallel, parse_pool_jobs,
 };
 pub use lifecycle::{
     DisableOptions, DisableReport, InitOptions, InitReport, NewDocumentOptions, NewDocumentReport,
@@ -54,8 +59,8 @@ pub use lint::{
 pub use model::{
     CodeRef, CodeRole, Diagnostic, Document, Frontmatter, FrontmatterState, LintLevel, LoadOptions,
     ProfileCatalog, ProfileConflict, ProfileDefinition, ResourceRef, Severity, Workspace,
-    current_ods_cli_requirement, current_ods_spec_version, current_ods_version,
-    ods_cli_requirement_satisfied,
+    current_odc_requirement, current_ods_spec_version, current_ods_version,
+    odc_requirement_satisfied,
 };
 pub use mv::{
     PathChange, PathChangeReport, apply_path_changes, canonicalize_workspace_document_refs,

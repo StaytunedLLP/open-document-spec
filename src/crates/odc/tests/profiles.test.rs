@@ -9,7 +9,7 @@ fn profiles_command_reports_merged_catalog_sources() {
     fs::create_dir_all(root.join("ods-profiles")).expect("catalog dir");
     fs::write(
         root.join("index.md"),
-        "---\nprofile: index\nods: 0.1\nods-cli: \">=0.0.1\"\n---\n\n# Root\n",
+        "---\nprofile: index\nods: 0.1\nodc: \">=0.0.1\"\n---\n\n# Root\n",
     )
     .expect("root index");
     fs::write(

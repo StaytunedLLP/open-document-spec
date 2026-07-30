@@ -1,68 +1,15 @@
-fn collect_markdown_paths(
-    root: &Path,
-    dir: &Path,
-    out: &mut Vec<PathBuf>,
-    excluded_roots: &[PathBuf],
-    gitignore: &[String],
-    workspace_ignore: &[String],
-) -> io::Result<()> {
-    let mut entries = fs::read_dir(dir)?.collect::<Result<Vec<_>, _>>()?;
-    entries.sort_by_key(|entry| entry.file_name());
-
-    for entry in entries {
-        let path = entry.path();
-        let file_name = entry.file_name();
-        let file_type = entry.file_type()?;
-
-        if should_ignore_name(&file_name) {
-            continue;
-        }
-
-        if is_gitignored(root, &path, gitignore) {
-            continue;
-        }
-
-        if path_matches_workspace_ignore(root, &path, workspace_ignore) {
-            continue;
-        }
-
-        if excluded_roots.iter().any(|excl| is_within(&path, excl)) {
-            continue;
-        }
-
-        if file_type.is_dir() {
-            collect_markdown_paths(
-                root,
-                &path,
-                out,
-                excluded_roots,
-                gitignore,
-                workspace_ignore,
-            )?;
-        } else if file_type.is_file() && path.extension().is_some_and(|ext| ext == "md") {
-            out.push(path);
-        }
-    }
-
-    Ok(())
-}
-
 pub fn should_ignore_name(name: &std::ffi::OsStr) -> bool {
     let text = name.to_string_lossy();
     if text.starts_with('.') {
         return true;
     }
-    // Auto-generated lint report from `ods lint` / `ods watch` — not a workspace document.
-    if text.eq_ignore_ascii_case("ods-error.md") {
+    // Auto-generated lint reports — not workspace documents.
+    if text.eq_ignore_ascii_case("ods-error.md") || text.eq_ignore_ascii_case("odc-errors.md") {
         return true;
     }
     DEFAULT_IGNORE_NAMES
         .iter()
         .any(|ignored| text.eq_ignore_ascii_case(ignored))
-}
-
-fn is_within(path: &Path, root: &Path) -> bool {
-    path == root || path.strip_prefix(root).is_ok()
 }
 
 fn load_gitignore_patterns(root: &Path) -> Vec<String> {
@@ -77,33 +24,6 @@ fn load_gitignore_patterns(root: &Path) -> Vec<String> {
         .filter(|line| !line.starts_with('!'))
         .map(|line| line.trim_end_matches('/').to_string())
         .collect()
-}
-
-fn is_gitignored(root: &Path, path: &Path, patterns: &[String]) -> bool {
-    if patterns.is_empty() {
-        return false;
-    }
-
-    let Ok(relative) = path.strip_prefix(root) else {
-        return false;
-    };
-    let relative = relative.to_string_lossy().replace('\\', "/");
-    let name = path
-        .file_name()
-        .map(|n| n.to_string_lossy().to_string())
-        .unwrap_or_default();
-
-    patterns.iter().any(|pattern| {
-        let pattern = pattern.trim_start_matches('/');
-        if pattern.contains('/') {
-            relative == pattern
-                || relative.starts_with(&format!("{pattern}/"))
-                || relative.contains(&format!("/{pattern}/"))
-                || relative.ends_with(&format!("/{pattern}"))
-        } else {
-            name == *pattern || relative.split('/').any(|component| component == pattern)
-        }
-    })
 }
 
 #[cfg(test)]
@@ -128,12 +48,12 @@ mod tests {
         fs::create_dir_all(nested.join("products")).expect("dirs");
         fs::write(
             root.join("index.md"),
-            "---\nprofile: index\nods: 0.1\nods-cli: \">=0.0.1\"\n---\n\n# Root\n",
+            "---\nprofile: index\nods: 0.1\nodc: \">=0.0.1\"\n---\n\n# Root\n",
         )
         .expect("root index");
         fs::write(
             nested.join("index.md"),
-            "---\nprofile: index\nods: 0.1\nods-cli: \">=0.0.1\"\n---\n\n# Nested\n",
+            "---\nprofile: index\nods: 0.1\nodc: \">=0.0.1\"\n---\n\n# Nested\n",
         )
         .expect("nested index");
         let file = nested.join("products/item.md");

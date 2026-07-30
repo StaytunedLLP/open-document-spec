@@ -29,7 +29,7 @@ You can convert any ODS workspace into a clean, un-biased "Without ODS" baseline
 odc ods bench strip --write --full
 ```
 
-This command backs up all frontmatters, index lockfiles (`index.md`), and custom profile schemas into `$HOME/.ods/backups/<repo-hash>/`, deletes non-root `index.md` files, removes `ods:` keys, and strips frontmatters. To restore the workspace back to 100% compliant ODS state, run `odc ods bench restore`.
+This command backs up all frontmatters, index lockfiles (`index.md`), and custom profile schemas into `$HOME/.odc/backups/<repo-hash>/`, deletes non-root `index.md` files, removes `ods:` keys, and strips frontmatters. To restore the workspace back to 100% compliant ODS state, run `odc ods bench restore`.
 
 Run the native Rust benchmark evaluation tool or CLI benchmark command:
 

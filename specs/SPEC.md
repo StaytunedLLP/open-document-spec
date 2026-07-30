@@ -117,7 +117,7 @@ When scaffolded (`odc ods new`), adopted (`odc ods adopt`), or formatted (`odc o
 | Field | Type | Meaning |
 | :--- | :--- | :--- |
 | `ods` | string | Root `index.md` only: ODS spec version string marker (e.g. `ods: 0.1`). Defines workspace boundary. |
-| `ods-cli` | string | Root `index.md` only: minimum compatible ODS CLI version constraint (e.g. `>=0.0.1`). |
+| `odc` | string | Root `index.md` only: minimum compatible ODS CLI version constraint (e.g. `>=0.0.1`). |
 | `profiles` | list of paths | Custom profile catalog paths under workspace root up to $N$ items. |
 | `packs` | list of paths | Imported ODS Packs list up to $N$ items. |
 | `ignore` | list of paths | Workspace scan exclusion path masks up to $N$ items. |

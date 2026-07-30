@@ -1,5 +1,6 @@
 use crate::model::{Document, LoadOptions, Workspace};
-use crate::parse::{document_id, parse_document_text, split_frontmatter};
+use crate::parse::{document_id, split_frontmatter};
+use crate::pipeline::{discover_markdown_paths, parse_path, parse_paths_parallel};
 use crate::profiles::{load_profile_catalog, profile_catalog_roots};
 use std::collections::{HashMap, HashSet};
 use std::fs;
@@ -7,7 +8,7 @@ use std::io;
 use std::path::{Path, PathBuf};
 
 /// Directory / file base names that tooling never treats as documentation content.
-const DEFAULT_IGNORE_NAMES: &[&str] = &[
+pub(crate) const DEFAULT_IGNORE_NAMES: &[&str] = &[
     "target",
     "node_modules",
     "dist",
@@ -23,10 +24,19 @@ const DEFAULT_IGNORE_NAMES: &[&str] = &[
     "vendor",
 ];
 
+/// Load options optimized for graph ops (lint, doctor, index, context): no body retention.
+pub fn load_options_graph() -> LoadOptions {
+    LoadOptions {
+        include_body: false,
+        respect_gitignore: true,
+    }
+}
+
 pub fn load_workspace(root: impl AsRef<Path>) -> io::Result<Workspace> {
     load_workspace_with_options(root, LoadOptions::default())
 }
 
+/// Functional pipeline: discover → parallel parse → rebuild_indexes.
 pub fn load_workspace_with_options(
     root: impl AsRef<Path>,
     options: LoadOptions,
@@ -43,13 +53,11 @@ pub fn load_workspace_with_options(
 
     let root_index_path = root.join("index.md");
     let root_index = if root_index_path.exists() {
-        let text = fs::read_to_string(&root_index_path)?;
-        Some(parse_document_text(
+        Some(parse_path(
             &root,
             root_index_path.clone(),
-            &text,
             options.include_body,
-        ))
+        )?)
     } else {
         None
     };
@@ -58,32 +66,21 @@ pub fn load_workspace_with_options(
     let profile_catalog = load_profile_catalog(&root, &profile_roots)?;
     let workspace_ignore = workspace_ignore_from_root(root_index.as_ref());
 
-    let mut paths = Vec::new();
-    collect_markdown_paths(
+    let mut paths = discover_markdown_paths(
         &root,
-        &root,
-        &mut paths,
         &profile_roots,
         &gitignore,
         &workspace_ignore,
     )?;
-    paths.sort();
     let root_index_path = root_index.as_ref().map(|doc| doc.path.clone());
     paths.retain(|path| Some(path) != root_index_path.as_ref());
 
-    let mut documents = Vec::new();
+    let mut documents = Vec::with_capacity(paths.len() + usize::from(root_index.is_some()));
     if let Some(root_index) = root_index {
         documents.push(root_index);
     }
-    for path in paths {
-        let text = fs::read_to_string(&path)?;
-        documents.push(parse_document_text(
-            &root,
-            path,
-            &text,
-            options.include_body,
-        ));
-    }
+    let mut rest = parse_paths_parallel(&root, &paths, options.include_body)?;
+    documents.append(&mut rest);
 
     let mut workspace = Workspace {
         root,

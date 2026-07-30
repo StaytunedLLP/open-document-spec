@@ -9,26 +9,29 @@ tags: [odc, ods, okf, migration, cli, architecture, plan, upgrade, audit, touchp
 
 # ODS to ODC Migration & Multi-Spec CLI Architecture Plan
 
+> **Superseded for CLI UX and root keys** by [`odc_tool_keys_legacy_cleanup.md`](./odc_tool_keys_legacy_cleanup.md).
+> Bare `odc lint` **auto-detects**; CLI pin is **`odc:`** (not `ods-cli:`). This file remains useful for historical migration touchpoints.
+
 ## Direct answers
 
 ### Even with native OKF, do we need `odc okf` commands?
 
-**Yes.** Native = OKF code lives in the **same** `odc-core` engine/binary. It does **not** mean bare `odc lint` auto-selects OKF.
+**Optional force, not mandatory for everyday use.** Native = OKF code lives in the **same** `odc-core` engine/binary. Bare `odc lint` auto-selects from root markers; `odc ods` / `odc okf` force an engine (preferred in hybrid CI).
 
 | Layer | Meaning |
 |---|---|
 | Engine | One binary: ODS modules + OKF modules |
-| CLI | **Separate namespaces still required** |
+| CLI | Bare auto-detect **or** explicit namespaces |
 
 ```
-odc okf lint     # OKF engine
-odc ods lint     # ODS engine
-odc lint         # ERROR — specify ods or okf
+odc lint         # auto-detect ODS / OKF / hybrid
+odc okf lint     # force OKF engine
+odc ods lint     # force ODS engine
 ```
 
-Different specs → different required keys, root markers, and lint rules. Explicit namespaces keep hybrid repos and CI unambiguous.
+Different specs → different required keys, root markers, and lint rules.
 
-**Related:** [Native OKF support plan](./okf_native_support.md) · [ODS vs OKF key comparison](../specs/frontmatter-keys-ods-vs-okf.md)
+**Related:** [Tool / keys cleanup](./odc_tool_keys_legacy_cleanup.md) · [Native OKF support plan](./okf_native_support.md) · [ODS vs OKF key comparison](../specs/frontmatter-keys-ods-vs-okf.md)
 
 ---
 
@@ -37,7 +40,7 @@ Different specs → different required keys, root markers, and lint rules. Expli
 | Topic | Decision |
 |---|---|
 | CLI binary | `ods` → **`odc`** |
-| ODS Markdown keys | Stay **`ods:` / `ods-cli:`** only — never `odc-cli:` |
+| ODS Markdown keys | Stay **`ods:` / `odc:`** only — never `odc-cli:` |
 | Root ODS indexes (≈3 repos) | **Manual** edit |
 | Dual-compat API | **Out** |
 | Spec namespaces | **Mandatory** `odc ods` / `odc okf` / `odc agents` |
@@ -54,7 +57,7 @@ Different specs → different required keys, root markers, and lint rules. Expli
 
 ## 1. Naming policy
 
-1. **ODS Markdown:** `ods:`, `ods-cli:`, nested `ods:` — unchanged.
+1. **ODS Markdown:** `ods:`, `odc:`, nested `ods:` — unchanged.
 2. **OKF Markdown:** upstream OKF v0.2 keys (`type`, `sources`, `okf_version`, …) — not renamed to ODS keys.
 3. **CLI binary:** `odc`. Optional `ods` → `odc` symlink maps to **`odc ods` only**.
 4. **≈3 live ODS roots:** manual `index.md` / CI cutover.
@@ -82,7 +85,7 @@ odc
 
 | Op | ODS | OKF | Platform |
 |---|---|---|---|
-| init | `odc ods init` → `ods:` + `ods-cli:` | `odc okf init` → `okf_version: "0.2"` | — |
+| init | `odc ods init` → `ods:` + `odc:` | `odc okf init` → `okf_version: "0.2"` | — |
 | lint / index / context / doctor | `odc ods …` | `odc okf …` | — |
 | adopt / audit / fmt / export | `odc ods …` | `odc okf …` | — |
 | serve / watch / start / stop | `odc ods …` | `odc okf …` as needed | — |
@@ -246,7 +249,7 @@ Maintainer script: manifest renames; never rewrite user `ods:` keys.
 ## 8. Manual cutover (≈3 ODS repos)
 
 1. List repos/owners.  
-2. Confirm root `ods:` / `ods-cli:`.  
+2. Confirm root `ods:` / `odc:`.  
 3. CI → `odc ods lint` (etc.).  
 4. Run audit/doctor once.  
 5. No mass automated marker rewrite product.
@@ -259,7 +262,7 @@ Maintainer script: manifest renames; never rewrite user `ods:` keys.
 |---|---|
 | `odc ods lint` on ODS fixture | Green / parity with old `ods lint` |
 | `odc lint` | Usage error exit 2 |
-| `odc ods init` | Root has `ods:` + `ods-cli:` only |
+| `odc ods init` | Root has `ods:` + `odc:` only |
 | `odc okf init` | Root has `okf_version: "0.2"` |
 | OKF full-key fixture | `odc okf lint` green |
 | Audit `--write-report` | `.odc/odc-errors.md` |
@@ -280,7 +283,7 @@ odc okf init /tmp/okf-demo && odc okf lint /tmp/okf-demo
 
 - [ ] Workspace tests green after rename  
 - [ ] Namespaces enforced  
-- [ ] ODS Markdown keys still `ods:` / `ods-cli:`  
+- [ ] ODS Markdown keys still `ods:` / `odc:`  
 - [ ] OKF MVP gates (see OKF plan)  
 - [ ] Touchpoints §5.5  
 - [ ] Comparison + ODS SPEC CLI updates  

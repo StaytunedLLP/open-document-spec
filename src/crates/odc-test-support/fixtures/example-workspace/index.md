@@ -1,7 +1,7 @@
 ---
 profile: index
 ods: 0.1
-ods-cli: ">=0.1.19"
+odc: ">=0.1.19"
 ---
 
 # Example Workspace

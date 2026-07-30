@@ -9,6 +9,9 @@ tags: [odc, okf, native, plan, lint, audit, multi-spec]
 
 # Native Google OKF v0.2 Support in OpenDocify (`odc-core` / `odc okf`)
 
+> **Superseded for CLI UX and root keys** by [`odc_tool_keys_legacy_cleanup.md`](./odc_tool_keys_legacy_cleanup.md).
+> Bare `odc lint` **auto-detects**; CLI pin is **`odc:`** (not `ods-cli:`). This file remains useful for historical OKF engine detail.
+
 ## Direct answer: native + separate CLI?
 
 **Yes — both.**
@@ -16,12 +19,12 @@ tags: [odc, okf, native, plan, lint, audit, multi-spec]
 | | |
 |---|---|
 | **Native** | OKF parse/lint/model lives **inside** `odc-core` (same binary as ODS) |
-| **Separate CLI** | Users **must** call **`odc okf <command>`** — never rely on bare `odc lint` auto-detect |
+| **CLI** | Bare `odc <command>` auto-detects; **`odc okf <command>`** forces OKF (see [tool/keys plan](./odc_tool_keys_legacy_cleanup.md)) |
 
 ```
-odc okf lint     # correct
-odc ods lint     # ODS only
-odc lint         # usage error
+odc lint         # auto-detect ODS / OKF / hybrid
+odc okf lint     # force OKF engine
+odc ods lint     # force ODS engine
 ```
 
 **Why:** native is about *where the code lives*; namespaces are about *which spec rules apply*. See [migration plan](./ods_to_odc_migration_and_cli_architecture.md) and [key comparison](../specs/frontmatter-keys-ods-vs-okf.md).
@@ -61,7 +64,7 @@ odc-core
 
 | Root marker | Valid for |
 |---|---|
-| `ods:` (+ `ods-cli:`) | `odc ods *` |
+| `ods:` (+ `odc:`) | `odc ods *` |
 | `okf_version: "0.2"` | `odc okf *` |
 | both | hybrid; explicit namespace per command |
 
@@ -211,7 +214,7 @@ Full multi-spec touchpoint list: [migration plan §5](./ods_to_odc_migration_and
 - [ ] unknown keys preserved  
 - [ ] `odc okf init|lint|audit|doctor` shipped  
 - [ ] Fixture green in CI  
-- [ ] `odc lint` without namespace → usage error  
+- [ ] `odc lint` without namespace → auto-detects based on markers
 - [ ] Wrong-spec errors for `odc okf` on pure ODS and reverse  
 - [ ] Comparison doc lists OKF keys + purposes  
 
@@ -220,7 +223,7 @@ odc okf init /tmp/okf-demo
 odc okf lint /tmp/okf-demo
 odc okf audit /tmp/okf-demo --write-report
 odc okf doctor /tmp/okf-demo
-odc lint   # must fail with hint
+odc lint   # auto-detects OKF workspace
 ```
 
 ---
@@ -230,7 +233,7 @@ odc lint   # must fail with hint
 | Topic | Default |
 |---|---|
 | Root version key | `okf_version: "0.2"` only |
-| Bare doc command | Hard error |
+| Bare doc command | Auto-detect (falls back to error if no markers) |
 | Stale | Lint warning; doctor counts |
 | Trust tier | Advisory only |
 | Report path | `.odc/odc-errors.md` |

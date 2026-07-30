@@ -13,7 +13,7 @@ fn graph_keys_and_context_work_end_to_end() {
     let dir = tempdir();
     fs::write(
         dir.path().join("index.md"),
-        "---\nprofile: index\nods: 0.1\nods-cli: \">=0.0.1\"\n---\n\n# Root\n",
+        "---\nprofile: index\nods: 0.1\nodc: \">=0.0.1\"\n---\n\n# Root\n",
     )
     .unwrap();
     fs::create_dir_all(dir.path().join("specs")).unwrap();
@@ -62,7 +62,7 @@ fn code_refs_are_in_context_and_export() {
     let dir = tempdir();
     fs::write(
         dir.path().join("index.md"),
-        "---\nprofile: index\nods: 0.1\nods-cli: \">=0.0.1\"\n---\n\n# Root\n",
+        "---\nprofile: index\nods: 0.1\nodc: \">=0.0.1\"\n---\n\n# Root\n",
     )
     .unwrap();
     fs::create_dir_all(dir.path().join("src/routes")).unwrap();
@@ -98,7 +98,7 @@ fn code_files_are_not_indexed_as_document_children() {
     let dir = tempdir();
     fs::write(
         dir.path().join("index.md"),
-        "---\nprofile: index\nods: 0.1\nods-cli: \">=0.0.1\"\n---\n\n# Root\n",
+        "---\nprofile: index\nods: 0.1\nodc: \">=0.0.1\"\n---\n\n# Root\n",
     )
     .unwrap();
     fs::create_dir_all(dir.path().join("src")).unwrap();
@@ -125,7 +125,7 @@ fn duplicate_ids_and_missing_refs_are_reported() {
     let dir = tempdir();
     fs::write(
         dir.path().join("index.md"),
-        "---\nods: 0.1\nods-cli: \">=0.0.1\"\n---\n\n# R\n",
+        "---\nods: 0.1\nodc: \">=0.0.1\"\n---\n\n# R\n",
     )
     .unwrap();
     fs::write(
@@ -158,7 +158,7 @@ fn markdown_document_refs_resolve_and_canonical_lint_warns_on_legacy_ids() {
     let dir = tempdir();
     fs::write(
         dir.path().join("index.md"),
-        "---\nprofile: index\nods: 0.1\nods-cli: \">=0.0.1\"\n---\n\n# Root\n",
+        "---\nprofile: index\nods: 0.1\nodc: \">=0.0.1\"\n---\n\n# Root\n",
     )
     .unwrap();
     fs::create_dir_all(dir.path().join("website")).unwrap();
@@ -198,7 +198,7 @@ fn fmt_md_paths_rewrites_document_refs_only() {
     let dir = tempdir();
     fs::write(
         dir.path().join("index.md"),
-        "---\nprofile: index\nods: 0.1\nods-cli: \">=0.0.1\"\n---\n\n# Root\n",
+        "---\nprofile: index\nods: 0.1\nodc: \">=0.0.1\"\n---\n\n# Root\n",
     )
     .unwrap();
     fs::create_dir_all(dir.path().join("website")).unwrap();

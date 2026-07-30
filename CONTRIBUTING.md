@@ -28,9 +28,12 @@ cargo install --path src/crates/odc --bin odc --bin ods --locked --force
 | `specs/` | Normative specification |
 | `docs/guide/` | End-user guide |
 | `docs/FEATURE_MATRIX.md` | Keys × auto-update matrix |
+| `docs/maintainer/functional-style.md` | Prefer free functions / pipelines over OOP managers |
 | `CHANGELOG.md` | Optional manual release history |
-| `src/crates/odc-core` | Shared library |
+| `src/crates/odc-core` | Shared library (`pipeline/` discover/parse/apply) |
 | `src/crates/odc` | `odc` (legacy `ods`) CLI (only shipped binary) |
+
+New engine code should follow [functional style](docs/maintainer/functional-style.md): data + free functions, no `*Manager` types.
 
 ## Tests & coverage
 

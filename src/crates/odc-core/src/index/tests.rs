@@ -36,8 +36,8 @@ mod tests {
 
         assert!(
             rendered.contains(&format!(
-                "ods-cli: \"{}\"",
-                crate::model::current_ods_cli_requirement()
+                "odc: \"{}\"",
+                crate::model::current_odc_requirement()
             )),
             "{rendered}"
         );
@@ -48,7 +48,7 @@ mod tests {
         let dir = temp_workspace();
         fs::write(
             dir.join("index.md"),
-            "---\nprofile: index\nods: 0.1\nods-cli: \">=0.0.1\"\n---\n\n# Root\n",
+            "---\nprofile: index\nods: 0.1\nodc: \">=0.0.1\"\n---\n\n# Root\n",
         )
         .unwrap();
         fs::create_dir_all(dir.join("a/b")).unwrap();
@@ -74,7 +74,7 @@ mod tests {
         let dir = temp_workspace();
         fs::write(
             dir.join("index.md"),
-            "---\nprofile: index\nods: 0.1\nods-cli: \">=0.0.1\"\n---\n\n# Root\n",
+            "---\nprofile: index\nods: 0.1\nodc: \">=0.0.1\"\n---\n\n# Root\n",
         )
         .unwrap();
         fs::create_dir_all(dir.join("gone")).unwrap();
@@ -99,7 +99,7 @@ mod tests {
         let dir = temp_workspace();
         fs::write(
             dir.join("index.md"),
-            "---\nprofile: index\nods: 0.1\nods-cli: \">=0.0.1\"\n---\n\n# Root\n",
+            "---\nprofile: index\nods: 0.1\nodc: \">=0.0.1\"\n---\n\n# Root\n",
         )
         .unwrap();
         fs::write(

@@ -186,9 +186,9 @@ fn lint_root_ods_metadata(workspace: &Workspace) -> Vec<Diagnostic> {
             path: root_index_path,
             severity: Severity::Error,
             message: format!(
-                "missing root index.md with ods: {} and ods-cli: \"{}\"",
+                "missing root index.md with ods: {} and odc: \"{}\"",
                 crate::model::current_ods_spec_version(),
-                crate::model::current_ods_cli_requirement()
+                crate::model::current_odc_requirement()
             ),
         }];
     };
@@ -198,9 +198,9 @@ fn lint_root_ods_metadata(workspace: &Workspace) -> Vec<Diagnostic> {
             path: root_index.path.clone(),
             severity: Severity::Error,
             message: format!(
-                "root index.md missing ods: {} and ods-cli: \"{}\"",
+                "root index.md missing ods: {} and odc: \"{}\"",
                 crate::model::current_ods_spec_version(),
-                crate::model::current_ods_cli_requirement()
+                crate::model::current_odc_requirement()
             ),
         }];
     };
@@ -227,14 +227,14 @@ fn lint_root_ods_metadata(workspace: &Workspace) -> Vec<Diagnostic> {
         }),
     }
 
-    match frontmatter.ods_cli.as_deref() {
-        Some(requirement) => match crate::model::ods_cli_requirement_satisfied(requirement) {
+    match frontmatter.odc.as_deref() {
+        Some(requirement) => match crate::model::odc_requirement_satisfied(requirement) {
             Ok(true) => {}
             Ok(false) => diagnostics.push(Diagnostic {
                 path: root_index.path.clone(),
                 severity: Severity::Error,
                 message: format!(
-                    "root ods-cli requirement not satisfied: {requirement} (installed {})",
+                    "root odc requirement not satisfied: {requirement} (installed {})",
                     crate::model::current_ods_version()
                 ),
             }),
@@ -248,8 +248,8 @@ fn lint_root_ods_metadata(workspace: &Workspace) -> Vec<Diagnostic> {
             path: root_index.path.clone(),
             severity: Severity::Error,
             message: format!(
-                "root index.md missing ods-cli: \"{}\"",
-                crate::model::current_ods_cli_requirement()
+                "root index.md missing odc: \"{}\"",
+                crate::model::current_odc_requirement()
             ),
         }),
     }
@@ -367,7 +367,7 @@ fn lint_ods_scope(
     document: &Document,
     frontmatter: &crate::model::Frontmatter,
 ) -> Vec<Diagnostic> {
-    if (frontmatter.ods.is_none() && frontmatter.ods_cli.is_none())
+    if (frontmatter.ods.is_none() && frontmatter.odc.is_none())
         || document.path == workspace.root.join("index.md")
     {
         return Vec::new();
@@ -379,7 +379,7 @@ fn lint_ods_scope(
     vec![Diagnostic {
         path: document.path.clone(),
         severity: Severity::Error,
-        message: "ods and ods-cli should be declared only in root index.md".to_string(),
+        message: "ods and odc should be declared only in root index.md".to_string(),
     }]
 }
 

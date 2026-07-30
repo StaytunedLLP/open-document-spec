@@ -1,5 +1,5 @@
 /// Install a `SIGTERM`/`SIGINT`/Ctrl-C handler that flips a shared flag instead
-/// of leaving the process to be hard-killed. Lets `ods serve`/`watch` exit via
+/// of leaving the process to be hard-killed. Lets `odc serve`/`watch` exit via
 /// a normal return from `main` (flushing coverage/profiling data, closing
 /// files cleanly) instead of only ever dying to an external `SIGKILL`. Safe to
 /// call once per process; a failed registration (e.g. handler already set) is
@@ -28,6 +28,9 @@ fn sleep_checking_shutdown(total: Duration, shutdown: &AtomicBool) {
     }
 }
 
+/// Threshold: if more paths change than this, fall back to a full parallel reload.
+const WATCH_FULL_RELOAD_DIRTY: usize = 500;
+
 fn watch_workspace(
     root: &Path,
     level: LintLevel,
@@ -40,12 +43,21 @@ fn watch_workspace(
 
     let shutdown = install_shutdown_flag();
 
-    // Retain unpaired removals across debounce batches so OS renames still map.
-    let tree = Rc::new(RefCell::new(WatchTree::from_scan(
-        scan_markdown_tree(root, &[]).map_err(|err| failure(err.to_string()))?,
-    )));
+    // Long-lived workspace: parallel graph load once at start.
+    let workspace = Rc::new(RefCell::new(
+        load_workspace_with_options(root, load_options_graph())
+            .map_err(|err| failure(err.to_string()))?,
+    ));
 
-    run_watch_tick(root, &tree, level, format, headless)?;
+    let tree = {
+        let ws = workspace.borrow();
+        Rc::new(RefCell::new(WatchTree::from_scan(
+            scan_markdown_tree_with_code_paths(root, &ws.ignore, &ws.code_paths)
+                .map_err(|err| failure(err.to_string()))?,
+        )))
+    };
+
+    run_watch_tick(root, &tree, &workspace, level, format, headless, true)?;
 
     let (tx, rx) = channel();
     let mut debouncer = new_debouncer(
@@ -67,12 +79,14 @@ fn watch_workspace(
             root.display()
         );
     } else {
-        eprintln!("ods serve: watching {}", root.display());
+        eprintln!("odc serve: watching {}", root.display());
     }
     loop {
         match rx.recv_timeout(Duration::from_millis(250)) {
             Ok(Ok(_events)) => {
-                if let Err(err) = run_watch_tick(root, &tree, level, format, headless) {
+                if let Err(err) =
+                    run_watch_tick(root, &tree, &workspace, level, format, headless, false)
+                {
                     eprintln!("{}", err.message());
                 }
             }
@@ -85,7 +99,7 @@ fn watch_workspace(
             Err(RecvTimeoutError::Disconnected) => break,
         }
     }
-    eprintln!("ods serve: shutting down {}", root.display());
+    eprintln!("odc serve: shutting down {}", root.display());
     Ok(())
 }
 
@@ -107,17 +121,27 @@ fn poll_workspace(options: ServeOptions) -> Result<(), CliError> {
     use std::rc::Rc;
 
     let shutdown = install_shutdown_flag();
-    let tree = Rc::new(RefCell::new(WatchTree::from_scan(
-        scan_markdown_tree(&options.root, &[]).map_err(|err| failure(err.to_string()))?,
-    )));
-    eprintln!("ods serve: polling {}", options.root.display());
+    let workspace = Rc::new(RefCell::new(
+        load_workspace_with_options(&options.root, load_options_graph())
+            .map_err(|err| failure(err.to_string()))?,
+    ));
+    let tree = {
+        let ws = workspace.borrow();
+        Rc::new(RefCell::new(WatchTree::from_scan(
+            scan_markdown_tree_with_code_paths(&options.root, &ws.ignore, &ws.code_paths)
+                .map_err(|err| failure(err.to_string()))?,
+        )))
+    };
+    eprintln!("odc serve: polling {}", options.root.display());
     while !shutdown.load(Ordering::SeqCst) {
         run_watch_tick(
             &options.root,
             &tree,
+            &workspace,
             LintLevel::Level3,
             OutputFormat::Text,
             true,
+            false,
         )?;
         if options.memory_report {
             let retained = tree.borrow().snapshot.files.len();
@@ -125,28 +149,32 @@ fn poll_workspace(options: ServeOptions) -> Result<(), CliError> {
         }
         sleep_checking_shutdown(Duration::from_secs(options.poll_secs), &shutdown);
     }
-    eprintln!("ods serve: shutting down {}", options.root.display());
+    eprintln!("odc serve: shutting down {}", options.root.display());
     Ok(())
 }
 
+/// Incremental watch tick: scan → renames → dirty parse/apply → lint (no double full load).
 fn run_watch_tick(
     root: &Path,
     tree: &std::rc::Rc<std::cell::RefCell<WatchTree>>,
+    workspace: &std::rc::Rc<std::cell::RefCell<Workspace>>,
     level: LintLevel,
     format: OutputFormat,
     headless: bool,
+    force_full: bool,
 ) -> Result<(), CliError> {
-    let metadata = if headless {
-        load_light(root).map_err(failure)?
-    } else {
-        load_workspace(root).map_err(|err| failure(err.to_string()))?
+    let (ignore, code_paths) = {
+        let ws = workspace.borrow();
+        (ws.ignore.clone(), ws.code_paths.clone())
     };
-    let current = scan_markdown_tree_with_code_paths(root, &metadata.ignore, &metadata.code_paths)
+
+    let current = scan_markdown_tree_with_code_paths(root, &ignore, &code_paths)
         .map_err(|err| failure(err.to_string()))?;
     let changes = {
         let watch = tree.borrow();
         observe_renames(&watch.effective_previous(), &current)
     };
+
     if !changes.is_empty() {
         let report = apply_path_changes(root, &changes).map_err(|err| failure(err.to_string()))?;
         if matches!(format, OutputFormat::Text) && !headless {
@@ -160,36 +188,87 @@ fn run_watch_tick(
                 eprintln!("warning: {w}");
             }
         }
-    } else {
+    } else if !force_full {
         let heal = heal_orphan_path_ids(root).map_err(|err| failure(err.to_string()))?;
         if !heal.rewritten_files.is_empty() && matches!(format, OutputFormat::Text) && !headless {
             eprintln!("path id heal: {}", heal.summary());
         }
     }
-    let _ = generate_indexes(&metadata).map_err(|err| failure(err.to_string()))?;
-    drop(metadata);
 
-    let workspace = load_workspace(root).map_err(|err| failure(err.to_string()))?;
-    let diagnostics = lint_workspace_with_level(&workspace, level);
-    if !headless {
-        print_diagnostics(&diagnostics, format);
-        write_or_clear_ods_error_report(root, &diagnostics, format)?;
-        if diagnostics.is_empty() && matches!(format, OutputFormat::Text) {
-            println!("Everything is fine — graph and links are consistent. No update required.");
-        }
-    } else {
-        write_or_clear_ods_error_report(root, &diagnostics, OutputFormat::Text)?;
-        if !diagnostics.is_empty() {
-            eprintln!(
-                "ods serve: {} diagnostic(s) in {}",
-                diagnostics.len(),
-                root.display()
-            );
+    let prev_files = tree.borrow().snapshot.files.clone();
+    let mut dirty: Vec<PathBuf> = current
+        .files
+        .iter()
+        .filter(|(path, hash)| prev_files.get(*path) != Some(hash))
+        .map(|(path, _)| path.clone())
+        .collect();
+    for change in &changes {
+        let to = match change {
+            odc_core::PathChange::FileMoved { to, .. }
+            | odc_core::PathChange::DirMoved { to, .. } => to,
+        };
+        if !dirty.iter().any(|p| p == to) {
+            dirty.push(to.clone());
         }
     }
-    let ignore = workspace.ignore.clone();
-    let code_paths = workspace.code_paths.clone();
-    drop(workspace);
+    dirty.sort();
+    dirty.dedup();
+
+    let removed: Vec<PathBuf> = prev_files
+        .keys()
+        .filter(|p| !current.files.contains_key(*p))
+        .cloned()
+        .collect();
+
+    let total = workspace.borrow().documents.len().max(1);
+    let need_full =
+        force_full || dirty.len() > WATCH_FULL_RELOAD_DIRTY || dirty.len() * 10 > total;
+
+    if need_full {
+        let fresh = load_workspace_with_options(root, load_options_graph())
+            .map_err(|err| failure(err.to_string()))?;
+        *workspace.borrow_mut() = fresh;
+    } else {
+        if !removed.is_empty() {
+            let refs: Vec<&Path> = removed.iter().map(PathBuf::as_path).collect();
+            apply_document_removes(&mut workspace.borrow_mut(), &refs);
+        }
+        let existing: Vec<PathBuf> = dirty.into_iter().filter(|p| p.is_file()).collect();
+        if !existing.is_empty() {
+            let docs = parse_paths_parallel(root, &existing, false)
+                .map_err(|err| failure(err.to_string()))?;
+            apply_document_upserts(&mut workspace.borrow_mut(), docs);
+        }
+    }
+
+    {
+        let ws = workspace.borrow();
+        let _ = generate_indexes(&ws).map_err(|err| failure(err.to_string()))?;
+        let diagnostics = lint_workspace_with_level(&ws, level);
+        if !headless {
+            print_diagnostics(&diagnostics, format);
+            write_or_clear_ods_error_report(root, &diagnostics, format)?;
+            if diagnostics.is_empty() && matches!(format, OutputFormat::Text) {
+                println!(
+                    "Everything is fine — graph and links are consistent. No update required."
+                );
+            }
+        } else {
+            write_or_clear_ods_error_report(root, &diagnostics, OutputFormat::Text)?;
+            if !diagnostics.is_empty() {
+                eprintln!(
+                    "odc serve: {} diagnostic(s) in {}",
+                    diagnostics.len(),
+                    root.display()
+                );
+            }
+        }
+    }
+
+    let (ignore, code_paths) = {
+        let ws = workspace.borrow();
+        (ws.ignore.clone(), ws.code_paths.clone())
+    };
     let after = scan_markdown_tree_with_code_paths(root, &ignore, &code_paths)
         .map_err(|err| failure(err.to_string()))?;
     let paired = paired_from_paths(&changes);
@@ -201,10 +280,10 @@ fn print_memory_report(mode: &str, root: &Path, retained_snapshot_files: usize) 
     let rss = current_rss_kb()
         .map(|kb| kb.to_string())
         .unwrap_or_else(|| "unknown".to_string());
-    let documents = load_light(root)
+    let documents = load_workspace_with_options(root, load_options_graph())
         .map(|workspace| workspace.documents.len())
         .unwrap_or(0);
     eprintln!(
-        "ods serve: mode={mode} documents={documents} retained_snapshot_files={retained_snapshot_files} rss_kb={rss}"
+        "odc serve: mode={mode} documents={documents} retained_snapshot_files={retained_snapshot_files} rss_kb={rss}"
     );
 }

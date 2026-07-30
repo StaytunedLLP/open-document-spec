@@ -296,7 +296,7 @@ Every ODS workspace root `index.md` contains the explicit root marker `ods: 0.1`
 
 3. **Combined OpenDocify Universal Search Query**:
    ```
-   filename:index.md path:/ ("ods:" OR "okf:" OR "okf_version:" OR "ods-cli:")
+   filename:index.md path:/ ("ods:" OR "okf:" OR "okf_version:" OR "odc:")
    ```
 
 4. **GitHub Search API cURL Command**:

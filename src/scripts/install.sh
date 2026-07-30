@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# ODS installer — downloads prebuilt `ods` binary from GitHub Releases.
+# OpenDocify (odc) installer — downloads prebuilt `odc` (+ optional `ods` alias) from GitHub Releases.
 #
 # Supported platforms (auto-detected):
 #   macOS  — Apple Silicon (arm64), Intel (x86_64)

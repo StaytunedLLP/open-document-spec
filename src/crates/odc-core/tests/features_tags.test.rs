@@ -9,7 +9,7 @@ fn tags_normalize_find_and_rename() {
     let dir = tempfile::tempdir().unwrap();
     fs::write(
         dir.path().join("index.md"),
-        "---\nods: 0.1\nods-cli: \">=0.0.1\"\n---\n\n# R\n",
+        "---\nods: 0.1\nodc: \">=0.0.1\"\n---\n\n# R\n",
     )
     .unwrap();
     fs::write(

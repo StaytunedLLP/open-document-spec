@@ -10,7 +10,7 @@ fn write_root(dir: impl AsRef<Path>, extra: &str) {
     let dir = dir.as_ref();
     fs::write(
         dir.join("index.md"),
-        format!("---\nprofile: index\nods: 0.1\nods-cli: \">=0.0.1\"\n---\n\n# Root\n\n{extra}"),
+        format!("---\nprofile: index\nods: 0.1\nodc: \">=0.0.1\"\n---\n\n# Root\n\n{extra}"),
     )
     .unwrap();
 }
@@ -101,11 +101,11 @@ fn stale_root_ods_version_errors() {
 }
 
 #[test]
-fn invalid_or_missing_ods_cli_errors() {
+fn invalid_or_missing_odc_errors() {
     let dir = temp_workspace();
     fs::write(
         dir.join("index.md"),
-        "---\nprofile: index\nods: 0.1\nods-cli: \">=999.0.0\"\n---\n\n# Root\n\n",
+        "---\nprofile: index\nods: 0.1\nodc: \">=999.0.0\"\n---\n\n# Root\n\n",
     )
     .unwrap();
     let ws = load_workspace(&dir).unwrap();
@@ -113,7 +113,7 @@ fn invalid_or_missing_ods_cli_errors() {
     assert!(
         diags
             .iter()
-            .any(|d| d.message.contains("root ods-cli requirement not satisfied")),
+            .any(|d| d.message.contains("root odc requirement not satisfied")),
         "{diags:?}"
     );
 
@@ -127,7 +127,7 @@ fn invalid_or_missing_ods_cli_errors() {
     assert!(
         diags
             .iter()
-            .any(|d| d.message.contains("root index.md missing ods-cli")),
+            .any(|d| d.message.contains("root index.md missing odc")),
         "{diags:?}"
     );
 }

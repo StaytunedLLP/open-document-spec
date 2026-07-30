@@ -66,7 +66,7 @@ Normative rules live in [`specs/SPEC.md`](/spec/spec). This guide is operational
 - **Bounded AI context** — `context.*` plus `odc ods context` / optional `odc ods export`.
 - **Share-aware publishing** — `odc ods share` writes a real, filtered directory (public docs only by default) that you `git init`/push yourself.
 - **Safer refactors** — Rename while the service/watch runs, or use `odc ods mv`; refs and indexes update together.
-- **CLI trust** — `odc ods lint` is the Level-3 gate (green message or `ods-error.md`).
+- **CLI trust** — `odc lint` is the Level-3 gate (green message or `.odc/odc-errors.md`).
 
 ---
 

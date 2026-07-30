@@ -49,7 +49,7 @@ Unknown keys are preserved. Do **not** execute attesters/executors unless the us
 
 | Spec | Namespace | Root marker |
 |---|---|---|
-| ODS (codebase docs) | `odc ods` | `ods:` + `ods-cli:` |
+| ODS (codebase docs) | `odc ods` | `ods:` + `odc:` |
 | OKF (knowledge) | `odc okf` | `okf_version: "0.2"` |
 
 Full comparison: `docs/specs/frontmatter-keys-ods-vs-okf.md`.

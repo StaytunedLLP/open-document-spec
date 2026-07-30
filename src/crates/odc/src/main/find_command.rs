@@ -28,7 +28,8 @@ fn run_find_command(args: &[String]) -> Result<ExitCode, CliError> {
             "usage: ods find [path] --tag <name> [--tag <name> ...]  (OR match)",
         ));
     }
-    let workspace = load_workspace(&root).map_err(|err| failure(err.to_string()))?;
+    let workspace = load_workspace_with_options(&root, load_options_graph())
+        .map_err(|err| failure(err.to_string()))?;
     let ids = docs_with_any_tag(&workspace, &tags);
     match format {
         OutputFormat::Text => {

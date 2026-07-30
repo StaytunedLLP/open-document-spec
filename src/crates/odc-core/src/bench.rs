@@ -77,17 +77,27 @@ pub fn compute_repo_hash(root: &Path) -> String {
     format!("{hash:016x}")
 }
 
-/// Resolve directory path for machine-level snapshots: ~/.ods/backups/<repo_hash>/
+/// Resolve directory path for machine-level snapshots: ~/.odc/backups/<repo_hash>/
+/// (falls back to legacy ~/.ods/backups if that tree already has snapshots for this repo).
 pub fn get_backup_dir(root: &Path) -> io::Result<PathBuf> {
     let repo_hash = compute_repo_hash(root);
-    let base = if let Ok(home) = std::env::var("HOME") {
-        PathBuf::from(home).join(".ods").join("backups")
+    let home_base = if let Ok(home) = std::env::var("HOME") {
+        PathBuf::from(home)
     } else if let Ok(userprofile) = std::env::var("USERPROFILE") {
-        PathBuf::from(userprofile).join(".ods").join("backups")
+        PathBuf::from(userprofile)
     } else {
-        std::env::temp_dir().join("ods_backups")
+        let dir = std::env::temp_dir().join("odc_backups").join(&repo_hash);
+        fs::create_dir_all(&dir)?;
+        return Ok(dir);
     };
-    let dir = base.join(repo_hash);
+    let modern = home_base.join(".odc").join("backups").join(&repo_hash);
+    let legacy = home_base.join(".ods").join("backups").join(&repo_hash);
+    // Prefer modern; keep writing into legacy only if it already has content and modern does not.
+    let dir = if modern.exists() || !legacy.exists() {
+        modern
+    } else {
+        legacy
+    };
     fs::create_dir_all(&dir)?;
     Ok(dir)
 }
@@ -181,9 +191,15 @@ pub fn bench_strip_workspace(
         }
     }
 
-    // Strip ods-error.md if present
+    // Strip lint error report if present (.odc/odc-errors.md preferred; legacy ods-error.md)
     if do_strip_error {
-        let err_path = root.join("ods-error.md");
+        let modern = root.join(".odc").join("odc-errors.md");
+        let legacy = root.join("ods-error.md");
+        let err_path = if modern.is_file() {
+            modern
+        } else {
+            legacy
+        };
         if err_path.is_file() {
             if let Ok(content) = fs::read_to_string(&err_path) {
                 error_file_content = Some(content);
@@ -332,7 +348,10 @@ pub fn bench_restore_workspace(
     }
 
     if let Some(err_content) = parsed_data.error_file {
-        let err_path = root.join("ods-error.md");
+        let err_path = root.join(".odc").join("odc-errors.md");
+        if let Some(parent) = err_path.parent() {
+            let _ = fs::create_dir_all(parent);
+        }
         let _ = fs::write(err_path, err_content);
     }
 

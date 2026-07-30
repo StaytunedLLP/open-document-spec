@@ -122,8 +122,8 @@ fn included(level: ShareLevel, options: ShareOptions) -> bool {
 /// `index.md` files are never copied verbatim — their child lists are
 /// specific to the source tree, so they are always regenerated from what
 /// actually landed in `out`. This also means a promoted subdirectory root
-/// automatically gets its `ods`/`ods-cli` workspace markers synthesized by
-/// the regular index generator, the same way `ods init` would.
+/// automatically gets its `ods`/`odc` workspace markers synthesized by
+/// the regular index generator, the same way `odc init` would.
 pub fn publish_workspace(
     workspace: &Workspace,
     scope: impl AsRef<Path>,
@@ -204,7 +204,7 @@ mod tests {
         write(
             dir.as_path(),
             "index.md",
-            "---\nprofile: index\nods: 0.1\nods-cli: \">=0.0.1\"\n---\n\n# R\n",
+            "---\nprofile: index\nods: 0.1\nodc: \">=0.0.1\"\n---\n\n# R\n",
         );
         write(
             dir.as_path(),
@@ -223,7 +223,7 @@ mod tests {
         write(
             dir.as_path(),
             "index.md",
-            "---\nprofile: index\nods: 0.1\nods-cli: \">=0.0.1\"\n---\n\n# R\n",
+            "---\nprofile: index\nods: 0.1\nodc: \">=0.0.1\"\n---\n\n# R\n",
         );
         write(
             dir.as_path(),
@@ -242,7 +242,7 @@ mod tests {
         write(
             dir.as_path(),
             "index.md",
-            "---\nprofile: index\nods: 0.1\nods-cli: \">=0.0.1\"\n---\n\n# R\n",
+            "---\nprofile: index\nods: 0.1\nodc: \">=0.0.1\"\n---\n\n# R\n",
         );
         write(
             dir.as_path(),
@@ -266,7 +266,7 @@ mod tests {
         write(
             dir.as_path(),
             "index.md",
-            "---\nprofile: index\nods: 0.1\nods-cli: \">=0.0.1\"\n---\n\n# R\n",
+            "---\nprofile: index\nods: 0.1\nodc: \">=0.0.1\"\n---\n\n# R\n",
         );
         write(
             dir.as_path(),
@@ -290,7 +290,7 @@ mod tests {
         write(
             dir.as_path(),
             "index.md",
-            "---\nprofile: index\nods: 0.1\nods-cli: \">=0.0.1\"\nshare: private\n---\n\n# R\n",
+            "---\nprofile: index\nods: 0.1\nodc: \">=0.0.1\"\nshare: private\n---\n\n# R\n",
         );
         write(
             dir.as_path(),
@@ -321,7 +321,7 @@ mod tests {
         write(
             &root,
             "index.md",
-            "---\nprofile: index\nods: 0.1\nods-cli: \">=0.0.1\"\n---\n\n# R\n",
+            "---\nprofile: index\nods: 0.1\nodc: \">=0.0.1\"\n---\n\n# R\n",
         );
         write(
             &root,
@@ -340,7 +340,7 @@ mod tests {
         write(
             dir.as_path(),
             "index.md",
-            "---\nprofile: index\nods: 0.1\nods-cli: \">=0.0.1\"\n---\n\n# R\n",
+            "---\nprofile: index\nods: 0.1\nodc: \">=0.0.1\"\n---\n\n# R\n",
         );
         write(
             dir.as_path(),
@@ -359,7 +359,7 @@ mod tests {
         write(
             dir.as_path(),
             "index.md",
-            "---\nprofile: index\nods: 0.1\nods-cli: \">=0.0.1\"\n---\n\n# R\n",
+            "---\nprofile: index\nods: 0.1\nodc: \">=0.0.1\"\n---\n\n# R\n",
         );
         write(
             dir.as_path(),
@@ -397,7 +397,7 @@ mod tests {
         write(
             dir.as_path(),
             "index.md",
-            "---\nprofile: index\nods: 0.1\nods-cli: \">=0.0.1\"\n---\n\n# R\n",
+            "---\nprofile: index\nods: 0.1\nodc: \">=0.0.1\"\n---\n\n# R\n",
         );
         write(
             dir.as_path(),
@@ -437,7 +437,7 @@ mod tests {
         write(
             dir.as_path(),
             "index.md",
-            "---\nprofile: index\nods: 0.1\nods-cli: \">=0.0.1\"\n---\n\n# R\n",
+            "---\nprofile: index\nods: 0.1\nodc: \">=0.0.1\"\n---\n\n# R\n",
         );
         write(
             dir.as_path(),
@@ -470,7 +470,7 @@ mod tests {
         write(
             dir.as_path(),
             "index.md",
-            "---\nprofile: index\nods: 0.1\nods-cli: \">=0.0.1\"\n---\n\n# R\n",
+            "---\nprofile: index\nods: 0.1\nodc: \">=0.0.1\"\n---\n\n# R\n",
         );
         write(
             dir.as_path(),
@@ -506,7 +506,7 @@ mod tests {
         write(
             dir.as_path(),
             "index.md",
-            "---\nprofile: index\nods: 0.1\nods-cli: \">=0.0.1\"\n---\n\n# R\n",
+            "---\nprofile: index\nods: 0.1\nodc: \">=0.0.1\"\n---\n\n# R\n",
         );
         write(
             dir.as_path(),
@@ -536,7 +536,7 @@ mod tests {
         write(
             dir.as_path(),
             "index.md",
-            "---\nprofile: index\nods: 0.1\nods-cli: \">=0.0.1\"\n---\n\n# R\n",
+            "---\nprofile: index\nods: 0.1\nodc: \">=0.0.1\"\n---\n\n# R\n",
         );
         write(
             dir.as_path(),

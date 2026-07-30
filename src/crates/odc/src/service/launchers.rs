@@ -1,4 +1,4 @@
-// User-level OS service install for background `ods serve` (start/stop).
+// User-level OS service install for background `odc serve` (start/stop).
 
 use std::env;
 use std::fs;
@@ -17,7 +17,7 @@ pub fn workspace_unit_id(root: &Path) -> String {
 }
 
 pub fn ods_binary() -> PathBuf {
-    env::current_exe().unwrap_or_else(|_| PathBuf::from("ods"))
+    env::current_exe().unwrap_or_else(|_| PathBuf::from("odc"))
 }
 
 /// systemd user unit body.
@@ -27,7 +27,7 @@ pub fn render_systemd_user_unit(root: &Path, ods_bin: &Path) -> String {
     let bin = abs_display(ods_bin);
     format!(
         r#"[Unit]
-Description=ODS workspace watch ({root})
+Description=OpenDocify workspace watch ({root})
 After=default.target
 
 [Service]
@@ -91,7 +91,7 @@ pub fn linux_unit_path(unit_id: &str) -> PathBuf {
                 .unwrap_or_else(|_| PathBuf::from(".config"))
         });
     base.join("systemd/user")
-        .join(format!("ods-watch-{unit_id}.service"))
+        .join(format!("odc-watch-{unit_id}.service"))
 }
 
 #[cfg_attr(not(target_os = "macos"), allow(dead_code))]
@@ -99,12 +99,12 @@ pub fn macos_plist_path(unit_id: &str) -> PathBuf {
     let home = env::var("HOME").unwrap_or_else(|_| ".".into());
     PathBuf::from(home)
         .join("Library/LaunchAgents")
-        .join(format!("llp.ods.watch.{unit_id}.plist"))
+        .join(format!("llp.odc.watch.{unit_id}.plist"))
 }
 
 #[cfg_attr(not(target_os = "windows"), allow(dead_code))]
 pub fn windows_task_name(unit_id: &str) -> String {
-    format!("ODS Watch {unit_id}")
+    format!("OpenDocify Watch {unit_id}")
 }
 
 pub struct ServiceStatus {
@@ -132,7 +132,7 @@ pub fn start_service(root: &Path) -> io::Result<String> {
         let name = unit
             .file_name()
             .and_then(|n| n.to_str())
-            .unwrap_or("ods-watch.service");
+            .unwrap_or("odc-watch.service");
         let status = Command::new("systemctl")
             .args(["--user", "enable", "--now", name])
             .status();
@@ -157,9 +157,9 @@ pub fn start_service(root: &Path) -> io::Result<String> {
             fs::create_dir_all(parent)?;
         }
         let log_dir =
-            PathBuf::from(env::var("HOME").unwrap_or_else(|_| ".".into())).join(".ods/logs");
+            PathBuf::from(env::var("HOME").unwrap_or_else(|_| ".".into())).join(".odc/logs");
         fs::create_dir_all(&log_dir)?;
-        let label = format!("llp.ods.watch.{id}");
+        let label = format!("llp.odc.watch.{id}");
         fs::write(&plist, render_launchd_plist(&label, &root, &bin, &log_dir))?;
         let _ = Command::new("launchctl")
             .args(["unload", &plist.display().to_string()])
@@ -238,13 +238,13 @@ mod test_launchers {
         );
 
         let linux_path = linux_unit_path(&id);
-        assert!(linux_path.to_string_lossy().contains("ods-watch-"));
+        assert!(linux_path.to_string_lossy().contains("odc-watch-"));
 
         let macos_path = macos_plist_path(&id);
-        assert!(macos_path.to_string_lossy().contains("llp.ods.watch."));
+        assert!(macos_path.to_string_lossy().contains("llp.odc.watch."));
 
         let win_task = windows_task_name(&id);
-        assert!(win_task.contains("ODS Watch "));
+        assert!(win_task.contains("OpenDocify Watch "));
 
         let status_res = start_service(root);
         assert!(status_res.is_ok());

@@ -64,13 +64,30 @@ fn run_upgrade_command(args: &[String]) -> Result<ExitCode, CliError> {
 
     if ods {
         actions.push(
-            "manual: review root index.md ods: / ods-cli: pins if needed (~3 known repos)"
+            "manual: review root index.md ods: / odc: pins if needed (~3 known repos)"
                 .into(),
         );
         actions.push("next: odc ods audit --write-report".into());
     }
     if okf {
         actions.push("next: odc okf lint && odc okf audit --write-report".into());
+    }
+
+    // Rewrite legacy root pin ods-cli: → odc:
+    if ods {
+        let index = root.join("index.md");
+        if let Ok(text) = fs::read_to_string(&index) {
+            if text.contains("ods-cli:") {
+                actions.push("root index.md still has legacy ods-cli: (should be odc:)".into());
+                pending += 1;
+                if write {
+                    let updated = text.replace("ods-cli:", "odc:");
+                    fs::write(&index, updated).map_err(|e| failure(e.to_string()))?;
+                    actions.push("  rewrote ods-cli: → odc: on root index.md".into());
+                    pending = pending.saturating_sub(1);
+                }
+            }
+        }
     }
 
     if migrate_fm && ods {
@@ -83,11 +100,6 @@ fn run_upgrade_command(args: &[String]) -> Result<ExitCode, CliError> {
                 "migrated canonical ods: layout in {} file(s)",
                 changed.len()
             ));
-            if changed.is_empty() {
-                // no pending
-            } else {
-                pending = pending.saturating_sub(0);
-            }
         } else {
             actions.push(
                 "would run fmt --migrate for canonical nested ods: keys (pass --write)".into(),
@@ -340,8 +352,8 @@ fn build_agents_md(root: &Path) -> String {
     }
     md.push_str(
         "## Rules for coding agents\n\n\
-         1. Prefer namespaced CLI: `odc ods …` / `odc okf …` (never assume bare `odc lint`).\n\
-         2. ODS Markdown keys stay `ods:` / `ods-cli:` — do not invent `odc-cli:`.\n\
+         1. Prefer `odc …` (auto-detect) or explicit `odc ods …` / `odc okf …` in CI.\n\
+         2. ODS Markdown keys stay `ods:` / `odc:` — do not invent `odc-cli:`.\n\
          3. OKF concepts require `type:`; Attested Computation requires `runtime:`.\n\
          4. Do not execute OKF attesters/executors unless the user explicitly asks and tooling supports it.\n\
          5. After structural doc edits: `odc ods lint` or `odc okf lint` as appropriate.\n",

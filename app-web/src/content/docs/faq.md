@@ -50,7 +50,7 @@ depends:
 
 ## `odc ods lint` says everything is fine
 
-That is success: the graph and links are consistent. No `ods-error.md` should remain.
+That is success: the graph and links are consistent. No `.odc/odc-errors.md` (or legacy `ods-error.md`) should remain.
 
 ## How much RAM does `odc ods serve` use?
 

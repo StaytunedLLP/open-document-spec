@@ -2,27 +2,31 @@
 profile: plan
 status: stable
 share: public
-description: Comparison of ODS vs Google OKF v0.2 frontmatter keys — which keys exist in which spec, purpose of each family, root markers, and CLI commands (odc ods / odc okf).
+description: Comparison of ODS vs Google OKF v0.2 frontmatter keys — which keys exist in which spec, purpose of each family, root markers, and seamless odc CLI.
 owner: team:opendocify
-tags: [ods, okf, frontmatter, keys, multi-spec, reference]
+tags: [ods, okf, frontmatter, keys, multi-spec, reference, odc]
 ---
 
 # Frontmatter keys: ODS vs OKF v0.2
 
-This document is the **author-facing map** of which metadata keys belong to which OpenDocify spec, what they are for, and which CLI namespace to use.
+This document is the **author-facing map** of which metadata keys belong to which OpenDocify spec, what they are for, and how the **`odc`** CLI routes them.
 
-| Spec | CLI (mandatory) | Best for |
+| Spec | CLI | Best for |
 |---|---|---|
-| **ODS** (Open Document Spec) | `odc ods <cmd>` | Codebase documentation graphs: profiles, depends/related, code refs, indexes |
-| **OKF v0.2** (Open Knowledge Format) | `odc okf <cmd>` | Knowledge/metric/asset catalogs: trust, provenance, freshness, attested computations |
+| **ODS** (Open Document Spec) | `odc …` (auto) or `odc ods <cmd>` | Codebase documentation graphs: profiles, depends/related, code refs, indexes |
+| **OKF v0.2** (Open Knowledge Format) | `odc …` (auto) or `odc okf <cmd>` | Knowledge/metric/asset catalogs: trust, provenance, freshness, attested computations |
 
-**Native OKF** means both engines ship in one `odc` binary. It does **not** merge the command trees or frontmatter dialects.
+**Tool** = **`odc`**. **Native OKF** means both engines ship in one binary. Frontmatter dialects stay separate.
 
 ```
-odc ods lint     # ODS rules + ODS keys
-odc okf lint     # OKF rules + OKF keys
-odc lint         # ERROR — pick a spec
+odc lint         # auto-detect ODS / OKF / hybrid from root markers
+odc ods lint     # force ODS rules + ODS keys
+odc okf lint     # force OKF rules + OKF keys
+odc init         # ODS workspace (ods: + odc:)
+odc init --okf   # OKF bundle (okf_version: "0.2")
 ```
+
+**Source of truth for product naming:** [odc tool / keys / legacy cleanup plan](../plan/odc_tool_keys_legacy_cleanup.md).
 
 **Normative references**
 
@@ -41,7 +45,7 @@ odc lint         # ERROR — pick a spec
 | Progressive disclosure via **ODS indexes** + profiles | Progressive disclosure via OKF **index.md** / **log.md** conventions |
 | Workspace root is an engineering repo | Bundle is a knowledge pack (often agent-maintained) |
 
-**Hybrid repos** may carry both root markers. Always choose the engine with the CLI namespace for the operation you mean.
+**Hybrid repos** may carry both root markers. Bare `odc lint` / `doctor` / `audit` may run **both** engines; use `odc ods` or `odc okf` when you mean one.
 
 ---
 
@@ -50,7 +54,7 @@ odc lint         # ERROR — pick a spec
 | Key | Spec | Where | Purpose |
 |---|---|---|---|
 | `ods: <version>` e.g. `0.1` | ODS | Root `index.md` | Declares ODS workspace boundary and spec version |
-| `ods-cli: ">=x.y.z"` | ODS | Root `index.md` | Minimum CLI version required for this workspace |
+| `odc: ">=x.y.z"` | ODS | Root `index.md` | Minimum CLI version required for this workspace |
 | `okf_version: "0.2"` | OKF | Root `index.md` only | Declares OKF bundle targets v0.2 |
 | Both | Hybrid | Root `index.md` | Both engines may apply; still use `odc ods` vs `odc okf` per command |
 
@@ -66,7 +70,7 @@ Legend: **Yes** = first-class in that spec · **No** = not part of that spec’s
 | Key / concept | ODS | OKF v0.2 | Purpose (short) |
 |---|---|---|---|
 | **Root `ods:`** | Yes | No | ODS workspace version / boundary |
-| **`ods-cli:`** | Yes | No | Pin minimum CLI for ODS workspace |
+| **`odc:`** | Yes | No | Pin minimum CLI for ODS workspace |
 | **Nested `ods.profile`** | Yes | No | Document shape (guide, api, feature, …) |
 | **Nested `ods.status`** | Yes | Related* | ODS doc lifecycle (`draft` / `stable` / …) |
 | **Nested `ods.id`** | Yes | No† | Stable id override (path is default id) |
@@ -112,7 +116,7 @@ Legend: **Yes** = first-class in that spec · **No** = not part of that spec’s
 | **depends / related** | Build a **queryable graph** for reading order and impact |
 | **code / resources** | Bind docs to real implementation and artifacts |
 | **context** | Define bounded packs for prompt assembly (`odc ods context`) |
-| **Root ods / ods-cli** | Mark the tree as an ODS workspace and gate CLI version |
+| **Root ods / odc** | Mark the tree as an ODS workspace and gate CLI version |
 
 **Goal:** efficient, structured **engineering documentation** for humans and coding agents.
 
@@ -163,15 +167,16 @@ Frontmatter carries the **contract** (`runtime`, `parameters`, `executor`, `atte
 
 | Goal | Command |
 |---|---|
-| Create ODS workspace | `odc ods init` |
-| Create OKF bundle | `odc okf init` |
-| Validate ODS | `odc ods lint` |
-| Validate OKF | `odc okf lint` |
-| Inventory non-compliant Markdown | `odc ods audit` / `odc okf audit` (`--write-report`) |
-| Draft frontmatter on plains | `odc ods adopt` / `odc okf adopt` |
-| Resolve reading list | `odc ods context` / `odc okf context` |
+| Create ODS workspace | `odc init` or `odc ods init` |
+| Create OKF bundle | `odc init --okf` or `odc okf init` |
+| Validate (auto) | `odc lint` |
+| Validate ODS only | `odc ods lint` |
+| Validate OKF only | `odc okf lint` |
+| Inventory non-compliant Markdown | `odc audit --write-report` → `.odc/odc-errors.md` |
+| Draft frontmatter on plains | `odc adopt` / `odc ods adopt` / `odc okf adopt` |
+| Resolve reading list | `odc context` / `odc ods context` / `odc okf context` |
 | Binary self-update | `odc update` |
-| Machine/workspace forward helpers | `odc upgrade` |
+| Machine/workspace forward helpers | `odc upgrade` (`ods-cli:` → `odc:`, `~/.ods` → `~/.odc`) |
 
 ---
 
@@ -213,14 +218,15 @@ sources:
 ---
 ```
 
-Same file format family (Markdown + YAML). **Different keys, different CLI, different lint rules.**
+Same file format family (Markdown + YAML). **Different keys, different lint rules.** One tool (`odc`) routes by root markers or explicit namespace.
 
 ---
 
 ## 7. What v1 will not do
 
 - Merge ODS and OKF into one frontmatter dialect  
-- Auto-pick engine from bare `odc lint`  
+- Invent `okf:` as a CLI pin (Google uses `okf_version:`)  
+- Rename nested ODS engine keys from `ods:` to `odc:`  
 - Run OKF executors/attesters  
 - Silently map `ods.status` ↔ OKF `status` without a future explicit design  
 
@@ -231,5 +237,5 @@ If OpenDocify later adopts shared optional keys into ODS (e.g. `stale_after`, `s
 ## 8. See also
 
 - ODS modules: [`specs/`](../../specs/) (`SPEC.md`, `graph.md`, `validation.md`, `profiles.md`, …)  
-- Plans: [ODC migration](../plan/ods_to_odc_migration_and_cli_architecture.md), [Native OKF](../plan/okf_native_support.md)  
+- Plans: [Tool / keys / legacy cleanup](../plan/odc_tool_keys_legacy_cleanup.md), [ODC migration](../plan/ods_to_odc_migration_and_cli_architecture.md), [Native OKF](../plan/okf_native_support.md)  
 - Upstream OKF: [SPEC.md v0.2](https://github.com/GoogleCloudPlatform/knowledge-catalog/blob/main/okf/SPEC.md)

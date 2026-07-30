@@ -38,7 +38,13 @@ fn run_adopt_command(args: &[String]) -> Result<ExitCode, CliError> {
 
 fn run_init_command(args: &[String]) -> Result<ExitCode, CliError> {
     // `enable` kept as a short-lived alias of `init`.
-    let (root, _level, format) = parse_common_flags(args, 2)?;
+    // Strip OpenDocify init flags unknown to shared parser.
+    let filtered: Vec<String> = args
+        .iter()
+        .filter(|a| a.as_str() != "--okf")
+        .cloned()
+        .collect();
+    let (root, _level, format) = parse_common_flags(&filtered, 2)?;
     let adopt = args.iter().any(|a| a == "--adopt");
     let report = init_workspace(&root, InitOptions { adopt })
         .map_err(|err| failure(err.to_string()))?;
@@ -55,7 +61,7 @@ fn run_init_command(args: &[String]) -> Result<ExitCode, CliError> {
                 println!("adopted {} document(s)", report.adopted.len());
             }
             println!("indexes: {} file(s)", report.indexes.len());
-            println!("next: ods watch   # or: ods lint");
+            println!("next: odc lint   # or: odc watch");
         }
         OutputFormat::Json => {
             println!(

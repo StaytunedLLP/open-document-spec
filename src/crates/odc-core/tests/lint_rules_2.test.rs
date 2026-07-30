@@ -8,7 +8,7 @@ fn write_root(dir: impl AsRef<Path>, extra: &str) {
     let dir = dir.as_ref();
     fs::write(
         dir.join("index.md"),
-        format!("---\nprofile: index\nods: 0.1\nods-cli: \">=0.0.1\"\n---\n\n# Root\n\n{extra}"),
+        format!("---\nprofile: index\nods: 0.1\nodc: \">=0.0.1\"\n---\n\n# Root\n\n{extra}"),
     )
     .unwrap();
 }
@@ -18,7 +18,7 @@ fn alias_heading_satisfies_profile_section() {
     let dir = temp_workspace();
     fs::write(
         dir.join("index.md"),
-        "---\nprofile: index\nods: 0.1\nods-cli: \">=0.0.1\"\naliases:\n  Goal:\n    - Mission\n---\n\n# R\n\n- [a.md](a.md)\n",
+        "---\nprofile: index\nods: 0.1\nodc: \">=0.0.1\"\naliases:\n  Goal:\n    - Mission\n---\n\n# R\n\n- [a.md](a.md)\n",
     )
     .unwrap();
     // feature expects Goal among sections; Mission alias should count if wired
@@ -105,7 +105,7 @@ fn dangling_pack_path_error() {
     let dir = temp_workspace();
     fs::write(
         dir.join("index.md"),
-        "---\nprofile: index\nods: 0.1\nods-cli: \">=0.0.1\"\npacks:\n  - vendor/non-existent-pack\n---\n\n# Root\n",
+        "---\nprofile: index\nods: 0.1\nodc: \">=0.0.1\"\npacks:\n  - vendor/non-existent-pack\n---\n\n# Root\n",
     )
     .unwrap();
     let ws = load_workspace(&dir).unwrap();

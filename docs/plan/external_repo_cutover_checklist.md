@@ -47,25 +47,27 @@ Replace:
 With:
 
 ```yaml
-- run: odc ods lint
-- run: odc ods index --check
-# or keep `ods lint` if the `ods` symlink is on PATH
+- run: odc lint            # auto-detect (preferred)
+- run: odc index --check
+# or explicit: odc ods lint / odc ods index --check
+# legacy argv0: ods lint (ODS only) if the `ods` symlink is on PATH
 ```
 
-GitHub Action consumers: continue using the composite action; it now installs `odc` and runs `odc ods …`.
+GitHub Action consumers: continue using the composite action; it installs **`odc`** and runs lint (ODS namespace when needed).
 
 ## 3. Root `index.md`
 
-- Keep **`ods:`** and **`ods-cli:`** (do not rename keys).
-- Bump `ods-cli: ">=x.y.z"` if your policy requires a minimum CLI with multi-spec support.
+- Keep **`ods:`** (spec). CLI pin is **`odc: ">=x.y.z"`** — replace any legacy **`ods-cli:`** (`odc upgrade --write` can rewrite).
+- Bump `odc:` if your policy requires a minimum CLI with multi-spec support.
+- OKF roots use **`okf_version: "0.2"`** only (do not invent `okf:`).
 
 ## 4. Validate
 
 ```bash
-odc ods lint .
-odc ods doctor .
-odc ods audit --write-report   # optional inventory
-odc upgrade --check            # optional machine readiness
+odc lint .
+odc doctor .
+odc audit --write-report   # → .odc/odc-errors.md
+odc upgrade --write        # ods-cli→odc, ~/.ods→~/.odc hints
 ```
 
 ## 5. Agents (optional)

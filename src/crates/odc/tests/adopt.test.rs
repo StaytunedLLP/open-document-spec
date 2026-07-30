@@ -8,7 +8,7 @@ fn adopt_reports_alias_suggestions() {
     let root = temp_workspace();
     fs::write(
         root.join("index.md"),
-        "---\nprofile: index\nods: 0.1\nods-cli: \">=0.0.1\"\n---\n\n# Root\n\n- [feature.md](feature.md)\n",
+        "---\nprofile: index\nods: 0.1\nodc: \">=0.0.1\"\n---\n\n# Root\n\n- [feature.md](feature.md)\n",
     )
     .expect("root index");
     fs::write(

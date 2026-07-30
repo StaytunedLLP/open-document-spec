@@ -5,7 +5,7 @@
 use crate::adopt::{AdoptOptions, adopt_workspace};
 use crate::fs::{find_workspace_root, index_has_ods_field, load_workspace};
 use crate::index::generate_indexes;
-use crate::model::{current_ods_cli_requirement, current_ods_spec_version};
+use crate::model::{current_odc_requirement, current_ods_spec_version};
 use crate::parse::split_frontmatter;
 use std::fs;
 use std::io;
@@ -41,7 +41,7 @@ const DOC_ODS_KEYS: &[&str] = &[
     "tags",
 ];
 
-const ROOT_ODS_KEYS: &[&str] = &["ods", "ods-cli", "profiles", "ignore", "aliases"];
+const ROOT_ODS_KEYS: &[&str] = &["ods", "odc", "profiles", "ignore", "aliases"];
 
 /// Options for `disable_workspace`.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -136,9 +136,9 @@ pub fn init_workspace(root: impl AsRef<Path>, options: InitOptions) -> io::Resul
             .and_then(|n| n.to_str())
             .unwrap_or("Workspace");
         let content = format!(
-            "---\nprofile: index\nods: {}\nods-cli: \"{}\"\n---\n\n# {name}\n\n",
+            "---\nprofile: index\nods: {}\nodc: \"{}\"\n---\n\n# {name}\n\n",
             current_ods_spec_version(),
-            current_ods_cli_requirement()
+            current_odc_requirement()
         );
         fs::write(&index, content)?;
         report.initialized = true;

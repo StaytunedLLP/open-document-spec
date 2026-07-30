@@ -36,7 +36,7 @@ Rules:
 ---
 profile: index
 ods: 0.1
-ods-cli: ">=0.0.1"
+odc: ">=0.0.1"
 profiles:
   - ods-profiles
   - docs/profiles
@@ -46,7 +46,7 @@ packs:
 ```
 
 - An **ODS Pack** is a versioned repository or directory containing reusable document profiles (`ods-profiles/`), skills (`skills/`), or templates (`templates/`).
-- Remote Git packs (HTTPS, SSH, or shorthand like `user/repo`) are synced by tooling to `~/.ods/packs/` and referenced in root `index.md`. Local path packs are linked relatively.
+- Remote Git packs (HTTPS, SSH, or shorthand like `user/repo`) are synced by tooling to `~/.odc/packs/` (legacy `~/.ods/packs/` is still read) and referenced in root `index.md`. Local path packs are linked relatively.
 - Profile definitions MUST resolve in the following order of precedence: Standard Profiles, catalog roots listed in root `profiles:`, imported ODS Packs listed in `packs:`, and finally the default `ods-profiles/` directory.
 - If a profile name is defined in multiple catalogs, tools SHOULD use the first definition loaded and issue a conflict warning. Level-3 workspaces SHOULD treat duplicate profile definitions as validation errors.
 - Profile catalogs are workspace-local utilities. They do not participate in the document graph and SHOULD be excluded from ordinary index listings.

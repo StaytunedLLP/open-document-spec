@@ -18,7 +18,7 @@ Welcome to the Open Document Spec (ODS) User Guide. Choose a topic below to get 
 - [Tooling Reference](/docs/tooling): Complete CLI command reference, daemon execution modes, code references, and CI integration.
 - [Profiles & Catalogs](/docs/profiles): Standard profiles, custom profile catalogs, resolution precedence, and ODS Packs.
 - [Advanced Workspaces](/docs/advanced): AI agent reading order, global multi-workspace tracking, daemon memory tuning, and large workspaces.
-- [Troubleshooting & Diagnostics](/docs/troubleshooting-and-diagnostics): Diagnostic workflow, complete error catalog for `ods-error.md`, git merge conflicts, and daemon troubleshooting.
+- [Troubleshooting & Diagnostics](/docs/troubleshooting-and-diagnostics): Diagnostic workflow, complete error catalog for `.odc/odc-errors.md`, git merge conflicts, and daemon troubleshooting.
 - [Enterprise Deployment](/docs/enterprise-deployment): Enterprise ODS Pack distribution, multi-repo governance, CI/CD pipelines, security controls, and ROI modeling.
 - [FAQ & Troubleshooting](/docs/faq): Frequently asked questions about file extensions, adoption, profiles vs tags, renames, and background services.
 - [Features](/docs/features): Complete reference for frontmatter keys, root index configuration, profiles vs packs, AI context, and CLI commands.

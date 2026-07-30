@@ -52,15 +52,15 @@ Rules:
 ---
 profile: index
 ods: 0.1
-ods-cli: ">=0.0.1"
+odc: ">=0.0.1"
 packs:
   - vendor/engineering-pack
 ---
 ```
 
-An ODS-compliant workspace is identified by this root `ods` field or by entry in the global machine-level workspace registry (`~/.ods/odsconfig.toml`). ODS follows a strict **Dual-Scope Workspace Governance Model**:
+An ODS-compliant workspace is identified by this root `ods` field or by entry in the global machine-level workspace registry (`~/.odc/odcconfig.toml`, with legacy read of `~/.ods/odsconfig.toml`). ODS follows a strict **Dual-Scope Workspace Governance Model**:
 
-1. **OS / Machine Level (`~/.ods/odsconfig.toml`)**: A machine-wide registry managed via `ods workspaces [add|remove|list|path]` that tracks active ODS repositories for the developer's background watch service (`ods start`). The file contains a `[workspaces]` key with a list of absolute directory paths:
+1. **OS / Machine Level (`~/.odc/odcconfig.toml`)**: A machine-wide registry managed via `odc workspaces [add|remove|list|path]` that tracks active ODS repositories for the developer's background watch service (`odc start`). The file contains a `[workspaces]` key with a list of absolute directory paths:
    ```toml
    [workspaces]
    paths = [
@@ -68,9 +68,9 @@ An ODS-compliant workspace is identified by this root `ods` field or by entry in
      "/home/user/projects/ecommerce"
    ]
    ```
-2. **Project / Repository Level (Root `index.md` Frontmatter)**: All project-level policy, spec compatibility (`ods:`), CLI requirements (`ods-cli:`), profile catalogs (`profiles:`), pack imports (`packs:`), scan excludes (`ignore:`), and heading aliases (`aliases:`) are declared directly on the root `index.md` frontmatter. ODS strictly enforces a **Zero Config-File Guarantee** inside repositories—no proprietary `.odsconfig`, `workspace.toml`, or `.odsignore` files are created inside project trees.
+2. **Project / Repository Level (Root `index.md` Frontmatter)**: All project-level policy, spec compatibility (`ods:`), CLI requirements (`odc:`), profile catalogs (`profiles:`), pack imports (`packs:`), scan excludes (`ignore:`), and heading aliases (`aliases:`) are declared directly on the root `index.md` frontmatter. ODS strictly enforces a **Zero Config-File Guarantee** inside repositories—no proprietary `.odsconfig`, `workspace.toml`, or `.odsignore` files are created inside project trees.
 
-Ordinary documents MUST NOT carry `ods:` or `ods-cli:`. Nested navigation indexes SHOULD omit both when they are part of the same workspace. Child directories inside imported ODS Packs (`ods-profiles/`, `skills/`, `templates/`) maintain nested `index.md` files (`profile: index`) without requiring an `ods:` key, inheriting their workspace boundary from the pack root.
+Ordinary documents MUST NOT carry `ods:` or `odc:`. Nested navigation indexes SHOULD omit both when they are part of the same workspace. Child directories inside imported ODS Packs (`ods-profiles/`, `skills/`, `templates/`) maintain nested `index.md` files (`profile: index`) without requiring an `ods:` key, inheriting their workspace boundary from the pack root.
 
 ---
 
@@ -84,7 +84,7 @@ In addition, the **root** `index.md` MAY declare workspace-level excludes:
 ---
 profile: index
 ods: 0.1
-ods-cli: ">=0.0.1"
+odc: ">=0.0.1"
 ignore:
   - src
   - apps/web

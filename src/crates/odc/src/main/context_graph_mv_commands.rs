@@ -13,7 +13,8 @@ fn run_context_command(args: &[String]) -> Result<ExitCode, CliError> {
     };
 
     let include_private = args.iter().any(|arg| arg == "--include-private");
-    let workspace = load_workspace(&root).map_err(|err| failure(err.to_string()))?;
+    let workspace = load_workspace_with_options(&root, load_options_graph())
+        .map_err(|err| failure(err.to_string()))?;
     let paths = resolve_context(&workspace, &query, include_private);
     match format {
         OutputFormat::Text => {
@@ -39,7 +40,8 @@ fn run_context_command(args: &[String]) -> Result<ExitCode, CliError> {
 fn run_graph_command(args: &[String]) -> Result<ExitCode, CliError> {
     let (root, _level, format) = parse_common_flags(args, 2)?;
     require_ods_workspace(&root)?;
-    let workspace = load_workspace(&root).map_err(|err| failure(err.to_string()))?;
+    let workspace = load_workspace_with_options(&root, load_options_graph())
+        .map_err(|err| failure(err.to_string()))?;
     let lines = graph_lines(&workspace);
     match format {
         OutputFormat::Text => {

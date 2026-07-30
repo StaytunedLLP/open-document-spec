@@ -277,7 +277,7 @@ fn run_pack_init(args: &[String]) -> Result<ExitCode, CliError> {
     fs::create_dir_all(&skills_dir).map_err(|e| failure(e.to_string()))?;
 
     let root_index = format!(
-        "---\nprofile: index\nods: 0.1\nods-cli: \">=0.0.1\"\ndescription: Reusable ODS Pack for {name}.\n---\n\n# {name}\n\n- [ods-profiles/](ods-profiles/index.md) - Custom Profile schemas\n- [skills/](skills/index.md) - AI Agent skills\n"
+        "---\nprofile: index\nods: 0.1\nodc: \">=0.0.1\"\ndescription: Reusable ODS Pack for {name}.\n---\n\n# {name}\n\n- [ods-profiles/](ods-profiles/index.md) - Custom Profile schemas\n- [skills/](skills/index.md) - AI Agent skills\n"
     );
     fs::write(root.join("index.md"), root_index).map_err(|e| failure(e.to_string()))?;
 

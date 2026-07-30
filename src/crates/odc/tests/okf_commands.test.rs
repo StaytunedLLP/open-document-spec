@@ -6,13 +6,25 @@ fn odc_bin() -> std::path::PathBuf {
 }
 
 #[test]
-fn bare_lint_requires_namespace() {
-    let out = Command::new(odc_bin()).args(["lint"]).output().unwrap();
-    assert_eq!(out.status.code(), Some(2), "{:?}", out);
+fn bare_lint_auto_detects_or_explains() {
+    let dir = tempdir().unwrap();
+    let out = Command::new(odc_bin())
+        .args(["lint", dir.path().to_str().unwrap()])
+        .output()
+        .unwrap();
+    assert!(!out.status.success(), "{:?}", out);
     let err = String::from_utf8_lossy(&out.stderr);
+    let combined = format!(
+        "{}{}",
+        err,
+        String::from_utf8_lossy(&out.stdout)
+    );
     assert!(
-        err.contains("odc ods") || err.contains("namespace"),
-        "{err}"
+        combined.contains("ODS")
+            || combined.contains("OKF")
+            || combined.contains("init")
+            || combined.contains("workspace"),
+        "{combined}"
     );
 }
 
@@ -110,4 +122,20 @@ fn agents_sync_writes_agents_md() {
         .unwrap();
     assert!(out.status.success(), "{:?}", out);
     assert!(dir.path().join("AGENTS.md").exists());
+}
+
+#[test]
+fn bare_odc_lint_on_okf_bundle() {
+    let dir = tempdir().unwrap();
+    let path = dir.path().to_str().unwrap();
+    assert!(Command::new(odc_bin())
+        .args(["okf", "init", path])
+        .status()
+        .unwrap()
+        .success());
+    let out = Command::new(odc_bin())
+        .args(["lint", path])
+        .output()
+        .unwrap();
+    assert!(out.status.success(), "{:?}", out);
 }

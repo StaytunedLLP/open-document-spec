@@ -2,7 +2,8 @@ fn run_lint_command(args: &[String]) -> Result<ExitCode, CliError> {
     let (root, level, format) = parse_common_flags(args, 2)?;
     require_ods_workspace(&root)?;
     let canonical_refs = args.iter().any(|arg| arg == "--canonical-refs");
-    let workspace = load_workspace(&root).map_err(|err| failure(err.to_string()))?;
+    let workspace = load_workspace_with_options(&root, load_options_graph())
+        .map_err(|err| failure(err.to_string()))?;
     let diagnostics = if canonical_refs {
         lint_workspace_with_ref_style(&workspace, level, true)
     } else {
@@ -22,7 +23,8 @@ fn run_index_command(args: &[String]) -> Result<ExitCode, CliError> {
     let (root, _level, format) = parse_common_flags(args, 2)?;
     require_ods_workspace(&root)?;
     let check = args.iter().any(|a| a == "--check");
-    let workspace = load_workspace(&root).map_err(|err| failure(err.to_string()))?;
+    let workspace = load_workspace_with_options(&root, load_options_graph())
+        .map_err(|err| failure(err.to_string()))?;
     if check {
         let current =
             indexes_are_current(&workspace).map_err(|err| failure(err.to_string()))?;
@@ -70,7 +72,8 @@ fn run_index_command(args: &[String]) -> Result<ExitCode, CliError> {
 fn run_profiles_command(args: &[String]) -> Result<ExitCode, CliError> {
     let (root, _level, format) = parse_common_flags(args, 2)?;
     require_ods_workspace(&root)?;
-    let workspace = load_workspace(&root).map_err(|err| failure(err.to_string()))?;
+    let workspace = load_workspace_with_options(&root, load_options_graph())
+        .map_err(|err| failure(err.to_string()))?;
     print_profiles(&workspace, format);
     Ok(ExitCode::from(0))
 }
@@ -79,7 +82,8 @@ fn run_tags_command(args: &[String]) -> Result<ExitCode, CliError> {
     let (root, _level, format) = parse_common_flags(args, 2)?;
     require_ods_workspace(&root)?;
     let include_all = args.iter().any(|a| a == "--all");
-    let workspace = load_workspace(&root).map_err(|err| failure(err.to_string()))?;
+    let workspace = load_workspace_with_options(&root, load_options_graph())
+        .map_err(|err| failure(err.to_string()))?;
     print_tags(&workspace, include_all, format);
     Ok(ExitCode::from(0))
 }

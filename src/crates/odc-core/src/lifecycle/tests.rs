@@ -101,11 +101,11 @@ fn ensure_ods_in_index_text(text: &str) -> String {
     let (fm, body) = split_frontmatter(text);
     let ending = if text.contains("\r\n") { "\r\n" } else { "\n" };
     let spec = current_ods_spec_version();
-    let cli = current_ods_cli_requirement();
+    let cli = current_odc_requirement();
     if let Some(block) = fm {
         let mut lines: Vec<String> = block.lines().map(|l| l.to_string()).collect();
         let mut saw_ods = false;
-        let mut saw_ods_cli = false;
+        let mut saw_odc = false;
         for line in &mut lines {
             let trimmed = line.trim_start();
             if trimmed
@@ -118,12 +118,12 @@ fn ensure_ods_in_index_text(text: &str) -> String {
                 saw_ods = true;
             } else if trimmed
                 .split_once(':')
-                .is_some_and(|(key, _)| key.trim() == "ods-cli")
+                .is_some_and(|(key, _)| key.trim() == "odc")
             {
                 let indent_len = line.len() - trimmed.len();
                 let indent = line[..indent_len].to_string();
-                *line = format!("{indent}ods-cli: \"{cli}\"");
-                saw_ods_cli = true;
+                *line = format!("{indent}odc: \"{cli}\"");
+                saw_odc = true;
             }
         }
 
@@ -136,8 +136,8 @@ fn ensure_ods_in_index_text(text: &str) -> String {
                     lines.insert(idx + offset, format!("ods: {spec}"));
                     offset += 1;
                 }
-                if !saw_ods_cli {
-                    lines.insert(idx + offset, format!("ods-cli: \"{cli}\""));
+                if !saw_odc {
+                    lines.insert(idx + offset, format!("odc: \"{cli}\""));
                 }
                 inserted = true;
                 break;
@@ -149,8 +149,8 @@ fn ensure_ods_in_index_text(text: &str) -> String {
                 lines.insert(insert_at, format!("ods: {spec}"));
                 insert_at += 1;
             }
-            if !saw_ods_cli {
-                lines.insert(insert_at, format!("ods-cli: \"{cli}\""));
+            if !saw_odc {
+                lines.insert(insert_at, format!("odc: \"{cli}\""));
             }
         }
         let kept = lines.join("\n");
@@ -162,7 +162,7 @@ fn ensure_ods_in_index_text(text: &str) -> String {
         }
     } else {
         let body = text.trim_start();
-        format!("---{ending}profile: index{ending}ods: {spec}{ending}ods-cli: \"{cli}\"{ending}---{ending}{ending}{body}")
+        format!("---{ending}profile: index{ending}ods: {spec}{ending}odc: \"{cli}\"{ending}---{ending}{ending}{body}")
     }
 }
 

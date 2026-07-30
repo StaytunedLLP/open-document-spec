@@ -22,7 +22,7 @@ fn root_ignore_excludes_code_tree_from_scan_and_index() {
     fs::create_dir_all(temp.join("docs")).expect("docs");
     fs::write(
         temp.join("index.md"),
-        "---\nprofile: index\nods: 0.1\nods-cli: \">=0.0.1\"\nignore:\n  - src\n---\n\n# Root\n\n- [docs/](docs/index.md)\n",
+        "---\nprofile: index\nods: 0.1\nodc: \">=0.0.1\"\nignore:\n  - src\n---\n\n# Root\n\n- [docs/](docs/index.md)\n",
     )
     .expect("root");
     fs::write(
@@ -72,7 +72,7 @@ fn index_lint_ignores_prose_links_outside_list() {
     let temp = temp_workspace();
     fs::write(
         temp.join("index.md"),
-        "---\nprofile: index\nods: 0.1\nods-cli: \">=0.0.1\"\n---\n\n# Root\n\nSee [elsewhere](../outside.md) for notes.\n\n- [doc.md](doc.md)\n",
+        "---\nprofile: index\nods: 0.1\nodc: \">=0.0.1\"\n---\n\n# Root\n\nSee [elsewhere](../outside.md) for notes.\n\n- [doc.md](doc.md)\n",
     )
     .expect("root");
     fs::write(
@@ -98,7 +98,7 @@ fn workspace_load_reports_explicit_ids() {
     let temp = temp_workspace();
     fs::write(
         temp.join("index.md"),
-        "---\nprofile: index\nods: 0.1\nods-cli: \">=0.0.1\"\n---\n\n# Root\n\n- [a.md](a.md)\n- [b.md](b.md)\n- [c.md](c.md)\n",
+        "---\nprofile: index\nods: 0.1\nodc: \">=0.0.1\"\n---\n\n# Root\n\n- [a.md](a.md)\n- [b.md](b.md)\n- [c.md](c.md)\n",
     )
     .expect("root index");
     fs::write(
@@ -128,7 +128,7 @@ fn explicit_id_resolves_for_depends_context_and_lint() {
     let temp = temp_workspace();
     fs::write(
         temp.join("index.md"),
-        "---\nprofile: index\nods: 0.1\nods-cli: \">=0.0.1\"\n---\n\n# Root\n\n- [impl.md](impl.md)\n- [spec.md](spec.md)\n",
+        "---\nprofile: index\nods: 0.1\nodc: \">=0.0.1\"\n---\n\n# Root\n\n- [impl.md](impl.md)\n- [spec.md](spec.md)\n",
     )
     .expect("root");
     fs::write(

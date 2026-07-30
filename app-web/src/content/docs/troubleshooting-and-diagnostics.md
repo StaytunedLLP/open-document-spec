@@ -1,6 +1,6 @@
 ---
 title: "Troubleshooting and Diagnostics Guide"
-description: "Diagnostic workflow, complete error catalog for ods-error.md, git merge conflicts, and daemon troubleshooting."
+description: "Diagnostic workflow, complete error catalog for .odc/odc-errors.md, git merge conflicts, and daemon troubleshooting."
 status: "stable"
 order: 7
 ods:
@@ -10,7 +10,7 @@ ods:
 
 # Troubleshooting and Diagnostics Guide
 
-This guide provides a comprehensive reference for diagnosing workspace issues, resolving `odc ods lint` errors in `ods-error.md`, handling Git merge conflicts, and troubleshooting background service daemons (`odc ods serve`).
+This guide provides a comprehensive reference for diagnosing workspace issues, resolving `odc lint` errors in `.odc/odc-errors.md`, handling Git merge conflicts, and troubleshooting background service daemons (`odc serve`).
 
 ---
 
@@ -20,20 +20,20 @@ When an issue occurs or documents are modified, follow this 3-step diagnostic wo
 
 ```bash
 # Step 1: Check overall workspace health and daemon service status
-odc ods doctor
+odc doctor
 
 # Step 2: Validate graph relationships, schemas, and references
-odc ods lint --level 3
+odc lint --level 3
 
 # Step 3: Check index lockfile freshness
-odc ods index --check
+odc index --check
 ```
 
-If `odc ods lint` detects errors, it writes a detailed diagnostic report to `ods-error.md` at your workspace root. When all issues are resolved, `odc ods lint` automatically deletes `ods-error.md` and outputs a green confirmation message.
+If `odc lint` detects errors, it writes a detailed diagnostic report to `.odc/odc-errors.md`. When all issues are resolved, `odc lint` automatically deletes that report and outputs a green confirmation message.
 
 ---
 
-## 2. Complete `ods-error.md` Lint Error Catalog
+## 2. Complete `.odc/odc-errors.md` Lint Error Catalog
 
 Below is the complete catalog of errors and warnings reported by `odc ods lint`, along with their root causes and step-by-step resolution actions.
 

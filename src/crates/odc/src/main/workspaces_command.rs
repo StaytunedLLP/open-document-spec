@@ -1,6 +1,6 @@
-// Global machine configuration (TOML) and `ods workspaces` command.
+// Global machine configuration (TOML) and `odc workspaces` command.
 //
-// Registry file: ~/.ods/odsconfig.toml (fallback: ~/.ods/config.toml)
+// Registry: ~/.odc/odcconfig.toml (legacy: ~/.ods/odsconfig.toml, ~/.ods/config.toml)
 // Parsed manually to avoid adding external serde/toml crate dependencies.
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -35,7 +35,7 @@ pub fn registry_path() -> PathBuf {
     modern
 }
 
-/// Load registered workspace paths from ~/.ods/odsconfig.toml (or legacy workspaces.toml).
+/// Load registered workspace paths from machine config (or legacy workspaces.toml).
 pub fn load_registry_paths() -> Vec<String> {
     let path = registry_path();
     if let Ok(content) = fs::read_to_string(&path) {
@@ -56,7 +56,7 @@ pub fn load_registry_paths() -> Vec<String> {
     Vec::new()
 }
 
-/// Load registered pack entries from ~/.ods/odsconfig.toml.
+/// Load registered pack entries from machine config.
 pub fn load_registered_packs() -> Vec<PackEntry> {
     let path = registry_path();
     let Ok(content) = fs::read_to_string(&path) else {
@@ -262,21 +262,25 @@ fn unquote_str(text: &str) -> String {
     }
 }
 
-/// Write the registry file in ~/.ods/odsconfig.toml.
+/// Write the registry file (prefer ~/.odc/odcconfig.toml).
 pub(crate) fn save_registry_paths(paths: &[String]) -> Result<(), CliError> {
     let packs = load_registered_packs();
     save_config_with_packs(paths, &packs)
 }
 
 fn save_config_with_packs(paths: &[String], packs: &[PackEntry]) -> Result<(), CliError> {
-    let reg_path = registry_path();
+    // Always write modern path when creating/updating (migrate off legacy).
+    let home = env::var("HOME")
+        .or_else(|_| env::var("USERPROFILE"))
+        .unwrap_or_else(|_| ".".into());
+    let reg_path = PathBuf::from(&home).join(".odc/odcconfig.toml");
     if let Some(parent) = reg_path.parent() {
         fs::create_dir_all(parent)
             .map_err(|e| failure(format!("failed to create registry directory: {e}")))?;
     }
     let mut content = String::from(
-        "# ODS Global Machine Configuration (~/.ods/odsconfig.toml)\n\
-         # Managed by `ods workspaces` and `ods pack`. You can also edit this file directly.\n\n\
+        "# OpenDocify global machine configuration (~/.odc/odcconfig.toml)\n\
+         # Managed by `odc workspaces` and `odc pack`. You can also edit this file directly.\n\n\
          [workspaces]\n\
          paths = [\n",
     );
@@ -327,10 +331,10 @@ fn require_ods_workspace(root: &Path) -> Result<(), CliError> {
     Err(failure(format!(
         "not an ODS workspace: {}\n\n\
          No root index.md with 'ods:' marker found, and this path is not\n\
-         registered in the global machine config (~/.ods/odsconfig.toml).\n\n\
+         registered in the global machine config (~/.odc/odcconfig.toml).\n\n\
          To fix:\n\
-         • Run 'ods init' here to make this folder ODS-compliant, or\n\
-         • Run 'ods workspaces add' to track it globally without modifying files.",
+         • Run 'odc init' here to make this folder ODS-compliant, or\n\
+         • Run 'odc workspaces add' to track it globally without modifying files.",
         root.display()
     )))
 }
@@ -341,9 +345,9 @@ fn run_workspaces_command(args: &[String]) -> Result<ExitCode, CliError> {
     match subcommand {
         "--help" | "-h" | "help" => {
             println!(
-                "ods workspaces <subcommand>\n\n\
+                "odc workspaces <subcommand>\n\n\
                  Manage globally tracked ODS workspaces.\n\
-                 Config file: ~/.ods/odsconfig.toml\n\n\
+                 Config file: ~/.odc/odcconfig.toml (legacy ~/.ods/odsconfig.toml is read)\n\n\
                  Subcommands:\n\
                  \x20 add [path]     Register a folder as an ODS workspace (default: current dir)\n\
                  \x20 remove [path]  Unregister a folder (default: current dir)\n\

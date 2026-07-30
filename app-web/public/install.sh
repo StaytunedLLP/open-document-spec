@@ -1,156 +1,318 @@
 #!/usr/bin/env bash
-# Open Document Spec (ODS) — Universal OS-Agnostic Installer
-# Supported OS: macOS (Intel/Apple Silicon), Linux (x86_64/aarch64), BSD, Windows (WSL/Git Bash/MSYS2)
-# Site: https://opendocify.com / https://prod-ods-260726.web.app
-
+# OpenDocify (odc) installer — downloads prebuilt `odc` (+ optional `ods` alias) from GitHub Releases.
+#
+# Supported platforms (auto-detected):
+#   macOS  — Apple Silicon (arm64), Intel (x86_64)
+#   Linux  — x86_64, arm64
+#
+# Windows: use install.ps1 instead.
+#
+# This repository is private. Export a GitHub token before running:
+#   export GH_TOKEN="$(gh auth token)"   # or GITHUB_TOKEN with repo scope
+#   curl -fsSL -H "Authorization: Bearer ${GH_TOKEN}" \
+#     https://raw.githubusercontent.com/StaytunedLLP/open-document-spec/main/src/scripts/install.sh | bash
+#
+# Note: the Authorization header on curl only fetches this script. The script
+# itself also needs GH_TOKEN/GITHUB_TOKEN in the environment to download assets.
+#
+# Options via environment variables:
+#   ODS_VERSION   — pin a release tag, e.g. "v0.1.0"  (default: latest stable)
+#   ODS_PREFIX    — directory to install binaries into  (default: ~/.local/bin)
+#   ODS_NO_VERIFY — set to "1" to skip SHA256 checksum verification
+#   GH_TOKEN / GITHUB_TOKEN — required while the repo is private
+#
 set -euo pipefail
-
-BOLD="\033[1m"
-GREEN="\033[32m"
-CYAN="\033[36m"
-YELLOW="\033[33m"
-RESET="\033[0m"
-
-echo -e "${CYAN}--------------------------------------------------------${RESET}"
-echo -e "${BOLD}  Installing Open Document Spec CLI (ods)...${RESET}"
-echo -e "${CYAN}--------------------------------------------------------${RESET}"
 
 REPO="StaytunedLLP/open-document-spec"
 API="https://api.github.com/repos/${REPO}"
 
-# 1. Normalize Operating System
-RAW_OS="$(uname -s)"
-case "${RAW_OS}" in
-    Darwin*)            OS="macos" ;;
-    Linux*)             OS="linux" ;;
-    MINGW*|MSYS*|CYGWIN*) OS="windows" ;;
-    *)                  OS="linux" ;;
-esac
+# ── Helpers ───────────────────────────────────────────────────────────────────
+info()  { echo "==> $*"; }
+warn()  { echo "WARN: $*" >&2; }
+fatal() { echo "error: $*" >&2; exit 1; }
 
-# 2. Normalize System Architecture
-RAW_ARCH="$(uname -m)"
-case "${RAW_ARCH}" in
-    x86_64|amd64)       ARCH="x86_64" ;;
-    arm64|aarch64)      ARCH="arm64" ;;
-    *)                  ARCH="${RAW_ARCH}" ;;
-esac
+need_cmd() {
+  command -v "$1" >/dev/null 2>&1 || fatal "required command not found: $1 — please install it and retry"
+}
 
-ASSET="${OS}-${ARCH}"
-echo -e "Detected OS: ${GREEN}${OS}${RESET} | Arch: ${GREEN}${ARCH}${RESET}"
+strip_v() {
+  printf '%s' "$1" | sed -E 's/^[vV]//'
+}
 
-# 3. Determine Destination Directory ($HOME/.local/bin)
-TARGET_DIR="${ODS_INSTALL_DIR:-$HOME/.local/bin}"
-mkdir -p "${TARGET_DIR}"
+version_key() {
+  strip_v "$1" | awk -F. '{
+    major=$1+0; minor=$2+0; patch=$3+0;
+    printf "%010d.%010d.%010d\n", major, minor, patch
+  }'
+}
 
-BINARY_NAME="ods"
-ARCHIVE_EXT="tar.gz"
-if [ "${OS}" = "windows" ]; then
-    BINARY_NAME="ods.exe"
-    ARCHIVE_EXT="zip"
+installed_ods_version() {
+  if command -v odc >/dev/null 2>&1; then
+    odc --version 2>/dev/null | awk '{print $2}' | head -1
+  elif command -v ods >/dev/null 2>&1; then
+    ods --version 2>/dev/null | awk '{print $2}' | head -1
+  elif [ -x "${ODC_PREFIX:-${ODS_PREFIX:-${HOME}/.local/bin}}/odc" ]; then
+    "${ODC_PREFIX:-${ODS_PREFIX:-${HOME}/.local/bin}}/odc" --version 2>/dev/null | awk '{print $2}' | head -1
+  elif [ -x "${ODS_PREFIX:-${HOME}/.local/bin}/ods" ]; then
+    "${ODS_PREFIX:-${HOME}/.local/bin}/ods" --version 2>/dev/null | awk '{print $2}' | head -1
+  else
+    printf ''
+  fi
+}
+
+version_ge() {
+  [ "$(version_key "$1")" \> "$(version_key "$2")" ] || [ "$(version_key "$1")" = "$(version_key "$2")" ]
+}
+
+github_token() {
+  if [ -n "${GH_TOKEN:-}" ]; then
+    printf '%s' "${GH_TOKEN}"
+  elif [ -n "${GITHUB_TOKEN:-}" ]; then
+    printf '%s' "${GITHUB_TOKEN}"
+  else
+    printf ''
+  fi
+}
+
+private_repo_hint() {
+  cat >&2 <<'EOF'
+This repository is private. Unauthenticated downloads return HTTP 404.
+
+  export GH_TOKEN="$(gh auth token)"   # or a PAT with repo scope
+  curl -fsSL -H "Authorization: Bearer ${GH_TOKEN}" \
+    https://raw.githubusercontent.com/StaytunedLLP/open-document-spec/main/src/scripts/install.sh | bash
+
+GH_TOKEN must be exported in the environment that runs this script (not only on curl).
+EOF
+}
+
+# curl wrapper. Args: extra curl flags… then URL.
+# Always sets User-Agent + Accept + optional Authorization.
+api_curl() {
+  local -a args=(
+    -fsSL --tlsv1.2
+    --connect-timeout 30 --max-time 300
+    --retry 3 --retry-delay 2
+    -H "User-Agent: ods-install"
+  )
+  local token
+  token="$(github_token)"
+  if [ -n "${token}" ]; then
+    args+=(-H "Authorization: Bearer ${token}")
+  fi
+  curl "${args[@]}" "$@"
+}
+
+# Download a release asset by name via the GitHub API (required for private repos).
+# Browser-style /releases/download/ URLs return 404 for private assets even with Bearer.
+# Usage: download_asset <tag|latest> <filename> <output-path>
+download_asset() {
+  local tag="$1" filename="$2" out="$3"
+  local release_json asset_id
+
+  if [ "${tag}" = "latest" ]; then
+    release_json=$(api_curl -H "Accept: application/vnd.github+json" \
+      "${API}/releases/latest") \
+      || return 1
+  else
+    release_json=$(api_curl -H "Accept: application/vnd.github+json" \
+      "${API}/releases/tags/${tag}") \
+      || return 1
+  fi
+
+  if command -v python3 >/dev/null 2>&1; then
+    asset_id=$(printf '%s' "${release_json}" | FILENAME="${filename}" python3 -c '
+import json, os, sys
+name = os.environ["FILENAME"]
+data = json.load(sys.stdin)
+for a in data.get("assets", []):
+    if a.get("name") == name:
+        print(a["id"])
+        raise SystemExit(0)
+raise SystemExit(1)
+' 2>/dev/null) || asset_id=""
+  else
+    asset_id=""
+  fi
+
+  # Fallback without python: id usually appears before name in GitHub JSON
+  if [ -z "${asset_id}" ]; then
+    asset_id=$(printf '%s' "${release_json}" \
+      | tr '\n' ' ' \
+      | sed -n "s/.*\"id\": *\([0-9][0-9]*\)[^}]*\"name\": *\"${filename}\".*/\1/p" \
+      | head -1)
+  fi
+  [ -n "${asset_id}" ] || {
+    warn "asset '${filename}' not found on release ${tag}"
+    return 1
+  }
+
+  api_curl -H "Accept: application/octet-stream" \
+    -o "${out}" \
+    "${API}/releases/assets/${asset_id}"
+}
+
+# ── Dependency check ──────────────────────────────────────────────────────────
+need_cmd curl
+need_cmd tar
+
+TOKEN="$(github_token)"
+if [ -z "${TOKEN}" ]; then
+  warn "GH_TOKEN / GITHUB_TOKEN not set — downloads will fail if the repo is private"
 fi
 
-INSTALLED=0
+# ── Platform detection → short asset id (os-arch) ─────────────────────────────
+OS=$(uname -s)
+ARCH=$(uname -m)
 
-# Determine Version & Release Asset
-VERSION="${ODS_VERSION:-}"
-if [ -z "${VERSION}" ] || [ "${VERSION}" = "latest" ]; then
-    RELEASE_JSON=$(curl -sSfL -H "User-Agent: ods-installer" "${API}/releases/latest" 2>/dev/null || true)
-    if [ -n "${RELEASE_JSON}" ]; then
-        VERSION=$(echo "${RELEASE_JSON}" | grep '"tag_name"' | head -1 | sed -E 's/.*"tag_name": *"(v?[^"]+)".*/\1/' || true)
-    fi
-fi
+case "${OS}-${ARCH}" in
+  Linux-x86_64)              ASSET="linux-x86_64"  ;;
+  Linux-aarch64|Linux-arm64) ASSET="linux-arm64"   ;;
+  Darwin-arm64)              ASSET="macos-arm64"   ;;
+  Darwin-x86_64)             ASSET="macos-x86_64"  ;;
+  *)
+    fatal "unsupported platform: ${OS}-${ARCH}
+  Supported: Linux x86_64/arm64, macOS arm64/x86_64
+  Windows: use src/scripts/install.ps1 (PowerShell)
+  Build from source: cargo install --path src/crates/odc --bin odc --bin ods"
+    ;;
+esac
 
+# ── Version resolution ────────────────────────────────────────────────────────
+VERSION="${1:-${ODS_VERSION:-}}"
 if [ -z "${VERSION}" ]; then
-    VERSION="v0.0.1"
-fi
-
-if [[ ! "${VERSION}" =~ ^v ]]; then
-    TAG="v${VERSION}"
-else
-    TAG="${VERSION}"
-fi
-
-FILENAME="ods-${TAG}-${ASSET}.${ARCHIVE_EXT}"
-TMP_DIR="$(mktemp -d 2>/dev/null || mktemp -d -t 'ods')"
-trap 'rm -rf "${TMP_DIR}"' EXIT
-
-echo -e "Fetching ${TAG} binary release for ${ASSET}..."
-
-DOWNLOAD_URL="https://github.com/${REPO}/releases/download/${TAG}/${FILENAME}"
-TOKEN="${GH_TOKEN:-${GITHUB_TOKEN:-}}"
-
-DOWNLOADED=0
-if [ -n "${TOKEN}" ]; then
-    ASSET_ID=$(curl -sSfL -H "Authorization: Bearer ${TOKEN}" -H "Accept: application/vnd.github+json" "${API}/releases/tags/${TAG}" 2>/dev/null | grep -B 2 "\"name\": \"${FILENAME}\"" | grep '"id"' | head -1 | sed -E 's/.*"id": ([0-9]+).*/\1/' || true)
-    if [ -n "${ASSET_ID}" ]; then
-        if curl -sSfL -H "Authorization: Bearer ${TOKEN}" -H "Accept: application/octet-stream" "${API}/releases/assets/${ASSET_ID}" -o "${TMP_DIR}/${FILENAME}" 2>/dev/null; then
-            DOWNLOADED=1
-        fi
+  info "Resolving latest ODS release..."
+  if ! API_RESPONSE=$(api_curl -H "Accept: application/vnd.github+json" \
+      "${API}/releases/latest" 2>/dev/null); then
+    if [ -z "${TOKEN}" ]; then
+      private_repo_hint
     fi
+    fatal "could not reach GitHub API — check network and token"
+  fi
+  VERSION=$(printf '%s' "${API_RESPONSE}" \
+    | grep '"tag_name"' | head -1 \
+    | sed 's/.*"tag_name": *"\([^"]*\)".*/\1/')
+  [ -n "${VERSION}" ] || fatal "could not resolve latest release tag — is the token valid for ${REPO}?"
+fi
+info "Installing ODS ${VERSION} for ${ASSET}"
+
+INSTALLED_VERSION="$(installed_ods_version)"
+if [ -n "${INSTALLED_VERSION}" ] && version_ge "${INSTALLED_VERSION}" "${VERSION}"; then
+  info "ods ${INSTALLED_VERSION} is up to date (latest $(strip_v "${VERSION}"))"
+  command -v ods >/dev/null 2>&1 && ods --version || "${ODS_PREFIX:-${HOME}/.local/bin}/ods" --version
+  exit 0
 fi
 
-if [ "${DOWNLOADED}" -eq 0 ]; then
-    if curl -sSfL "${DOWNLOAD_URL}" -o "${TMP_DIR}/${FILENAME}" 2>/dev/null; then
-        DOWNLOADED=1
+# ── Filenames (prefer odc-*, fall back to legacy ods-*) ───────────────────────
+FILENAME="odc-${VERSION}-${ASSET}.tar.gz"
+FALLBACK_FILENAME="ods-${VERSION}-${ASSET}.tar.gz"
+
+# ── Temp workspace ────────────────────────────────────────────────────────────
+TMPDIR_ODS=$(mktemp -d)
+trap 'rm -rf "${TMPDIR_ODS}"' EXIT
+
+# ── Download archive ──────────────────────────────────────────────────────────
+info "Downloading ${FILENAME}..."
+if ! download_asset "${VERSION}" "${FILENAME}" "${TMPDIR_ODS}/${FILENAME}"; then
+  info "Trying legacy archive ${FALLBACK_FILENAME}..."
+  FILENAME="${FALLBACK_FILENAME}"
+  if ! download_asset "${VERSION}" "${FILENAME}" "${TMPDIR_ODS}/${FILENAME}"; then
+    if [ -z "${TOKEN}" ]; then
+      private_repo_hint
     fi
+    fatal "download failed for odc-/ods- archive on ${VERSION}
+  Check that version exists at: https://github.com/${REPO}/releases"
+  fi
 fi
 
-if [ "${DOWNLOADED}" -eq 1 ]; then
-    if [ "${ARCHIVE_EXT}" = "zip" ]; then
-        unzip -q "${TMP_DIR}/${FILENAME}" -d "${TMP_DIR}" 2>/dev/null || true
-    else
-        tar -xzf "${TMP_DIR}/${FILENAME}" -C "${TMP_DIR}" 2>/dev/null || true
+# ── Checksum verification ─────────────────────────────────────────────────────
+if [ "${ODS_NO_VERIFY:-0}" != "1" ]; then
+  info "Verifying checksum..."
+  if ! download_asset "${VERSION}" "SHA256SUMS" "${TMPDIR_ODS}/SHA256SUMS"; then
+    if [ -z "${TOKEN}" ]; then
+      private_repo_hint
     fi
+    fatal "could not download SHA256SUMS for ${VERSION}"
+  fi
 
-    FOUND_BIN=$(find "${TMP_DIR}" -type f -name "${BINARY_NAME}" 2>/dev/null | head -1 || true)
-    if [ -n "${FOUND_BIN}" ]; then
-        cp "${FOUND_BIN}" "${TARGET_DIR}/${BINARY_NAME}"
-        chmod +x "${TARGET_DIR}/${BINARY_NAME}"
-        INSTALLED=1
-    fi
+  EXPECTED=$(grep " ${FILENAME}$" "${TMPDIR_ODS}/SHA256SUMS" | awk '{print $1}')
+  [ -n "${EXPECTED}" ] || fatal "no checksum found for '${FILENAME}' in SHA256SUMS"
+
+  if command -v sha256sum >/dev/null 2>&1; then
+    ACTUAL=$(sha256sum "${TMPDIR_ODS}/${FILENAME}" | awk '{print $1}')
+  elif command -v shasum >/dev/null 2>&1; then
+    ACTUAL=$(shasum -a 256 "${TMPDIR_ODS}/${FILENAME}" | awk '{print $1}')
+  else
+    warn "no sha256sum or shasum found — skipping checksum verification"
+    ACTUAL="${EXPECTED}"
+  fi
+
+  [ "${EXPECTED}" = "${ACTUAL}" ] \
+    || fatal "checksum mismatch!
+  Expected: ${EXPECTED}
+  Got:      ${ACTUAL}
+  The downloaded file may be corrupt or tampered with."
+  info "Checksum OK"
 fi
 
-# Fallback to Rust Cargo Installation if Binary Release is unavailable
-if [ "${INSTALLED}" -eq 0 ]; then
-    echo -e "${YELLOW}Could not download pre-compiled binary for ${ASSET}.${RESET}"
-    if command -v cargo >/dev/null 2>&1; then
-        echo -e "${YELLOW}Rust/Cargo is available. Falling back to building via Cargo...${RESET}"
-        if cargo install --git "https://github.com/${REPO}" ods || cargo install ods-cli; then
-            INSTALLED=1
-            TARGET_DIR="$HOME/.cargo/bin"
-        fi
-    fi
+# ── Extract ───────────────────────────────────────────────────────────────────
+info "Extracting..."
+tar xzf "${TMPDIR_ODS}/${FILENAME}" -C "${TMPDIR_ODS}"
+BIN_SRC=""
+for try in \
+  "${TMPDIR_ODS}/odc-${VERSION}-${ASSET}" \
+  "${TMPDIR_ODS}/ods-${VERSION}-${ASSET}"; do
+  if [ -f "${try}/odc" ]; then BIN_SRC="${try}/odc"; break; fi
+  if [ -f "${try}/ods" ]; then BIN_SRC="${try}/ods"; break; fi
+done
+if [ -z "${BIN_SRC}" ]; then
+  FOUND=$(find "${TMPDIR_ODS}" -type f \( -name odc -o -name ods \) 2>/dev/null | head -1 || true)
+  [ -n "${FOUND}" ] && BIN_SRC="${FOUND}"
 fi
+[ -n "${BIN_SRC}" ] && [ -f "${BIN_SRC}" ] || fatal "binary 'odc' or 'ods' not found in archive"
 
-if [ "${INSTALLED}" -eq 0 ]; then
-    echo "To install ODS on your system:"
-    echo "1. Install Rust toolchain from https://rustup.rs"
-    echo "2. Run: cargo install ods-cli"
-    exit 1
-fi
+# ── Install ───────────────────────────────────────────────────────────────────
+PREFIX="${ODS_PREFIX:-${ODC_PREFIX:-${HOME}/.local/bin}}"
+mkdir -p "${PREFIX}"
+# Primary OpenDocify CLI + legacy argv0 for bare ODS commands
+install -m 755 "${BIN_SRC}" "${PREFIX}/odc"
+ln -sfn "${PREFIX}/odc" "${PREFIX}/ods"
 
-# 4. Automatic Shell PATH Environment Configuration
-SHELL_PROFILE=""
-if [ -n "${ZSH_VERSION:-}" ] || [ -f "$HOME/.zshrc" ]; then
-    SHELL_PROFILE="$HOME/.zshrc"
-elif [ -n "${BASH_VERSION:-}" ] || [ -f "$HOME/.bashrc" ]; then
-    SHELL_PROFILE="$HOME/.bashrc"
-elif [ -f "$HOME/.profile" ]; then
-    SHELL_PROFILE="$HOME/.profile"
-fi
+echo ""
+info "Installed successfully:"
+echo "    ${PREFIX}/odc  (primary)"
+echo "    ${PREFIX}/ods  (symlink → odc; bare ODS commands)"
 
-if [[ ":$PATH:" != *":${TARGET_DIR}:"* ]]; then
-    export PATH="${TARGET_DIR}:$PATH"
-    if [ -n "${SHELL_PROFILE}" ] && [ -w "${SHELL_PROFILE}" ]; then
-        if ! grep -q "${TARGET_DIR}" "${SHELL_PROFILE}" 2>/dev/null; then
-            echo -e "\n# Open Document Spec CLI" >> "${SHELL_PROFILE}"
-            echo "export PATH=\"${TARGET_DIR}:\$PATH\"" >> "${SHELL_PROFILE}"
-            echo -e "${CYAN}Added ${TARGET_DIR} to your PATH in ${SHELL_PROFILE}${RESET}"
-        fi
-    fi
-fi
+# ── PATH hint ─────────────────────────────────────────────────────────────────
+case ":${PATH}:" in
+  *":${PREFIX}:"*) ;;
+  *)
+    echo ""
+    echo "  NOTE: '${PREFIX}' is not yet in your PATH."
+    echo "  Add this to your shell profile (~/.bashrc, ~/.zshrc, etc.):"
+    echo ""
+    echo "    export PATH=\"${PREFIX}:\$PATH\""
+    echo ""
+    echo "  Then run: source ~/.bashrc  (or open a new terminal)"
+    ;;
+esac
 
-echo -e ""
-echo -e "${GREEN}${BOLD}✓ Open Document Spec CLI (ods) installed successfully!${RESET}"
-echo -e "Binary Location: ${CYAN}${TARGET_DIR}/${BINARY_NAME}${RESET}"
-echo -e "Get Started: Run '${BOLD}ods --help${RESET}' or '${BOLD}ods setup .${RESET}'"
+# ── Next steps ────────────────────────────────────────────────────────────────
+echo ""
+echo "  Verify installation:"
+echo "    ${PREFIX}/odc --version"
+echo ""
+echo "  Get started:"
+echo "    odc ods init .          # ODS workspace (or: ods init .)"
+echo "    odc okf init .          # OKF v0.2 knowledge bundle"
+echo "    odc setup               # machine service & health"
+echo "    odc ods lint"
+echo "    odc ods export"
+echo ""
+echo "  Keep tools current (opt-out: ODC_AUTO_UPDATE=0 or ODS_AUTO_UPDATE=0):"
+echo "    export GH_TOKEN=\"\$(gh auth token)\"   # needed for private releases"
+echo "    odc update              # update binary & restart background service"
+echo ""
+echo "  Guide: https://github.com/${REPO}/blob/main/README.md"
+echo "  Changelog: https://github.com/${REPO}/blob/main/CHANGELOG.md"
+echo ""
