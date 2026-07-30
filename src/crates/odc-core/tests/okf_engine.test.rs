@@ -1,7 +1,7 @@
 //! OKF index / load / audit coverage.
 use odc_core::okf::{
-    export_okf_graph, fmt_okf_bundle, generate_okf_indexes, init_okf_bundle, load_okf_bundle,
-    lint_okf_bundle, okf_context, okf_indexes_are_current, OkfInitOptions,
+    OkfInitOptions, export_okf_graph, fmt_okf_bundle, generate_okf_indexes, init_okf_bundle,
+    lint_okf_bundle, load_okf_bundle, okf_context, okf_indexes_are_current,
 };
 use std::fs;
 use tempfile::tempdir;
@@ -35,7 +35,9 @@ fn init_load_lint_generate_indexes() {
     assert!(bundle.okf_version.as_deref() == Some("0.2") || bundle.okf_version.is_some());
     let diags = lint_okf_bundle(&bundle);
     assert!(
-        !diags.iter().any(|d| d.severity == odc_core::Severity::Error),
+        !diags
+            .iter()
+            .any(|d| d.severity == odc_core::Severity::Error),
         "{diags:?}"
     );
 

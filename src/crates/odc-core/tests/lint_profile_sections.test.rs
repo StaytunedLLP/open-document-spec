@@ -167,5 +167,3 @@ fn dangling_reference_errors() {
             .any(|d| d.message.contains("dangling reference"))
     );
 }
-
-

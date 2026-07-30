@@ -1,4 +1,4 @@
-use super::*;
+
 
 pub fn rewrite_path_prefix_in_text(text: &str, old_prefix: &str, new_prefix: &str) -> String {
     if old_prefix.is_empty() || old_prefix == new_prefix {

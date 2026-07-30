@@ -20,12 +20,13 @@ fn apply_upserts_and_removes_rebuild_indexes() {
     assert_eq!(ws.documents.len(), 1);
 
     let a_path = root.join("a.md");
-    fs::write(
-        &a_path,
-        "---\nprofile: note\nstatus: draft\n---\n\n# A\n",
-    )
-    .unwrap();
-    let doc_a = parse_document_text(root, a_path.clone(), &fs::read_to_string(&a_path).unwrap(), true);
+    fs::write(&a_path, "---\nprofile: note\nstatus: draft\n---\n\n# A\n").unwrap();
+    let doc_a = parse_document_text(
+        root,
+        a_path.clone(),
+        &fs::read_to_string(&a_path).unwrap(),
+        true,
+    );
     apply_document_upserts(&mut ws, vec![doc_a]);
     assert!(ws.document_by_path(&a_path).is_some());
     assert!(ws.by_path.contains_key(&a_path));
@@ -96,8 +97,7 @@ fn discover_respects_workspace_ignore() {
     fs::create_dir_all(root.join("hidden")).unwrap();
     fs::write(root.join("visible.md"), "# V\n").unwrap();
     fs::write(root.join("hidden/x.md"), "# H\n").unwrap();
-    let paths =
-        discover_markdown_paths(root, &[], &[], &["hidden".into()]).unwrap();
+    let paths = discover_markdown_paths(root, &[], &[], &["hidden".into()]).unwrap();
     assert!(paths.iter().any(|p| p.ends_with("visible.md")));
     assert!(!paths.iter().any(|p| p.to_string_lossy().contains("hidden")));
 }
@@ -122,10 +122,10 @@ fn discover_gitignore_exhaustive_patterns() {
     fs::write(root.join("keep.md"), "# K\n").unwrap();
 
     let gitignore = vec![
-        "sub/a.md".into(),         // relative == pattern
-        "sub/dir".into(),          // relative.starts_with
-        "nested/sub/dir".into(),   // relative.contains
-        "keep.md".into(),          // name == pattern
+        "sub/a.md".into(),       // relative == pattern
+        "sub/dir".into(),        // relative.starts_with
+        "nested/sub/dir".into(), // relative.contains
+        "keep.md".into(),        // name == pattern
     ];
     let paths = discover_markdown_paths(root, &[], &gitignore, &[]).unwrap();
     assert!(paths.is_empty());

@@ -1,6 +1,6 @@
 use odc_core::{
-    FrontmatterState, document_id, extract_heading_groups, extract_headings,
-    parse_document_text, split_frontmatter, split_markdown_link_target,
+    FrontmatterState, document_id, extract_heading_groups, extract_headings, parse_document_text,
+    split_frontmatter, split_markdown_link_target,
 };
 use std::path::PathBuf;
 
@@ -161,8 +161,16 @@ fn frontmatter_parser_exhaustive_coverage() {
     let doc_bad = parse_document_text(root, root.join("bad.md"), "---\nno_colon_line\n---\n", true);
     assert!(matches!(doc_bad.frontmatter, FrontmatterState::Invalid(_)));
 
-    let doc_nested_bad = parse_document_text(root, root.join("nbad.md"), "---\nods:\n  profile: note\n\n  no_colon_inner\n---\n", true);
-    assert!(matches!(doc_nested_bad.frontmatter, FrontmatterState::Invalid(_)));
+    let doc_nested_bad = parse_document_text(
+        root,
+        root.join("nbad.md"),
+        "---\nods:\n  profile: note\n\n  no_colon_inner\n---\n",
+        true,
+    );
+    assert!(matches!(
+        doc_nested_bad.frontmatter,
+        FrontmatterState::Invalid(_)
+    ));
 }
 
 #[test]

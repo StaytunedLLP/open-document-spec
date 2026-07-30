@@ -98,10 +98,6 @@ fn dispatch_platform_command(args: &[String]) -> Result<ExitCode, CliError> {
 
 fn dispatch_ods_command(args: &[String]) -> Result<ExitCode, CliError> {
     let command = args.get(1).map(String::as_str).unwrap_or("");
-    if args.iter().skip(1).any(|arg| arg == "--help" || arg == "-h")
-        && !matches!(command, "setup" | "workspaces" | "skill")
-    {
-    }
     match command {
         "--version" | "-V" | "version" => {
             println!("odc ods {}", env!("CARGO_PKG_VERSION"));

@@ -1,10 +1,5 @@
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    fn doc(body: &str) -> OkfDocument {
-        let root = std::path::Path::new("/b");
-        let path = PathBuf::from("/b/doc.md");
+fn doc(body: &str) -> OkfDocument {
+    let path = PathBuf::from("/b/doc.md");
         let (fm, body_str) = crate::parse::split_frontmatter(body);
         let frontmatter = match fm {
             Some(b) => match crate::okf::parse_okf_frontmatter_block(b) {
@@ -224,4 +219,3 @@ mod tests {
         let before_epoch = std::time::UNIX_EPOCH - std::time::Duration::from_secs(100);
         assert_eq!(system_time_to_today(before_epoch), "1970-01-01");
     }
-}

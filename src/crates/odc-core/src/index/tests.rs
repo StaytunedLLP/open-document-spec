@@ -150,7 +150,7 @@ mod tests {
         .unwrap();
 
         let ws = load_workspace(&dir).unwrap();
-        assert_eq!(indexes_are_current(&ws).unwrap(), false);
+        assert!(!indexes_are_current(&ws).unwrap());
 
         let touched = generate_indexes(&ws).unwrap();
         assert!(touched.iter().any(|p| p.ends_with("auto_orphan/index.md")));

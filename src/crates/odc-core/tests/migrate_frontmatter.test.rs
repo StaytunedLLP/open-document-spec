@@ -50,8 +50,7 @@ fn migrate_is_idempotent() {
 #[test]
 fn migrate_skips_root_index_md() {
     let dir = temp_workspace();
-    let root_text =
-        "---\nprofile: index\nods: 0.1\nodc: \">=0.0.1\"\nprofile: index\n---\n\n# R\n";
+    let root_text = "---\nprofile: index\nods: 0.1\nodc: \">=0.0.1\"\nprofile: index\n---\n\n# R\n";
     fs::write(dir.join("index.md"), root_text).unwrap();
 
     let workspace = load_workspace(&dir).unwrap();
@@ -110,12 +109,14 @@ fn migrate_workspace_frontmatter_helper_and_edge_cases() {
     fs::write(
         dir.join("index.md"),
         "---\nprofile: index\nods: 0.1\nodc: \">=0.0.1\"\n---\n\n# R\n",
-    ).unwrap();
+    )
+    .unwrap();
     // Empty body document needing migration
     fs::write(
         dir.join("empty_body.md"),
         "---\nprofile: note\nstatus: draft\n---\n",
-    ).unwrap();
+    )
+    .unwrap();
 
     let changed = odc_core::migrate_workspace_frontmatter(&dir).unwrap();
     assert_eq!(changed.len(), 1);

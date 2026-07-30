@@ -3,7 +3,6 @@ use crate::fs::load_workspace;
 use crate::parse::split_frontmatter;
 
 use serde::{Deserialize, Serialize};
-use std::collections::BTreeMap;
 use std::fs;
 use std::io;
 use std::path::{Path, PathBuf};

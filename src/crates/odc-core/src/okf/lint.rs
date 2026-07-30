@@ -179,7 +179,6 @@ fn civil_from_days(z: i64) -> (i32, u32, u32) {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::okf::parse::parse_okf_document_text;
     use std::path::PathBuf;
-include!("lint_tests.rs");
+    include!("lint_tests.rs");
 }

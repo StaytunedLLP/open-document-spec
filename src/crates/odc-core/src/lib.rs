@@ -33,10 +33,6 @@ pub use fs::{
     load_workspace_with_options, normalize_join, normalize_path, path_matches_workspace_ignore,
     rebuild_indexes, remove_document, upsert_document,
 };
-pub use pipeline::{
-    apply_document_removes, apply_document_upserts, discover_markdown_paths, parse_path,
-    parse_paths_parallel, parse_pool_jobs,
-};
 pub use lifecycle::{
     DisableOptions, DisableReport, InitOptions, InitReport, NewDocumentOptions, NewDocumentReport,
     RemoveDocumentOptions, RemoveDocumentReport, atomic_delete_document, disable_workspace,
@@ -46,6 +42,10 @@ pub use lifecycle::{
 pub use observe::{
     TreeSnapshot, WatchTree, observe_renames, paired_from_paths, scan_markdown_tree,
     scan_markdown_tree_with_code_paths,
+};
+pub use pipeline::{
+    apply_document_removes, apply_document_upserts, discover_markdown_paths, parse_path,
+    parse_paths_parallel, parse_pool_jobs,
 };
 pub mod path_util {
     pub use crate::fs::{normalize_join, normalize_path};

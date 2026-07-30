@@ -1,4 +1,4 @@
-use super::*;
+
 
 pub(super) fn lint_root_spec(
     root_index: &Document,

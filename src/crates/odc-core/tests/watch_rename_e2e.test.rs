@@ -188,11 +188,13 @@ fn heal_orphan_path_ids_edge_cases() {
     fs::write(
         dir.join("sub/a.md"),
         "---\nprofile: note\nstatus: draft\nid: sub/b\n---\n\n# A\n",
-    ).unwrap();
+    )
+    .unwrap();
     fs::write(
         dir.join("sub/b.md"),
         "---\nprofile: note\nstatus: draft\n---\n\n# B\n",
-    ).unwrap();
+    )
+    .unwrap();
 
     // Plain doc with no frontmatter
     fs::write(dir.join("plain.md"), "# Plain\n").unwrap();

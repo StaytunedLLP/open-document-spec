@@ -20,11 +20,15 @@ fn doc(path: &str, fm: OkfFrontmatterState, reserved: bool) -> OkfDocument {
 
 #[test]
 fn audit_all_classes_and_markdown_render() {
-    let mut ok_fm = OkfFrontmatter::default();
-    ok_fm.type_name = Some("Metric".into());
+    let ok_fm = OkfFrontmatter {
+        type_name: Some("Metric".into()),
+        ..Default::default()
+    };
     let no_type = OkfFrontmatter::default();
-    let mut attested = OkfFrontmatter::default();
-    attested.type_name = Some("Attested Computation".into());
+    let attested = OkfFrontmatter {
+        type_name: Some("Attested Computation".into()),
+        ..Default::default()
+    };
 
     let bundle = OkfBundle {
         root: PathBuf::from("/bundle"),
@@ -92,10 +96,7 @@ fn model_helpers_status_trust_ids() {
         }]),
         OkfTrustTier::MachineConfirmed
     );
-    assert_eq!(
-        OkfTrustTier::MachineConfirmed.as_str(),
-        "machine-confirmed"
-    );
+    assert_eq!(OkfTrustTier::MachineConfirmed.as_str(), "machine-confirmed");
     assert_eq!(
         derive_trust_tier(&[ActorEvent {
             by: "human:x".into(),
@@ -106,11 +107,11 @@ fn model_helpers_status_trust_ids() {
     assert_eq!(OkfTrustTier::HumanReviewed.as_str(), "human-reviewed");
 
     let root = PathBuf::from("/ws");
+    assert_eq!(concept_id_for_path(&root, &root.join("a/b.md")), "a/b");
     assert_eq!(
-        concept_id_for_path(&root, &root.join("a/b.md")),
-        "a/b"
+        concept_id_for_path(&root, PathBuf::from("x.md").as_path()),
+        "x"
     );
-    assert_eq!(concept_id_for_path(&root, PathBuf::from("x.md").as_path()), "x");
 }
 
 #[test]
@@ -147,7 +148,11 @@ fn init_create_and_skip_all_options() {
         },
     )
     .unwrap();
-    assert!(r2.skipped.len() >= 4, "expected all artifacts skipped: {:?}", r2.skipped);
+    assert!(
+        r2.skipped.len() >= 4,
+        "expected all artifacts skipped: {:?}",
+        r2.skipped
+    );
     assert!(okf_enabled(root));
     assert_eq!(okf_version_from_root(root).as_deref(), Some("0.2"));
     let bundle = load_okf_bundle(root).unwrap();
@@ -156,11 +161,15 @@ fn init_create_and_skip_all_options() {
 
     // Test with write_sample_concept = false
     let dir3 = tempdir().unwrap();
-    let r_no_sample = init_okf_bundle(dir3.path(), OkfInitOptions {
-        write_sample_concept: false,
-        write_attested_stub: false,
-        write_log: false,
-    }).unwrap();
+    let r_no_sample = init_okf_bundle(
+        dir3.path(),
+        OkfInitOptions {
+            write_sample_concept: false,
+            write_attested_stub: false,
+            write_log: false,
+        },
+    )
+    .unwrap();
     assert_eq!(r_no_sample.created.len(), 1); // index.md only
 }
 
@@ -190,7 +199,10 @@ sources:
     assert!(fm.tags.len() >= 2);
     assert_eq!(fm.sources.len(), 1);
     assert_eq!(fm.verified.len(), 1);
-    assert_eq!(fm.unknown.get("custom_ext").map(String::as_str), Some("hello"));
+    assert_eq!(
+        fm.unknown.get("custom_ext").map(String::as_str),
+        Some("hello")
+    );
 
     let attested = r#"
 type: Attested Computation
@@ -241,10 +253,30 @@ fn okf_bundle_scan_and_version_edge_cases() {
     std::fs::write(root.join("file.txt"), "text").unwrap();
 
     let bundle = load_okf_bundle(root).unwrap();
-    assert!(!bundle.documents.iter().any(|d| d.path.to_string_lossy().contains("node_modules")));
-    assert!(!bundle.documents.iter().any(|d| d.path.to_string_lossy().contains("target")));
-    assert!(!bundle.documents.iter().any(|d| d.path.to_string_lossy().contains(".hidden")));
-    assert!(!bundle.documents.iter().any(|d| d.path.ends_with("file.txt")));
+    assert!(
+        !bundle
+            .documents
+            .iter()
+            .any(|d| d.path.to_string_lossy().contains("node_modules"))
+    );
+    assert!(
+        !bundle
+            .documents
+            .iter()
+            .any(|d| d.path.to_string_lossy().contains("target"))
+    );
+    assert!(
+        !bundle
+            .documents
+            .iter()
+            .any(|d| d.path.to_string_lossy().contains(".hidden"))
+    );
+    assert!(
+        !bundle
+            .documents
+            .iter()
+            .any(|d| d.path.ends_with("file.txt"))
+    );
 }
 
 #[test]
@@ -252,7 +284,11 @@ fn scaffold_and_remove_profile_templates_and_errors() {
     let dir = tempdir().unwrap();
     let root = dir.path();
 
-    std::fs::write(root.join("index.md"), "---\nprofile: index\nods: 0.1\nodc: \">=0.0.1\"\n---\n\n# R\n").unwrap();
+    std::fs::write(
+        root.join("index.md"),
+        "---\nprofile: index\nods: 0.1\nodc: \">=0.0.1\"\n---\n\n# R\n",
+    )
+    .unwrap();
 
     // Scaffold with explicit profiles
     for (prof, file) in [

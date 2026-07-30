@@ -1,5 +1,5 @@
 use odc_core::{
-    PathChange, apply_path_changes, classify_watch_events, move_document_and_rewrite_refs,
+    PathChange, classify_watch_events, move_document_and_rewrite_refs,
     normalize_frontmatter_body_spacing, rewrite_references_in_text,
 };
 use odc_test_support::temp_workspace;

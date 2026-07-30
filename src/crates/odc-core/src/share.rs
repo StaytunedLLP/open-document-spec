@@ -139,7 +139,10 @@ pub fn publish_workspace(
     let mut report = SharePublishReport::default();
 
     for document in &workspace.documents {
-        let doc_path = document.path.canonicalize().unwrap_or_else(|_| document.path.clone());
+        let doc_path = document
+            .path
+            .canonicalize()
+            .unwrap_or_else(|_| document.path.clone());
         if is_index_md(&doc_path) {
             continue;
         }

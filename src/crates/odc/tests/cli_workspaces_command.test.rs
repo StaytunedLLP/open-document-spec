@@ -26,7 +26,11 @@ fn okf_doctor_and_fmt() {
         .args(["okf", "fmt", path])
         .output()
         .unwrap();
-    assert!(out.status.success() || out.status.code().is_some(), "{:?}", out);
+    assert!(
+        out.status.success() || out.status.code().is_some(),
+        "{:?}",
+        out
+    );
 }
 
 #[test]
@@ -87,7 +91,11 @@ fn upgrade_empty_and_okf_and_migrate() {
         .args(["upgrade", empty.path().to_str().unwrap(), "--check"])
         .output()
         .unwrap();
-    assert!(out.status.success() || out.status.code() == Some(1), "{:?}", out);
+    assert!(
+        out.status.success() || out.status.code() == Some(1),
+        "{:?}",
+        out
+    );
 
     let okf = tempdir().unwrap();
     let path = okf.path().to_str().unwrap();
@@ -102,7 +110,11 @@ fn upgrade_empty_and_okf_and_migrate() {
         .args(["upgrade", path, "--check"])
         .output()
         .unwrap();
-    assert!(out.status.success() || out.status.code() == Some(1), "{:?}", out);
+    assert!(
+        out.status.success() || out.status.code() == Some(1),
+        "{:?}",
+        out
+    );
 
     let ods = tempdir().unwrap();
     let op = ods.path().to_str().unwrap();
@@ -139,33 +151,45 @@ fn share_and_export_and_disable_dry() {
     let _ = Command::new(odc_bin()).args(["index", path]).status();
     let out_dir = dir.path().join("published");
     let out = Command::new(odc_bin())
-        .args([
-            "share",
-            path,
-            "--out",
-            out_dir.to_str().unwrap(),
-        ])
+        .args(["share", path, "--out", out_dir.to_str().unwrap()])
         .output()
         .unwrap();
-    assert!(out.status.success() || out.status.code().is_some(), "{:?}", out);
+    assert!(
+        out.status.success() || out.status.code().is_some(),
+        "{:?}",
+        out
+    );
 
     let graph = dir.path().join("graph.md");
     let out = Command::new(odc_bin())
         .args(["export", path, "--out", graph.to_str().unwrap()])
         .output()
         .unwrap();
-    assert!(out.status.success() || out.status.code().is_some(), "{:?}", out);
+    assert!(
+        out.status.success() || out.status.code().is_some(),
+        "{:?}",
+        out
+    );
 
     let out = Command::new(odc_bin())
         .args(["disable", path])
         .output()
         .unwrap();
-    assert!(out.status.success() || out.status.code().is_some(), "{:?}", out);
+    assert!(
+        out.status.success() || out.status.code().is_some(),
+        "{:?}",
+        out
+    );
 }
 
 #[test]
 fn help_and_version_and_unknown() {
-    for args in [vec!["help"], vec!["--help"], vec!["version"], vec!["--version"]] {
+    for args in [
+        vec!["help"],
+        vec!["--help"],
+        vec!["version"],
+        vec!["--version"],
+    ] {
         let out = Command::new(odc_bin()).args(&args).output().unwrap();
         assert!(out.status.success(), "{args:?} {:?}", out);
     }
@@ -181,18 +205,47 @@ fn git_detect_renames_in_git_repo() {
     let dir = tempdir().unwrap();
     let root = dir.path();
 
-    let _ = Command::new("git").args(["init"]).current_dir(root).output();
-    let _ = Command::new("git").args(["config", "user.name", "Test"]).current_dir(root).output();
-    let _ = Command::new("git").args(["config", "user.email", "test@example.com"]).current_dir(root).output();
+    let _ = Command::new("git")
+        .args(["init"])
+        .current_dir(root)
+        .output();
+    let _ = Command::new("git")
+        .args(["config", "user.name", "Test"])
+        .current_dir(root)
+        .output();
+    let _ = Command::new("git")
+        .args(["config", "user.email", "test@example.com"])
+        .current_dir(root)
+        .output();
 
-    fs::write(root.join("index.md"), "---\nprofile: index\nods: 0.1\nodc: \">=0.0.1\"\n---\n\n# R\n\n- [old.md](old.md)\n").unwrap();
-    fs::write(root.join("old.md"), "---\nprofile: note\nstatus: draft\n---\n\n# Old\n").unwrap();
+    fs::write(
+        root.join("index.md"),
+        "---\nprofile: index\nods: 0.1\nodc: \">=0.0.1\"\n---\n\n# R\n\n- [old.md](old.md)\n",
+    )
+    .unwrap();
+    fs::write(
+        root.join("old.md"),
+        "---\nprofile: note\nstatus: draft\n---\n\n# Old\n",
+    )
+    .unwrap();
 
-    let _ = Command::new("git").args(["add", "."]).current_dir(root).output();
-    let _ = Command::new("git").args(["commit", "-m", "init"]).current_dir(root).output();
+    let _ = Command::new("git")
+        .args(["add", "."])
+        .current_dir(root)
+        .output();
+    let _ = Command::new("git")
+        .args(["commit", "-m", "init"])
+        .current_dir(root)
+        .output();
 
-    let _ = Command::new("git").args(["mv", "old.md", "new.md"]).current_dir(root).output();
+    let _ = Command::new("git")
+        .args(["mv", "old.md", "new.md"])
+        .current_dir(root)
+        .output();
 
-    let sync_out = Command::new(odc_bin()).args(["sync", root.to_str().unwrap()]).output().unwrap();
+    let sync_out = Command::new(odc_bin())
+        .args(["sync", root.to_str().unwrap()])
+        .output()
+        .unwrap();
     assert!(sync_out.status.success(), "{:?}", sync_out);
 }

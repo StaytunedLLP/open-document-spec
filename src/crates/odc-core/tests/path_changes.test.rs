@@ -1,6 +1,6 @@
 use odc_core::{
     PathChange, apply_path_changes, classify_watch_events, move_document_and_rewrite_refs,
-    normalize_frontmatter_body_spacing, reindex_workspace, rewrite_references_in_text,
+    reindex_workspace, rewrite_references_in_text,
 };
 use odc_test_support::temp_workspace;
 use std::fs;
@@ -91,8 +91,16 @@ fn healer_classify_and_rewrite_edge_cases() {
 #[test]
 fn rewrite_refs_after_moves_test() {
     let dir = temp_workspace();
-    fs::write(dir.join("index.md"), "---\nprofile: index\nods: 0.1\nodc: \">=0.0.1\"\n---\n\n# R\n- [new.md](new.md)\n").unwrap();
-    fs::write(dir.join("new.md"), "---\nprofile: note\nstatus: draft\n---\n\n# New\n").unwrap();
+    fs::write(
+        dir.join("index.md"),
+        "---\nprofile: index\nods: 0.1\nodc: \">=0.0.1\"\n---\n\n# R\n- [new.md](new.md)\n",
+    )
+    .unwrap();
+    fs::write(
+        dir.join("new.md"),
+        "---\nprofile: note\nstatus: draft\n---\n\n# New\n",
+    )
+    .unwrap();
 
     let moves = vec![(dir.join("old.md"), dir.join("new.md"))];
     let rep = odc_core::rewrite_refs_after_moves(&dir, &moves).unwrap();
@@ -102,7 +110,11 @@ fn rewrite_refs_after_moves_test() {
 #[test]
 fn mv_rewriter_traversal_and_error_tests() {
     let dir = temp_workspace();
-    fs::write(dir.join("index.md"), "---\nprofile: index\nods: 0.1\nodc: \">=0.0.1\"\n---\n\n# R\n").unwrap();
+    fs::write(
+        dir.join("index.md"),
+        "---\nprofile: index\nods: 0.1\nodc: \">=0.0.1\"\n---\n\n# R\n",
+    )
+    .unwrap();
 
     // Traversal outside root
     let outside = PathBuf::from("/tmp/outside_path_123");
@@ -226,5 +238,3 @@ fn moving_markdown_preserves_md_frontmatter_ref_style() {
     assert!(b.contains("  - c.md"), "{b}");
     assert!(!b.contains("  - c\n"), "{b}");
 }
-
-

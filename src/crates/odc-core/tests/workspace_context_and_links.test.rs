@@ -27,8 +27,7 @@ fn large_workspace_with_10k_documents_lints() {
         }
     }
 
-    let root_index =
-        "---\nprofile: index\nods: 0.1\nodc: \">=0.0.1\"\n---\n\n# Large Workspace\n";
+    let root_index = "---\nprofile: index\nods: 0.1\nodc: \">=0.0.1\"\n---\n\n# Large Workspace\n";
     fs::write(temp.join("index.md"), root_index).expect("root index");
 
     // Generate indexes first (root + every group directory) so the hand-written
@@ -177,5 +176,3 @@ It explains where to report issues.
     assert!(rendered.contains("This is the footer prose."));
     assert!(rendered.contains("It explains where to report issues."));
 }
-
-

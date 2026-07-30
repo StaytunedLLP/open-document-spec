@@ -19,17 +19,28 @@ fn fixture_root() -> std::path::PathBuf {
 fn sample_workspace_lints_cleanly() {
     let workspace = load_workspace(fixture_root()).expect("workspace");
     let diags = lint_workspace(&workspace);
-    assert!(diags.is_empty(), "expected clean sample workspace, got: {diags:?}");
+    assert!(
+        diags.is_empty(),
+        "expected clean sample workspace, got: {diags:?}"
+    );
 }
 
 #[test]
 fn lint_document_in_workspace_unparsed_frontmatter() {
     let dir = odc_test_support::temp_workspace();
-    std::fs::write(dir.join("index.md"), "---\nprofile: index\nods: 0.1\nodc: \">=0.0.1\"\n---\n\n# Root\n").unwrap();
+    std::fs::write(
+        dir.join("index.md"),
+        "---\nprofile: index\nods: 0.1\nodc: \">=0.0.1\"\n---\n\n# Root\n",
+    )
+    .unwrap();
     std::fs::write(dir.join("plain.md"), "# Plain\n").unwrap();
 
     let ws = load_workspace(&dir).unwrap();
-    let diags = odc_core::lint_document_in_workspace(&ws, &dir.join("plain.md"), odc_core::LintLevel::Level3);
+    let diags = odc_core::lint_document_in_workspace(
+        &ws,
+        &dir.join("plain.md"),
+        odc_core::LintLevel::Level3,
+    );
     assert!(diags.is_empty());
 }
 

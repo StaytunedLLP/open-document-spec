@@ -1,8 +1,8 @@
 //! model odc pin + pipeline discover/gitignore coverage.
 use odc_core::{
-    apply_document_upserts, current_odc_requirement, discover_markdown_paths, load_options_graph,
-    load_workspace, load_workspace_with_options, odc_requirement_satisfied, parse_document_text,
-    parse_paths_parallel, CodeRole,
+    CodeRole, apply_document_upserts, current_odc_requirement, discover_markdown_paths,
+    load_options_graph, load_workspace, load_workspace_with_options, odc_requirement_satisfied,
+    parse_document_text, parse_paths_parallel,
 };
 use std::fs;
 use tempfile::tempdir;
@@ -19,14 +19,14 @@ fn odc_requirement_all_paths() {
 
     let cur = current_odc_requirement();
     assert!(cur.starts_with(">="));
-    assert_eq!(odc_requirement_satisfied(&cur).unwrap(), true);
-    assert_eq!(odc_requirement_satisfied(">=0.0.1").unwrap(), true);
+    assert!(odc_requirement_satisfied(&cur).unwrap());
+    assert!(odc_requirement_satisfied(">=0.0.1").unwrap());
     // exact match of package version
     let ver = env!("CARGO_PKG_VERSION");
-    assert_eq!(odc_requirement_satisfied(ver).unwrap(), true);
-    assert_eq!(odc_requirement_satisfied("999.0.0").unwrap(), false);
-    assert_eq!(odc_requirement_satisfied(&format!("v{ver}")).unwrap(), true);
-    assert_eq!(odc_requirement_satisfied(">=v0.0.1").unwrap(), true);
+    assert!(odc_requirement_satisfied(ver).unwrap());
+    assert!(!odc_requirement_satisfied("999.0.0").unwrap());
+    assert!(odc_requirement_satisfied(&format!("v{ver}")).unwrap());
+    assert!(odc_requirement_satisfied(">=v0.0.1").unwrap());
 }
 
 #[test]
@@ -44,16 +44,19 @@ fn discover_gitignore_and_excluded_roots() {
 
     let gitignore = vec!["ignored_dir".into(), "*.tmp.md".into()];
     // discover does its own gitignore matching via patterns list
-    let paths = discover_markdown_paths(
-        root,
-        &[root.join("excluded_root")],
-        &gitignore,
-        &[],
-    )
-    .unwrap();
+    let paths =
+        discover_markdown_paths(root, &[root.join("excluded_root")], &gitignore, &[]).unwrap();
     assert!(paths.iter().any(|p| p.ends_with("a.md")));
-    assert!(!paths.iter().any(|p| p.to_string_lossy().contains("ignored_dir")));
-    assert!(!paths.iter().any(|p| p.to_string_lossy().contains("excluded_root")));
+    assert!(
+        !paths
+            .iter()
+            .any(|p| p.to_string_lossy().contains("ignored_dir"))
+    );
+    assert!(
+        !paths
+            .iter()
+            .any(|p| p.to_string_lossy().contains("excluded_root"))
+    );
 }
 
 #[test]
@@ -72,7 +75,11 @@ fn load_graph_options_and_parallel() {
     .unwrap();
     let ws = load_workspace_with_options(root, load_options_graph()).unwrap();
     assert!(ws.documents.len() >= 2);
-    let note = ws.documents.iter().find(|d| d.path.ends_with("n.md")).unwrap();
+    let note = ws
+        .documents
+        .iter()
+        .find(|d| d.path.ends_with("n.md"))
+        .unwrap();
     assert!(note.body.is_empty()); // graph load drops note bodies
     let index = ws
         .documents
@@ -117,7 +124,12 @@ fn apply_upsert_when_by_path_stale() {
     .unwrap();
     let mut ws = load_workspace(root).unwrap();
     let p = root.join("ghost.md");
-    let doc = parse_document_text(root, p.clone(), "---\nprofile: note\nstatus: draft\n---\n\n# G\n", true);
+    let doc = parse_document_text(
+        root,
+        p.clone(),
+        "---\nprofile: note\nstatus: draft\n---\n\n# G\n",
+        true,
+    );
     // Insert without going through by_path (stale map): push then apply upsert hits position branch
     ws.documents.push(doc.clone());
     ws.by_path.clear();
@@ -133,17 +145,35 @@ fn parse_paths_parallel_jobs_and_error() {
     fs::write(&file, "# Test\n").unwrap();
 
     // Test ODC_JOBS = 0 and 2
-    unsafe { std::env::set_var("ODC_JOBS", "0"); }
-    assert_eq!(parse_paths_parallel(root, &[file.clone()], true).unwrap().len(), 1);
-    unsafe { std::env::set_var("ODC_JOBS", "2"); }
-    assert_eq!(parse_paths_parallel(root, &[file.clone()], true).unwrap().len(), 1);
+    unsafe {
+        std::env::set_var("ODC_JOBS", "0");
+    }
+    assert_eq!(
+        parse_paths_parallel(root, std::slice::from_ref(&file), true)
+            .unwrap()
+            .len(),
+        1
+    );
+    unsafe {
+        std::env::set_var("ODC_JOBS", "2");
+    }
+    assert_eq!(
+        parse_paths_parallel(root, std::slice::from_ref(&file), true)
+            .unwrap()
+            .len(),
+        1
+    );
 
     // Test invalid ODC_JOBS
-    unsafe { std::env::set_var("ODC_JOBS", "invalid"); }
-    let docs = parse_paths_parallel(root, &[file.clone()], true).unwrap();
+    unsafe {
+        std::env::set_var("ODC_JOBS", "invalid");
+    }
+    let docs = parse_paths_parallel(root, std::slice::from_ref(&file), true).unwrap();
     assert_eq!(docs.len(), 1);
 
-    unsafe { std::env::remove_var("ODC_JOBS"); }
+    unsafe {
+        std::env::remove_var("ODC_JOBS");
+    }
 
     // Error path: non-existent file
     let bad_file = root.join("nonexistent.md");

@@ -158,7 +158,7 @@ fn publish_subtree_path_relative_to_root() {
 
     let ws = load_workspace(&dir).unwrap();
     let out = temp_dir("publish-sub-only");
-    let report = publish_workspace(&ws, &dir.join("sub"), &out, ShareOptions::default()).unwrap();
+    let report = publish_workspace(&ws, dir.join("sub"), &out, ShareOptions::default()).unwrap();
 
     assert_eq!(report.written.len(), 1);
     assert!(out.join("index.md").exists());

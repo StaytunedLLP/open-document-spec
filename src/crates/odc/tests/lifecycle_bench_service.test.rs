@@ -4,21 +4,16 @@
 
 use odc_test_support::temp_workspace;
 use std::fs;
-use std::io::Read;
 use std::path::PathBuf;
-use std::process::{Child, Command, Stdio};
+use std::process::Command;
 use std::time::Duration;
 
 fn ods_bin() -> PathBuf {
     PathBuf::from(env!("CARGO_BIN_EXE_ods"))
 }
 
-/// Ask the child to shut down gracefully (`SIGTERM` on Unix, where `ods` now
-/// installs a handler for it) rather than `SIGKILL`ing it — a killed process
-/// never runs its normal-exit path, so e.g. coverage instrumentation data for
-/// everything it executed is silently lost. Falls back to a hard kill on
-/// non-Unix or if the process hasn't exited shortly after the signal.
-fn terminate_gracefully(child: &mut Child) {
+#[allow(dead_code)]
+fn terminate_gracefully(child: &mut std::process::Child) {
     #[cfg(unix)]
     {
         // SAFETY: `kill(2)` with a valid pid and the SIGTERM signal number;
@@ -176,5 +171,3 @@ fn bench_strip_dry_run_then_restore_round_trips() {
     let restored = fs::read_to_string(dir.join("doc.md")).unwrap();
     assert!(restored.contains("profile: note"), "{restored}");
 }
-
-

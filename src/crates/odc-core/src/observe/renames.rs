@@ -226,8 +226,4 @@ fn hash_bytes(bytes: &[u8]) -> u64 {
     hasher.finish()
 }
 
-/// Diff two scans and emit path changes for unique content-hash renames/moves.
-///
-/// Ambiguous hashes (one hash shared by multiple removed or multiple added paths)
-/// are skipped — caller relies on lint to surface dangling refs.
 include!("rename_pairing.rs");

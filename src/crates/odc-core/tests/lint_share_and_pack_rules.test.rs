@@ -134,6 +134,12 @@ fn lint_code_line_suffix_and_extra_index_entries() {
 
     let ws = load_workspace(&dir).unwrap();
     let diags = lint_workspace(&ws);
-    assert!(diags.iter().any(|d| d.message.contains("code path must not contain line number suffix")));
-    assert!(diags.iter().any(|d| d.message.contains("index has extra entries: extra_ghost.md")));
+    assert!(diags.iter().any(|d| {
+        d.message
+            .contains("code path must not contain line number suffix")
+    }));
+    assert!(diags.iter().any(|d| {
+        d.message
+            .contains("index has extra entries: extra_ghost.md")
+    }));
 }

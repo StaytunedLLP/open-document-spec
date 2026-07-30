@@ -1,4 +1,4 @@
-use super::*;
+
 
 /// Diff two scans and emit path changes for unique content-hash renames/moves.
 pub fn observe_renames(previous: &TreeSnapshot, current: &TreeSnapshot) -> Vec<PathChange> {

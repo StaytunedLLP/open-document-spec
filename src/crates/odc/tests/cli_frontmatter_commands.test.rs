@@ -77,7 +77,9 @@ fn setup_outside_workspace_prompts_to_run_init() {
     let stdout = String::from_utf8_lossy(&out.stdout);
     assert!(stdout.contains("no ODS workspace found"), "{stdout}");
     assert!(
-        stdout.contains("run 'ods init") || stdout.contains("run 'odc init") || stdout.contains("odc init"),
+        stdout.contains("run 'ods init")
+            || stdout.contains("run 'odc init")
+            || stdout.contains("odc init"),
         "{stdout}"
     );
     assert!(!dir.path().join("index.md").exists());

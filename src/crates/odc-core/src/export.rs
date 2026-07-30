@@ -270,10 +270,7 @@ mod tests {
             dir.join("index.md"),
             "---\nprofile: index\nods: 0.1\nodc: \">=0.0.1\"\ndescription: Root index\nresources:\n  - path: res.txt\ncode:\n  - path: src/main.rs\n    role: entrypoint\n    symbol: main\n---\n\n# R\n",
         ).unwrap();
-        fs::write(
-            dir.join("plain.md"),
-            "# Plain Doc No FM\n",
-        ).unwrap();
+        fs::write(dir.join("plain.md"), "# Plain Doc No FM\n").unwrap();
 
         let ws = load_workspace(dir).unwrap();
         let md = render_graph_markdown(&ws, true);

@@ -269,8 +269,6 @@ fn parse_verified(rest: &str, lines: &[&str], i: &mut usize) -> Result<Vec<Actor
     Ok(out)
 }
 
-
-
 include!("parse_sources.rs");
 
 #[cfg(test)]

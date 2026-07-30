@@ -1,4 +1,4 @@
-use super::*;
+
 
 pub(super) fn extract_prose(existing: &str, entries: &[IndexEntry]) -> (String, String) {
     let mut header_lines = Vec::new();

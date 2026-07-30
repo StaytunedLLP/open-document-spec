@@ -172,5 +172,3 @@ fn start_status_accepts_status_flag() {
         "expected service status output, stdout={stdout}, stderr={stderr}"
     );
 }
-
-

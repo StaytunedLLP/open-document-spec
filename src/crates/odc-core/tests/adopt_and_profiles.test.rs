@@ -120,9 +120,29 @@ fn adopt_all_remaining_profiles_and_invalid_frontmatter() {
     let report = adopt_workspace(&ws, AdoptOptions { write: true }).unwrap();
     assert!(report.skipped.contains(&dir.join("bad.md")));
 
-    assert!(fs::read_to_string(dir.join("d.md")).unwrap().contains("profile: decision"));
-    assert!(fs::read_to_string(dir.join("sop.md")).unwrap().contains("profile: sop"));
-    assert!(fs::read_to_string(dir.join("api.md")).unwrap().contains("profile: api"));
-    assert!(fs::read_to_string(dir.join("m.md")).unwrap().contains("profile: meeting"));
-    assert!(fs::read_to_string(dir.join("faq.md")).unwrap().contains("profile: faq"));
+    assert!(
+        fs::read_to_string(dir.join("d.md"))
+            .unwrap()
+            .contains("profile: decision")
+    );
+    assert!(
+        fs::read_to_string(dir.join("sop.md"))
+            .unwrap()
+            .contains("profile: sop")
+    );
+    assert!(
+        fs::read_to_string(dir.join("api.md"))
+            .unwrap()
+            .contains("profile: api")
+    );
+    assert!(
+        fs::read_to_string(dir.join("m.md"))
+            .unwrap()
+            .contains("profile: meeting")
+    );
+    assert!(
+        fs::read_to_string(dir.join("faq.md"))
+            .unwrap()
+            .contains("profile: faq")
+    );
 }

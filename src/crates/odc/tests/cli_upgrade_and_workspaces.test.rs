@@ -40,7 +40,11 @@ fn upgrade_rewrites_ods_cli_pin() {
         .args(["upgrade", path, "--check"])
         .output()
         .unwrap();
-    assert!(check.status.success() || check.status.code() == Some(1), "{:?}", check);
+    assert!(
+        check.status.success() || check.status.code() == Some(1),
+        "{:?}",
+        check
+    );
 }
 
 #[test]
@@ -119,7 +123,8 @@ fn find_by_tag() {
         .unwrap();
     assert!(out.status.success(), "{:?}", out);
     let stdout = String::from_utf8_lossy(&out.stdout);
-    assert!(stdout.contains("t") || stdout.contains("T") || !stdout.is_empty(), "{stdout}");
+    assert!(
+        stdout.contains("t") || stdout.contains("T") || !stdout.is_empty(),
+        "{stdout}"
+    );
 }
-
-

@@ -283,14 +283,23 @@ mod tests {
         let pack_dir = root.join("pack_without_profiles");
         fs::create_dir_all(&pack_dir).unwrap();
 
-        let index_doc = parse_document_text(root, root.join("index.md"), "---\npacks:\n  - pack_without_profiles\n---\n", true);
+        let index_doc = parse_document_text(
+            root,
+            root.join("index.md"),
+            "---\npacks:\n  - pack_without_profiles\n---\n",
+            true,
+        );
         let roots = profile_catalog_roots(root, Some(&index_doc));
         assert!(roots.contains(&pack_dir) || roots.contains(&root.join("ods-profiles")));
 
         let prof_dir = root.join("ods-profiles").join("sub");
         fs::create_dir_all(&prof_dir).unwrap();
         fs::write(prof_dir.join(".hidden"), "ignored").unwrap();
-        fs::write(prof_dir.join("subprof.md"), "---\naliases:\n  NewCanonical:\n    - AliasOne\n---\n# Subprof\n").unwrap();
+        fs::write(
+            prof_dir.join("subprof.md"),
+            "---\naliases:\n  NewCanonical:\n    - AliasOne\n---\n# Subprof\n",
+        )
+        .unwrap();
 
         let roots = profile_catalog_roots(root, None);
         let cat = load_profile_catalog(root, &roots).unwrap();

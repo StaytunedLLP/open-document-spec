@@ -1,4 +1,4 @@
-use super::*;
+
 
 /// Strip frontmatter across Markdown documents in workspace while generating a JSON snapshot backup.
 pub fn bench_strip_workspace(
@@ -56,7 +56,7 @@ pub fn bench_strip_workspace(
     let mut total_indexes_deleted = 0;
     if options.strip_indexes || options.full {
         for path in collect_files_recursive(&root) {
-            if path.file_name().map_or(false, |n| n.to_string_lossy().eq_ignore_ascii_case("index.md")) {
+            if path.file_name().is_some_and(|n| n.to_string_lossy().eq_ignore_ascii_case("index.md")) {
                 let rel = path
                     .strip_prefix(&root)
                     .unwrap_or(&path)

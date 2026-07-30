@@ -50,18 +50,7 @@ pub(crate) fn get_config_path() -> Result<PathBuf, CliError> {
     }
 }
 
-pub(crate) fn load_registered_paths() -> Vec<String> {
-    let Ok(reg_path) = get_config_path() else {
-        return Vec::new();
-    };
-    if !reg_path.exists() {
-        return Vec::new();
-    }
-    let Ok(content) = fs::read_to_string(&reg_path) else {
-        return Vec::new();
-    };
-    parse_config_paths(&content)
-}
+
 
 pub fn parse_workspace_paths(content: &str) -> Vec<String> {
     parse_config_paths(content)

@@ -1,4 +1,4 @@
-use super::*;
+
 
 pub(super) fn parse_date_range_inline_or_block(
     rest: &str,
@@ -40,10 +40,8 @@ pub(super) fn parse_date_range_inline_or_block(
 pub(super) fn parse_sources(
     lines: &[&str],
     start: usize,
-    rest: &str,
+    _rest: &str,
 ) -> Result<(Vec<OkfSource>, usize), String> {
-    if !rest.is_empty() && rest != "[]" {
-    }
     let mut sources = Vec::new();
     let mut i = start;
     let mut current: Option<OkfSource> = None;

@@ -1,7 +1,4 @@
-use odc_core::{
-    CodeRole, FrontmatterState, document_id, extract_heading_groups, extract_headings,
-    parse_document_text, split_frontmatter, split_markdown_link_target,
-};
+use odc_core::{CodeRole, FrontmatterState, parse_document_text, split_frontmatter};
 use std::path::PathBuf;
 
 #[test]
@@ -204,5 +201,3 @@ ignore:
     assert_eq!(fm.profiles, vec!["ods-profiles".to_string()]);
     assert_eq!(fm.ignore, vec!["src".to_string(), "apps/web".to_string()]);
 }
-
-

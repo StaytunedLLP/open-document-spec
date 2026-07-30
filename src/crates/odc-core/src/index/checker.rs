@@ -104,15 +104,7 @@ pub fn render_index(workspace: &Workspace, directory: &Path, existing: Option<&s
 
 
 
-fn absolutize_for_compare(path: &Path) -> PathBuf {
-    if path.is_absolute() {
-        path.to_path_buf()
-    } else {
-        std::env::current_dir()
-            .unwrap_or_else(|_| PathBuf::from("."))
-            .join(path)
-    }
-}
+
 
 
 

@@ -2,7 +2,11 @@ use std::process::Command;
 use tempfile::tempdir;
 
 fn odc_bin() -> std::path::PathBuf {
-    eprintln!("odc_bin: {}, ods_bin: {}", env!("CARGO_BIN_EXE_odc"), env!("CARGO_BIN_EXE_ods"));
+    eprintln!(
+        "odc_bin: {}, ods_bin: {}",
+        env!("CARGO_BIN_EXE_odc"),
+        env!("CARGO_BIN_EXE_ods")
+    );
     std::path::PathBuf::from(env!("CARGO_BIN_EXE_odc"))
 }
 
@@ -15,11 +19,7 @@ fn bare_lint_auto_detects_or_explains() {
         .unwrap();
     assert!(!out.status.success(), "{:?}", out);
     let err = String::from_utf8_lossy(&out.stderr);
-    let combined = format!(
-        "{}{}",
-        err,
-        String::from_utf8_lossy(&out.stdout)
-    );
+    let combined = format!("{}{}", err, String::from_utf8_lossy(&out.stdout));
     assert!(
         combined.contains("ODS")
             || combined.contains("OKF")
@@ -128,32 +128,55 @@ fn agents_sync_writes_agents_md() {
 fn okf_cli_subcommands_exhaustive() {
     let dir = tempdir().unwrap();
     let path = dir.path().to_str().unwrap();
-    assert!(Command::new(odc_bin())
-        .args(["okf", "init", path, "--log"])
-        .status()
-        .unwrap()
-        .success());
+    assert!(
+        Command::new(odc_bin())
+            .args(["okf", "init", path, "--log"])
+            .status()
+            .unwrap()
+            .success()
+    );
 
     // doctor text and json
-    let doc_text = Command::new(odc_bin()).args(["okf", "doctor", path]).output().unwrap();
+    let doc_text = Command::new(odc_bin())
+        .args(["okf", "doctor", path])
+        .output()
+        .unwrap();
     assert!(doc_text.status.success());
-    let doc_json = Command::new(odc_bin()).args(["okf", "doctor", path, "--format", "json"]).output().unwrap();
+    let doc_json = Command::new(odc_bin())
+        .args(["okf", "doctor", path, "--format", "json"])
+        .output()
+        .unwrap();
     assert!(doc_json.status.success());
 
     // audit json
-    let aud_json = Command::new(odc_bin()).args(["okf", "audit", path, "--format", "json"]).output().unwrap();
+    let aud_json = Command::new(odc_bin())
+        .args(["okf", "audit", path, "--format", "json"])
+        .output()
+        .unwrap();
     assert!(aud_json.status.success());
 
     // adopt dry-run and write
     std::fs::write(dir.path().join("plain.md"), "# Plain\n").unwrap();
-    let adopt_dry = Command::new(odc_bin()).args(["okf", "adopt", path]).output().unwrap();
+    let adopt_dry = Command::new(odc_bin())
+        .args(["okf", "adopt", path])
+        .output()
+        .unwrap();
     assert!(adopt_dry.status.success());
-    let adopt_write = Command::new(odc_bin()).args(["okf", "adopt", "--write", path]).output().unwrap();
+    let adopt_write = Command::new(odc_bin())
+        .args(["okf", "adopt", "--write", path])
+        .output()
+        .unwrap();
     assert!(adopt_write.status.success());
 
     // index and index check
-    let idx_gen = Command::new(odc_bin()).args(["okf", "index", path]).output().unwrap();
+    let idx_gen = Command::new(odc_bin())
+        .args(["okf", "index", path])
+        .output()
+        .unwrap();
     assert!(idx_gen.status.success());
-    let idx_check = Command::new(odc_bin()).args(["okf", "index", "--check", path]).output().unwrap();
+    let idx_check = Command::new(odc_bin())
+        .args(["okf", "index", "--check", path])
+        .output()
+        .unwrap();
     assert!(idx_check.status.success());
 }

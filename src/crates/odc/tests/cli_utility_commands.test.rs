@@ -183,5 +183,3 @@ fn tags_find_and_rename() {
     assert!(a.contains("customer-care"), "{a}");
     assert!(!a.contains("old-cx"), "{a}");
 }
-
-

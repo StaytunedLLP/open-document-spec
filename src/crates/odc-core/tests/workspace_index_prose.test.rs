@@ -1,5 +1,8 @@
 #![allow(unused_imports, dead_code)]
-use odc_core::{AdoptOptions, adopt_workspace, generate_indexes, lint_workspace, load_workspace, resolve_context};
+use odc_core::{
+    AdoptOptions, adopt_workspace, generate_indexes, lint_workspace, load_workspace,
+    resolve_context,
+};
 use odc_test_support::temp_workspace;
 use std::fs;
 
@@ -68,7 +71,11 @@ fn context_ignore_skips_matching_paths() {
 #[test]
 fn context_query_fallback_and_code_ref_tests() {
     let dir = temp_workspace();
-    fs::write(dir.join("index.md"), "---\nprofile: index\nods: 0.1\nodc: \">=0.0.1\"\n---\n\n# R\n").unwrap();
+    fs::write(
+        dir.join("index.md"),
+        "---\nprofile: index\nods: 0.1\nodc: \">=0.0.1\"\n---\n\n# R\n",
+    )
+    .unwrap();
     fs::create_dir_all(dir.join("src")).unwrap();
     fs::write(dir.join("src/lib.rs"), "pub fn f() {}\n").unwrap();
     fs::write(

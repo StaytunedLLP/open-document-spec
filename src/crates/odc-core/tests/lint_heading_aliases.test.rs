@@ -1,6 +1,4 @@
-use odc_core::{
-    LintLevel, Severity, lint_workspace, lint_workspace_with_level, load_workspace,
-};
+use odc_core::{LintLevel, lint_workspace, lint_workspace_with_level, load_workspace};
 use odc_test_support::temp_workspace;
 use std::fs;
 use std::path::Path;
@@ -192,7 +190,11 @@ fn lint_canonical_edge_cases() {
     let dir = temp_workspace();
     let ws_no_root = load_workspace(&dir).unwrap();
     let diags_no_root = odc_core::lint_workspace(&ws_no_root);
-    assert!(diags_no_root.iter().any(|d| d.message.contains("missing root index.md")));
+    assert!(
+        diags_no_root
+            .iter()
+            .any(|d| d.message.contains("missing root index.md"))
+    );
 
     write_root(&dir, "- [a.md](a.md)\n");
     fs::write(
@@ -202,8 +204,23 @@ fn lint_canonical_edge_cases() {
     .unwrap();
     let ws = load_workspace(&dir).unwrap();
     let diags = lint_workspace(&ws);
-    assert!(diags.iter().any(|d| d.message.contains("ods and odc should be declared only in root index.md")));
-    assert!(diags.iter().any(|d| d.message.contains("missing context resource")));
-    assert!(diags.iter().any(|d| d.message.contains("dangling context reference")));
-    assert!(diags.iter().any(|d| d.message.contains("context ignore target not found")));
+    assert!(diags.iter().any(|d| {
+        d.message
+            .contains("ods and odc should be declared only in root index.md")
+    }));
+    assert!(
+        diags
+            .iter()
+            .any(|d| d.message.contains("missing context resource"))
+    );
+    assert!(
+        diags
+            .iter()
+            .any(|d| d.message.contains("dangling context reference"))
+    );
+    assert!(
+        diags
+            .iter()
+            .any(|d| d.message.contains("context ignore target not found"))
+    );
 }
