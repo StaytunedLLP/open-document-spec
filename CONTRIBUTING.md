@@ -1,6 +1,6 @@
 # Contributing to Open Document Spec (ODS)
 
-Thank you for improving ODS. This repository holds the **spec**, **guide**, and **Rust reference implementation** (`ods` CLI).
+Thank you for improving ODS. This repository holds the **spec**, **guide**, and **Rust reference implementation** (`odc` (legacy `ods`) CLI).
 
 ## Development setup
 
@@ -18,7 +18,7 @@ Binaries land under `.artifacts/target/release/` (see `.cargo/config.toml`).
 Install locally:
 
 ```bash
-cargo install --path crates/ods --bin ods --locked --force
+cargo install --path src/crates/odc --bin odc --bin ods --locked --force
 ```
 
 ## Layout
@@ -28,20 +28,25 @@ cargo install --path crates/ods --bin ods --locked --force
 | `specs/` | Normative specification |
 | `docs/guide/` | End-user guide |
 | `docs/FEATURE_MATRIX.md` | Keys × auto-update matrix |
+| `docs/maintainer/functional-style.md` | Prefer free functions / pipelines over OOP managers |
 | `CHANGELOG.md` | Optional manual release history |
-| `src/crates/ods-core` | Shared library |
-| `src/crates/ods` | `ods` CLI (only shipped binary) |
+| `src/crates/odc-core` | Shared library (`pipeline/` discover/parse/apply) |
+| `src/crates/odc` | `odc` (legacy `ods`) CLI (only shipped binary) |
+
+New engine code should follow [functional style](docs/maintainer/functional-style.md): data + free functions, no `*Manager` types.
+
+Coverage: see [docs/maintainer/coverage.md](docs/maintainer/coverage.md). Run `./src/scripts/coverage.sh`. CI enforces a line floor (currently 75%).
 
 ## Tests & coverage
 
 - Prefer unit tests next to pure logic and integration tests under `crates/*/tests/`.
-- Production bar: high line coverage on `ods-core` (aim ≥85% workspace over time).
-- CI enforces a coverage floor (`--fail-under-lines`, currently 73%, see `.github/workflows/ci.yml`) that ratchets upward as coverage improves — never lower it to make a PR pass; add tests instead.
-- Always keep `ods index --check .` and `ods lint .` green at repo root.
+- Production bar: high line coverage on `odc-core` (aim ≥85% workspace over time).
+- CI enforces a coverage floor (`--fail-under-lines`, currently 75%, see `.github/workflows/pr.yml`) that ratchets upward as coverage improves — never lower it to make a PR pass; add tests instead.
+- Always keep `odc ods index --check .` and `odc ods lint .` green at repo root.
 
 ```bash
 cargo install cargo-llvm-cov --locked
-cd src && cargo llvm-cov --workspace --locked --fail-under-lines 73
+cd src && cargo llvm-cov --workspace --locked --fail-under-lines 75
 ```
 
 ## CI
@@ -50,7 +55,7 @@ Workflows in `.github/workflows/` consist of **two workflows** total:
 
 | Workflow | When | Notes |
 | --- | --- | --- |
-| `pr.yml` | PRs (open/sync/labels), push to `main`, manual | Unified quality gate: PR version bump + Linux & Windows tests (`fmt`/`clippy`/`test`/`ods`/`cov`) |
+| `pr.yml` | PRs (open/sync/labels), push to `main`, manual | Unified quality gate: PR version bump + Linux & Windows tests (`fmt`/`clippy`/`test`/`odc` (legacy `ods`)/`cov`) |
 | `release.yml` | After `pr.yml` succeeds on main/master | Multi-OS binary builds, GitHub Release tag `vX.Y.Z` publish |
 
 **Do not create release tags by hand.** Releases are cut automatically when CI is green on main.
@@ -78,11 +83,11 @@ Jobs: **fmt → clippy → test → release build → ods index/lint/export smok
 
 ## Versioning & release workflow (Maintainers)
 
-End users install **only** from [GitHub Releases](https://github.com/StaytunedLLP/open-document-spec/releases) via `src/scripts/install.sh` / `src/scripts/install.ps1` or manual archive download; then use `ods setup` / `ods update`. Do **not** cut releases by pushing a tag by hand.
+End users install **only** from [GitHub Releases](https://github.com/StaytunedLLP/open-document-spec/releases) via `src/scripts/install.sh` / `src/scripts/install.ps1` or manual archive download; then use `odc setup` / `odc update`. Do **not** cut releases by pushing a tag by hand.
 
 ### Where the version lives
 
-**One line** controls the published version for `ods` and `ods-core` (workspace packages):
+**One line** controls the published version for `odc` (legacy `ods`) and `odc-core` (workspace packages):
 
 | File | Field |
 |---|---|
@@ -98,7 +103,7 @@ GitHub Release tag form: `v` + that string (e.g. `0.1.23` → tag **`v0.1.23`**)
 3. Merge the PR when CI is green.
 4. Workflow **`ci`** runs on `main`; when it **succeeds**, workflow **`release`**:
    - tags `vX.Y.Z` from `Cargo.toml`
-   - builds multi-OS **`ods`** archives
+   - builds multi-OS **`odc` (legacy `ods`)** archives
    - publishes the GitHub Release (auto-generated notes) + `SHA256SUMS`
    - verifies all six published assets against `SHA256SUMS`
 
@@ -128,7 +133,7 @@ If the bot cannot push (e.g. fork PR), edit **only** `Cargo.toml` (`[workspace.p
 Confirm:
 - [Releases](https://github.com/StaytunedLLP/open-document-spec/releases) shows `vX.Y.Z` (not a pre-release)
 - Assets for Linux / macOS / Windows + `SHA256SUMS` present.
-- `ods --version` matches that tag.
+- `odc --version` matches that tag.
 
 ## License
 

@@ -1,5 +1,5 @@
-name: 'ODS (Open Document Specs) CI Action'
-description: 'Install ODS CLI and validate documentation graph consistency, frontmatter compliance, and index freshness.'
+name: 'OpenDocify (ODC) CI Action'
+description: 'Install OpenDocify CLI (odc) and validate ODS documentation graph consistency, frontmatter compliance, and index freshness.'
 author: 'Staytuned LLP'
 branding:
   icon: 'file-text'
@@ -7,19 +7,19 @@ branding:
 
 inputs:
   version:
-    description: 'ODS CLI release version tag to install (e.g., "latest", "v0.1.24", "0.1.24").'
+    description: 'OpenDocify (odc) release version tag to install (e.g., "latest", "v0.1.24", "0.1.24").'
     required: false
     default: 'latest'
   command:
-    description: 'ODS subcommand to execute ("lint", "index-check", "doctor", "fmt-check", "bench", "export", or "" for setup-only).'
+    description: 'CLI subcommand to execute ("lint", "index-check", "doctor", "fmt-check", "bench", "export", or "" for setup-only). Bare lint auto-detects ODS vs OKF.'
     required: false
     default: 'lint'
   path:
-    description: 'Target ODS workspace directory path relative to repo root.'
+    description: 'Target workspace directory path relative to repo root.'
     required: false
     default: '.'
   level:
-    description: 'Lint compliance level for "ods lint" ("1" or "3").'
+    description: 'Lint compliance level for ODS lint ("1" or "3").'
     required: false
     default: '3'
   format:
@@ -35,17 +35,23 @@ inputs:
     required: false
     default: 'true'
   extra-args:
-    description: 'Additional raw command line arguments to pass to the ODS CLI.'
+    description: 'Additional raw command line arguments to pass to the OpenDocify CLI.'
     required: false
     default: ''
 
 outputs:
+  odc-version:
+    description: 'Installed OpenDocify CLI version.'
+    value: ${{ steps.setup-unix.outputs.odc-version || steps.setup-win.outputs.odc-version || steps.setup-unix.outputs.ods-version || steps.setup-win.outputs.ods-version }}
+  odc-path:
+    description: 'Absolute path to the installed odc binary.'
+    value: ${{ steps.setup-unix.outputs.odc-path || steps.setup-win.outputs.odc-path || steps.setup-unix.outputs.ods-path || steps.setup-win.outputs.ods-path }}
   ods-version:
-    description: 'Installed ODS CLI version.'
-    value: ${{ steps.setup-unix.outputs.ods-version || steps.setup-win.outputs.ods-version }}
+    description: 'Deprecated alias of odc-version.'
+    value: ${{ steps.setup-unix.outputs.ods-version || steps.setup-win.outputs.ods-version || steps.setup-unix.outputs.odc-version || steps.setup-win.outputs.odc-version }}
   ods-path:
-    description: 'Absolute path to the installed ods binary.'
-    value: ${{ steps.setup-unix.outputs.ods-path || steps.setup-win.outputs.ods-path }}
+    description: 'Deprecated alias of odc-path.'
+    value: ${{ steps.setup-unix.outputs.ods-path || steps.setup-win.outputs.ods-path || steps.setup-unix.outputs.odc-path || steps.setup-win.outputs.odc-path }}
 
 runs:
   using: 'composite'

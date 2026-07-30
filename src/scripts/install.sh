@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# ODS installer — downloads prebuilt `ods` binary from GitHub Releases.
+# OpenDocify (odc) installer — downloads prebuilt `odc` (+ optional `ods` alias) from GitHub Releases.
 #
 # Supported platforms (auto-detected):
 #   macOS  — Apple Silicon (arm64), Intel (x86_64)
@@ -47,8 +47,12 @@ version_key() {
 }
 
 installed_ods_version() {
-  if command -v ods >/dev/null 2>&1; then
+  if command -v odc >/dev/null 2>&1; then
+    odc --version 2>/dev/null | awk '{print $2}' | head -1
+  elif command -v ods >/dev/null 2>&1; then
     ods --version 2>/dev/null | awk '{print $2}' | head -1
+  elif [ -x "${ODC_PREFIX:-${ODS_PREFIX:-${HOME}/.local/bin}}/odc" ]; then
+    "${ODC_PREFIX:-${ODS_PREFIX:-${HOME}/.local/bin}}/odc" --version 2>/dev/null | awk '{print $2}' | head -1
   elif [ -x "${ODS_PREFIX:-${HOME}/.local/bin}/ods" ]; then
     "${ODS_PREFIX:-${HOME}/.local/bin}/ods" --version 2>/dev/null | awk '{print $2}' | head -1
   else
@@ -170,7 +174,7 @@ case "${OS}-${ARCH}" in
     fatal "unsupported platform: ${OS}-${ARCH}
   Supported: Linux x86_64/arm64, macOS arm64/x86_64
   Windows: use src/scripts/install.ps1 (PowerShell)
-  Build from source: cargo install --path src/crates/ods --bin ods"
+  Build from source: cargo install --path src/crates/odc --bin odc --bin ods"
     ;;
 esac
 
@@ -199,8 +203,9 @@ if [ -n "${INSTALLED_VERSION}" ] && version_ge "${INSTALLED_VERSION}" "${VERSION
   exit 0
 fi
 
-# ── Filenames ─────────────────────────────────────────────────────────────────
-FILENAME="ods-${VERSION}-${ASSET}.tar.gz"
+# ── Filenames (prefer odc-*, fall back to legacy ods-*) ───────────────────────
+FILENAME="odc-${VERSION}-${ASSET}.tar.gz"
+FALLBACK_FILENAME="ods-${VERSION}-${ASSET}.tar.gz"
 
 # ── Temp workspace ────────────────────────────────────────────────────────────
 TMPDIR_ODS=$(mktemp -d)
@@ -209,11 +214,15 @@ trap 'rm -rf "${TMPDIR_ODS}"' EXIT
 # ── Download archive ──────────────────────────────────────────────────────────
 info "Downloading ${FILENAME}..."
 if ! download_asset "${VERSION}" "${FILENAME}" "${TMPDIR_ODS}/${FILENAME}"; then
-  if [ -z "${TOKEN}" ]; then
-    private_repo_hint
-  fi
-  fatal "download failed for ${FILENAME} on ${VERSION}
+  info "Trying legacy archive ${FALLBACK_FILENAME}..."
+  FILENAME="${FALLBACK_FILENAME}"
+  if ! download_asset "${VERSION}" "${FILENAME}" "${TMPDIR_ODS}/${FILENAME}"; then
+    if [ -z "${TOKEN}" ]; then
+      private_repo_hint
+    fi
+    fatal "download failed for odc-/ods- archive on ${VERSION}
   Check that version exists at: https://github.com/${REPO}/releases"
+  fi
 fi
 
 # ── Checksum verification ─────────────────────────────────────────────────────
@@ -249,23 +258,30 @@ fi
 # ── Extract ───────────────────────────────────────────────────────────────────
 info "Extracting..."
 tar xzf "${TMPDIR_ODS}/${FILENAME}" -C "${TMPDIR_ODS}"
-EXTRACTED="${TMPDIR_ODS}/ods-${VERSION}-${ASSET}"
-if [ ! -f "${EXTRACTED}/ods" ]; then
-  ODS_BIN=$(find "${TMPDIR_ODS}" -type f -name ods 2>/dev/null | head -1 || true)
-  if [ -n "${ODS_BIN}" ]; then
-    EXTRACTED=$(dirname "${ODS_BIN}")
-  fi
+BIN_SRC=""
+for try in \
+  "${TMPDIR_ODS}/odc-${VERSION}-${ASSET}" \
+  "${TMPDIR_ODS}/ods-${VERSION}-${ASSET}"; do
+  if [ -f "${try}/odc" ]; then BIN_SRC="${try}/odc"; break; fi
+  if [ -f "${try}/ods" ]; then BIN_SRC="${try}/ods"; break; fi
+done
+if [ -z "${BIN_SRC}" ]; then
+  FOUND=$(find "${TMPDIR_ODS}" -type f \( -name odc -o -name ods \) 2>/dev/null | head -1 || true)
+  [ -n "${FOUND}" ] && BIN_SRC="${FOUND}"
 fi
-[ -n "${EXTRACTED:-}" ] && [ -f "${EXTRACTED}/ods" ]     || fatal "binary 'ods' not found in archive"
+[ -n "${BIN_SRC}" ] && [ -f "${BIN_SRC}" ] || fatal "binary 'odc' or 'ods' not found in archive"
 
 # ── Install ───────────────────────────────────────────────────────────────────
-PREFIX="${ODS_PREFIX:-${HOME}/.local/bin}"
+PREFIX="${ODS_PREFIX:-${ODC_PREFIX:-${HOME}/.local/bin}}"
 mkdir -p "${PREFIX}"
-install -m 755 "${EXTRACTED}/ods" "${PREFIX}/ods"
+# Primary OpenDocify CLI + legacy argv0 for bare ODS commands
+install -m 755 "${BIN_SRC}" "${PREFIX}/odc"
+ln -sfn "${PREFIX}/odc" "${PREFIX}/ods"
 
 echo ""
 info "Installed successfully:"
-echo "    ${PREFIX}/ods"
+echo "    ${PREFIX}/odc  (primary)"
+echo "    ${PREFIX}/ods  (symlink → odc; bare ODS commands)"
 
 # ── PATH hint ─────────────────────────────────────────────────────────────────
 case ":${PATH}:" in
@@ -284,17 +300,18 @@ esac
 # ── Next steps ────────────────────────────────────────────────────────────────
 echo ""
 echo "  Verify installation:"
-echo "    ${PREFIX}/ods --version"
+echo "    ${PREFIX}/odc --version"
 echo ""
 echo "  Get started:"
-echo "    ods init .              # make project ODS-compliant (creates root index.md)"
-echo "    ods setup               # set up machine background service & check workspace health"
-echo "    ods lint"
-echo "    ods export              # optional graph.md for AI"
+echo "    odc ods init .          # ODS workspace (or: ods init .)"
+echo "    odc okf init .          # OKF v0.2 knowledge bundle"
+echo "    odc setup               # machine service & health"
+echo "    odc ods lint"
+echo "    odc ods export"
 echo ""
-echo "  Keep tools current (auto-check ~daily; opt-out: ODS_AUTO_UPDATE=0):"
+echo "  Keep tools current (opt-out: ODC_AUTO_UPDATE=0 or ODS_AUTO_UPDATE=0):"
 echo "    export GH_TOKEN=\"\$(gh auth token)\"   # needed for private releases"
-echo "    ods update              # update binary & restart background service"
+echo "    odc update              # update binary & restart background service"
 echo ""
 echo "  Guide: https://github.com/${REPO}/blob/main/README.md"
 echo "  Changelog: https://github.com/${REPO}/blob/main/CHANGELOG.md"

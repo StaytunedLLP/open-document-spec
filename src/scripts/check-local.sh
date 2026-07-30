@@ -7,6 +7,8 @@ EXPORT_OUT="${TMPDIR:-/tmp}/ods-graph-local.md"
 
 export CARGO_TERM_COLOR="${CARGO_TERM_COLOR:-always}"
 export RUST_BACKTRACE="${RUST_BACKTRACE:-1}"
+export ODS_AUTO_UPDATE=0
+export ODC_AUTO_UPDATE=0
 
 find_rustup() {
   if command -v rustup >/dev/null 2>&1; then
@@ -45,22 +47,33 @@ if [ "${SKIP_RELEASE_BUILD:-}" != "true" ]; then
 fi
 
 cd "${ROOT}"
-ODS=""
+ODC=""
 for candidate in \
+  "${ROOT}/.artifacts/target/release/odc" \
+  "${ROOT}/target/release/odc" \
+  "${ROOT}/.artifacts/target/debug/odc" \
+  "${ROOT}/target/debug/odc" \
   "${ROOT}/.artifacts/target/release/ods" \
   "${ROOT}/target/release/ods" \
   "${ROOT}/.artifacts/target/debug/ods" \
   "${ROOT}/target/debug/ods"; do
   if [ -x "${candidate}" ]; then
-    ODS="${candidate}"
+    ODC="${candidate}"
     break
   fi
 done
 
-if [ -z "${ODS}" ]; then
-  echo "error: ods binary not found" >&2
-  find "${ROOT}" -name ods -type f 2>/dev/null | head >&2
+if [ -z "${ODC}" ]; then
+  echo "error: odc/ods binary not found" >&2
+  find "${ROOT}" -name odc -o -name ods -type f 2>/dev/null | head >&2
   exit 1
+fi
+
+# Use ODS namespace when binary is odc
+if [[ "$(basename "${ODC}")" == "odc" ]]; then
+  ODS_CMD=("${ODC}" ods)
+else
+  ODS_CMD=("${ODC}")
 fi
 
 FIXTURES=(
@@ -71,13 +84,22 @@ FIXTURES=(
 
 for fixture in "${FIXTURES[@]}"; do
   if [ -d "${fixture}" ]; then
-    run "${ODS}" index --check "${fixture}"
-    run "${ODS}" lint "${fixture}"
+    run "${ODS_CMD[@]}" index --check "${fixture}"
+    run "${ODS_CMD[@]}" lint "${fixture}"
   fi
 done
 
-run "${ODS}" export "${SAMPLE}" --out "${EXPORT_OUT}"
+run "${ODS_CMD[@]}" export "${SAMPLE}" --out "${EXPORT_OUT}"
 test -s "${EXPORT_OUT}"
 grep -q "ODS workspace graph" "${EXPORT_OUT}"
+
+# OKF smoke when binary is odc
+if [[ "$(basename "${ODC}")" == "odc" ]]; then
+  OKF_TMP=$(mktemp -d)
+  run "${ODC}" okf init "${OKF_TMP}"
+  run "${ODC}" okf lint "${OKF_TMP}"
+  rm -rf "${OKF_TMP}"
+fi
+
 run "${ROOT}/src/action/scripts/test-action.sh"
 echo "local checks passed"

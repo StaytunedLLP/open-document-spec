@@ -77,7 +77,7 @@ Frontmatter is a single YAML block delimited by `---` at the very beginning of t
 | `owner` | string | The individual or team responsible for maintaining the document. |
 | `tags` | list of strings | Free-form strings for searching and grouping; never used to define structure. Tools SHOULD normalize tags to lowercase on ingest. Tools MAY ship a small built-in suggestion set for completions; project tags are the observed set of values used in the workspace. Tags are never required and unknown tags MUST NOT be errors. |
 | `ods` | string | Root `index.md` only: the ODS spec/schema compatibility version. Individual documents SHOULD omit it. |
-| `ods-cli` | string | Root `index.md` only: the compatible ODS CLI version or minimum version range. Individual documents SHOULD omit it. |
+| `odc` | string | Root `index.md` only: the compatible ODS CLI version or minimum version range. Individual documents SHOULD omit it. |
 | `profiles` | list of paths | Root `index.md` only: catalog roots for custom profile definitions. |
 | `ignore` | list of path prefixes | Root `index.md` only: workspace-relative trees excluded from document scan and generated indexes (for example `src`). Not the same as document `context.ignore`. |
 | `aliases` | map | Root `index.md` only: workspace section heading aliases for profiles. |
@@ -226,13 +226,13 @@ Rules:
 ---
 profile: index
 ods: 0.1
-ods-cli: ">=0.0.1"
+odc: ">=0.0.1"
 ---
 ```
 
-An ODS-compliant workspace is identified by this root `ods` field or by entry in the global workspace registry (`~/.ods/odsconfig.toml`). `ods` changes only when the ODS schema semantics change. `ods-cli` records the CLI compatibility requirement, such as the minimum CLI version that understands the workspace. If the root index lacks either field and the path is not in the global registry, workspace commands MUST treat the workspace as unversioned or non-compliant and exit without modifying files. `ods setup` is the repair path: it checks release freshness first, then creates or updates `ods` to the current spec version and `ods-cli` to the running CLI requirement before service and doctor checks.
+An ODS-compliant workspace is identified by this root `ods` field or by entry in the global workspace registry (`~/.odc/odcconfig.toml`). `ods` changes only when the ODS schema semantics change. `odc` records the CLI compatibility requirement, such as the minimum CLI version that understands the workspace. If the root index lacks either field and the path is not in the global registry, workspace commands MUST treat the workspace as unversioned or non-compliant and exit without modifying files. `odc setup` is the repair path: it checks release freshness first, then creates or updates `ods` to the current spec version and `odc` to the running CLI requirement before service and doctor checks.
 
-Ordinary documents MUST NOT carry `ods:` or `ods-cli:`. Nested navigation indexes SHOULD omit both when they are part of the same workspace. A nested `index.md` MAY carry both only when that directory is intentionally usable as its own workspace root, such as an example workspace or fixture.
+Ordinary documents MUST NOT carry `ods:` or `odc:`. Nested navigation indexes SHOULD omit both when they are part of the same workspace. A nested `index.md` MAY carry both only when that directory is intentionally usable as its own workspace root, such as an example workspace or fixture.
 
 ## 6. Resources
 
@@ -348,7 +348,7 @@ Rules:
 ---
 profile: index
 ods: 0.1
-ods-cli: ">=0.0.1"
+odc: ">=0.0.1"
 profiles:
   - ods-profiles
   - docs/profiles
@@ -441,7 +441,7 @@ In addition, the **root** `index.md` MAY declare workspace-level excludes:
 ---
 profile: index
 ods: 0.1
-ods-cli: ">=0.0.1"
+odc: ">=0.0.1"
 ignore:
   - src
   - apps/web
@@ -467,13 +467,13 @@ Adoption never rewrites prose body content. Plain Markdown without frontmatter r
 
 Tools that implement tag discovery SHOULD treat the **project tag set** as the observed union of document `tags` values after normalization. A built-in suggestion list, when present, is for completions and documentation only and MUST NOT make documents invalid.
 
-For the `ods: 0.1` core field set (`profile`, `status`, `description`, `id`, `depends`, `related`, `resources`, `code`, `context`, `owner`, `tags`, and root `ods` / `ods-cli` / `profiles` / `ignore` / `aliases`):
+For the `ods: 0.1` core field set (`profile`, `status`, `description`, `id`, `depends`, `related`, `resources`, `code`, `context`, `owner`, `tags`, and root `ods` / `odc` / `profiles` / `ignore` / `aliases`):
 
 - A workspace root `ods:` value SHOULD equal the current ODS spec version.
-- A workspace root `ods-cli:` value SHOULD be an exact CLI version or minimum range such as `>=0.0.1`.
+- A workspace root `odc:` value SHOULD be an exact CLI version or minimum range such as `>=0.0.1`.
 - Workspace discovery SHOULD remain tolerant of older `ods:` values so setup can upgrade them in place.
-- `ods lint` and `ods doctor` MUST report missing or stale root `ods:` values and missing, invalid, or unsatisfied `ods-cli:` values.
-- `ods init` and `ods setup` MUST write the current spec version to `ods:` and the current CLI minimum requirement to `ods-cli:`.
+- `odc lint` and `odc doctor` MUST report missing or stale root `ods:` values and missing, invalid, or unsatisfied `odc:` values.
+- `odc init` and `odc setup` MUST write the current spec version to `ods:` and the current CLI minimum requirement to `odc:`.
 - Unknown frontmatter keys MUST continue to be ignored by core tools.
 - Breaking changes to core field meaning require a new `ods` version string on the root index.
 

@@ -23,21 +23,21 @@ When AI Coding Assistants ingest entire Markdown documentation trees into LLM co
 
 ---
 
-## 2. The ODS Solution: Bounded Context (`ods context`)
+## 2. The ODS Solution: Bounded Context (`odc ods context`)
 
-ODS introduces **Deterministic Graph Traversal** (`ods context <doc-id>`):
+ODS introduces **Deterministic Graph Traversal** (`odc ods context <doc-id>`):
 - Resolves only direct and transitive `depends` links up to `context.max-depth` (default 2).
 - Filters out non-relevant trees and `share: private`/`org` documents.
 - Reduces total prompt context size by **~94%** while increasing prompt accuracy.
 
 ---
 
-## 3. Benchmarking Your Workspace (`ods bench stats`)
+## 3. Benchmarking Your Workspace (`odc ods bench stats`)
 
-Run `ods bench stats` on any repository to calculate your team's exact token savings:
+Run `odc ods bench stats` on any repository to calculate your team's exact token savings:
 
 ```bash
-ods bench stats
+odc ods bench stats
 ```
 
 Outputs:

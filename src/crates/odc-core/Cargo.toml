@@ -1,0 +1,111 @@
+[package]
+name = "odc-core"
+description = "OpenDocify core library — ODS + native OKF v0.2"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+
+[lib]
+path = "src/lib.rs"
+
+[dependencies]
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+rayon = "1"
+
+[dev-dependencies]
+odc-test-support = { path = "../odc-test-support" }
+tempfile = "3"
+
+[[test]]
+name = "adopt_and_profiles_test"
+path = "tests/adopt_and_profiles.test.rs"
+
+[[test]]
+name = "lifecycle_enable_disable_test"
+path = "tests/lifecycle_enable_disable.test.rs"
+
+[[test]]
+name = "features_graph_test"
+path = "tests/features_graph.test.rs"
+
+[[test]]
+name = "features_profiles_test"
+path = "tests/features_profiles.test.rs"
+
+[[test]]
+name = "features_tags_test"
+path = "tests/features_tags.test.rs"
+
+[[test]]
+name = "lint_profile_sections_test"
+path = "tests/lint_profile_sections.test.rs"
+
+[[test]]
+name = "lint_heading_aliases_test"
+path = "tests/lint_heading_aliases.test.rs"
+
+[[test]]
+name = "lint_share_and_pack_rules_test"
+path = "tests/lint_share_and_pack_rules.test.rs"
+
+[[test]]
+name = "parse_frontmatter_test"
+path = "tests/parse_frontmatter.test.rs"
+
+[[test]]
+name = "parse_refs_and_links_test"
+path = "tests/parse_refs_and_links.test.rs"
+
+[[test]]
+name = "migrate_frontmatter_test"
+path = "tests/migrate_frontmatter.test.rs"
+
+[[test]]
+name = "path_changes_test"
+path = "tests/path_changes.test.rs"
+
+[[test]]
+name = "path_changes_healer_test"
+path = "tests/path_changes_healer.test.rs"
+
+[[test]]
+name = "watch_rename_e2e_test"
+path = "tests/watch_rename_e2e.test.rs"
+
+[[test]]
+name = "workspace_profiles_and_aliases_test"
+path = "tests/workspace_profiles_and_aliases.test.rs"
+
+[[test]]
+name = "workspace_context_and_links_test"
+path = "tests/workspace_context_and_links.test.rs"
+
+[[test]]
+name = "workspace_index_prose_test"
+path = "tests/workspace_index_prose.test.rs"
+
+[[test]]
+name = "workspace_explicit_ids_and_ignores_test"
+path = "tests/workspace_explicit_ids_and_ignores.test.rs"
+
+[[test]]
+name = "bench_test"
+path = "tests/bench.test.rs"
+
+[[test]]
+name = "pipeline_test"
+path = "tests/pipeline.test.rs"
+
+[[test]]
+name = "okf_engine_test"
+path = "tests/okf_engine.test.rs"
+
+[[test]]
+name = "okf_full_coverage_test"
+path = "tests/okf_full_coverage.test.rs"
+
+[[test]]
+name = "model_and_pipeline_extra_test"
+path = "tests/model_and_pipeline_extra.test.rs"

@@ -154,7 +154,7 @@ jobs:
           open(path, "w", encoding="utf-8").write(text2)
           lock_path = "Cargo.lock"
           lock = open(lock_path, encoding="utf-8").read()
-          for name in ("ods", "ods-core", "ods-test-support"):
+          for name in ("odc", "odc-core", "odc-test-support"):
               def repl(m, nv=new_v):
                   return m.group(1) + nv + m.group(2)
               lock, n = re.subn(
@@ -389,7 +389,8 @@ jobs:
           if ! command -v cargo-llvm-cov >/dev/null 2>&1; then
             cargo install cargo-llvm-cov --locked
           fi
-          cargo llvm-cov --workspace --locked --fail-under-lines 73
+          # Ratchet only upward (was 73). Workspace ~76% after pipeline/OKF coverage work.
+          cargo llvm-cov --workspace --locked --fail-under-lines 75
 
   # Job 3: Windows native quality gate
   windows-test:

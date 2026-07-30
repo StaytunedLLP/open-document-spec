@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# ODS installer — downloads prebuilt `ods` binary from GitHub Releases.
+# OpenDocify (odc) installer — downloads prebuilt `odc` (+ `ods` symlink) binary from GitHub Releases.
 #
 # Supported platforms (auto-detected):
 #   macOS  — Apple Silicon (arm64), Intel (x86_64)
@@ -47,8 +47,12 @@ version_key() {
 }
 
 installed_ods_version() {
-  if command -v ods >/dev/null 2>&1; then
+  if command -v odc >/dev/null 2>&1; then
+    odc --version 2>/dev/null | awk '{print $2}' | head -1
+  elif command -v ods >/dev/null 2>&1; then
     ods --version 2>/dev/null | awk '{print $2}' | head -1
+  elif [ -x "${ODS_PREFIX:-${ODC_PREFIX:-${HOME}/.local/bin}}/odc" ]; then
+    "${ODS_PREFIX:-${ODC_PREFIX:-${HOME}/.local/bin}}/odc" --version 2>/dev/null | awk '{print $2}' | head -1
   elif [ -x "${ODS_PREFIX:-${HOME}/.local/bin}/ods" ]; then
     "${ODS_PREFIX:-${HOME}/.local/bin}/ods" --version 2>/dev/null | awk '{print $2}' | head -1
   else
@@ -170,7 +174,7 @@ case "${OS}-${ARCH}" in
     fatal "unsupported platform: ${OS}-${ARCH}
   Supported: Linux x86_64/arm64, macOS arm64/x86_64
   Windows: use src/scripts/install.ps1 (PowerShell)
-  Build from source: cargo install --path src/crates/ods --bin ods"
+  Build from source: cargo install --path src/crates/odc --bin odc --bin ods"
     ;;
 esac
 
@@ -199,8 +203,9 @@ if [ -n "${INSTALLED_VERSION}" ] && version_ge "${INSTALLED_VERSION}" "${VERSION
   exit 0
 fi
 
-# ── Filenames ─────────────────────────────────────────────────────────────────
-FILENAME="ods-${VERSION}-${ASSET}.tar.gz"
+# ── Filenames (prefer odc-*, fall back to legacy ods-*) ───────────────────────
+FILENAME="odc-${VERSION}-${ASSET}.tar.gz"
+FALLBACK_FILENAME="ods-${VERSION}-${ASSET}.tar.gz"
 
 # ── Temp workspace ────────────────────────────────────────────────────────────
 TMPDIR_ODS=$(mktemp -d)
@@ -209,11 +214,15 @@ trap 'rm -rf "${TMPDIR_ODS}"' EXIT
 # ── Download archive ──────────────────────────────────────────────────────────
 info "Downloading ${FILENAME}..."
 if ! download_asset "${VERSION}" "${FILENAME}" "${TMPDIR_ODS}/${FILENAME}"; then
-  if [ -z "${TOKEN}" ]; then
-    private_repo_hint
-  fi
-  fatal "download failed for ${FILENAME} on ${VERSION}
+  info "Trying legacy archive ${FALLBACK_FILENAME}..."
+  FILENAME="${FALLBACK_FILENAME}"
+  if ! download_asset "${VERSION}" "${FILENAME}" "${TMPDIR_ODS}/${FILENAME}"; then
+    if [ -z "${TOKEN}" ]; then
+      private_repo_hint
+    fi
+    fatal "download failed for odc-/ods- archive on ${VERSION}
   Check that version exists at: https://github.com/${REPO}/releases"
+  fi
 fi
 
 # ── Checksum verification ─────────────────────────────────────────────────────
@@ -249,23 +258,38 @@ fi
 # ── Extract ───────────────────────────────────────────────────────────────────
 info "Extracting..."
 tar xzf "${TMPDIR_ODS}/${FILENAME}" -C "${TMPDIR_ODS}"
-EXTRACTED="${TMPDIR_ODS}/ods-${VERSION}-${ASSET}"
-if [ ! -f "${EXTRACTED}/ods" ]; then
-  ODS_BIN=$(find "${TMPDIR_ODS}" -type f -name ods 2>/dev/null | head -1 || true)
-  if [ -n "${ODS_BIN}" ]; then
-    EXTRACTED=$(dirname "${ODS_BIN}")
+EXTRACTED=""
+for try in \
+  "${TMPDIR_ODS}/odc-${VERSION}-${ASSET}" \
+  "${TMPDIR_ODS}/ods-${VERSION}-${ASSET}"; do
+  if [ -f "${try}/odc" ] || [ -f "${try}/ods" ]; then
+    EXTRACTED="${try}"
+    break
+  fi
+done
+if [ -z "${EXTRACTED}" ]; then
+  FOUND_BIN=$(find "${TMPDIR_ODS}" -type f \( -name odc -o -name ods \) 2>/dev/null | head -1 || true)
+  if [ -n "${FOUND_BIN}" ]; then
+    EXTRACTED=$(dirname "${FOUND_BIN}")
   fi
 fi
-[ -n "${EXTRACTED:-}" ] && [ -f "${EXTRACTED}/ods" ]     || fatal "binary 'ods' not found in archive"
+[ -n "${EXTRACTED:-}" ] || fatal "binary 'odc'/'ods' not found in archive"
 
 # ── Install ───────────────────────────────────────────────────────────────────
-PREFIX="${ODS_PREFIX:-${HOME}/.local/bin}"
+PREFIX="${ODC_PREFIX:-${ODS_PREFIX:-${HOME}/.local/bin}}"
 mkdir -p "${PREFIX}"
-install -m 755 "${EXTRACTED}/ods" "${PREFIX}/ods"
+SRC=""
+if [ -f "${EXTRACTED}/odc" ]; then SRC="${EXTRACTED}/odc"
+elif [ -f "${EXTRACTED}/ods" ]; then SRC="${EXTRACTED}/ods"
+fi
+[ -n "$SRC" ] || fatal "odc/ods binary missing in archive"
+install -m 755 "${SRC}" "${PREFIX}/odc"
+ln -sfn "${PREFIX}/odc" "${PREFIX}/ods" 2>/dev/null || install -m 755 "${SRC}" "${PREFIX}/ods"
 
 echo ""
 info "Installed successfully:"
-echo "    ${PREFIX}/ods"
+echo "    ${PREFIX}/odc  (primary)"
+echo "    ${PREFIX}/ods  (symlink → odc)"
 
 # ── PATH hint ─────────────────────────────────────────────────────────────────
 case ":${PATH}:" in

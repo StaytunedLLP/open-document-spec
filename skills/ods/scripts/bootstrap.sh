@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-# ODS skill bootstrap — install / update the `ods` binary and keep the
-# background watch service running, with zero manual release/download work.
+# OpenDocify skill bootstrap — install / update the `odc` binary (optional `ods`
+# alias) and keep the background watch service running.
 #
 # This script is self-contained: it depends only on the vendored
 # install-from-release.sh (next to it) plus `gh` (GitHub CLI) auth. It never
@@ -30,7 +30,12 @@ log()  { printf '==> %s\n' "$*"; }
 warn() { printf 'warning: %s\n' "$*" >&2; }
 die()  { printf 'error: %s\n' "$*" >&2; exit 1; }
 
-have_ods() { command -v ods >/dev/null 2>&1; }
+have_cli() { command -v odc >/dev/null 2>&1 || command -v ods >/dev/null 2>&1; }
+cli_bin() {
+  if command -v odc >/dev/null 2>&1; then command -v odc
+  else command -v ods
+  fi
+}
 
 require_gh() {
   command -v gh >/dev/null 2>&1 \
@@ -44,35 +49,35 @@ require_gh() {
 # Install the binary from the latest (or pinned) GitHub Release.
 cmd_install() {
   require_gh
-  if have_ods && [[ "${1:-}" != "--force" ]]; then
-    log "checking installed ods against latest release: $(command -v ods) ($(ods --version 2>/dev/null || echo '?'))"
+  if have_cli && [[ "${1:-}" != "--force" ]]; then
+    log "checking installed odc against latest release: $(command -v odc) ($(odc --version 2>/dev/null || echo '?'))"
   else
-    log "installing ods from release${ODS_VERSION:+ ${ODS_VERSION}}"
+    log "installing odc from release${ODS_VERSION:+ ${ODS_VERSION}}"
   fi
   bash "${SCRIPT_DIR}/install-from-release.sh" ${ODS_VERSION:+"${ODS_VERSION}"}
   hash -r 2>/dev/null || true
-  have_ods || die "ods not on PATH after install; add ${PREFIX} to PATH"
-  log "installed $(command -v ods) ($(ods --version))"
+  have_cli || die "ods not on PATH after install; add ${PREFIX} to PATH"
+  log "installed $(command -v odc) ($(odc --version))"
 }
 
 # Update in place. Prefer the binary's own self-update; fall back to reinstall.
 cmd_update() {
-  if ! have_ods; then
+  if ! have_cli; then
     log "ods not installed; installing instead"
     cmd_install
     return 0
   fi
   require_gh
-  if ods update --check >/dev/null 2>&1; then
+  if odc update --check >/dev/null 2>&1; then
     log "ods is already up to date"
     return 0
   fi
   log "updating ods"
-  if ! ods update 2>/dev/null; then
+  if ! odc update 2>/dev/null; then
     warn "self-update failed; reinstalling from release"
     cmd_install --force
   fi
-  log "now on $(ods --version)"
+  log "now on $(odc --version)"
 }
 
 # Resolve the workspace root: walk up looking for an index.md whose frontmatter
@@ -111,7 +116,7 @@ cmd_check() {
     printf 'compliant=true root=%s\n' "${root}"
   else
     printf 'compliant=false root=\n'
-    printf 'hint: not an ODS workspace (no index.md with `ods:`). Run: ods init %s\n' "${path}"
+    printf 'hint: not an ODS workspace (no index.md with `ods:`). Run: odc ods init %s\n' "${path}"
   fi
   if is_git "${path}"; then
     printf 'git=true\n'
@@ -123,28 +128,28 @@ cmd_check() {
 # Guarantee the background watch service for a workspace (idempotent).
 cmd_ensure() {
   local path="${1:-.}"
-  have_ods || die "ods not installed; run: bootstrap.sh install"
+  have_cli || die "ods not installed; run: bootstrap.sh install"
   if ! find_workspace_root "${path}" >/dev/null; then
-    warn "not an ODS workspace (no index.md with \`ods:\`). Run: ods init ${path}"
+    warn "not an ODS workspace (no index.md with \`ods:\`). Run: odc ods init ${path}"
     warn "skipping service start on a non-workspace"
     return 0
   fi
   log "starting ods service for ${path}"
-  ods start "${path}"
-  ods start --status "${path}" 2>/dev/null || ods start --status
+  odc ods start "${path}"
+  odc ods start --status "${path}" 2>/dev/null || odc ods start --status
 }
 
 cmd_status() {
   local path="${1:-.}"
-  have_ods || die "ods not installed; run: bootstrap.sh install"
-  ods --version
-  ods start --status "${path}" 2>/dev/null || ods start --status
+  have_cli || die "ods not installed; run: bootstrap.sh install"
+  odc --version
+  odc ods start --status "${path}" 2>/dev/null || odc ods start --status
 }
 
 cmd_doctor() {
   local path="${1:-.}"
-  have_ods || die "ods not installed; run: bootstrap.sh install"
-  ods doctor "${path}"
+  have_cli || die "ods not installed; run: bootstrap.sh install"
+  odc ods doctor "${path}"
 }
 
 main() {
@@ -164,10 +169,10 @@ main() {
         cmd_ensure .
         cmd_doctor .
       else
-        warn "no ODS workspace at '.'; run 'ods init .' then 'bootstrap.sh ensure .'"
+        warn "no ODS workspace at '.'; run 'odc ods init .' then 'bootstrap.sh ensure .'"
       fi
       log "ODS is installed and running now in your machine!"
-      log "Version: $(ods --version)"
+      log "Version: $(odc --version)"
       ;;
     -h|--help|help)
       sed -n '2,26p' "${BASH_SOURCE[0]}" | sed 's/^# \{0,1\}//'

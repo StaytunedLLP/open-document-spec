@@ -26,15 +26,15 @@ ods-test/benchmarks/
 You can convert any ODS workspace into a clean, un-biased "Without ODS" baseline for benchmarking by running:
 
 ```bash
-ods bench strip --write --full
+odc ods bench strip --write --full
 ```
 
-This command backs up all frontmatters, index lockfiles (`index.md`), and custom profile schemas into `$HOME/.ods/backups/<repo-hash>/`, deletes non-root `index.md` files, removes `ods:` keys, and strips frontmatters. To restore the workspace back to 100% compliant ODS state, run `ods bench restore`.
+This command backs up all frontmatters, index lockfiles (`index.md`), and custom profile schemas into `$HOME/.odc/backups/<repo-hash>/`, deletes non-root `index.md` files, removes `ods:` keys, and strips frontmatters. To restore the workspace back to 100% compliant ODS state, run `odc ods bench restore`.
 
 Run the native Rust benchmark evaluation tool or CLI benchmark command:
 
 ```bash
-ods bench stats
+odc ods bench stats
 # Or run the Rust benchmark evaluation binary:
 cargo run --example benchmark_eval
 ```
@@ -67,5 +67,5 @@ Enterprise Daily API Cost (100 devs @ 20 queries/day):
 ## How to Interpret the Metrics
 
 - **Without ODS**: AI agents must swallow entire documentation directories or mega-files (wasting tokens on irrelevant sections and risking secret exposure).
-- **With ODS**: `ods context` traverses only the target document and its explicit `depends:` prerequisites up to `max-depth`. Documents marked `share: private` are automatically skipped.
+- **With ODS**: `odc ods context` traverses only the target document and its explicit `depends:` prerequisites up to `max-depth`. Documents marked `share: private` are automatically skipped.
 - **Reduction %**: Shows the percentage reduction in token volume achieved by loading only the necessary bounded context graph.

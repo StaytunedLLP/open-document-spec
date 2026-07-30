@@ -1,9 +1,9 @@
-# ODS (Open Document Specs) GitHub Action
+# OpenDocify (ODC) GitHub Action
 
-[![GitHub Marketplace](https://img.shields.io/badge/Marketplace-ODS%20Action-blue.svg?logo=github)](https://github.com/marketplace)
+[![GitHub Marketplace](https://img.shields.io/badge/Marketplace-OpenDocify-blue.svg?logo=github)](https://github.com/marketplace)
 [![Compliance](https://img.shields.io/badge/ODS-Level--3-green.svg)](https://github.com/StaytunedLLP/open-document-spec)
 
-Official GitHub Action for **ODS (Open Document Specs)**. Install `ods` CLI and validate documentation graph integrity, frontmatter compliance, index freshness, and health diagnostics across any repository stack (Rust, Node, Python, Go, C++, or pure Markdown).
+Official GitHub Action for **OpenDocify (`odc`)**. Installs the CLI and validates ODS documentation graph integrity, frontmatter compliance, index freshness, and health diagnostics across any repository stack (Rust, Node, Python, Go, C++, or pure Markdown). OKF bundles can use setup-only mode then run `odc okf lint`.
 
 ---
 
@@ -21,16 +21,16 @@ Add this step to `.github/workflows/ci.yml` or `.github/workflows/docs.yml`:
 ### Options & Inputs Reference
 
 ```yaml
-- name: Run ODS Lint Gate
+- name: Run OpenDocify Lint Gate
   uses: StaytunedLLP/open-document-spec@v1
   with:
     # Target release version tag ('latest', 'v0.1.24', '0.1.24')
     version: 'latest'
 
-    # ODS command ('lint', 'index-check', 'doctor', 'fmt-check', 'bench', 'export', or '' for setup-only)
+    # Command ('lint', 'index-check', 'doctor', 'fmt-check', 'bench', 'export', or '' for setup-only)
     command: 'lint'
 
-    # Path to ODS workspace root directory
+    # Path to workspace root directory
     path: '.'
 
     # Compliance level ('1' or '3')
@@ -45,7 +45,7 @@ Add this step to `.github/workflows/ci.yml` or `.github/workflows/docs.yml`:
     # Enable inline PR code annotations for lint errors
     annotate: 'true'
 
-    # Extra arguments passed to ODS CLI
+    # Extra arguments passed to the CLI
     extra-args: '--canonical-refs'
 ```
 
@@ -54,19 +54,21 @@ Add this step to `.github/workflows/ci.yml` or `.github/workflows/docs.yml`:
 ## Examples
 
 ### 1. Setup Only Mode
-Installs `ods` into `PATH` so subsequent workflow steps can execute custom scripts or subcommands:
+
+Installs `odc` into `PATH` so subsequent workflow steps can run custom subcommands:
 
 ```yaml
-- name: Setup ODS CLI
+- name: Setup OpenDocify CLI
   uses: StaytunedLLP/open-document-spec@v1
   with:
     command: '' # Setup mode
 
 - name: Verify Index Freshness
-  run: ods index --check
+  run: odc index --check
+  # or explicit: odc ods index --check
 
 - name: Workspace Health Doctor
-  run: ods doctor
+  run: odc doctor
 ```
 
 ### 2. Multi-OS Matrix Testing
@@ -88,15 +90,15 @@ jobs:
 
 ---
 
-## Features
+## Outputs
 
-- ⚡ **Zero Dependencies**: Prebuilt multi-OS binary installation (Linux `x86_64`/`arm64`, macOS `x86_64`/`arm64`, Windows `x86_64`).
-- 🎯 **Inline PR Annotations**: GitHub Problem Matcher highlights broken references directly on PR diff lines.
-- 🔒 **Secure**: Automatic SHA256 checksum verification for downloaded release binaries.
-- 🛠️ **Private & Public Repos**: Authenticates via `GITHUB_TOKEN` to fetch release assets safely.
+| Output | Description |
+|---|---|
+| `odc-path` / `ods-path` | Absolute path to installed CLI (`ods-path` is a deprecated alias) |
+| `odc-version` / `ods-version` | Installed version string |
 
 ---
 
-## License
+## Root markers
 
-Proprietary — Copyright (c) Staytuned LLP.
+ODS workspaces use root `index.md` keys `ods:` (spec) and `odc:` (CLI pin). OKF bundles use `okf_version: "0.2"`. See [frontmatter keys](../docs/specs/frontmatter-keys-ods-vs-okf.md).

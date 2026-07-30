@@ -10,7 +10,7 @@ ods:
 
 # Cross-Repo Contracts Use Case
 
-ODS Packs (`ods pack`) enable teams to share architectural contracts, custom profiles, and AI agent skills across multiple repositories.
+ODS Packs (`odc pack`) enable teams to share architectural contracts, custom profiles, and AI agent skills across multiple repositories.
 
 ---
 
@@ -28,5 +28,5 @@ acme-engineering-pack/
 Workspaces import the shared pack via Git URL:
 
 ```bash
-ods pack add git@github.com:acme-org/engineering-pack.git --auto-update daily
+odc pack add git@github.com:acme-org/engineering-pack.git --auto-update daily
 ```
