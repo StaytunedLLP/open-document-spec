@@ -10,7 +10,7 @@ ods:
 
 # Troubleshooting and Diagnostics Guide
 
-This guide provides a comprehensive reference for diagnosing workspace issues, resolving `ods lint` errors in `ods-error.md`, handling Git merge conflicts, and troubleshooting background service daemons (`ods serve`).
+This guide provides a comprehensive reference for diagnosing workspace issues, resolving `odc ods lint` errors in `ods-error.md`, handling Git merge conflicts, and troubleshooting background service daemons (`odc ods serve`).
 
 ---
 
@@ -20,22 +20,22 @@ When an issue occurs or documents are modified, follow this 3-step diagnostic wo
 
 ```bash
 # Step 1: Check overall workspace health and daemon service status
-ods doctor
+odc ods doctor
 
 # Step 2: Validate graph relationships, schemas, and references
-ods lint --level 3
+odc ods lint --level 3
 
 # Step 3: Check index lockfile freshness
-ods index --check
+odc ods index --check
 ```
 
-If `ods lint` detects errors, it writes a detailed diagnostic report to `ods-error.md` at your workspace root. When all issues are resolved, `ods lint` automatically deletes `ods-error.md` and outputs a green confirmation message.
+If `odc ods lint` detects errors, it writes a detailed diagnostic report to `ods-error.md` at your workspace root. When all issues are resolved, `odc ods lint` automatically deletes `ods-error.md` and outputs a green confirmation message.
 
 ---
 
 ## 2. Complete `ods-error.md` Lint Error Catalog
 
-Below is the complete catalog of errors and warnings reported by `ods lint`, along with their root causes and step-by-step resolution actions.
+Below is the complete catalog of errors and warnings reported by `odc ods lint`, along with their root causes and step-by-step resolution actions.
 
 ### 1. YAML Frontmatter Parse Error
 * **Severity**: Error (Level 1+)
@@ -65,7 +65,7 @@ Below is the complete catalog of errors and warnings reported by `ods lint`, alo
 * **Severity**: Error (Level 3)
 * **Diagnostic Message**: `Dangling document reference: '<ref>' does not exist`
 * **Cause**: A path listed in `depends:` or `related:` does not resolve to an existing document file.
-* **Resolution**: Fix the path spelling, update the reference to point to the renamed document, or remove the entry. Run `ods fmt --refs md-paths` to auto-normalize Document refs to relative `.md` paths.
+* **Resolution**: Fix the path spelling, update the reference to point to the renamed document, or remove the entry. Run `odc ods fmt --refs md-paths` to auto-normalize Document refs to relative `.md` paths.
 
 ### 6. Duplicate Document ID
 * **Severity**: Error (Level 3)
@@ -95,7 +95,7 @@ Below is the complete catalog of errors and warnings reported by `ods lint`, alo
 * **Severity**: Error (Level 3)
 * **Diagnostic Message**: `Index '<path>/index.md' does not match immediate directory children`
 * **Cause**: Files were added, deleted, or renamed without updating `index.md`.
-* **Resolution**: Run `ods index` to regenerate all `index.md` child bullet lists lockfiles automatically.
+* **Resolution**: Run `odc ods index` to regenerate all `index.md` child bullet lists lockfiles automatically.
 
 ### 11. Dangling Body Markdown Link
 * **Severity**: Error (Level 3)
@@ -116,16 +116,16 @@ Because `index.md` files act like lockfiles for directory listings, Git merges b
 git checkout --ours **/index.md
 
 # Regenerate exact indexes deterministically from the merged files
-ods index
+odc ods index
 
 # Stage the resolved indexes
 git add **/index.md
 ```
 
-### Reconciling Git Renames (`ods sync`)
-If files were renamed using standard `git mv` or an IDE refactoring tool while `ods serve` / `ods watch` was **not** running in the background:
+### Reconciling Git Renames (`odc ods sync`)
+If files were renamed using standard `git mv` or an IDE refactoring tool while `odc ods serve` / `odc ods watch` was **not** running in the background:
 
 ```bash
-ods sync
-ods lint
+odc ods sync
+odc ods lint
 ```

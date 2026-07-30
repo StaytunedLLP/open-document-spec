@@ -8,9 +8,17 @@ ods:
 
 [![ci](https://github.com/StaytunedLLP/open-document-spec/actions/workflows/ci.yml/badge.svg)](https://github.com/StaytunedLLP/open-document-spec/actions/workflows/ci.yml)
 
-Open Document Spec (ODS) is a lightweight, human-first convention built on plain Markdown. It enriches Markdown repositories with machine-readable YAML frontmatter metadata, explicit graph relationships, and deterministic AI context loading—all managed via a single native CLI binary (**`ods`**).
+Open Document Spec (ODS) is a lightweight, human-first convention built on plain Markdown. It enriches Markdown repositories with machine-readable YAML frontmatter metadata, explicit graph relationships, and deterministic AI context loading—managed by the **OpenDocify CLI (`odc`)**.
 
-Your files remain `.md` files forever. `ods` validates links, updates maps, and runs a machine background service so path renames and indexes stay consistent automatically.
+Your files remain `.md` files forever. ODS document keys stay `ods:` / `ods-cli:`. The CLI is multi-spec:
+
+```bash
+odc ods <command>     # ODS codebase doc graphs (also: legacy binary `odc ods …`)
+odc okf <command>     # Google OKF v0.2 knowledge bundles (native engine)
+odc update / upgrade  # binary self-update / workspace cutover helpers
+```
+
+See [docs/specs/frontmatter-keys-ods-vs-okf.md](docs/specs/frontmatter-keys-ods-vs-okf.md) for key comparison.
 
 ---
 
@@ -31,7 +39,7 @@ ODS is **not just for software engineers**. Anyone who creates, manages, or read
 
 The recommended, zero-friction way to start with ODS is via the **ODS Skill** in your AI Coding Assistant (Claude Code, Antigravity, Cursor, Codex, etc.).
 
-Add the `ods` skill to your AI environment. The skill automatically detects your operating system (macOS, Linux, Windows), downloads the native `ods` binary, registers the OS background service, and validates health:
+Add the `odc` (legacy `ods`) skill to your AI environment. The skill automatically detects your operating system (macOS, Linux, Windows), downloads the native `odc` (legacy `ods`) binary, registers the OS background service, and validates health:
 
 ```text
 ==> ODS is installed and running now in your machine!
@@ -63,25 +71,28 @@ irm -Headers @{ Authorization = "Bearer $env:GH_TOKEN" } `
 
 ```bash
 mkdir my-docs && cd my-docs
-ods init .      # Initialize ODS workspace boundary (creates root index.md)
-ods setup       # Verify workspace, check updates, and register background OS service
+odc ods init .  # or: ods init .  (legacy argv0)
+odc setup       # Verify workspace, check updates, and register background OS service
 ```
 
 ### 3. Validate, Load AI Context & Audit Token Savings
 
 ```bash
-ods lint                      # Level-3 graph and reference integrity check
-ods context <doc-id-or-path>  # Generate bounded AI reading list (<5ms)
-ods mv <src.md> <dst.md>      # Rename file & auto-rewrite all workspace dependencies
-ods adopt docs/               # Auto-draft frontmatter headers across legacy repos
-ods bench stats               # Calculate token & API cost ROI report (~94% savings)
+odc ods lint                      # Level-3 graph and reference integrity check
+odc ods context <doc-id-or-path>  # Generate bounded AI reading list (<5ms)
+odc ods mv <src.md> <dst.md>      # Rename file & auto-rewrite workspace deps
+odc ods adopt docs/               # Auto-draft frontmatter on legacy Markdown
+odc ods audit --write-report      # Inventory plain/invalid files → .odc/odc-errors.md
+odc ods bench stats               # Token & API cost ROI report
+# OKF knowledge bundle:
+# odc okf init . && odc okf lint .
 ```
 
 ---
 
 ## Standard ODS Profile Types
 
-ODS standardizes document structures via `profile` definitions enforced by `ods lint`:
+ODS standardizes document structures via `profile` definitions enforced by `odc ods lint`:
 
 | Profile                | Primary Purpose                       | Enforced H2 Sections                          |
 | ---------------------- | ------------------------------------- | --------------------------------------------- |
@@ -96,10 +107,10 @@ ODS standardizes document structures via `profile` definitions enforced by `ods 
 
 | Need                  | Without ODS                                 | With ODS                                                                                      |
 | --------------------- | ------------------------------------------- | --------------------------------------------------------------------------------------------- |
-| **Link Integrity**    | Broken links rot when files move            | `ods lint` catches dangling refs; `ods mv` auto-rewrites paths on move                        |
-| **Navigation**        | Hand-crafted lists rot over time            | `ods index` auto-generates child lists in `index.md`                                          |
-| **AI Context**        | Context bloat or missing files              | `ods context` generates deterministic, bounded loading lists (~94% token savings)             |
-| **Token ROI & Cost**  | Large context windows waste AI tokens       | `ods bench stats / strip / restore` benchmarks token savings                                  |
+| **Link Integrity**    | Broken links rot when files move            | `odc ods lint` catches dangling refs; `odc ods mv` auto-rewrites paths on move                        |
+| **Navigation**        | Hand-crafted lists rot over time            | `odc ods index` auto-generates child lists in `index.md`                                          |
+| **AI Context**        | Context bloat or missing files              | `odc ods context` generates deterministic, bounded loading lists (~94% token savings)             |
+| **Token ROI & Cost**  | Large context windows waste AI tokens       | `odc ods bench stats / strip / restore` benchmarks token savings                                  |
 | **Code Mapping**      | Loose descriptions disconnected from source | `code:` frontmatter maps docs to source files, symbols (`init_pool()`), and roles             |
 | **Schema Validation** | Inconsistent document layouts               | Standard `profile` definitions (`spec`, `guide`, `feature`, `note`) enforce section structure |
 | **Vibecoding Sync**   | Context loss when switching AI tools        | **Pro Viber ($10/mo)** provides seamless cloud context sync for vibecoding & vibedesigning    |

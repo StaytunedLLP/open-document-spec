@@ -39,7 +39,7 @@ function Get-AuthHeaders {
     $token = Get-GitHubToken
     $h = @{
         "Accept"     = $Accept
-        "User-Agent" = "ods-install"
+        "User-Agent" = "odc-install"
     }
     if ($token) {
         $h["Authorization"] = "Bearer $token"
@@ -73,14 +73,14 @@ function Get-InstalledOdsVersion {
     $cmd = Get-Command ods -ErrorAction SilentlyContinue
     if ($cmd) {
         $out = & $cmd.Source --version 2>$null
-        if ($out -match 'ods\s+([^\s]+)') { return $Matches[1] }
+        if ($out -match '(?:odc|ods)\s+([^\s]+)') { return $Matches[1] }
     }
     $prefix = $env:ODS_PREFIX
     if (-not $prefix) { $prefix = Join-Path $env:LOCALAPPDATA "Programs\ods" }
     $candidate = Join-Path $prefix "ods.exe"
     if (Test-Path $candidate) {
         $out = & $candidate --version 2>$null
-        if ($out -match 'ods\s+([^\s]+)') { return $Matches[1] }
+        if ($out -match '(?:odc|ods)\s+([^\s]+)') { return $Matches[1] }
     }
     return $null
 }
@@ -209,22 +209,29 @@ if ($env:ODS_NO_VERIFY -ne "1") {
 # ── Extract ───────────────────────────────────────────────────────────────────
 Write-Step "Extracting..."
 Expand-Archive -Path "$TmpDir\$Filename" -DestinationPath $TmpDir -Force
-$Extracted = "$TmpDir\ods-$Version-$Asset"
-if (-not (Test-Path "$Extracted\ods.exe")) {
-    $found = Get-ChildItem -Path $TmpDir -Recurse -Filter "ods.exe" -ErrorAction SilentlyContinue | Select-Object -First 1
-    if ($found) { $Extracted = $found.DirectoryName }
+$Extracted = "$TmpDir\odc-$Version-$Asset"
+if (-not (Test-Path "$Extracted")) { $Extracted = "$TmpDir\ods-$Version-$Asset" }
+$BinSrc = $null
+if (Test-Path "$Extracted\odc.exe") { $BinSrc = "$Extracted\odc.exe" }
+elseif (Test-Path "$Extracted\ods.exe") { $BinSrc = "$Extracted\ods.exe" }
+else {
+    $found = Get-ChildItem -Path $TmpDir -Recurse -Include "odc.exe","ods.exe" -ErrorAction SilentlyContinue | Select-Object -First 1
+    if ($found) { $BinSrc = $found.FullName }
 }
-if (-not (Test-Path "$Extracted\ods.exe"))     { throw "ods.exe not found in archive" }
+if (-not $BinSrc) { throw "odc.exe/ods.exe not found in archive" }
 
 # ── Install ───────────────────────────────────────────────────────────────────
-$Prefix = $env:ODS_PREFIX
-if (-not $Prefix) { $Prefix = Join-Path $env:LOCALAPPDATA "Programs\ods" }
+$Prefix = $env:ODC_PREFIX
+if (-not $Prefix) { $Prefix = $env:ODS_PREFIX }
+if (-not $Prefix) { $Prefix = Join-Path $env:LOCALAPPDATA "Programs\odc" }
 New-Item -ItemType Directory -Force -Path $Prefix | Out-Null
-Copy-Item "$Extracted\ods.exe" "$Prefix\" -Force
+Copy-Item $BinSrc (Join-Path $Prefix "odc.exe") -Force
+Copy-Item $BinSrc (Join-Path $Prefix "ods.exe") -Force
 
 Write-Host ""
 Write-Host "==> Installed successfully:"
-Write-Host "    $Prefix\ods.exe"
+Write-Host "    $Prefix\odc.exe  (primary)"
+Write-Host "    $Prefix\ods.exe  (legacy argv0)"
 
 # ── PATH update ───────────────────────────────────────────────────────────────
 $UserPath = [Environment]::GetEnvironmentVariable("PATH", "User")
@@ -244,17 +251,17 @@ if ($UserPath -notlike "*$Prefix*") {
 # ── Next steps ────────────────────────────────────────────────────────────────
 Write-Host ""
 Write-Host "  Verify installation (in a new terminal):"
-Write-Host "    ods --version"
+Write-Host "    odc --version"
 Write-Host ""
 Write-Host "  Get started:"
-Write-Host "    ods init .              # make project ODS-compliant (creates root index.md)"
-Write-Host "    ods setup               # set up machine background service & check workspace health"
-Write-Host "    ods lint"
-Write-Host "    ods export              # optional graph.md for AI"
+Write-Host "    odc ods init .              # make project ODS-compliant (creates root index.md)"
+Write-Host "    odc setup               # set up machine background service & check workspace health"
+Write-Host "    odc ods lint"
+Write-Host "    odc ods export              # optional graph.md for AI"
 Write-Host ""
 Write-Host "  Keep tools current:"
 Write-Host "    `$env:GH_TOKEN = (gh auth token)   # needed for private releases"
-Write-Host "    ods update              # update binary & restart background service"
+Write-Host "    odc update              # update binary & restart background service"
 Write-Host "    (auto-check ~daily; disable with ODS_AUTO_UPDATE=0)"
 Write-Host ""
 Write-Host "  Guide: https://github.com/$Repo/blob/main/README.md"

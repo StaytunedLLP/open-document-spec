@@ -88,4 +88,4 @@ Standard code roles:
 
 `code` is separate from `resources` because source code often needs symbol-level precision and role-based context selection. `resources` remains a path-only mechanism for attached artifacts whose format is implied by extension.
 
-Tools that implement `ods context` SHOULD include declared code paths for the loaded document context. Tools that implement rename automation (`ods mv`, `ods sync`, `ods watch`, or equivalent) SHOULD update `code` item `path` when a referenced file or containing folder moves. Tools MUST NOT silently rewrite `symbol` values unless they have language-aware proof of a symbol rename.
+Tools that implement `odc ods context` SHOULD include declared code paths for the loaded document context. Tools that implement rename automation (`odc ods mv`, `ods sync`, `odc ods watch`, or equivalent) SHOULD update `code` item `path` when a referenced file or containing folder moves. Tools MUST NOT silently rewrite `symbol` values unless they have language-aware proof of a symbol rename.

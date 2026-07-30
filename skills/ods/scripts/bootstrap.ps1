@@ -1,19 +1,19 @@
-# ODS skill bootstrap for Windows (PowerShell 5.1+)
-# Automates ODS binary download, installation, OS service registration, and health validation.
+# OpenDocify skill bootstrap for Windows (PowerShell 5.1+)
+# Installs `odc` (+ `ods` argv0), ensures ODS workspace service, runs doctor.
 #
 # Usage:
-#   .\bootstrap.ps1                 # default: install -> check . -> ensure . (if compliant) -> doctor . -> validate
+#   .\bootstrap.ps1                 # default: install -> check . -> ensure . -> doctor
 #   .\bootstrap.ps1 install
 #   .\bootstrap.ps1 update
-#   .\bootstrap.ps1 ensure [path]   # guarantee background service for a workspace
+#   .\bootstrap.ps1 ensure [path]
 #   .\bootstrap.ps1 status [path]
 #   .\bootstrap.ps1 doctor [path]
-#   .\bootstrap.ps1 check [path]    # compliance check
+#   .\bootstrap.ps1 check [path]
 #
 # Env:
-#   ODS_PREFIX    install dir for binary (default: %LOCALAPPDATA%\Programs\ods)
-#   ODS_VERSION   pin a release tag (default: latest)
-#   GH_TOKEN      required for private repos ($env:GH_TOKEN = (gh auth token))
+#   ODC_PREFIX / ODS_PREFIX   install dir (default: %LOCALAPPDATA%\Programs\odc)
+#   ODS_VERSION               pin a release tag
+#   GH_TOKEN                  required for private repos
 
 [CmdletBinding()]
 param(
@@ -23,32 +23,54 @@ param(
 $ErrorActionPreference = "Stop"
 
 $ScriptDir = Split-Path -Parent $MyInvocation.MyCommand.Definition
-$SrcInstallScript = Join-Path $ScriptDir "..\..\src\scripts\install.ps1"
+$SrcInstallScript = Join-Path $ScriptDir "..\..\..\src\scripts\install.ps1"
+if (-not (Test-Path $SrcInstallScript)) {
+    $SrcInstallScript = Join-Path $ScriptDir "..\..\src\scripts\install.ps1"
+}
 
 function Write-Step { Write-Host "==> $($args -join ' ')" }
 function Write-Warn { Write-Warning $($args -join ' ') }
 function Write-Fatal { Write-Error $($args -join ' '); exit 1 }
 
-function Have-Ods {
-    $cmd = Get-Command ods -ErrorAction SilentlyContinue
-    if ($cmd) { return $true }
-    $prefix = $env:ODS_PREFIX
-    if (-not $prefix) { $prefix = Join-Path $env:LOCALAPPDATA "Programs\ods" }
-    return (Test-Path (Join-Path $prefix "ods.exe"))
+function Get-CliCommand {
+    $cmd = Get-Command odc -ErrorAction SilentlyContinue
+    if ($cmd) { return $cmd }
+    return (Get-Command ods -ErrorAction SilentlyContinue)
 }
 
-function Get-OdsVersion {
-    $cmd = Get-Command ods -ErrorAction SilentlyContinue
-    if ($cmd) {
-        return (& $cmd.Source --version 2>$null)
+function Have-Cli {
+    if (Get-CliCommand) { return $true }
+    $prefix = $env:ODC_PREFIX
+    if (-not $prefix) { $prefix = $env:ODS_PREFIX }
+    if (-not $prefix) { $prefix = Join-Path $env:LOCALAPPDATA "Programs\odc" }
+    return (Test-Path (Join-Path $prefix "odc.exe")) -or (Test-Path (Join-Path $prefix "ods.exe"))
+}
+
+function Get-CliPath {
+    $cmd = Get-CliCommand
+    if ($cmd) { return $cmd.Source }
+    $prefix = $env:ODC_PREFIX
+    if (-not $prefix) { $prefix = $env:ODS_PREFIX }
+    if (-not $prefix) { $prefix = Join-Path $env:LOCALAPPDATA "Programs\odc" }
+    foreach ($name in @("odc.exe", "ods.exe")) {
+        $candidate = Join-Path $prefix $name
+        if (Test-Path $candidate) { return $candidate }
     }
-    $prefix = $env:ODS_PREFIX
-    if (-not $prefix) { $prefix = Join-Path $env:LOCALAPPDATA "Programs\ods" }
-    $candidate = Join-Path $prefix "ods.exe"
-    if (Test-Path $candidate) {
-        return (& $candidate --version 2>$null)
-    }
+    return $null
+}
+
+function Get-CliVersion {
+    $bin = Get-CliPath
+    if ($bin) { return (& $bin --version 2>$null) }
     return "unknown"
+}
+
+function Invoke-Cli {
+    param([Parameter(ValueFromRemainingArguments = $true)][string[]]$CliArgs)
+    $bin = Get-CliPath
+    if (-not $bin) { Write-Fatal "odc/ods not on PATH; run install first" }
+    & $bin @CliArgs
+    if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 }
 
 function Invoke-Install {
@@ -79,67 +101,67 @@ function Find-WorkspaceRoot {
                 return $current
             }
         }
-        $parent = Split-Path -Parent $current
+        $parent = Split-Path $current -Parent
         if ($parent -eq $current) { break }
         $current = $parent
     }
     return $null
 }
 
-function Invoke-Check {
-    param([string]$TargetPath)
-    $root = Find-WorkspaceRoot $TargetPath
-    if ($root) {
-        Write-Host "compliant=true root=$root"
+function Invoke-Default {
+    Write-Step "OpenDocify bootstrap (Windows)"
+    if (-not (Have-Cli)) {
+        Write-Step "Installing odc..."
+        Invoke-Install
     } else {
-        Write-Host "compliant=false root="
-        Write-Host "hint: not an ODS workspace (no index.md with `ods:`). Run: ods init $TargetPath"
+        Write-Step "CLI present: $(Get-CliVersion)"
     }
-}
-
-function Invoke-Ensure {
-    param([string]$TargetPath)
-    if (-not (Have-Ods)) { Write-Fatal "ods not installed. Run: .\bootstrap.ps1 install" }
-    $root = Find-WorkspaceRoot $TargetPath
-    if (-not $root) {
-        Write-Warn "not an ODS workspace (no index.md with `ods:`). Run: ods init $TargetPath"
-        return
+    $ws = Find-WorkspaceRoot -TargetDir $Path
+    if ($ws) {
+        Write-Step "ODS workspace: $ws"
+        Invoke-Cli ods setup $ws
+        Invoke-Cli ods doctor $ws
+    } else {
+        Write-Step "No ODS root markers under $Path (ok — use 'odc ods init' to create)"
     }
-    Write-Step "starting ods service for $TargetPath"
-    ods setup $TargetPath
+    Write-Host ""
+    Write-Host "OpenDocify is installed."
+    Write-Host "  $(Get-CliVersion)"
+    Write-Host "  odc ods lint .     # ODS"
+    Write-Host "  odc okf lint .     # OKF"
 }
 
 switch ($Command.ToLower()) {
-    "install" { Invoke-Install }
-    "update"  {
-        if (Have-Ods) { ods update } else { Invoke-Install }
+    "install" { Invoke-Install; Write-Host (Get-CliVersion) }
+    "update" {
+        if (Have-Cli) { Invoke-Cli update }
+        else { Invoke-Install }
     }
-    "check"   { Invoke-Check $Path }
-    "ensure"  { Invoke-Ensure $Path }
-    "status"  {
-        if (-not (Have-Ods)) { Write-Fatal "ods not installed" }
-        ods --version
-        ods start --status $Path
+    "ensure" {
+        $ws = Find-WorkspaceRoot -TargetDir $Path
+        if (-not $ws) { $ws = (Resolve-Path $Path).Path }
+        Invoke-Cli ods setup $ws
+        Invoke-Cli ods start $ws
     }
-    "doctor"  {
-        if (-not (Have-Ods)) { Write-Fatal "ods not installed" }
-        ods doctor $Path
+    "status" {
+        $ws = Find-WorkspaceRoot -TargetDir $Path
+        if (-not $ws) { $ws = (Resolve-Path $Path).Path }
+        Invoke-Cli ods start --status $ws
     }
-    "default" {
-        Invoke-Install
-        Invoke-Check $Path
-        $root = Find-WorkspaceRoot $Path
-        if ($root) {
-            Invoke-Ensure $Path
-            ods doctor $Path
+    "doctor" {
+        $ws = Find-WorkspaceRoot -TargetDir $Path
+        if (-not $ws) { $ws = (Resolve-Path $Path).Path }
+        Invoke-Cli ods doctor $ws
+    }
+    "check" {
+        $ws = Find-WorkspaceRoot -TargetDir $Path
+        if ($ws) {
+            Write-Host "ODS workspace: $ws"
+            Invoke-Cli ods lint $ws
         } else {
-            Write-Warn "no ODS workspace at '$Path'; run 'ods init .' then '.\bootstrap.ps1 ensure .'"
+            Write-Host "No ODS workspace at $Path"
+            exit 1
         }
-        $ver = Get-OdsVersion
-        Write-Step "ODS is installed and running now in your machine!"
-        Write-Step "Version: $ver"
     }
-    default {
-        Write-Fatal "unknown command '$Command'. Use: install, update, check, ensure, status, doctor"
-    }
+    default { Invoke-Default }
 }

@@ -96,7 +96,7 @@ jobs:
           open(path, 'w', encoding='utf-8').write(text2)
           lock_path = 'Cargo.lock' if os.path.exists('Cargo.lock') else 'src/Cargo.lock'
           lock = open(lock_path, encoding='utf-8').read()
-          for name in ('ods', 'ods-core', 'ods-test-support'):
+          for name in ('odc', 'odc-core', 'odc-test-support'):
               lock, n = re.subn(
                   rf'(name = \"{name}\"\nversion = \")[^\"]+(\")',
                   rf'\g<1>{new_v}\2',
@@ -433,25 +433,35 @@ jobs:
             ".artifacts/target/release" \
             "target/release"
           do
-            if [ -f "${d}/ods${EXT}" ]; then
+            if [ -f "${d}/odc${EXT}" ] || [ -f "${d}/ods${EXT}" ]; then
               echo "dir=${d}" >> "$GITHUB_OUTPUT"
-              echo "ods=${d}/ods${EXT}" >> "$GITHUB_OUTPUT"
+              if [ -f "${d}/odc${EXT}" ]; then
+                echo "odc=${d}/odc${EXT}" >> "$GITHUB_OUTPUT"
+              else
+                echo "odc=${d}/ods${EXT}" >> "$GITHUB_OUTPUT"
+              fi
+              if [ -f "${d}/ods${EXT}" ]; then
+                echo "ods=${d}/ods${EXT}" >> "$GITHUB_OUTPUT"
+              else
+                echo "ods=${d}/odc${EXT}" >> "$GITHUB_OUTPUT"
+              fi
               echo "ext=${EXT}" >> "$GITHUB_OUTPUT"
               exit 0
             fi
           done
 
-          FOUND="$(find . -type f \( -path "*/target/${TARGET}/release/ods${EXT}" -o -path "*/target/release/ods${EXT}" \) 2>/dev/null | head -1 || true)"
+          FOUND="$(find . -type f \( -path "*/target/${TARGET}/release/odc${EXT}" -o -path "*/target/release/odc${EXT}" -o -path "*/target/${TARGET}/release/ods${EXT}" \) 2>/dev/null | head -1 || true)"
           if [ -n "${FOUND}" ]; then
             DIR="$(dirname "${FOUND}")"
             echo "dir=${DIR}" >> "$GITHUB_OUTPUT"
+            echo "odc=${FOUND}" >> "$GITHUB_OUTPUT"
             echo "ods=${FOUND}" >> "$GITHUB_OUTPUT"
             echo "ext=${EXT}" >> "$GITHUB_OUTPUT"
             exit 0
           fi
 
-          echo "error: release binary ods not found for target ${TARGET}" >&2
-          find . -name "ods${EXT}" -type f 2>/dev/null | head -10 >&2 || true
+          echo "error: release binary odc/ods not found for target ${TARGET}" >&2
+          find . -name "odc${EXT}" -o -name "ods${EXT}" -type f 2>/dev/null | head -10 >&2 || true
           exit 1
 
       - name: Package (tar.gz)
@@ -462,13 +472,16 @@ jobs:
           set -euo pipefail
           VERSION="${{ steps.version.outputs.tag }}"
           ASSET="${{ matrix.asset }}"
-          OUT="ods-${VERSION}-${ASSET}"
+          # Primary archive name is odc-*; also publish legacy ods-* alias for installers mid-transition
+          OUT="odc-${VERSION}-${ASSET}"
+          LEGACY="ods-${VERSION}-${ASSET}"
           mkdir -p "dist/${OUT}"
 
-          cp "${{ steps.bins.outputs.ods }}" "dist/${OUT}/ods"
+          cp "${{ steps.bins.outputs.odc }}" "dist/${OUT}/odc"
+          cp "${{ steps.bins.outputs.ods }}" "dist/${OUT}/ods" 2>/dev/null || cp "${{ steps.bins.outputs.odc }}" "dist/${OUT}/ods"
 
           cat > "dist/${OUT}/INSTALL.txt" << 'INSTALLEOF'
-          ODS CLI @VERSION@ (@ASSET@)
+          OpenDocify CLI (odc) @VERSION@ (@ASSET@)
           Copyright (c) Staytuned LLP. Proprietary — see repository LICENSE.
 
           First install (private repo — use gh or a logged-in browser):
@@ -476,13 +489,16 @@ jobs:
             gh release download @VERSION@ -R StaytunedLLP/open-document-spec \
               -p @OUT@.tar.gz -p SHA256SUMS
             tar xzf @OUT@.tar.gz && cd @OUT@
-            mkdir -p ~/.local/bin && install -m 755 ods ~/.local/bin/
+            mkdir -p ~/.local/bin
+            install -m 755 odc ~/.local/bin/
+            ln -sfn ~/.local/bin/odc ~/.local/bin/ods
             export PATH="$HOME/.local/bin:$PATH"
-            export GH_TOKEN="$(gh auth token)"   # for ods update / auto-update
+            export GH_TOKEN="$(gh auth token)"
 
           After first install:
-            ods update
-            ods init . && ods start
+            odc update
+            odc ods init . && odc setup
+            # OKF: odc okf init .
 
           Guide: README.md · Changelog: CHANGELOG.md
           INSTALLEOF
@@ -491,11 +507,14 @@ jobs:
           rm -f "dist/${OUT}/INSTALL.txt.bak"
 
           (cd dist && tar czf "${OUT}.tar.gz" "${OUT}")
+          # Legacy alias archive (same payload) for mid-transition installers
+          cp -a "dist/${OUT}" "dist/${LEGACY}"
+          (cd dist && tar czf "${LEGACY}.tar.gz" "${LEGACY}")
 
           if command -v sha256sum >/dev/null 2>&1; then
-            (cd dist && sha256sum "${OUT}.tar.gz" >> "SHA256SUMS.${ASSET}")
+            (cd dist && sha256sum "${OUT}.tar.gz" "${LEGACY}.tar.gz" >> "SHA256SUMS.${ASSET}")
           elif command -v shasum >/dev/null 2>&1; then
-            (cd dist && shasum -a 256 "${OUT}.tar.gz" >> "SHA256SUMS.${ASSET}")
+            (cd dist && shasum -a 256 "${OUT}.tar.gz" "${LEGACY}.tar.gz" >> "SHA256SUMS.${ASSET}")
           fi
 
           ls -lh dist/
@@ -507,22 +526,25 @@ jobs:
         run: |
           $Version = "${{ steps.version.outputs.tag }}"
           $Asset   = "${{ matrix.asset }}"
-          $Out     = "ods-$Version-$Asset"
+          $Out     = "odc-$Version-$Asset"
           New-Item -ItemType Directory -Force -Path "dist\$Out" | Out-Null
 
-          Copy-Item "${{ steps.bins.outputs.ods }}" "dist\$Out\ods.exe"
+          Copy-Item "${{ steps.bins.outputs.odc }}" "dist\$Out\odc.exe"
+          try { Copy-Item "${{ steps.bins.outputs.ods }}" "dist\$Out\ods.exe" } catch { Copy-Item "${{ steps.bins.outputs.odc }}" "dist\$Out\ods.exe" }
 
           $InstallText = @"
-          ODS CLI $Version ($Asset)
+          OpenDocify CLI (odc) $Version ($Asset)
           Copyright (c) Staytuned LLP. Proprietary -- see repository LICENSE.
 
           First install (private repo -- use gh or a logged-in browser):
             gh release download $Version -R StaytunedLLP/open-document-spec -p $Out.zip -p SHA256SUMS
-            Expand the zip; copy ods.exe to a folder on PATH
-            Set user env GH_TOKEN for ods update / auto-update
+            Expand the zip; copy odc.exe (and ods.exe) to a folder on PATH
+            Set user env GH_TOKEN for odc update / auto-update
 
           After first install:
-            ods update
+            odc update
+            odc ods init .
+            odc okf init .   # optional OKF bundle
 
           Guide: README.md · Changelog: CHANGELOG.md
           "@

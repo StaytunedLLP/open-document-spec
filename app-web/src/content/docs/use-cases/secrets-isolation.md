@@ -16,8 +16,8 @@ Enterprise documentation repositories frequently contain mixed content: public f
 
 ## 3-Tier Visibility Control (`share`)
 
-- **`public`** (default): Included in `ods context`, `ods export`, and `ods share`.
-- **`org`**: Excluded from `ods context`, `ods export`, and `ods share` by default.
+- **`public`** (default): Included in `odc ods context`, `odc ods export`, and `odc ods share`.
+- **`org`**: Excluded from `odc ods context`, `odc ods export`, and `odc ods share` by default.
 - **`private`**: Strictly confidential IP & secrets. Excluded by default across all export surfaces.
 
 ```yaml

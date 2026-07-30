@@ -28,7 +28,7 @@ Instead of manually generating IDs, the filesystem path implicitly defines the d
 Rules:
 
 - IDs MUST be unique within a workspace. This uniqueness is guaranteed automatically when using path-derived IDs.
-- An explicit `ods.id:` field inside the nested `ods:` map overrides the path-derived ID. Its primary purpose is **stability across renames**: when a document needs to be moved or renamed, you can preserve the existing ID using `ods.id:` to avoid breaking external references, or use tooling (e.g., `ods mv`) to update references.
+- An explicit `ods.id:` field inside the nested `ods:` map overrides the path-derived ID. Its primary purpose is **stability across renames**: when a document needs to be moved or renamed, you can preserve the existing ID using `ods.id:` to avoid breaking external references, or use tooling (e.g., `odc ods mv`) to update references.
 - References to non-existent IDs are considered dangling references, which trigger lint errors in Level-3 workspaces.
 - IDs are case-insensitive and normalized to lowercase alphanumeric characters, hyphens, and slashes (`a-z`, `0-9`, `-`, `/`). Tools MUST resolve all references case-insensitively and normalize them to lowercase.
 - Path separators MUST be normalized to forward slashes (`/`) across all operating systems.
@@ -65,7 +65,7 @@ Semantics:
 Rules:
 
 - References in `depends` or `related` SHOULD use editor-jumpable `.md` paths to Markdown Documents. Tools MUST also resolve legacy extensionless document IDs for backward compatibility.
-- `ods fmt --refs md-paths` SHOULD rewrite resolvable legacy Document references in `depends`, `related`, and Document entries in `context.load` to canonical `.md` paths. Fragment anchors (e.g., `#heading-name`) and query parameters MUST be preserved during rewriting. It MUST NOT rewrite `id`, `resources` item `path`, `code` item `path`, `ignore`, `context.ignore`, or external URLs (`http://`, `https://`).
-- `ods lint --canonical-refs` SHOULD warn on resolvable extensionless Document references and suggest the canonical `.md` path. Default lint MUST remain backward-compatible and accept both forms.
+- `odc ods fmt --refs md-paths` SHOULD rewrite resolvable legacy Document references in `depends`, `related`, and Document entries in `context.load` to canonical `.md` paths. Fragment anchors (e.g., `#heading-name`) and query parameters MUST be preserved during rewriting. It MUST NOT rewrite `id`, `resources` item `path`, `code` item `path`, `ignore`, `context.ignore`, or external URLs (`http://`, `https://`).
+- `odc ods lint --canonical-refs` SHOULD warn on resolvable extensionless Document references and suggest the canonical `.md` path. Default lint MUST remain backward-compatible and accept both forms.
 - The dependency graph MUST NOT contain cyclic dependencies in Level-3 workspaces (resulting in a validation error).
 - Relationships are declared only on the dependent side. Backlinks and reverse lookups ("Which documents depend on this one?") are computed dynamically by tooling; they MUST NOT be written manually, as hardcoded backlinks are prone to becoming outdated.

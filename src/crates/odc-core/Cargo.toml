@@ -1,0 +1,78 @@
+[package]
+name = "odc-core"
+description = "OpenDocify core library — ODS + native OKF v0.2"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+
+[lib]
+path = "src/lib.rs"
+
+[dependencies]
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+
+[dev-dependencies]
+odc-test-support = { path = "../odc-test-support" }
+tempfile = "3"
+
+[[test]]
+name = "adopt_and_profiles_test"
+path = "tests/adopt_and_profiles.test.rs"
+
+[[test]]
+name = "lifecycle_enable_disable_test"
+path = "tests/lifecycle_enable_disable.test.rs"
+
+[[test]]
+name = "features_graph_test"
+path = "tests/features_graph.test.rs"
+
+[[test]]
+name = "features_profiles_test"
+path = "tests/features_profiles.test.rs"
+
+[[test]]
+name = "features_tags_test"
+path = "tests/features_tags.test.rs"
+
+[[test]]
+name = "lint_rules_1_test"
+path = "tests/lint_rules_1.test.rs"
+
+[[test]]
+name = "lint_rules_2_test"
+path = "tests/lint_rules_2.test.rs"
+
+[[test]]
+name = "parse_frontmatter_test"
+path = "tests/parse_frontmatter.test.rs"
+
+[[test]]
+name = "migrate_frontmatter_test"
+path = "tests/migrate_frontmatter.test.rs"
+
+[[test]]
+name = "path_changes_test"
+path = "tests/path_changes.test.rs"
+
+[[test]]
+name = "watch_rename_e2e_test"
+path = "tests/watch_rename_e2e.test.rs"
+
+[[test]]
+name = "workspace_1_test"
+path = "tests/workspace_1.test.rs"
+
+[[test]]
+name = "workspace_2_test"
+path = "tests/workspace_2.test.rs"
+
+[[test]]
+name = "workspace_3_test"
+path = "tests/workspace_3.test.rs"
+
+[[test]]
+name = "bench_test"
+path = "tests/bench.test.rs"

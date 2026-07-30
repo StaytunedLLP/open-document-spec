@@ -154,7 +154,7 @@ jobs:
           open(path, "w", encoding="utf-8").write(text2)
           lock_path = "Cargo.lock"
           lock = open(lock_path, encoding="utf-8").read()
-          for name in ("ods", "ods-core", "ods-test-support"):
+          for name in ("odc", "odc-core", "odc-test-support"):
               def repl(m, nv=new_v):
                   return m.group(1) + nv + m.group(2)
               lock, n = re.subn(

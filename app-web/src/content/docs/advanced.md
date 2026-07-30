@@ -25,34 +25,34 @@ That gives agents a deterministic path instead of a broad scan.
 Use the CLI to debug the resolution:
 
 ```bash
-ods context path/to/doc.md
+odc ods context path/to/doc.md
 ```
 
 ---
 
-## Global Multi-Workspace Tracking (`ods workspaces`)
+## Global Multi-Workspace Tracking (`odc workspaces`)
 
-ODS background daemons (`ods serve`) monitor multiple repositories registered in the user's global machine configuration file (`~/.ods/odsconfig.toml`):
+ODS background daemons (`odc ods serve`) monitor multiple repositories registered in the user's global machine configuration file (`~/.ods/odsconfig.toml`):
 
 ```bash
 # Register a workspace for background tracking
-ods workspaces add /path/to/my-project
+odc workspaces add /path/to/my-project
 
 # List all tracked workspaces and pack entries
-ods workspaces list
+odc workspaces list
 
 # Remove a workspace from tracking
-ods workspaces remove /path/to/my-project
+odc workspaces remove /path/to/my-project
 
 # Print machine config file path (~/.ods/odsconfig.toml)
-ods workspaces path
+odc workspaces path
 ```
 
 ---
 
-## Daemon Execution Modes & Memory Tuning (`ods serve`)
+## Daemon Execution Modes & Memory Tuning (`odc ods serve`)
 
-`ods serve` supports three execution modes for handling filesystem updates across workspaces:
+`odc ods serve` supports three execution modes for handling filesystem updates across workspaces:
 
 1. **`auto`** (default): Automatically selects `watch` mode, unless `ODS_LOW_MEMORY=1` is set in the environment, in which case it uses `poll` mode.
 2. **`watch`**: Real-time OS event watcher (fsnotify/kqueue/inotify) for immediate rename mapping and index regeneration.
@@ -60,7 +60,7 @@ ods workspaces path
 
 ```bash
 # Low-memory polling configuration with RSS memory diagnostics
-ODS_LOW_MEMORY=1 ODS_POLL_SECS=30 ods serve --mode poll --memory-report --root .
+ODS_LOW_MEMORY=1 ODS_POLL_SECS=30 odc ods serve --mode poll --memory-report --root .
 ```
 
 ---
@@ -71,7 +71,7 @@ Guidance for tens of thousands of Markdown files:
 
 - Keep profiles small; put custom catalogs in `ods-profiles/` or listed `profiles:` roots.
 - Prefer path-derived IDs; pin explicit `id:` only when renames must not break external refs.
-- Run `ods index --check` and `ods lint` in CI rather than trusting hand-edited maps.
+- Run `odc ods index --check` and `odc ods lint` in CI rather than trusting hand-edited maps.
 - Use `--level 1` while onboarding noisy trees; enable body-link and graph checks at Level 3 when ready.
 - Tooling skips `node_modules`, `target`, and similar trees by default and may honor `.gitignore`.
 - Exclude implementation trees with root `ignore:` (for example `src`).

@@ -20,15 +20,15 @@ No. Documents are plain `.md` only.
 
 **No.** Without root `ods:`, tools do not rewrite your tree. Plain Markdown is Level 0.
 
-- Opt in: `ods init .` or `ods init . --adopt`, then `ods lint`.
-- Opt out: `ods disable .` then `ods disable . --write`.
-- Automation (`ods start` / `ods watch`) only rewrites paths when the workspace is enabled.
+- Opt in: `odc ods init .` or `odc ods init . --adopt`, then `odc ods lint`.
+- Opt out: `odc ods disable .` then `odc ods disable . --write`.
+- Automation (`odc ods start` / `odc ods watch`) only rewrites paths when the workspace is enabled.
 
 ## How do I remove ODS completely?
 
 ```bash
-ods stop --unregister .   # if a service was registered
-ods disable . --write
+odc ods stop --unregister .   # if a service was registered
+odc ods disable . --write
 ```
 
 ## Profile vs Tags
@@ -37,7 +37,7 @@ ods disable . --write
 | :--- | :--- | :--- |
 | Means | Document **kind** (structure / expected H2s) | Cross-cutting **topics** |
 | Unknown | Warning | Always allowed |
-| CLI | `ods profiles` | `ods tags`, `ods find --tag` |
+| CLI | `odc ods profiles` | `odc ods tags`, `odc ods find --tag` |
 
 ## Should `depends` / `related` include `.md`?
 
@@ -48,11 +48,11 @@ depends:
   - website/subscription-service.md
 ```
 
-## `ods lint` says everything is fine
+## `odc ods lint` says everything is fine
 
 That is success: the graph and links are consistent. No `ods-error.md` should remain.
 
-## How much RAM does `ods serve` use?
+## How much RAM does `odc ods serve` use?
 
 Local measurements on macOS:
 - Empty ODS workspace: ~7.5 MB
@@ -61,5 +61,5 @@ Local measurements on macOS:
 For low-memory environments, use polling mode:
 
 ```bash
-ODS_LOW_MEMORY=1 ods serve --mode poll --memory-report --poll-secs 30 --root .
+ODS_LOW_MEMORY=1 odc ods serve --mode poll --memory-report --poll-secs 30 --root .
 ```

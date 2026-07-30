@@ -10,7 +10,7 @@ ods:
 
 # Quickstart
 
-ODS is one native CLI binary: **`ods`**. The normal flow is install, run `ods setup`, initialize or adopt Markdown, keep the user service running, then validate with `ods lint` and `ods index --check`.
+ODS is one native CLI binary: **`odc` (legacy `ods`)**. The normal flow is install, run `odc setup`, initialize or adopt Markdown, keep the user service running, then validate with `odc ods lint` and `odc ods index --check`.
 
 ---
 
@@ -22,7 +22,7 @@ The recommended, zero-friction entry point for ODS is via the **ODS Skill** in y
 
 When an AI assistant activates the ODS skill, the bundled cross-platform bootstrap script automatically:
 1. Detects your host Operating System (macOS, Linux, Windows) and architecture (`x86_64`, `arm64`).
-2. Downloads and verifies the matching native `ods` release binary.
+2. Downloads and verifies the matching native `odc` (legacy `ods`) release binary.
 3. Registers and starts the persistent background OS user service (`systemd` user unit / `launchd` agent / Windows Scheduled Task).
 4. Validates workspace health and prints status:
 
@@ -60,52 +60,52 @@ New documentation folder:
 ```bash
 mkdir my-docs
 cd my-docs
-ods init .
+odc ods init .
 ```
 
 Existing Markdown tree:
 
 ```bash
 cd existing-docs
-ods init . --adopt
+odc ods init . --adopt
 ```
 
-`ods init` makes the folder ODS-compliant by creating a root `index.md` with `ods: 0.1` and `ods-cli: ">=0.0.1"` metadata and generating child index files.
+`odc ods init` makes the folder ODS-compliant by creating a root `index.md` with `ods: 0.1` and `ods-cli: ">=0.0.1"` metadata and generating child index files.
 
 ---
 
 ## 3. Run Setup & Start Background Service
 
 ```bash
-ods setup
+odc setup
 ```
 
-`ods setup` checks release freshness, verifies the root spec header, starts/registers the background OS user service (`systemd` / `launchd` / `schtasks`), and runs `ods doctor`.
+`odc setup` checks release freshness, verifies the root spec header, starts/registers the background OS user service (`systemd` / `launchd` / `schtasks`), and runs `odc ods doctor`.
 
 Direct service commands:
 
 ```bash
-ods start .
-ods start --status
-ods stop .
-ods stop --unregister .
+odc ods start .
+odc ods start --status
+odc ods stop .
+odc ods stop --unregister .
 ```
 
 Foreground alternative:
 
 ```bash
-ods watch .
+odc ods watch .
 ```
 
-While `ods start` or `ods watch` runs, rename/move Markdown normally. ODS keeps path-shaped `id`, `depends`, `related`, body links, resource paths, context path entries, and generated `index.md` child lists current.
+While `odc ods start` or `odc ods watch` runs, rename/move Markdown normally. ODS keeps path-shaped `id`, `depends`, `related`, body links, resource paths, context path entries, and generated `index.md` child lists current.
 
 ---
 
 ## 4. Validate Trust
 
 ```bash
-ods lint
-ods index --check
+odc ods lint
+odc ods index --check
 ```
 
 Clean lint output:
@@ -121,20 +121,20 @@ Everything is fine — graph and links are consistent. No update required.
 Preferred bounded reading list:
 
 ```bash
-ods context <doc-id>
+odc ods context <doc-id>
 ```
 
 Optional full graph file:
 
 ```bash
-ods export
-ods export --out ai/graph.md
+odc ods export
+odc ods export --out ai/graph.md
 ```
 
 Publishing a filtered subset for external hand-off:
 
 ```bash
-ods share . --out ../shared-docs
+odc ods share . --out ../shared-docs
 ```
 
 ---
@@ -142,11 +142,11 @@ ods share . --out ../shared-docs
 ## 6. Keep Current
 
 ```bash
-ods update --check
-ods update
+odc update --check
+odc update
 ```
 
-`ods update` downloads the latest binary release from GitHub Releases and automatically restarts the background service so it runs with the updated binary.
+`odc update` downloads the latest binary release from GitHub Releases and automatically restarts the background service so it runs with the updated binary.
 
 ---
 

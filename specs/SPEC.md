@@ -98,14 +98,14 @@ Frontmatter is segregated into **Universal Top-Level Metadata** (read by SSGs, O
 
 ### ODS Engine Metadata Keys (Nested inside `ods:`)
 
-When scaffolded (`ods new`), adopted (`ods adopt`), or formatted (`ods fmt --write`), keys inside the `ods:` map MUST be emitted in this exact **Canonical Key Sequence**:
+When scaffolded (`odc ods new`), adopted (`odc ods adopt`), or formatted (`odc ods fmt --write`), keys inside the `ods:` map MUST be emitted in this exact **Canonical Key Sequence**:
 
 | Order | Field | Type | Meaning |
 | :-: | :--- | :--- | :--- |
 | 1 | `profile` | string | Structural schema (`guide`, `decision`, `feature`, `sop`, `api`, `meeting`, `faq`). Defaults to `note`. |
 | 2 | `status` | string | Lifecycle state (`draft`, `stable`, `deprecated`, `archived`). Defaults to `draft`. |
 | 3 | `id` | string | Explicit node ID override for graph rename stability. Optional; defaults to workspace-relative path minus `.md`. |
-| 4 | `share` | string | ODS CLI Visibility Directive (`public`, `org`, `private`). Filters nodes in `ods context`, `ods export`, and `ods pack`. |
+| 4 | `share` | string | ODS CLI Visibility Directive (`public`, `org`, `private`). Filters nodes in `odc ods context`, `odc ods export`, and `ods pack`. |
 | 5+ | `depends` | list of refs | Multi-value list up to $N$ prerequisite document paths (`.md`) or extensionless path IDs. |
 | 5+ | `related` | list of refs | Multi-value list up to $N$ reference document paths (`.md`) or extensionless path IDs. |
 | 5+ | `resources` | list of maps | Multi-value list up to $N$ non-Markdown file asset paths (`path`). |
@@ -126,7 +126,7 @@ When scaffolded (`ods new`), adopted (`ods adopt`), or formatted (`ods fmt --wri
 > [!IMPORTANT]
 > **Frontmatter `title` Prohibition Rule**: Frontmatter MUST NOT contain a `title:` key. The document title exists exclusively as the first `# H1` heading in the Markdown body prose (Single Source of Truth / Token Efficiency).
 > 
-> **Tooling Tolerance Contract**: The ODS parser MUST NOT error if frontmatter keys inside `ods:` appear out of sequence. However, formatting and scaffolding commands (`ods fmt --write`, `ods new`, `ods adopt`) MUST enforce canonical key sequence (`profile` $\rightarrow$ `status` $\rightarrow$ `id` $\rightarrow$ `share` $\rightarrow$ `depends`, `related`, `resources`, `code`, `context`).
+> **Tooling Tolerance Contract**: The ODS parser MUST NOT error if frontmatter keys inside `ods:` appear out of sequence. However, formatting and scaffolding commands (`odc ods fmt --write`, `odc ods new`, `odc ods adopt`) MUST enforce canonical key sequence (`profile` $\rightarrow$ `status` $\rightarrow$ `id` $\rightarrow$ `share` $\rightarrow$ `depends`, `related`, `resources`, `code`, `context`).
 
 ### Minimal and Complete Examples
 
@@ -228,10 +228,10 @@ The remaining parts of ODS are detailed in the following sub-specifications:
 
 Tools MUST support four core atomic lifecycle operations for workspace documents:
 
-1. **Scaffolding (`ods new <path>`)**: Instantly creates a document pre-populated with Level-1 frontmatter (`profile`, `status: draft`, `description`), path-derived ID, inferred H2/H3 section placeholders, and automatically updates the parent `index.md` child listing.
-2. **Relocation (`ods mv <from> <to>`)**: Renames or moves a document or folder while atomically updating path-derived IDs, relative prose links, `depends:`, `related:`, `code[].path`, and child `index.md` entries across the workspace graph.
+1. **Scaffolding (`odc ods new <path>`)**: Instantly creates a document pre-populated with Level-1 frontmatter (`profile`, `status: draft`, `description`), path-derived ID, inferred H2/H3 section placeholders, and automatically updates the parent `index.md` child listing.
+2. **Relocation (`odc ods mv <from> <to>`)**: Renames or moves a document or folder while atomically updating path-derived IDs, relative prose links, `depends:`, `related:`, `code[].path`, and child `index.md` entries across the workspace graph.
 3. **Archival (`ods archive <path-or-id>`)**: Updates document metadata to `status: archived`, moves the file to an `archive/` subfolder, updates index listings, and preserves graph edges.
-4. **Atomic Deletion (`ods rm <path-or-id>`)**: Removes the target document from disk, strips the file entry from parent `index.md` files, and scrubs the deleted document ID from all dependent documents' `depends:` and `related:` frontmatter arrays workspace-wide.
+4. **Atomic Deletion (`odc ods rm <path-or-id>`)**: Removes the target document from disk, strips the file entry from parent `index.md` files, and scrubs the deleted document ID from all dependent documents' `depends:` and `related:` frontmatter arrays workspace-wide.
 
 ### Smart Profile Inference (H2 + H3 Heading Scanning)
 
