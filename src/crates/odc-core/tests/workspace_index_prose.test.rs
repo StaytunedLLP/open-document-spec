@@ -89,8 +89,13 @@ fn context_query_fallback_and_code_ref_tests() {
     assert!(odc_core::resolve_context(&ws, "nonexistent", true).is_empty());
 
     let res = odc_core::resolve_context(&ws, "my-doc", true);
-    assert!(res.iter().any(|p| p.ends_with("my-doc.md")));
-    assert!(res.iter().any(|p| p.ends_with("src/lib.rs")));
+    let my_doc = dir.join("my-doc.md");
+    let my_doc_canon = my_doc.canonicalize().unwrap_or_else(|_| my_doc.clone());
+    let lib_rs = dir.join("src/lib.rs");
+    let lib_rs_canon = lib_rs.canonicalize().unwrap_or_else(|_| lib_rs.clone());
+
+    assert!(res.contains(&my_doc) || res.contains(&my_doc_canon));
+    assert!(res.contains(&lib_rs) || res.contains(&lib_rs_canon));
 }
 
 #[test]

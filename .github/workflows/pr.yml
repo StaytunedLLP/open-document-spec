@@ -15,6 +15,7 @@ env:
   CARGO_TERM_COLOR: always
   CARGO_INCREMENTAL: "1"
   RUST_BACKTRACE: "1"
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: "true"
 
 # Cancel superseded runs for the same PR or ref.
 concurrency:
@@ -38,7 +39,7 @@ jobs:
       pushed: ${{ steps.bump.outputs.pushed }}
     steps:
       - name: Checkout PR head
-        uses: actions/checkout@v5
+        uses: actions/checkout@v7
         with:
           repository: ${{ github.event.pull_request.head.repo.full_name }}
           ref: ${{ github.event.pull_request.head.ref }}
@@ -236,7 +237,7 @@ jobs:
     timeout-minutes: 60
     steps:
       - name: Checkout
-        uses: actions/checkout@v5
+        uses: actions/checkout@v7
 
       - name: Rust Cache
         uses: swatinem/rust-cache@v2
@@ -405,7 +406,7 @@ jobs:
       RUST_BACKTRACE: "1"
     steps:
       - name: Checkout
-        uses: actions/checkout@v5
+        uses: actions/checkout@v7
 
       - name: Rust Cache
         uses: swatinem/rust-cache@v2
