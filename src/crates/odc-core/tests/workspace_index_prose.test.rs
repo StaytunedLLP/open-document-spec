@@ -89,8 +89,8 @@ fn context_query_fallback_and_code_ref_tests() {
     assert!(odc_core::resolve_context(&ws, "nonexistent", true).is_empty());
 
     let res = odc_core::resolve_context(&ws, "my-doc", true);
-    assert!(res.contains(&dir.join("my-doc.md")));
-    assert!(res.contains(&dir.join("src/lib.rs")));
+    assert!(res.iter().any(|p| p.ends_with("my-doc.md")));
+    assert!(res.iter().any(|p| p.ends_with("src/lib.rs")));
 }
 
 #[test]

@@ -131,6 +131,8 @@ fn dispatch_ods_command(args: &[String]) -> Result<ExitCode, CliError> {
         "share" => run_share_command(args),
         "bench" | "sandbox" => run_bench_command(args),
         "audit" => run_ods_audit_command(args),
+        "update" => run_update_command(args),
+        "upgrade" => run_upgrade_command(args),
         other => Err(usage(format!("unknown ods command: {other}"))),
     }
 }

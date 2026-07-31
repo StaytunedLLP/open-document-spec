@@ -2,7 +2,7 @@
 name: ods
 description: >-
   Install, run, update, and author with OpenDocify (`odc`) for ODS workspaces.
-  Prefer `odc ods <cmd>`; legacy binary `odc ods <cmd>` is equivalent.
+  Prefer `odc <cmd>` or `odc ods <cmd>`; legacy binary `ods <cmd>` is equivalent.
   Also documents sibling OKF via `odc okf` and platform `odc update`/`upgrade`.
   Use when working in an ODS workspace (root index.md has `ods:`), OKF bundle
   (`okf_version`), or any odc/ods CLI workflow.
@@ -274,3 +274,29 @@ Planned expansion, to keep outcomes consistent across models and effort levels:
 grow to ≥10 cases; add before/after fixtures under `evals/fixtures/{good,bad}/`;
 run the same suite across models × reasoning-effort levels to catch drift; add a
 script-backed validator once the registry publish flow exists.
+
+## 8. Migration Guide — Updating Legacy `ods` to `odc` (OS-Agnostic)
+
+When updating a machine or workspace from legacy `ods` (v0.1.x) to `odc` (OpenDocify), follow these OS-agnostic steps:
+
+### Step 1: Update CLI Binary & Machine Config (OS-Agnostic)
+- **Bootstrap script (recommended)**:
+  - macOS / Linux: `scripts/bootstrap.sh update`
+  - Windows PowerShell: `scripts/bootstrap.ps1 -Command update`
+- **CLI direct**:
+  - `odc update` (or `ods update`) automatically downloads/installs both `odc` and `ods` binaries to PATH, migrates `~/.ods/` (or `%USERPROFILE%\.ods`) config files to `~/.odc/` (`odcconfig.toml`), rewrites legacy `ods-cli:` -> `odc:` pins on root `index.md`, and cleans up legacy `ods-error.md`.
+
+### Step 2: Upgrade Workspace Root Pins & Machine Registration
+- Run `odc upgrade --write [path]` in the workspace root.
+- This safely rewrites root `index.md` legacy pins (`ods-cli:` -> `odc: ">=0.0.1"`), verifies config migration, and cleans up stale `ods-error.md` reports.
+
+### Step 3: Canonical Frontmatter Layout Migration (Optional)
+- Run `odc ods fmt --migrate [path]` to rewrite legacy flat/out-of-order `ods:` engine keys into the canonical nested `ods:` block (`profile` → `status` → `id` → `share` → `depends`/`related`/`resources`/`code`/`context`).
+
+### Step 4: Verification
+- Verify binary: `odc --version` (returns `odc 0.x.y`) and `ods --version` (legacy argv0 alias).
+- Verify health: `odc doctor [path]` or `odc lint [path]`. Reports write to `.odc/odc-errors.md`.
+
+### Step 5: Final Update & Service Restart
+- Run `odc update` at the end to ensure all binaries, OS service units, and workspace configurations are fully updated and synchronized across processes.
+

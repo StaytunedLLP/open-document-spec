@@ -1,11 +1,6 @@
 ---
-title: "Documentation Overview & Guide Index"
-description: "User guide entry point, topics directory, and learning path for Open Document Spec."
-status: "stable"
-order: 0
-ods:
-  profile: "index"
-  status: "stable"
+profile: "index"
+ods: 
 ---
 
 # Documentation Guide
@@ -23,3 +18,16 @@ Welcome to the Open Document Spec (ODS) User Guide. Choose a topic below to get 
 - [FAQ & Troubleshooting](/docs/faq): Frequently asked questions about file extensions, adoption, profiles vs tags, renames, and background services.
 - [Features](/docs/features): Complete reference for frontmatter keys, root index configuration, profiles vs packs, AI context, and CLI commands.
 - [ROI Calculator](/docs/roi-calculator): Quantifying context reduction, token savings, and ROI with ODS.
+
+- [adoption.md](adoption.md)
+- [advanced.md](advanced.md)
+- [enterprise-deployment.md](enterprise-deployment.md)
+- [faq.md](faq.md)
+- [features.md](features.md)
+- [introduction.md](introduction.md)
+- [profiles.md](profiles.md)
+- [quickstart.md](quickstart.md)
+- [roi-calculator.md](roi-calculator.md)
+- [tooling.md](tooling.md)
+- [troubleshooting-and-diagnostics.md](troubleshooting-and-diagnostics.md)
+- [use-cases/](use-cases/index.md)

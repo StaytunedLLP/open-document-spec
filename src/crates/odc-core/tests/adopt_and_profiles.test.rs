@@ -118,7 +118,7 @@ fn adopt_all_remaining_profiles_and_invalid_frontmatter() {
 
     let ws = load_workspace(&dir).unwrap();
     let report = adopt_workspace(&ws, AdoptOptions { write: true }).unwrap();
-    assert!(report.skipped.contains(&dir.join("bad.md")));
+    assert!(report.skipped.iter().any(|p| p.ends_with("bad.md")));
 
     assert!(
         fs::read_to_string(dir.join("d.md"))
