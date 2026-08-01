@@ -30,27 +30,28 @@ Rules:
 
 - The `profile` field is optional. If omitted, the document defaults to the **Default Profile (`note`)**. On ordinary documents it lives at `ods.profile` inside the nested `ods:` map (position #1 in the canonical key sequence — see `specs/SPEC.md`); only the root `index.md` keeps `profile:` flat at the top level, alongside the other root-only workspace marker keys.
 - **Standard Profiles** are built into the specification and are always available across all ODS workspaces.
-- **Custom Profiles & Profile Catalogs:** Workspaces can declare custom profile catalogs or import reusable **ODS Packs** in the root `index.md` frontmatter:
+- **Custom Profiles & Explicit Registration:** Workspaces declare custom profiles strictly via the **`custom-profiles:`** array in root `index.md` frontmatter, or import reusable **ODS Packs** (`packs:`):
 
 ```yaml
 ---
 profile: index
 ods: 0.1
 odc: ">=0.0.1"
-profiles:
-  - ods-profiles
-  - docs/profiles
+custom-profiles:
+  - docs/profiles/rfc.md
+  - docs/profiles/api_endpoint.md
 packs:
   - vendor/engineering-pack
 ---
 ```
 
+- **Zero Folder Auto-Discovery:** ODS does NOT implicitly scan directories like `ods-profiles/` or `.ods/profiles/`. Custom profile definitions are recognized **strictly** when explicitly declared in `custom-profiles:` or imported ODS Packs.
 - An **ODS Pack** is a versioned repository or directory containing reusable document profiles (`ods-profiles/`), skills (`skills/`), or templates (`templates/`).
 - Remote Git packs (HTTPS, SSH, or shorthand like `user/repo`) are synced by tooling to `~/.odc/packs/` (legacy `~/.ods/packs/` is still read) and referenced in root `index.md`. Local path packs are linked relatively.
-- Profile definitions MUST resolve in the following order of precedence: Standard Profiles, catalog roots listed in root `profiles:`, imported ODS Packs listed in `packs:`, and finally the default `ods-profiles/` directory.
+- Profile definitions MUST resolve in the following order of precedence: Standard Profiles, explicit file paths listed under root `custom-profiles:`, and imported ODS Packs listed in `packs:`.
 - If a profile name is defined in multiple catalogs, tools SHOULD use the first definition loaded and issue a conflict warning. Level-3 workspaces SHOULD treat duplicate profile definitions as validation errors.
 - Profile catalogs are workspace-local utilities. They do not participate in the document graph and SHOULD be excluded from ordinary index listings.
-- Each profile is defined in a Markdown file. The profile's identifier is derived from the file name (excluding the `.md` extension). If a catalog contains an `index.md` file, the profile name is taken from its parent directory name.
+- Each profile is defined in a Markdown file. The profile's identifier is derived from the file `name:` frontmatter field or the file name (excluding `.md`).
 - Second-level headings (`## H2`) in a profile document declare the expected sections. A heading can define multiple alternative names separated by pipes, for example: `## Goal | Objective | Purpose`.
 - A profile catalog file can also specify section-level aliases in its frontmatter using an `aliases:` list.
 - Encountering an unrecognized profile SHOULD produce a warning, and tools SHOULD treat the document as a `note` (the Default Profile) for validation purposes until a definition is provided.

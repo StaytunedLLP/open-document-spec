@@ -570,15 +570,15 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "ef25abbcd74fb2609453eb695bd2f860d389e457f67dc17cafc8b8cbc89d0c33"
 
 [[package]]
-name = "odc"
+name = "ods-cli"
 version = "0.0.12"
 dependencies = [
  "ctrlc",
  "flate2",
  "libc",
  "notify-debouncer-mini",
- "odc-core",
- "odc-test-support",
+ "ods-core",
+ "ods-test-support",
  "sha2",
  "tar",
  "tempfile",
@@ -587,10 +587,10 @@ dependencies = [
 ]
 
 [[package]]
-name = "odc-core"
+name = "ods-core"
 version = "0.0.12"
 dependencies = [
- "odc-test-support",
+ "ods-test-support",
  "rayon",
  "serde",
  "serde_json",
@@ -598,7 +598,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "odc-test-support"
+name = "ods-test-support"
 version = "0.0.12"
 dependencies = [
  "tempfile",
