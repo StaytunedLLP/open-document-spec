@@ -18,7 +18,7 @@ mod tests {
         let dir = temp_workspace();
         fs::write(
             dir.join("index.md"),
-            "---\nprofile: index\nprofiles:\n  - docs/guide/07-examples/ecommerce/ods-profiles\nignore:\n  - skills\n  - src/zed-ods-lsp\nods: 0.1\n---\n\n# Root\n",
+            "---\nprofile: index\ncustom-profiles:\n  - docs/guide/07-examples/ecommerce/ods-profiles/marketing.md\nignore:\n  - skills\n  - src/zed-ods-lsp\nods: 0.1\n---\n\n# Root\n",
         )
         .unwrap();
         fs::write(

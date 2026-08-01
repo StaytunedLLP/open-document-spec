@@ -2,8 +2,9 @@
 profile: index
 ods: 0.1
 odc: ">=0.1.19"
-profiles:
-  - ods-test/ecommerce/ods-profiles
+custom-profiles:
+  - ods-test/ecommerce/ods-profiles/marketing.md
+  - ods-test/ecommerce/ods-profiles/product.md
 ignore:
   - ods-test
   - skills

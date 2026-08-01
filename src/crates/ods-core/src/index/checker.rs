@@ -37,6 +37,17 @@ pub fn render_index(workspace: &Workspace, directory: &Path, existing: Option<&s
     if let Some(odc_pin) = odc_pin {
         out.push_str(&format!("odc: \"{odc_pin}\"\n"));
     }
+    let profiles = if is_root && profiles.is_empty() {
+        workspace
+            .document_by_path(&workspace.root.join("index.md"))
+            .and_then(|doc| match &doc.frontmatter {
+                crate::model::FrontmatterState::Parsed(fm) => Some(fm.profiles.clone()),
+                _ => None,
+            })
+            .unwrap_or(profiles)
+    } else {
+        profiles
+    };
     if !profiles.is_empty() {
         out.push_str("custom-profiles:\n");
         for catalog in &profiles {
