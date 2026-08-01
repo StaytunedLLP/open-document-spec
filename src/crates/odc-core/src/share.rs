@@ -176,4 +176,4 @@ pub fn publish_workspace(
 }
 
 #[cfg(test)]
-include!("share_tests.rs");
+include!("share/tests.rs");

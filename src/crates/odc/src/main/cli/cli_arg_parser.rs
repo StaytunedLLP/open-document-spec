@@ -191,14 +191,14 @@ fn parse_common_flags(
     let mut i = start;
     while i < args.len() {
         match args[i].as_str() {
-            "--level" => {
+            "--mode" | "--level" => {
                 let value = args
                     .get(i + 1)
-                    .ok_or_else(|| usage("missing value for --level"))?;
-                level = match value.as_str() {
-                    "1" => LintLevel::Level1,
-                    "3" => LintLevel::Level3,
-                    other => return Err(usage(format!("invalid --level {other} (use 1 or 3)"))),
+                    .ok_or_else(|| usage("missing value for --mode / --level"))?;
+                level = match value.to_lowercase().as_str() {
+                    "standard" | "1" => LintLevel::Standard,
+                    "strict" | "3" => LintLevel::Strict,
+                    other => return Err(usage(format!("invalid compliance mode '{other}' (use standard or strict)"))),
                 };
                 i += 2;
             }
@@ -219,6 +219,7 @@ fn parse_common_flags(
             }
             "--check"
             | "--write"
+            | "--write-report"
             | "--all"
             | "--adopt"
             | "--status"

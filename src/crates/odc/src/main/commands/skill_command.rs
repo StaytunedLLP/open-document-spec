@@ -180,9 +180,9 @@ globs: ["*.md"]
 
 When editing Markdown files in this project:
 1. **Frontmatter Integrity**: Keep ODS metadata (`profile`, `status`, `share`, `depends`, `related`, `code`) consistent.
-2. **Context Resolution**: Use `ods context <file>` to resolve dependency graphs before sending text to the LLM prompt.
-3. **Automatic Link Repair**: Use `ods mv <src> <dst>` instead of `mv` when renaming or moving documents.
-4. **Validation**: Run `ods lint` to check for broken links and structural compliance.
+2. **Context Resolution**: Use `odc context <file>` to resolve dependency graphs before sending text to the LLM prompt.
+3. **Automatic Link Repair**: Use `odc mv <src> <dst>` instead of `mv` when renaming or moving documents.
+4. **Validation**: Run `odc lint` to check for broken links and structural compliance.
 "#;
 
 const WINDSURF_RULE_TEMPLATE: &str = r#"---
@@ -193,20 +193,20 @@ description: Keep Markdown documentation compliant with Open Document Specs.
 
 When editing Markdown files in this project:
 1. Keep ODS metadata (`profile`, `status`, `share`, `depends`, `related`, `code`) consistent.
-2. Run `ods context <file>` before loading a document's dependency graph into the agent context.
-3. Use `ods mv <src> <dst>` instead of `mv` when renaming or moving documents.
-4. Run `ods lint` to check links and structural compliance.
+2. Run `odc context <file>` before loading a document's dependency graph into the agent context.
+3. Use `odc mv <src> <dst>` instead of `mv` when renaming or moving documents.
+4. Run `odc lint` to check links and structural compliance.
 "#;
 
 const SKILL_BUNDLE: &[(&str, &[u8])] = &[
-    ("SKILL.md", include_bytes!("../../../../../skills/ods/SKILL.md")),
-    ("CHANGELOG.md", include_bytes!("../../../../../skills/ods/CHANGELOG.md")),
-    ("index.md", include_bytes!("../../../../../skills/ods/index.md")),
-    ("evals/evals.json", include_bytes!("../../../../../skills/ods/evals/evals.json")),
-    ("references/index.md", include_bytes!("../../../../../skills/ods/references/index.md")),
-    ("references/non-goals.md", include_bytes!("../../../../../skills/ods/references/non-goals.md")),
-    ("references/spec.md", include_bytes!("../../../../../skills/ods/references/spec.md")),
-    ("scripts/bootstrap.ps1", include_bytes!("../../../../../skills/ods/scripts/bootstrap.ps1")),
-    ("scripts/bootstrap.sh", include_bytes!("../../../../../skills/ods/scripts/bootstrap.sh")),
-    ("scripts/install-from-release.sh", include_bytes!("../../../../../skills/ods/scripts/install-from-release.sh")),
+    ("SKILL.md", include_bytes!("../../../../../../skills/ods/SKILL.md")),
+    ("CHANGELOG.md", include_bytes!("../../../../../../skills/ods/CHANGELOG.md")),
+    ("index.md", include_bytes!("../../../../../../skills/ods/index.md")),
+    ("evals/evals.json", include_bytes!("../../../../../../skills/ods/evals/evals.json")),
+    ("references/index.md", include_bytes!("../../../../../../skills/ods/references/index.md")),
+    ("references/non-goals.md", include_bytes!("../../../../../../skills/ods/references/non-goals.md")),
+    ("references/spec.md", include_bytes!("../../../../../../skills/ods/references/spec.md")),
+    ("scripts/bootstrap.ps1", include_bytes!("../../../../../../skills/ods/scripts/bootstrap.ps1")),
+    ("scripts/bootstrap.sh", include_bytes!("../../../../../../skills/ods/scripts/bootstrap.sh")),
+    ("scripts/install-from-release.sh", include_bytes!("../../../../../../skills/ods/scripts/install-from-release.sh")),
 ];

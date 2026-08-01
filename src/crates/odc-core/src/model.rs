@@ -57,13 +57,22 @@ pub enum Severity {
     Warning,
 }
 
-/// Which validation rules to enforce. Level 1 is frontmatter shape; Level 3 is full graph integrity.
+/// Which validation rules to enforce. Standard mode checks frontmatter shape; Strict mode enforces full graph integrity.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
-pub enum LintLevel {
+pub enum ComplianceMode {
     #[default]
-    Level3,
-    Level1,
+    Strict,
+    Standard,
 }
+
+impl ComplianceMode {
+    #[allow(non_upper_case_globals)]
+    pub const Level3: Self = Self::Strict;
+    #[allow(non_upper_case_globals)]
+    pub const Level1: Self = Self::Standard;
+}
+
+pub type LintLevel = ComplianceMode;
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Diagnostic {
@@ -135,6 +144,8 @@ pub struct ContextSpec {
 pub struct Frontmatter {
     pub profile: Option<String>,
     pub status: Option<String>,
+    pub created: Option<String>,
+    pub updated: Option<String>,
     pub share: Option<String>,
     pub description: Option<String>,
     pub id: Option<String>,

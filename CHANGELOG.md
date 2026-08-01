@@ -9,6 +9,13 @@ GitHub Releases use GitHub’s auto-generated notes. Edit this file by hand when
 
 ## [Unreleased]
 
+### Fixed
+- Hybrid workspaces: bare dual-run only for `lint`/`doctor`/`audit`; other dual-engine bare cmds require `odc ods` / `odc okf`.
+- `odc watch` no longer prints a fake log-stream banner; `odc logs` reads `~/.odc/logs/odc-serve.log`.
+- `odc archive` updates nested `ods.status` as well as flat `status`.
+- `odc coverage --write-report` writes `.odc/coverage.md` (not root `odc-report.md`).
+- CLI/help strings teach product binary `odc` (not primary `ods …`).
+
 ### Breaking
 
 - Root CLI pin key renamed: `ods-cli:` → **`odc:`** (tool is OpenDocify). Spec marker remains `ods:`. OKF remains `okf_version:`.

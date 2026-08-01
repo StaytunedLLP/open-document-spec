@@ -36,6 +36,14 @@ pub fn parse_nested_ods_map(
                 frontmatter.status = scalar_value(rest).map(|s| s.to_lowercase());
                 index += 1;
             }
+            "created" | "created_at" | "date" => {
+                frontmatter.created = scalar_value(rest);
+                index += 1;
+            }
+            "updated" | "last_updated" | "updated_at" => {
+                frontmatter.updated = scalar_value(rest);
+                index += 1;
+            }
             "share" => {
                 frontmatter.share = scalar_value(rest).map(|s| s.to_lowercase());
                 index += 1;

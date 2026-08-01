@@ -103,3 +103,14 @@ fi
 
 run "${ROOT}/src/action/scripts/test-action.sh"
 echo "local checks passed"
+
+# Install script drift (src is source of truth for site copies)
+if ! diff -q "${ROOT}/src/scripts/install.sh" "${ROOT}/app-web/public/install.sh" >/dev/null 2>&1; then
+  echo "warning: app-web/public/install.sh differs from src/scripts/install.sh" >&2
+fi
+if ! diff -q "${ROOT}/src/scripts/install.ps1" "${ROOT}/app-web/public/install.ps1" >/dev/null 2>&1; then
+  echo "warning: app-web/public/install.ps1 differs from src/scripts/install.ps1" >&2
+fi
+if ! diff -q "${ROOT}/src/scripts/install.sh" "${ROOT}/skills/ods/scripts/install-from-release.sh" >/dev/null 2>&1; then
+  echo "warning: skills/ods/scripts/install-from-release.sh differs from src/scripts/install.sh" >&2
+fi

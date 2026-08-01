@@ -47,7 +47,7 @@ WantedBy=default.target
 pub fn render_launchd_plist(label: &str, root: &Path, ods_bin: &Path, log_dir: &Path) -> String {
     let root = abs_display(root);
     let bin = abs_display(ods_bin);
-    let log = abs_display(&log_dir.join("ods-serve.log"));
+    let log = abs_display(&log_dir.join("odc-serve.log"));
     format!(
         r#"<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">

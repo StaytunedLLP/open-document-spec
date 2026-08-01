@@ -11,12 +11,16 @@ description: >-
 
 Native OpenDocify support for [Google Open Knowledge Format v0.2](https://github.com/GoogleCloudPlatform/knowledge-catalog/blob/main/okf/SPEC.md).
 
-## CLI (mandatory namespace)
+## CLI (bare auto-detect + explicit `odc okf`)
+
+Primary UX is **bare** `odc …` (auto-detects OKF from root `okf_version:`). Use **`odc okf …`** to force the OKF engine (recommended in hybrid repos / CI).
 
 ```bash
+odc init --okf [path]         # or: odc okf init
+odc lint [path]               # auto-detect OKF (or ODS) from root markers
 odc okf init [path]           # scaffold okf_version: "0.2" + sample concept
 odc okf init --attested       # + Attested Computation stub
-odc okf lint [path]           # validate concepts (type required)
+odc okf lint [path]           # force OKF validation (type required)
 odc okf index [path]          # progressive disclosure indexes
 odc okf context [path] <id>   # concept + markdown link targets
 odc okf export [path]         # okf-graph.md
@@ -27,8 +31,6 @@ odc okf adopt --write         # draft type/title on plain .md
 odc okf watch [path]          # re-lint on change
 odc okf serve [path]          # headless re-lint poll loop
 ```
-
-Bare `odc lint` seamlessly auto-detects OKF and ODS workspaces; explicit `odc okf …` or `odc ods …` can be used for clarity.
 
 ## Key rules (summary)
 

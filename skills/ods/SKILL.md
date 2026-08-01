@@ -11,6 +11,17 @@ description: >-
 
 # ODS — Open Document Specs
 
+## 0. Glossary (avoid name collisions)
+
+| Term | Meaning |
+|---|---|
+| **OpenDocify / `odc`** | The CLI tool (product binary) |
+| **`ods:` frontmatter** | ODS **format** root/nested keys (never rename to `odc:`) |
+| **`odc ods …`** | Explicit ODS **engine** namespace |
+| **`ods` argv0** | Legacy binary name → always ODS engine |
+
+Day-1: prefer bare `odc <cmd>` (auto-detect). CI/hybrid: `odc ods` / `odc okf`.
+
 ODS is plain Markdown with **optional** YAML frontmatter, kept consistent by one
 Rust binary named `odc` (legacy: `ods`). A **workspace** is any directory tree whose **root
 `index.md` carries an `ods:` key** (e.g. `ods: 0.1`) and `odc:` requirement.
@@ -24,7 +35,7 @@ The **Skill-First approach** is the primary, zero-friction method to install and
 
 Run the bundled cross-platform bootstrap script instead of manually downloading releases:
 
-- `scripts/bootstrap.sh` (macOS / Linux) or `scripts/bootstrap.ps1` (Windows PowerShell) — default flow: auto-detect OS & architecture → install release binary → verify workspace → register & start background OS service → validate health → print confirmation message (`ODS is installed and running now in your machine!` with `odc --version`).
+- `scripts/bootstrap.sh` (macOS / Linux) or `scripts/bootstrap.ps1` (Windows PowerShell) — default flow: auto-detect OS & architecture → install release binary → verify workspace → register & start background OS service → validate health → print confirmation message (`OpenDocify (odc) is installed and running on your machine!` with `odc --version`).
 - `bootstrap.sh install` / `bootstrap.ps1 -Command install` — install latest release binary.
 - `bootstrap.sh update` / `bootstrap.ps1 -Command update` — self-update (`odc update`), reinstall on failure.
 - `bootstrap.sh ensure <path>` / `bootstrap.ps1 -Command ensure -Path <path>` — guarantee the watch service for a workspace.
@@ -33,7 +44,7 @@ Run the bundled cross-platform bootstrap script instead of manually downloading 
 
 Requires GitHub CLI auth (while repo is private): `gh auth login` or `GH_TOKEN`.
 Unauthenticated downloads fail; installer script fetch and asset downloads both require `GH_TOKEN` / `GITHUB_TOKEN`.
-Env knobs: `ODS_PREFIX` (default `~/.local/bin` on Unix, `%LOCALAPPDATA%\Programs\ods` on Windows), `ODS_VERSION` (pin a tag), `ODS_AUTO_UPDATE=0` (disable ~daily auto-update check).
+Env knobs: `ODC_PREFIX` / legacy `ODS_PREFIX` (default `~/.local/bin` on Unix, `%LOCALAPPDATA%\Programs\odc` on Windows), `ODC_VERSION` / `ODS_VERSION`, `ODC_AUTO_UPDATE=0` / `ODS_AUTO_UPDATE=0`.
 
 Most commands silently check for and apply updates in the background unless
 `ODS_AUTO_UPDATE=0` is set. A mutating `odc update` also **restarts the
@@ -64,7 +75,9 @@ Creation is free; promoting a doc to `status: stable` earns Level-3 checks.
 | --- | --- |
 | `profile` | Document kind; defaults to `note` (Default Profile). There is no separate `type`. |
 | `status` | `draft` \| `stable` \| `deprecated` \| `archived` (lowercase). Default `draft`. |
-| `share` | `public` (default, open) \| `org` (currently treated the same as `private` by tooling — no distinct org-only tier yet) \| `private` (excluded from `odc ods context`/`odc ods export` by default). |
+| `created` | Document creation timestamp (`YYYY-MM-DD` or ISO-8601). Optional; for non-Git authors. |
+| `updated` | Document last update timestamp (`YYYY-MM-DD` or ISO-8601). Optional; accepts `last_updated` alias. |
+| `share` | `public` (default, open) \| `org` \| `private` (excluded from `odc context`/`odc export` by default). |
 | `id` | Override the path-derived id (use for rename stability). Usually omitted. |
 | `description` | One-line summary; feeds index listings. |
 | `depends` | IDs this doc requires first (directional; loaded transitively). |
@@ -75,8 +88,8 @@ Creation is free; promoting a doc to `status: stable` earns Level-3 checks.
 | `owner` | Responsible person/team. |
 | `tags` | Free-form lowercase facets; never structural; never required. |
 
-**Root `index.md` only:** `odc` (legacy: `ods`) (spec/schema version), `odc` (CLI
-compatibility requirement), `profiles` (custom
+**Root `index.md` only:** `ods:` (spec/schema version), `odc:` (CLI compatibility
+requirement; replaces legacy `ods-cli:`), `profiles` (custom
 catalog roots), `packs` (imported ODS Packs list), `ignore` (workspace-relative path prefixes excluded from scan),
 `aliases` (section-heading aliases).
 
@@ -154,6 +167,7 @@ Path arg defaults to `.`. Common flags: `--level 1|3` (default 3), `--format tex
 - `odc update` — self-update CLI from GitHub Releases and restart the background user service; `--check` (read-only), `--force`, `--version <tag>`.
 - `odc ods disable [path]` (alias `revert`) — dry-run strip of ODS metadata; `--write` to apply. `--keep-frontmatter`, `--remove-indexes`, `--remove-root-index`.
 - `odc ods adopt [path]` — report adoption status (dry-run); `--write` drafts `profile` + `status: draft`, inferring profile from headings.
+- `odc coverage [path]` — health %; `--write-report` → `.odc/coverage.md` (not lint errors file).
 - `odc lint [path]` / `odc ods lint [path]` — validate; `--level 1|3`, `--format text|json`, `--canonical-refs` (warn on extensionless Document refs). Writes/clears `.odc/odc-errors.md` (legacy root `ods-error.md` is removed when present).
 - `odc ods index [path]` — generate `index.md` files; `--check` exits 1 if stale.
 - `odc ods profiles [path]` — list loaded profiles + conflicts.
@@ -175,7 +189,7 @@ Path arg defaults to `.`. Common flags: `--level 1|3` (default 3), `--format tex
 - `odc ods fmt --migrate [path]` — also rewrite legacy flat/out-of-order `ods:` engine keys into the canonical nested `ods:` block (`profile` → `status` → `id` → `share` → `depends`/`related`/`resources`/`code`/`context`). Opt-in.
 - `odc ods sync [path]` — reconcile git-tracked renames (`git status --porcelain`) + rewrite refs.
 - `odc ods watch [path]` — foreground live rename mapping + re-lint. Blocks the terminal; use for interactive sessions, not background automation.
-- `odc ods logs [path] [-f]` — currently an **alias for `odc ods watch`**; it does not tail the background service's log output despite the name.
+- `odc ods logs [path] [-f]` — shows background service logs under `~/.odc/logs/odc-serve.log` (`-f` follows); not a watch alias.
 - `odc ods start [path]` — register + start the persistent background user service (systemd/launchd/scheduled task running `odc ods serve`). Prefer this over running `odc ods serve` directly for anything long-lived.
 - `odc ods start --status [path]` — read-only: print `installed=`/`running=` service state; use this to poll instead of guessing.
 - `odc ods stop [path]` — stop the running service (keeps registration).
@@ -209,15 +223,16 @@ or stale, run `odc setup <path>` to repair it before `lint`/`index`/`start`.
   (`odc ods start` / `odc ods watch`) or offline moves (`odc ods mv`).
 
 **Common flows:**
-- Adopt an existing tree: `odc ods adopt --write` → `odc ods lint --level 1` (tighten toward Level 3 over time).
-- New/maintained workspace: `odc ods init` → `odc ods start` → edit & rename freely → `odc ods lint` → `odc ods export` / `odc ods context` → `odc ods doctor`.
+- Adopt an existing tree: `odc adopt --write` → `odc lint --level 1` (or `odc ods …` in CI).
+- New/maintained workspace: `odc init` → `odc start` → edit & rename freely → `odc lint` → `odc export` / `odc context` → `odc doctor`.
+- Hybrid root: bare `odc lint|doctor|audit` runs both engines; other dual-engine cmds need `odc ods` / `odc okf`.
 - Refactor: with `start`/`watch` on, renames map automatically; otherwise `odc ods mv` (offline) or `odc ods sync` (after a git rename).
 - Feed an agent: prefer `odc ods context <id>` (bounded) over full `odc ods export`.
 
 **Workspace Migration Guidelines:**
 1. **Document-Relative Code Paths:** `code[].path` in document frontmatter is evaluated relative to the document file location (e.g. `../../src/...` for 1 level down, `../../../src/...` for 2 levels down).
 2. **Excluding Legacy Content:** Exclude legacy folders containing unmaintained external links by setting `ignore: [changelog/, plan/, reports/, research/]` in root `index.md` frontmatter.
-3. **NPM Integration:** Expose `"docs:lint": "ods lint docs --level 3"`, `"docs:index-check": "ods index docs --check"`, and `"docs:doctor": "ods doctor docs"` in `package.json`.
+3. **NPM Integration:** Expose `"docs:lint": "odc lint docs --level 3"`, `"docs:index-check": "odc index docs --check"`, and `"docs:doctor": "odc doctor docs"` in `package.json` (or `odc ods …` for explicit ODS CI).
 *(Note: Case-insensitive reference lookups and index prose preservation are handled natively by the ODS CLI binary via PR #14).*
 
 **Troubleshooting & Health Diagnostics:**

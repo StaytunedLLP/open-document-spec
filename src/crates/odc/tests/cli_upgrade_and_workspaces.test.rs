@@ -64,7 +64,11 @@ fn update_and_ods_update_subcommands() {
         .args(["ods", "update", "--check"])
         .output()
         .unwrap();
-    assert!(out.status.success() || out.status.code() == Some(1), "{:?}", out);
+    assert!(
+        out.status.success() || out.status.code() == Some(1),
+        "{:?}",
+        out
+    );
 
     // odc ods upgrade
     let out = Command::new(odc_bin())

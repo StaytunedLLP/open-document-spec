@@ -1,6 +1,11 @@
 ---
-profile: "index"
-ods: 
+title: "Documentation Guide"
+description: "Open Document Spec user guide index."
+status: "stable"
+order: 0
+ods:
+  profile: "index"
+  status: "stable"
 ---
 
 # Documentation Guide

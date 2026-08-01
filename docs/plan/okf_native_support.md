@@ -36,8 +36,8 @@ odc ods lint     # force ODS engine
 | Question | Answer |
 |---|---|
 | Support OKF natively? | **Yes** — `odc-core` |
-| Invoke OKF | **`odc okf <command>`** (mandatory) |
-| Invoke ODS | **`odc ods <command>`** (mandatory) |
+| Invoke OKF | Bare auto-detect **or** **`odc okf <command>`** (force) |
+| Invoke ODS | Bare auto-detect **or** **`odc ods <command>`** (force) |
 | Keys | **All OKF v0.2** frontmatter + bundle conventions |
 | Out of scope v1 | Execute executors/attesters, receipt wire protocol, attester sandbox |
 

@@ -1,0 +1,87 @@
+---
+title: "Enterprise Deployment and Governance Guide"
+description: "Enterprise ODS Pack distribution, multi-repo governance, CI/CD pipelines, security controls, and ROI modeling."
+status: "stable"
+order: 8
+ods:
+  profile: "note"
+  status: "stable"
+---
+
+# Enterprise Deployment and Governance Guide
+
+This guide describes patterns for deploying and governing Open Document Spec (ODS) across enterprise engineering organizations, scaling from single repositories to multi-repo monorepos and thousands of developers.
+
+---
+
+## 1. Enterprise ODS Pack Architecture & Distribution
+
+An **ODS Pack** is a reusable workspace bundle containing custom document profiles (`ods-profiles/`), AI agent skills (`skills/`), standard operating procedures (SOPs), and architectural guidelines.
+
+### Creating a Company-Wide Pack (`odc pack init`)
+
+```bash
+odc pack init acme-engineering-pack
+cd acme-engineering-pack
+```
+
+This scaffolds the canonical ODS Pack layout:
+```text
+acme-engineering-pack/
+├── index.md                 # ODS workspace root marker
+├── ods-profiles/            # Custom YAML schema definitions
+│   ├── rfc.md
+│   └── postmortem.md
+└── skills/                  # AI agent skills and prompts
+    └── security-audit/
+        └── SKILL.md
+```
+
+### Hosting & Distributing Packs via Private Git Repositories
+
+```bash
+odc pack add git@github.com:acme-org/engineering-pack.git --auto-update daily
+```
+
+This clones the pack into `vendor/engineering-pack` and appends `- vendor/engineering-pack` to the project's root `index.md` `packs:` key.
+
+---
+
+## 2. Security, Access Control & Data Isolation (`share` Cascading)
+
+Ods provides **3-Tier Visibility Control** (`share: public | org | private`):
+
+| Share Level | Meaning | AI Context (`odc ods context`) | Graph Snapshot (`odc ods export`) | Directory Export (`odc ods share`) |
+| :--- | :--- | :--- | :--- | :--- |
+| **`public`** (default) | Open documentation | Included | Included | Copied to output directory |
+| **`org`** | Internal team documentation | Excluded by default | Excluded by default | Excluded by default (use `--include-org`) |
+| **`private`** | Strictly confidential IP & secrets | Excluded by default | Excluded by default | Excluded by default (use `--include-private`) |
+
+---
+
+## 3. Production CI/CD Pipelines & Quality Gates
+
+Enforce Level-3 specification compliance and graph integrity across all pull requests (PRs) using continuous integration.
+
+```yaml
+name: ODS Compliance & Graph Integrity
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  ods-check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v7
+
+      - name: Check Index Lockfile Freshness
+        run: odc ods index --check
+
+      - name: Level-3 Graph & Schema Linting
+        run: odc ods lint --level 3
+```

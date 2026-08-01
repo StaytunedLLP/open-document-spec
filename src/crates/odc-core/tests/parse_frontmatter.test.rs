@@ -201,3 +201,22 @@ ignore:
     assert_eq!(fm.profiles, vec!["ods-profiles".to_string()]);
     assert_eq!(fm.ignore, vec!["src".to_string(), "apps/web".to_string()]);
 }
+
+#[test]
+fn parse_created_and_updated_timestamps() {
+    let root = PathBuf::from("/ws");
+    let text = r#"---
+profile: note
+created: 2026-07-31
+last_updated: 2026-07-31T17:00:00Z
+---
+
+# Doc
+"#;
+    let doc = parse_document_text(&root, root.join("doc.md"), text, true);
+    let FrontmatterState::Parsed(fm) = doc.frontmatter else {
+        panic!("parse failed");
+    };
+    assert_eq!(fm.created.as_deref(), Some("2026-07-31"));
+    assert_eq!(fm.updated.as_deref(), Some("2026-07-31T17:00:00Z"));
+}

@@ -144,6 +144,7 @@ fn is_ods_document_command(cmd: &str) -> bool {
             | "bench"
             | "sandbox"
             | "audit"
+            | "coverage"
     )
 }
 

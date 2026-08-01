@@ -139,6 +139,26 @@ fn lint_document(
                 });
             }
 
+            if let Some(created) = &frontmatter.created {
+                if !is_valid_date_str(created) {
+                    diagnostics.push(Diagnostic {
+                        path: document.path.clone(),
+                        severity: Severity::Warning,
+                        message: format!("invalid created date format: '{created}' (expected YYYY-MM-DD or ISO-8601)"),
+                    });
+                }
+            }
+
+            if let Some(updated) = &frontmatter.updated {
+                if !is_valid_date_str(updated) {
+                    diagnostics.push(Diagnostic {
+                        path: document.path.clone(),
+                        severity: Severity::Warning,
+                        message: format!("invalid updated date format: '{updated}' (expected YYYY-MM-DD or ISO-8601)"),
+                    });
+                }
+            }
+
             let profile = frontmatter.profile.as_deref().unwrap_or("note");
             if !workspace.profiles.definitions.contains_key(profile) {
                 diagnostics.push(Diagnostic {
@@ -208,4 +228,21 @@ fn lint_profile_sections(
 ) -> Vec<Diagnostic> {
     let aliases = workspace_aliases(workspace);
     lint_profile_sections_with_aliases(document, workspace, profile, &aliases)
+}
+
+fn is_valid_date_str(s: &str) -> bool {
+    let s = s.trim();
+    if s.len() < 8 {
+        return false;
+    }
+    let date_part = s.split('T').next().unwrap_or(s).split(' ').next().unwrap_or(s);
+    let parts: Vec<&str> = date_part.split('-').collect();
+    if parts.len() == 3 {
+        parts[0].len() == 4
+            && parts[0].parse::<u32>().is_ok()
+            && parts[1].parse::<u32>().is_ok()
+            && parts[2].parse::<u32>().is_ok()
+    } else {
+        false
+    }
 }
