@@ -1,5 +1,4 @@
 ---
-title: "Advanced Usage & Workspaces"
 description: "AI agent reading patterns, multi-workspace tracking, daemon execution modes, and large workspaces."
 status: "stable"
 order: 6
@@ -25,34 +24,34 @@ That gives agents a deterministic path instead of a broad scan.
 Use the CLI to debug the resolution:
 
 ```bash
-odc ods context path/to/doc.md
+ods context path/to/doc.md
 ```
 
 ---
 
-## Global Multi-Workspace Tracking (`odc workspaces`)
+## Global Multi-Workspace Tracking (`ods workspaces`)
 
-ODS background daemons (`odc serve` / `odc ods serve`) monitor multiple repositories registered in the user's global machine configuration file (`~/.odc/odcconfig.toml`):
+ODS background daemons (`ods serve` / `ods serve`) monitor multiple repositories registered in the user's global machine configuration file (`~/.ods/odcconfig.toml`):
 
 ```bash
 # Register a workspace for background tracking
-odc workspaces add /path/to/my-project
+ods workspaces add /path/to/my-project
 
 # List all tracked workspaces and pack entries
-odc workspaces list
+ods workspaces list
 
 # Remove a workspace from tracking
-odc workspaces remove /path/to/my-project
+ods workspaces remove /path/to/my-project
 
-# Print machine config file path (~/.odc/odcconfig.toml)
-odc workspaces path
+# Print machine config file path (~/.ods/odcconfig.toml)
+ods workspaces path
 ```
 
 ---
 
-## Daemon Execution Modes & Memory Tuning (`odc ods serve`)
+## Daemon Execution Modes & Memory Tuning (`ods serve`)
 
-`odc ods serve` supports three execution modes for handling filesystem updates across workspaces:
+`ods serve` supports three execution modes for handling filesystem updates across workspaces:
 
 1. **`auto`** (default): Automatically selects `watch` mode, unless `ODS_LOW_MEMORY=1` is set in the environment, in which case it uses `poll` mode.
 2. **`watch`**: Real-time OS event watcher (fsnotify/kqueue/inotify) for immediate rename mapping and index regeneration.
@@ -60,7 +59,7 @@ odc workspaces path
 
 ```bash
 # Low-memory polling configuration with RSS memory diagnostics
-ODS_LOW_MEMORY=1 ODS_POLL_SECS=30 odc ods serve --mode poll --memory-report --root .
+ODS_LOW_MEMORY=1 ODS_POLL_SECS=30 ods serve --mode poll --memory-report --root .
 ```
 
 ---
@@ -71,7 +70,7 @@ Guidance for tens of thousands of Markdown files:
 
 - Keep profiles small; put custom catalogs in `ods-profiles/` or listed `profiles:` roots.
 - Prefer path-derived IDs; pin explicit `id:` only when renames must not break external refs.
-- Run `odc ods index --check` and `odc ods lint` in CI rather than trusting hand-edited maps.
+- Run `ods index --check` and `ods lint` in CI rather than trusting hand-edited maps.
 - Use `--level 1` while onboarding noisy trees; enable body-link and graph checks at Level 3 when ready.
 - Tooling skips `node_modules`, `target`, and similar trees by default and may honor `.gitignore`.
 - Exclude implementation trees with root `ignore:` (for example `src`).

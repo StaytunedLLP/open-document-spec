@@ -1,5 +1,5 @@
 pub fn render_index(workspace: &Workspace, directory: &Path, existing: Option<&str>) -> String {
-    let (title, profile, ods, odc_pin, profiles, packs, ignore) = existing
+    let (title, profile, ods, profiles, packs, ignore) = existing
         .and_then(extract_title_and_meta)
         .unwrap_or_else(|| default_index_header(directory, workspace));
     let entries = directory_children(workspace, directory);
@@ -12,11 +12,6 @@ pub fn render_index(workspace: &Workspace, directory: &Path, existing: Option<&s
         ods.or_else(|| Some(crate::model::current_ods_spec_version().to_string()))
     } else {
         ods
-    };
-    let odc_pin = if is_root {
-        odc_pin.or_else(|| Some(crate::model::current_odc_requirement()))
-    } else {
-        odc_pin
     };
     let ignore = if is_root && ignore.is_empty() {
         workspace.ignore.clone()
@@ -33,9 +28,6 @@ pub fn render_index(workspace: &Workspace, directory: &Path, existing: Option<&s
     out.push_str(&format!("profile: {profile}\n"));
     if let Some(ods) = ods {
         out.push_str(&format!("ods: {ods}\n"));
-    }
-    if let Some(odc_pin) = odc_pin {
-        out.push_str(&format!("odc: \"{odc_pin}\"\n"));
     }
     let profiles = if is_root && profiles.is_empty() {
         workspace
@@ -217,11 +209,10 @@ fn is_referenced_resource(workspace: &Workspace, path: &Path) -> bool {
 #[allow(clippy::type_complexity)]
 fn extract_title_and_meta(
     existing: &str,
-) -> Option<(String, String, Option<String>, Option<String>, Vec<String>, Vec<String>, Vec<String>)> {
+) -> Option<(String, String, Option<String>, Vec<String>, Vec<String>, Vec<String>)> {
     let mut title = None::<String>;
     let mut profile = None::<String>;
     let mut ods = None::<String>;
-    let mut odc_pin = None::<String>;
     let mut profiles = Vec::<String>::new();
     let mut packs = Vec::<String>::new();
     let mut ignore = Vec::<String>::new();
@@ -242,7 +233,6 @@ fn extract_title_and_meta(
                 match key.trim() {
                     "profile" => profile = Some(value.trim().to_string()),
                     "ods" => ods = Some(value.trim().to_string()),
-                    "odc" => odc_pin = Some(unquote_index_value(value.trim())),
                     "profiles" | "custom-profiles" | "packs" | "ignore" => {}
                     _ => {}
                 }
@@ -273,7 +263,6 @@ fn extract_title_and_meta(
         title.unwrap_or_else(|| "Index".to_string()),
         profile.unwrap_or_else(|| "index".to_string()),
         ods,
-        odc_pin,
         profiles,
         packs,
         ignore,

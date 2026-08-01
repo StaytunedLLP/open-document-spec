@@ -2,15 +2,15 @@
 profile: index
 ---
 
-# odc (CLI crate)
+# ods (CLI crate)
 
-Primary binary **`odc`** and legacy argv0 **`ods`**.
+Primary binary **`ods`** and legacy argv0 **`ods`**.
 
 ## Source layout
 
 ```
 src/
-  main.rs              # odc entry
+  main.rs              # ods entry
   ods_main.rs          # ods entry (same includes)
   main/
     cli/               # entry, dispatch, argv, exit codes

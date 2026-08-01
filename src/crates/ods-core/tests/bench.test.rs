@@ -84,8 +84,8 @@ fn test_bench_strip_full_and_restore_roundtrip() {
 
     // Create error artifact
     let error_content = "error: dangling link";
-    fs::create_dir_all(root.join(".odc")).unwrap();
-    fs::write(root.join(".odc/odc-errors.md"), error_content).unwrap();
+    fs::create_dir_all(root.join(".ods")).unwrap();
+    fs::write(root.join(".ods/ods-errors.md"), error_content).unwrap();
 
     // Run bench strip --full
     let strip_report = bench_strip_workspace(
@@ -110,7 +110,7 @@ fn test_bench_strip_full_and_restore_roundtrip() {
     assert!(!profiles_dir.join("custom.md").exists());
 
     // Verify error artifact was deleted
-    assert!(!root.join(".odc/odc-errors.md").exists());
+    assert!(!root.join(".ods/ods-errors.md").exists());
 
     // Verify doc.md frontmatter was stripped
     let stripped_doc = fs::read_to_string(sub_dir.join("doc.md")).unwrap();
@@ -138,10 +138,10 @@ fn test_bench_strip_full_and_restore_roundtrip() {
         profile_content
     );
 
-    // Verify lint report was restored under .odc/
-    assert!(root.join(".odc/odc-errors.md").exists());
+    // Verify lint report was restored under .ods/
+    assert!(root.join(".ods/ods-errors.md").exists());
     assert_eq!(
-        fs::read_to_string(root.join(".odc/odc-errors.md")).unwrap(),
+        fs::read_to_string(root.join(".ods/ods-errors.md")).unwrap(),
         error_content
     );
 

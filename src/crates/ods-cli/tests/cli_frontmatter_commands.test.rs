@@ -38,7 +38,7 @@ fn setup_help_lists_setup_behavior() {
     assert!(out.status.success(), "{:?}", out);
     let stdout = String::from_utf8_lossy(&out.stdout);
     assert!(
-        stdout.contains("odc setup") || stdout.contains("ods setup"),
+        stdout.contains("ods setup") || stdout.contains("ods setup"),
         "{stdout}"
     );
     assert!(stdout.contains("doctor"), "{stdout}");
@@ -53,7 +53,7 @@ fn workspaces_help_lists_subcommands() {
     assert!(out.status.success(), "{:?}", out);
     let stdout = String::from_utf8_lossy(&out.stdout);
     assert!(
-        stdout.contains("odc workspaces") || stdout.contains("ods workspaces"),
+        stdout.contains("ods workspaces") || stdout.contains("ods workspaces"),
         "{stdout}"
     );
     assert!(stdout.contains("add"), "{stdout}");
@@ -78,8 +78,8 @@ fn setup_outside_workspace_prompts_to_run_init() {
     assert!(stdout.contains("no ODS workspace found"), "{stdout}");
     assert!(
         stdout.contains("run 'ods init")
-            || stdout.contains("run 'odc init")
-            || stdout.contains("odc init"),
+            || stdout.contains("run 'ods init")
+            || stdout.contains("ods init"),
         "{stdout}"
     );
     assert!(!dir.path().join("index.md").exists());
@@ -107,11 +107,11 @@ fn setup_inside_workspace_runs_doctor_without_test_service_start() {
     assert!(stdout.contains("service"), "{stdout}");
     assert!(stdout.contains("doctor"), "{stdout}");
     assert!(
-        stdout.contains("odc version") || stdout.contains("ods cli version"),
+        stdout.contains("ods version") || stdout.contains("ods cli version"),
         "{stdout}"
     );
     assert!(stdout.contains("root ods spec"), "{stdout}");
-    assert!(stdout.contains("root odc"), "{stdout}");
+    assert!(stdout.contains("root ods"), "{stdout}");
 }
 
 #[test]
@@ -133,10 +133,6 @@ fn setup_updates_stale_root_ods_version() {
 
     let root = fs::read_to_string(dir.join("index.md")).unwrap();
     assert!(root.contains("ods: 0.1"), "{root}");
-    assert!(
-        root.contains(&format!("odc: \">={}\"", env!("CARGO_PKG_VERSION"))),
-        "{root}"
-    );
     assert!(!root.contains("ods: draft-1"), "{root}");
 }
 

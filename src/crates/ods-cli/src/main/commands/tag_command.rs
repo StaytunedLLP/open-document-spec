@@ -2,7 +2,7 @@ fn run_tag_command(args: &[String]) -> Result<ExitCode, CliError> {
     let sub = args
         .get(2)
         .map(String::as_str)
-        .ok_or_else(|| usage("usage: odc tag rename <old> <new> [--write] [path]"))?;
+        .ok_or_else(|| usage("usage: ods tag rename <old> <new> [--write] [path]"))?;
     match sub {
         "rename" => {
             let write = args.iter().any(|a| a == "--write");
@@ -53,7 +53,7 @@ fn run_tag_command(args: &[String]) -> Result<ExitCode, CliError> {
                 ),
                 _ => {
                     return Err(usage(
-                        "usage: odc tag rename [path] <old> <new> [--write]",
+                        "usage: ods tag rename [path] <old> <new> [--write]",
                     ));
                 }
             };

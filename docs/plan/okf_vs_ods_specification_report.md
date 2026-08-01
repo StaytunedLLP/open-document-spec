@@ -2,15 +2,15 @@
 profile: decision
 status: stable
 share: public
-description: "Comprehensive Comparison Report: OKF v0.2 vs. ODS — Unique Features, Architectural Differences, and Unified ODC CLI Routing."
+description: "Comprehensive Comparison Report: OKF v0.2 vs. ODS — Unique Features, Architectural Differences, and Unified ODS CLI Routing."
 owner: team:opendocify
-tags: [ods, okf, spec, comparison, architecture, odc, report]
+tags: [ods, okf, spec, comparison, architecture, ods, report]
 ---
 
 # Specification Comparison Report: OKF v0.2 vs. ODS (Open Document Spec)
 
 ## Executive Summary
-This document provides a detailed comparative analysis of **OKF v0.2** (`docs/specs/okf-0.2.md`) and **ODS (Open Document Spec WD 1)** (`specs/`). It highlights what is unique to each specification, why each exists, how they differ structurally, and how the unified **`odc` CLI** routes and supports both formats natively.
+This document provides a detailed comparative analysis of **OKF v0.2** (`docs/specs/okf-0.2.md`) and **ODS (Open Document Spec WD 1)** (`specs/`). It highlights what is unique to each specification, why each exists, how they differ structurally, and how the unified **`ods` CLI** routes and supports both formats natively.
 
 ---
 
@@ -21,8 +21,8 @@ This document provides a detailed comparative analysis of **OKF v0.2** (`docs/sp
 | **Primary Domain** | **Software Systems & Codebase Engineering** | **Business Knowledge, Data Assets & Metrics** |
 | **Target Audience** | Software engineers, architects, coding agents | Data engineers, analysts, on-call responders, AI analytical agents |
 | **Core Problem Solved** | Documenting system architecture, APIs, RFCs, and code bindings into a queryable graph | Establishing provenance, trust, freshness, and execution attestation for data & metrics |
-| **Root Marker** | `ods: 0.1` and `odc: ">=x.y.z"` in root `index.md` | `okf_version: "0.2"` in root `index.md` |
-| **CLI Tooling** | `odc` / `odc ods` | `odc` / `odc okf` |
+| **Root Marker** | `ods: 0.1` and `ods: ">=x.y.z"` in root `index.md` | `okf_version: "0.2"` in root `index.md` |
+| **CLI Tooling** | `ods` / `ods ods` | `ods` / `ods okf` |
 
 ---
 
@@ -81,7 +81,7 @@ ODS directly maps documentation nodes to source code files, functions, and class
 ### 4. Structural Profile H2 Section Validation
 Profiles (`feature`, `guide`, `api`, `architecture`, `decision`, `sop`, `policy`, `meeting`, `faq`, `checklist`) enforce expected `## H2` headings and section aliases.
 
-### 5. Deterministic Context Assembly (`odc context <id>`)
+### 5. Deterministic Context Assembly (`ods context <id>`)
 ODS resolves bounded reading lists for AI agents by expanding `depends` edges up to `max-depth` and extracting specified `code` and `resources`.
 
 ---
@@ -120,16 +120,16 @@ Defines `log.md` as a reserved filename for date-grouped ISO 8601 update changel
 | **Trust & Provenance** | Basic lifecycle `status` | `generated`, `verified`, `sources`, `stale_after` |
 | **Attested Computation** | Not included | Native (`runtime`, `executor`, `attester`) |
 | **Reserved Files** | Standard `.md` documents | `index.md` (directory) & `log.md` (changelog) |
-| **CLI Validation** | `odc ods lint` / `odc lint` | `odc okf lint` / `odc lint` |
-| **Audit & Coverage** | `odc audit` / `odc coverage` | `odc okf audit` / `odc coverage` |
+| **CLI Validation** | `ods ods lint` / `ods lint` | `ods okf lint` / `ods lint` |
+| **Audit & Coverage** | `ods audit` / `ods coverage` | `ods okf audit` / `ods coverage` |
 
 ---
 
-## 6. How the Unified `odc` Binary Handles Both
+## 6. How the Unified `ods` Binary Handles Both
 
-The single `odc` binary natively supports both specifications through a **Unified Spec Key Descriptor Engine**:
-1. **Auto-Detection**: `odc` inspects the root `index.md` for `ods:` or `okf_version:`.
+The single `ods` binary natively supports both specifications through a **Unified Spec Key Descriptor Engine**:
+1. **Auto-Detection**: `ods` inspects the root `index.md` for `ods:` or `okf_version:`.
 2. **Command Routing**:
-   - `odc lint` automatically applies ODS or OKF rules based on detected root markers.
-   - Explicit subcommands (`odc ods lint` vs `odc okf lint`) force spec-specific evaluation.
-3. **Universal Operations**: `odc coverage`, `odc audit`, and `odc find` operate seamlessly across both formats using shared frontmatter AST parsing.
+   - `ods lint` automatically applies ODS or OKF rules based on detected root markers.
+   - Explicit subcommands (`ods ods lint` vs `ods okf lint`) force spec-specific evaluation.
+3. **Universal Operations**: `ods coverage`, `ods audit`, and `ods find` operate seamlessly across both formats using shared frontmatter AST parsing.

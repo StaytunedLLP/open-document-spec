@@ -44,7 +44,7 @@ import { REPO_URL } from "../lib/releases";
           </div>
         </div>
         <div class="hero-cmd-box">
-          <code>$ odc context docs/guide/01-introduction.md</code>
+          <code>$ ods context docs/guide/01-introduction.md</code>
         </div>
       </div>
 
@@ -74,7 +74,7 @@ import { REPO_URL } from "../lib/releases";
             Link your text pages directly to specific functions, rules, or testing files inside your program code.
           </p>
           <div class="row-cmd">
-            <code>$ odc context src/storage/db.rs</code>
+            <code>$ ods context src/storage/db.rs</code>
           </div>
         </div>
         <div class="row-visual">
@@ -103,7 +103,7 @@ ods:
             No hidden databases or complex formats. ODS works on top of simple, standard text files (.md) with clean labels at the top. You own your files forever.
           </p>
           <div class="row-cmd">
-            <code>$ odc init</code>
+            <code>$ ods init</code>
           </div>
         </div>
         <div class="row-visual">
@@ -111,7 +111,7 @@ ods:
             <div class="code-box-title">Root index.md</div>
             <pre class="theme-code"><code>---
 ods: 0.1
-odc: ">=0.0.8"
+ods: ">=0.0.8"
 profiles:
   - spec
   - guide
@@ -176,7 +176,7 @@ profiles:
             Plugs straight into Claude Code, Antigravity, Cursor, Windsurf, and other AI systems as a helper skill.
           </p>
           <div class="row-cmd">
-            <code>$ odc context --json</code>
+            <code>$ ods context --json</code>
           </div>
         </div>
         <div class="row-visual">
@@ -198,7 +198,7 @@ profiles:
             Adopt ODS at your own pace: from zero-setup plain Markdown (Level 0) to mapped document boundaries (Level 1), standard templates and labels (Level 2), and automated link verification (Level 3).
           </p>
           <div class="row-cmd">
-            <code>$ odc index --check</code>
+            <code>$ ods index --check</code>
           </div>
         </div>
         <div class="row-visual">
@@ -337,13 +337,13 @@ profiles:
             Import your existing text files in seconds. The <code>ods adopt</code> tool automatically sets up labels for all your files so you don't have to edit them manually.
           </p>
           <div class="row-cmd">
-            <code>$ odc adopt docs/</code>
+            <code>$ ods adopt docs/</code>
           </div>
         </div>
         <div class="row-visual">
           <div class="code-box-wrapper">
             <div class="code-box-title">CLI Terminal Log</div>
-            <pre class="theme-code"><code>$ odc adopt docs/
+            <pre class="theme-code"><code>$ ods adopt docs/
 ✓ Scanned 148 Markdown files
 ✓ Generated document templates and labels
 ✓ Created root project index</code></pre>
@@ -360,7 +360,7 @@ profiles:
             Avoid expensive search database hosting and errors. ODS delivers highly accurate reading lists to your AI by using the direct connections you specify.
           </p>
           <div class="row-cmd">
-            <code>$ odc graph --format dot</code>
+            <code>$ ods graph --format dot</code>
           </div>
         </div>
         <div class="row-visual">
@@ -429,13 +429,13 @@ profiles:
             View estimated savings and cost reductions across your team using the built-in stats command.
           </p>
           <div class="row-cmd">
-            <code>$ odc bench stats</code>
+            <code>$ ods bench stats</code>
           </div>
         </div>
         <div class="row-visual">
           <div class="code-box-wrapper">
             <div class="code-box-title">ods bench stats</div>
-            <pre class="theme-code"><code>$ odc bench stats
+            <pre class="theme-code"><code>$ ods bench stats
 ✓ Workspace Files: 240 docs
 ✓ Word Savings: 94.97%
 ✓ Estimated Annual Savings: $34,800</code></pre>
@@ -452,13 +452,13 @@ profiles:
             Search, filter, and rename labels across all your documents with a single quick command.
           </p>
           <div class="row-cmd">
-            <code>$ odc tag rename old-tag new-tag</code>
+            <code>$ ods tag rename old-tag new-tag</code>
           </div>
         </div>
         <div class="row-visual">
           <div class="code-box-wrapper">
             <div class="code-box-title">Bulk Label Rename</div>
-            <pre class="theme-code"><code>$ odc tag rename deprecated legacy
+            <pre class="theme-code"><code>$ ods tag rename deprecated legacy
 ✓ Updated 38 files in 12ms</code></pre>
           </div>
         </div>

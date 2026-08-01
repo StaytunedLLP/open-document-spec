@@ -48,7 +48,7 @@ fn okf_init_lint_audit() {
         .output()
         .unwrap();
     assert!(out.status.success(), "{:?}", out);
-    assert!(dir.path().join(".odc/odc-errors.md").exists());
+    assert!(dir.path().join(".ods/ods-errors.md").exists());
 }
 
 #[test]
@@ -56,12 +56,12 @@ fn ods_namespace_init_lint() {
     let dir = tempdir().unwrap();
     let path = dir.path().to_str().unwrap();
     let st = Command::new(odc_bin())
-        .args(["ods", "init", path])
+        .args(["init", path])
         .status()
         .unwrap();
     assert!(st.success());
     let out = Command::new(odc_bin())
-        .args(["ods", "lint", path])
+        .args(["lint", path])
         .output()
         .unwrap();
     assert!(out.status.success(), "{:?}", out);
@@ -112,7 +112,7 @@ fn agents_sync_writes_agents_md() {
     let path = dir.path().to_str().unwrap();
     assert!(
         Command::new(odc_bin())
-            .args(["ods", "init", path])
+            .args(["init", path])
             .status()
             .unwrap()
             .success()
@@ -187,7 +187,7 @@ fn hybrid_bare_lint_runs_both_engines() {
     let path = dir.path().to_str().unwrap();
     assert!(
         Command::new(odc_bin())
-            .args(["ods", "init", path])
+            .args(["init", path])
             .status()
             .unwrap()
             .success()
@@ -210,7 +210,7 @@ fn hybrid_bare_lint_runs_both_engines() {
         String::from_utf8_lossy(&out.stderr)
     );
     assert!(
-        !combined.contains("Bare `odc lint` is ambiguous"),
+        !combined.contains("Bare `ods lint` is ambiguous"),
         "{combined}"
     );
 }
@@ -244,7 +244,7 @@ fn coverage_write_report_goes_under_dot_odc() {
     let path = dir.path().to_str().unwrap();
     assert!(
         Command::new(odc_bin())
-            .args(["ods", "init", path])
+            .args(["init", path])
             .status()
             .unwrap()
             .success()
@@ -254,8 +254,8 @@ fn coverage_write_report_goes_under_dot_odc() {
         .output()
         .unwrap();
     assert!(out.status.success(), "{:?}", out);
-    assert!(dir.path().join(".odc/coverage.md").exists());
-    assert!(!dir.path().join("odc-report.md").exists());
+    assert!(dir.path().join(".ods/coverage.md").exists());
+    assert!(!dir.path().join("ods-report.md").exists());
 }
 
 #[test]
@@ -264,7 +264,7 @@ fn archive_updates_nested_ods_status() {
     let path = dir.path().to_str().unwrap();
     assert!(
         Command::new(odc_bin())
-            .args(["ods", "init", path])
+            .args(["init", path])
             .status()
             .unwrap()
             .success()

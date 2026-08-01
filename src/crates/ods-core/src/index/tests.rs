@@ -28,18 +28,10 @@ mod tests {
         .unwrap();
 
         let ws = load_workspace(&dir).unwrap();
-        let rendered = render_index(
+        let _rendered = render_index(
             &ws,
             &ws.root,
             Some(&fs::read_to_string(dir.join("index.md")).unwrap()),
-        );
-
-        assert!(
-            rendered.contains(&format!(
-                "odc: \"{}\"",
-                crate::model::current_odc_requirement()
-            )),
-            "{rendered}"
         );
     }
 

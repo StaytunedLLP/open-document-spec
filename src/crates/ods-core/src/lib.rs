@@ -60,8 +60,7 @@ pub use lint::{
 pub use model::{
     CodeRef, CodeRole, ComplianceMode, Diagnostic, Document, Frontmatter, FrontmatterState,
     LintLevel, LoadOptions, ProfileCatalog, ProfileConflict, ProfileDefinition, ResourceRef,
-    Severity, Workspace, current_odc_requirement, current_ods_spec_version, current_ods_version,
-    odc_requirement_satisfied,
+    Severity, Workspace, current_ods_spec_version, current_ods_version,
 };
 pub use mv::{
     PathChange, PathChangeReport, apply_path_changes, canonicalize_workspace_document_refs,

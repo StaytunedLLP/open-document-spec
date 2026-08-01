@@ -100,37 +100,7 @@ fn stale_root_ods_version_errors() {
     );
 }
 
-#[test]
-fn invalid_or_missing_odc_errors() {
-    let dir = temp_workspace();
-    fs::write(
-        dir.join("index.md"),
-        "---\nprofile: index\nods: 0.1\nodc: \">=999.0.0\"\n---\n\n# Root\n\n",
-    )
-    .unwrap();
-    let ws = load_workspace(&dir).unwrap();
-    let diags = lint_workspace_with_level(&ws, LintLevel::Level1);
-    assert!(
-        diags
-            .iter()
-            .any(|d| d.message.contains("root odc requirement not satisfied")),
-        "{diags:?}"
-    );
 
-    fs::write(
-        dir.join("index.md"),
-        "---\nprofile: index\nods: 0.1\n---\n\n# Root\n\n",
-    )
-    .unwrap();
-    let ws = load_workspace(&dir).unwrap();
-    let diags = lint_workspace_with_level(&ws, LintLevel::Level1);
-    assert!(
-        diags
-            .iter()
-            .any(|d| d.message.contains("root index.md missing odc")),
-        "{diags:?}"
-    );
-}
 
 #[test]
 fn unknown_profile_warns() {

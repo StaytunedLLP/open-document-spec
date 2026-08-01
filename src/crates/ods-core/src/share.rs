@@ -122,8 +122,8 @@ fn included(level: ShareLevel, options: ShareOptions) -> bool {
 /// `index.md` files are never copied verbatim — their child lists are
 /// specific to the source tree, so they are always regenerated from what
 /// actually landed in `out`. This also means a promoted subdirectory root
-/// automatically gets its `ods`/`odc` workspace markers synthesized by
-/// the regular index generator, the same way `odc init` would.
+/// automatically gets its `ods`/`ods` workspace markers synthesized by
+/// the regular index generator, the same way `ods init` would.
 pub fn publish_workspace(
     workspace: &Workspace,
     scope: impl AsRef<Path>,

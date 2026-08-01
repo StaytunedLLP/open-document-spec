@@ -16,7 +16,7 @@ pub(super) fn is_workspace_root(directory: &Path, workspace: &Workspace) -> bool
 pub(super) fn default_index_header(
     directory: &Path,
     workspace: &Workspace,
-) -> (String, String, Option<String>, Option<String>, Vec<String>, Vec<String>, Vec<String>) {
+) -> (String, String, Option<String>, Vec<String>, Vec<String>, Vec<String>) {
     let name = directory
         .file_name()
         .and_then(|n| n.to_str())
@@ -31,22 +31,8 @@ pub(super) fn default_index_header(
         title,
         "index".to_string(),
         None,
-        None,
         Vec::new(),
         Vec::new(),
         Vec::new(),
     )
-}
-
-pub(super) fn unquote_index_value(value: &str) -> String {
-    value
-        .strip_prefix('"')
-        .and_then(|value| value.strip_suffix('"'))
-        .or_else(|| {
-            value
-                .strip_prefix('\'')
-                .and_then(|value| value.strip_suffix('\''))
-        })
-        .unwrap_or(value)
-        .to_string()
 }

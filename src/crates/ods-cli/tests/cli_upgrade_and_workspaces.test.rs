@@ -3,7 +3,7 @@ use std::fs;
 use std::process::Command;
 use tempfile::tempdir;
 
-fn odc_bin() -> std::path::PathBuf {
+fn ods_bin() -> std::path::PathBuf {
     std::path::PathBuf::from(env!("CARGO_BIN_EXE_ods"))
 }
 
@@ -12,31 +12,22 @@ fn upgrade_rewrites_ods_cli_pin() {
     let dir = tempdir().unwrap();
     let path = dir.path().to_str().unwrap();
     assert!(
-        Command::new(odc_bin())
+        Command::new(ods_bin())
             .args(["init", path])
             .status()
             .unwrap()
             .success()
     );
     let index = dir.path().join("index.md");
-    let mut text = fs::read_to_string(&index).unwrap();
-    // inject legacy pin for upgrade path
-    if !text.contains("ods-cli:") {
-        text = text.replacen("odc:", "ods-cli:", 1);
-        fs::write(&index, &text).unwrap();
-    }
-    let out = Command::new(odc_bin())
+    let out = Command::new(ods_bin())
         .args(["upgrade", path, "--write"])
         .output()
         .unwrap();
     assert!(out.status.success(), "{:?}", out);
     let after = fs::read_to_string(&index).unwrap();
-    assert!(
-        after.contains("odc:") || !after.contains("ods-cli:"),
-        "{after}"
-    );
+    assert!(after.contains("ods: 0.1"), "{after}");
 
-    let check = Command::new(odc_bin())
+    let check = Command::new(ods_bin())
         .args(["upgrade", path, "--check"])
         .output()
         .unwrap();
@@ -52,16 +43,16 @@ fn update_and_ods_update_subcommands() {
     let dir = tempdir().unwrap();
     let path = dir.path().to_str().unwrap();
     assert!(
-        Command::new(odc_bin())
+        Command::new(ods_bin())
             .args(["init", path])
             .status()
             .unwrap()
             .success()
     );
-    // odc ods update --check
-    let out = Command::new(odc_bin())
+    // ods update --check
+    let out = Command::new(ods_bin())
         .current_dir(dir.path())
-        .args(["ods", "update", "--check"])
+        .args(["update", "--check"])
         .output()
         .unwrap();
     assert!(
@@ -70,10 +61,10 @@ fn update_and_ods_update_subcommands() {
         out
     );
 
-    // odc ods upgrade
-    let out = Command::new(odc_bin())
+    // ods upgrade
+    let out = Command::new(ods_bin())
         .current_dir(dir.path())
-        .args(["ods", "upgrade"])
+        .args(["upgrade"])
         .output()
         .unwrap();
     assert!(out.status.success(), "{:?}", out);
@@ -84,14 +75,14 @@ fn workspaces_list_add_remove() {
     let dir = tempdir().unwrap();
     let path = dir.path().to_str().unwrap();
     assert!(
-        Command::new(odc_bin())
+        Command::new(ods_bin())
             .args(["init", path])
             .status()
             .unwrap()
             .success()
     );
     let home = tempdir().unwrap();
-    let out = Command::new(odc_bin())
+    let out = Command::new(ods_bin())
         .env("HOME", home.path())
         .env("USERPROFILE", home.path())
         .args(["workspaces", "add", path])
@@ -99,7 +90,7 @@ fn workspaces_list_add_remove() {
         .unwrap();
     assert!(out.status.success(), "{:?}", out);
 
-    let out = Command::new(odc_bin())
+    let out = Command::new(ods_bin())
         .env("HOME", home.path())
         .env("USERPROFILE", home.path())
         .args(["workspaces", "list"])
@@ -109,7 +100,7 @@ fn workspaces_list_add_remove() {
     let stdout = String::from_utf8_lossy(&out.stdout);
     assert!(stdout.contains(path) || !stdout.is_empty(), "{stdout}");
 
-    let out = Command::new(odc_bin())
+    let out = Command::new(ods_bin())
         .env("HOME", home.path())
         .env("USERPROFILE", home.path())
         .args(["workspaces", "path"])
@@ -117,7 +108,7 @@ fn workspaces_list_add_remove() {
         .unwrap();
     assert!(out.status.success(), "{:?}", out);
 
-    let out = Command::new(odc_bin())
+    let out = Command::new(ods_bin())
         .env("HOME", home.path())
         .env("USERPROFILE", home.path())
         .args(["workspaces", "remove", path])
@@ -131,7 +122,7 @@ fn find_by_tag() {
     let dir = tempdir().unwrap();
     let path = dir.path().to_str().unwrap();
     assert!(
-        Command::new(odc_bin())
+        Command::new(ods_bin())
             .args(["init", path])
             .status()
             .unwrap()
@@ -143,13 +134,13 @@ fn find_by_tag() {
     )
     .unwrap();
     assert!(
-        Command::new(odc_bin())
+        Command::new(ods_bin())
             .args(["index", path])
             .status()
             .unwrap()
             .success()
     );
-    let out = Command::new(odc_bin())
+    let out = Command::new(ods_bin())
         .args(["find", path, "--tag", "alpha"])
         .output()
         .unwrap();

@@ -1,4 +1,4 @@
-# GitHub Action setup & runner for OpenDocify CLI (odc) — Windows (PowerShell)
+# GitHub Action setup & runner for Open Document Spec CLI (ods) — Windows (PowerShell)
 $ErrorActionPreference = 'Stop'
 
 $Repo = if ($env:GITHUB_REPOSITORY) { $env:GITHUB_REPOSITORY } else { "StaytunedLLP/open-document-spec" }
@@ -22,7 +22,7 @@ $Asset = "windows-$Arch"
 
 function Get-Headers {
     $Headers = @{
-        "User-Agent" = "odc-github-action-powershell"
+        "User-Agent" = "ods-github-action-powershell"
     }
     if ($InputToken) {
         $Headers["Authorization"] = "Bearer $InputToken"
@@ -32,7 +32,7 @@ function Get-Headers {
 
 $Version = $InputVersion
 if ($Version -eq "latest" -or [string]::IsNullOrWhiteSpace($Version)) {
-    Write-Info "Resolving latest OpenDocify release..."
+    Write-Info "Resolving latest Open Document Spec release..."
     try {
         $Release = Invoke-RestMethod -Uri "$Api/releases/latest" -Headers (Get-Headers) -UseBasicParsing
         $Version = $Release.tag_name
@@ -50,18 +50,19 @@ if ([string]::IsNullOrWhiteSpace($Version) -or $Version -eq "latest") {
     $CleanVersion = $Tag.TrimStart("v")
 }
 
-Write-Info "Target CLI version: $Tag ($Asset)"
+Write-Info "Target ODS CLI version: $Tag ($Asset)"
 
 $InstallDir = Join-Path $env:USERPROFILE ".local\bin"
 if (-not (Test-Path $InstallDir)) { New-Item -ItemType Directory -Force -Path $InstallDir | Out-Null }
-$OdcBin = Join-Path $InstallDir "odc.exe"
 $OdsBin = Join-Path $InstallDir "ods.exe"
+$OdcBin = Join-Path $InstallDir "ods.exe"
 
 $Installed = $false
-if (Test-Path $OdcBin) {
+if (Test-Path $OdsBin -or Test-Path $OdcBin) {
     try {
-        $CurVer = (& $OdcBin --version 2>$null | Select-Object -First 1)
-        if ($CurVer -match '(?:odc|ods)\s+(\S+)') { $CurVer = $Matches[1] }
+        $BinToTest = if (Test-Path $OdsBin) { $OdsBin } else { $OdcBin }
+        $CurVer = (& $BinToTest --version 2>$null | Select-Object -First 1)
+        if ($CurVer -match '(?:ods|ods)\s+(\S+)') { $CurVer = $Matches[1] }
         if ($CurVer -eq $CleanVersion) {
             $Installed = $true
             Write-Info "CLI $CleanVersion is already installed."
@@ -75,7 +76,7 @@ if (-not $Installed) {
 
     try {
         $Downloaded = $false
-        foreach ($Prefix in @("odc", "ods")) {
+        foreach ($Prefix in @("ods", "ods")) {
             $Filename = "$Prefix-$Tag-$Asset.zip"
             Write-Info "Trying $Filename..."
             try {
@@ -88,11 +89,11 @@ if (-not $Installed) {
                     $DownloadHeaders["Accept"] = "application/octet-stream"
                     Invoke-WebRequest -Uri $AssetUrl -Headers $DownloadHeaders -OutFile $ZipPath -UseBasicParsing
                     Expand-Archive -Path $ZipPath -DestinationPath $TmpDir -Force
-                    $ExtractedBin = Get-ChildItem -Path $TmpDir -Recurse -Include "odc.exe","ods.exe" | Select-Object -First 1
+                    $ExtractedBin = Get-ChildItem -Path $TmpDir -Recurse -Include "ods.exe","ods.exe" | Select-Object -First 1
                     if ($ExtractedBin) {
-                        Copy-Item -Path $ExtractedBin.FullName -Destination $OdcBin -Force
                         Copy-Item -Path $ExtractedBin.FullName -Destination $OdsBin -Force
-                        Write-Info "Installed $OdcBin (+ ods.exe)"
+                        Copy-Item -Path $ExtractedBin.FullName -Destination $OdcBin -Force
+                        Write-Info "Installed $OdsBin (+ ods.exe)"
                         $Downloaded = $true
                         break
                     }
@@ -103,17 +104,17 @@ if (-not $Installed) {
         if (-not $Downloaded) {
             if (Get-Command cargo -ErrorAction SilentlyContinue) {
                 Write-Info "Release asset not available — compiling local Cargo fallback..."
-                cargo build --release -p odc --bin odc --bin ods
-                $ExtractedBin = Get-ChildItem -Path "." -Recurse -Filter "odc.exe" | Where-Object { $_.FullName -like "*release*" } | Select-Object -First 1
+                cargo build --release -p ods-cli --bin ods
+                $ExtractedBin = Get-ChildItem -Path "." -Recurse -Filter "ods.exe" | Where-Object { $_.FullName -like "*release*" } | Select-Object -First 1
                 if (-not $ExtractedBin) {
                     $ExtractedBin = Get-ChildItem -Path "." -Recurse -Filter "ods.exe" | Where-Object { $_.FullName -like "*release*" } | Select-Object -First 1
                 }
                 if ($ExtractedBin) {
-                    Copy-Item -Path $ExtractedBin.FullName -Destination $OdcBin -Force
                     Copy-Item -Path $ExtractedBin.FullName -Destination $OdsBin -Force
-                    Write-Info "Built and installed $OdcBin"
+                    Copy-Item -Path $ExtractedBin.FullName -Destination $OdcBin -Force
+                    Write-Info "Built and installed $OdsBin"
                 } else {
-                    Write-Fatal "Cargo build completed but odc.exe/ods.exe not found."
+                    Write-Fatal "Cargo build completed but ods.exe/ods.exe not found."
                 }
             } else {
                 Write-Fatal "Failed to download release asset and Cargo is not installed."
@@ -124,15 +125,17 @@ if (-not $Installed) {
     }
 }
 
+$CliBin = if (Test-Path $OdsBin) { $OdsBin } else { $OdcBin }
+
 if ($env:GITHUB_PATH) {
     Add-Content -Path $env:GITHUB_PATH -Value $InstallDir
 }
 
 if ($env:GITHUB_OUTPUT) {
     Add-Content -Path $env:GITHUB_OUTPUT -Value "ods-version=$CleanVersion"
-    Add-Content -Path $env:GITHUB_OUTPUT -Value "ods-path=$OdcBin"
-    Add-Content -Path $env:GITHUB_OUTPUT -Value "odc-version=$CleanVersion"
-    Add-Content -Path $env:GITHUB_OUTPUT -Value "odc-path=$OdcBin"
+    Add-Content -Path $env:GITHUB_OUTPUT -Value "ods-path=$CliBin"
+    Add-Content -Path $env:GITHUB_OUTPUT -Value "ods-version=$CleanVersion"
+    Add-Content -Path $env:GITHUB_OUTPUT -Value "ods-path=$CliBin"
 }
 
 if ($InputAnnotate -eq "true" -and $env:GITHUB_ACTION_PATH) {
@@ -154,18 +157,19 @@ if ([string]::IsNullOrWhiteSpace($InputCommand) -or $InputCommand -eq "none" -or
 $env:ODS_AUTO_UPDATE = "0"
 $env:ODC_AUTO_UPDATE = "0"
 
-Write-Info "Executing: odc ods $InputCommand $InputPath (namespaced ODS)"
+Write-Info "Executing: ods $InputCommand $InputPath"
 
 $CmdArgs = @()
 switch ($InputCommand) {
-    "lint" { $CmdArgs = @("ods", "lint", $InputPath, "--level", $InputLevel, "--format", $InputFormat) }
-    "index-check" { $CmdArgs = @("ods", "index", $InputPath, "--check") }
-    "index_check" { $CmdArgs = @("ods", "index", $InputPath, "--check") }
-    "doctor" { $CmdArgs = @("ods", "doctor", $InputPath) }
-    "fmt-check" { $CmdArgs = @("ods", "fmt", $InputPath) }
-    "bench" { $CmdArgs = @("ods", "bench", "stats", $InputPath) }
-    "export" { $CmdArgs = @("ods", "export", $InputPath) }
-    "okf-lint" { $CmdArgs = @("okf", "lint", $InputPath) }
+    "lint" { $CmdArgs = @("lint", $InputPath, "--level", $InputLevel, "--format", $InputFormat) }
+    "index-check" { $CmdArgs = @("index", $InputPath, "--check") }
+    "index_check" { $CmdArgs = @("index", $InputPath, "--check") }
+    "doctor" { $CmdArgs = @("doctor", $InputPath) }
+    "fmt-check" { $CmdArgs = @("fmt", $InputPath) }
+    "bench" { $CmdArgs = @("bench", "stats", $InputPath) }
+    "export" { $CmdArgs = @("export", $InputPath) }
+    "okf-lint" { $CmdArgs = @("lint", $InputPath, "--okf") }
+    "okf_lint" { $CmdArgs = @("lint", $InputPath, "--okf") }
     default { $CmdArgs = $InputCommand.Split(' ') + @($InputPath) }
 }
 
@@ -173,5 +177,6 @@ if (-not [string]::IsNullOrWhiteSpace($InputExtraArgs)) {
     $CmdArgs += $InputExtraArgs.Split(' ')
 }
 
-& $OdcBin $CmdArgs
+& $CliBin $CmdArgs
 exit $LASTEXITCODE
+

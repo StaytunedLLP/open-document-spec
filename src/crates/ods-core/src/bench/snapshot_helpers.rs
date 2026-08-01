@@ -12,7 +12,7 @@ pub fn compute_repo_hash(root: &Path) -> String {
     format!("{hash:016x}")
 }
 
-/// Resolve directory path for machine-level snapshots: ~/.odc/backups/<repo_hash>/
+/// Resolve directory path for machine-level snapshots: ~/.ods/backups/<repo_hash>/
 /// (falls back to legacy ~/.ods/backups if that tree already has snapshots for this repo).
 pub fn get_backup_dir(root: &Path) -> io::Result<PathBuf> {
     let repo_hash = compute_repo_hash(root);
@@ -25,7 +25,7 @@ pub fn get_backup_dir(root: &Path) -> io::Result<PathBuf> {
         fs::create_dir_all(&dir)?;
         return Ok(dir);
     };
-    let modern = home_base.join(".odc").join("backups").join(&repo_hash);
+    let modern = home_base.join(".ods").join("backups").join(&repo_hash);
     let legacy = home_base.join(".ods").join("backups").join(&repo_hash);
     let dir = if modern.exists() || !legacy.exists() {
         modern

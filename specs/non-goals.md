@@ -1,5 +1,4 @@
 ---
-title: "ODS Non-Goals"
 description: "Concepts and features ODS intentionally excludes from its core design to keep adoption frictionless, validation simple, and AI navigation highly deterministic."
 status: "stable"
 order: 7

@@ -57,7 +57,7 @@ fn run_init_command(args: &[String]) -> Result<ExitCode, CliError> {
                 println!("adopted {} document(s)", report.adopted.len());
             }
             println!("indexes: {} file(s)", report.indexes.len());
-            println!("next: odc lint   # or: odc watch");
+            println!("next: ods lint   # or: ods watch");
         }
         OutputFormat::Json => {
             println!(

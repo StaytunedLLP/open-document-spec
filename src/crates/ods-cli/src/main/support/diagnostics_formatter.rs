@@ -40,17 +40,17 @@ fn run_update_command(args: &[String]) -> Result<ExitCode, CliError> {
 
     match outcome {
         UpdateOutcome::UpToDate { current, remote } => {
-            println!("odc {current} is up to date (latest {remote})");
+            println!("ods {current} is up to date (latest {remote})");
             migrate_machine_and_workspace_on_update();
             restart_service_if_active();
             Ok(ExitCode::from(0))
         }
         UpdateOutcome::Available { current, remote } => {
-            println!("update available: {current} → {remote} (run: odc update)");
+            println!("update available: {current} → {remote} (run: ods update)");
             Ok(ExitCode::from(1))
         }
         UpdateOutcome::Updated { from, to } => {
-            println!("updated odc: {from} → {to}");
+            println!("updated ods: {from} → {to}");
             migrate_machine_and_workspace_on_update();
             restart_service_if_active();
             Ok(ExitCode::from(0))
@@ -59,11 +59,11 @@ fn run_update_command(args: &[String]) -> Result<ExitCode, CliError> {
 }
 
 fn migrate_machine_and_workspace_on_update() {
-    // 1. Machine config migration: ~/.ods -> ~/.odc
+    // 1. Machine config migration: ~/.ods -> ~/.ods
     let home = std::env::var_os("HOME").or_else(|| std::env::var_os("USERPROFILE"));
     if let Some(home) = home {
         let legacy = std::path::PathBuf::from(&home).join(".ods");
-        let modern = std::path::PathBuf::from(&home).join(".odc");
+        let modern = std::path::PathBuf::from(&home).join(".ods");
         if legacy.exists() && !modern.exists() {
             let _ = std::fs::create_dir_all(&modern);
             for name in ["odsconfig.toml", "workspaces.toml"] {
@@ -75,7 +75,7 @@ fn migrate_machine_and_workspace_on_update() {
                         && std::fs::copy(&src, &dst).is_ok()
                     {
                         println!(
-                            "odc: migrated machine config {} -> {}",
+                            "ods: migrated machine config {} -> {}",
                             src.display(),
                             dst.display()
                         );
@@ -85,15 +85,15 @@ fn migrate_machine_and_workspace_on_update() {
         }
     }
 
-    // 2. Workspace root pin rewrite: ods-cli: -> odc: and cleanup legacy ods-error.md
+    // 2. Workspace root pin rewrite: ods-cli: -> ods: and cleanup legacy ods-error.md
     let probe = std::env::current_dir().unwrap_or_else(|_| std::path::PathBuf::from("."));
     if let Some(root) = find_marked_ods_workspace_root(&probe) {
         let index = root.join("index.md");
         if let Ok(text) = std::fs::read_to_string(&index) {
             if text.contains("ods-cli:") {
-                let updated = text.replace("ods-cli:", "odc:");
+                let updated = text.replace("ods-cli:", "ods:");
                 if std::fs::write(&index, updated).is_ok() {
-                    println!("odc: rewrote legacy ods-cli: → odc: on root index.md");
+                    println!("ods: rewrote legacy ods-cli: → ods: on root index.md");
                 }
             }
         }

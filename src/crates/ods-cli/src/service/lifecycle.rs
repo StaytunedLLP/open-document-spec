@@ -86,7 +86,7 @@ pub fn service_status(root: &Path) -> ServiceStatus {
     #[cfg(target_os = "macos")]
     {
         let plist = macos_plist_path(&id);
-        let label = format!("llp.odc.watch.{id}");
+        let label = format!("llp.ods.watch.{id}");
         let installed = plist.is_file();
         let running = Command::new("launchctl")
             .args(["list", &label])
@@ -134,21 +134,21 @@ mod tests {
 
     #[test]
     fn systemd_unit_contains_serve_and_root() {
-        let root = Path::new("/tmp/odc-ws");
-        let bin = Path::new("/usr/local/bin/odc");
+        let root = Path::new("/tmp/ods-ws");
+        let bin = Path::new("/usr/local/bin/ods");
         let u = render_systemd_user_unit(root, bin);
         assert!(u.contains("serve"));
         assert!(u.contains("--root"));
-        assert!(u.contains("odc"));
+        assert!(u.contains("ods"));
     }
 
     #[test]
     fn launchd_plist_contains_label_and_args() {
         let root = Path::new("/Users/me/docs");
-        let bin = Path::new("/Users/me/.local/bin/odc");
-        let log = Path::new("/Users/me/.odc/logs");
-        let p = render_launchd_plist("llp.odc.watch.abc", root, bin, log);
-        assert!(p.contains("llp.odc.watch.abc"));
+        let bin = Path::new("/Users/me/.local/bin/ods");
+        let log = Path::new("/Users/me/.ods/logs");
+        let p = render_launchd_plist("llp.ods.watch.abc", root, bin, log);
+        assert!(p.contains("llp.ods.watch.abc"));
         assert!(p.contains("serve"));
         assert!(p.contains("--root"));
     }

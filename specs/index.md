@@ -6,21 +6,12 @@ profile: index
 
 This directory contains the normative specifications for Open Document Spec.
 
-**CLI (OpenDocify):** ODS document operations use the **`odc ods`** namespace (e.g. `odc ods lint`). OKF is a sibling native engine under **`odc okf`**. See [frontmatter keys: ODS vs OKF](../docs/specs/frontmatter-keys-ods-vs-okf.md).
+- [SPEC.md](SPEC.md) - Primary ODS specification
+- [context.md](context.md) - Bounded AI context graph specification
+- [graph.md](graph.md) - Document graph dependency rules
+- [indexes.md](indexes.md) - Indexing conventions
+- [non-goals.md](non-goals.md) - Architectural non-goals
+- [profiles.md](profiles.md) - Document profiles and schema rules
+- [resources-and-code.md](resources-and-code.md) - Code symbol binding and resource references
+- [validation.md](validation.md) - Compliance levels and validation rules
 
-## ODS modules
-
-- [SPEC.md](SPEC.md)
-- [context.md](context.md)
-- [graph.md](graph.md)
-- [indexes.md](indexes.md)
-- [non-goals.md](non-goals.md)
-- [profiles.md](profiles.md)
-- [resources-and-code.md](resources-and-code.md)
-- [validation.md](validation.md)
-
-## Multi-spec (OpenDocify)
-
-- [ODS vs OKF frontmatter keys](../docs/specs/frontmatter-keys-ods-vs-okf.md) — which keys exist in which spec, purpose, CLI mapping
-- [ODC migration plan](../docs/plan/ods_to_odc_migration_and_cli_architecture.md)
-- [Native OKF plan](../docs/plan/okf_native_support.md)

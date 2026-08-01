@@ -59,7 +59,7 @@ fn audit_all_classes_and_markdown_render() {
     assert!(md.contains("Plain Markdown"));
     assert!(md.contains("Invalid Frontmatter"));
     assert!(md.contains("Partial"));
-    assert!(md.contains("odc okf adopt"));
+    assert!(md.contains("ods adopt --okf"));
     assert!(md.contains("ok.md") || md.contains("plain.md"));
 }
 

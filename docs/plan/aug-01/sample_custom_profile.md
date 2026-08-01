@@ -1,10 +1,10 @@
 # Sample Profile Definition & Document Frontmatter Layout
 
-In OpenDocify (ODS), metadata fields are intentionally separated between **Custom Domain Keys** (top-level) and **ODS Engine Keys** (nested under `ods:`).
+In Open Document Spec (ODS), metadata fields are intentionally separated between **Custom Domain Keys** (top-level) and **ODS Engine Keys** (nested under `ods:`).
 
 ---
 
-## 1. Custom Profile Schema Definition File (`.odc/profiles/rfc.md`)
+## 1. Custom Profile Schema Definition File (`.ods/profiles/rfc.md`)
 
 This file defines the profile validation schema and starter body template:
 
@@ -63,9 +63,9 @@ Record the final decision status (e.g., Approved, Deferred, Rejected).
 
 ---
 
-## 2. Scaffolded Document Created by `odc new rfc docs/rfcs/001-caching.md`
+## 2. Scaffolded Document Created by `ods new rfc docs/rfcs/001-caching.md`
 
-When an author creates a document using this profile, `odc` places **Custom Keys at the top-level** and **Engine Keys under `ods:`**:
+When an author creates a document using this profile, `ods` places **Custom Keys at the top-level** and **Engine Keys under `ods:`**:
 
 ```yaml
 ---
@@ -98,7 +98,7 @@ ods:
 | Key Type | Examples | Canonical Frontmatter Location | Why? |
 | :--- | :--- | :--- | :--- |
 | **Custom Domain Keys** | `author`, `reviewer`, `target_release`, `service`, `team`, `title`, `tags` | **Top-Level** (outside `ods:`) | Keeps custom metadata clean and fully compatible with Static Site Generators (Next.js, Astro, Docusaurus). |
-| **ODS Engine Keys** | `profile`, `status`, `id`, `share`, `depends`, `related`, `code`, `resources` | **Nested `ods:` Map** (`ods.profile: rfc`) | Reserved namespace for OpenDocify engine graph indexing, validation, and linting. |
+| **ODS Engine Keys** | `profile`, `status`, `id`, `share`, `depends`, `related`, `code`, `resources` | **Nested `ods:` Map** (`ods.profile: rfc`) | Reserved namespace for Open Document Spec engine graph indexing, validation, and linting. |
 
 > [!NOTE]
-> **Permissive Parser Guarantee**: `odc` parser accepts both flat top-level `profile: rfc` and nested `ods.profile: rfc`. Running `odc fmt --migrate` automatically canonicalizes engine keys under `ods:` while preserving custom keys at the top level.
+> **Permissive Parser Guarantee**: `ods` parser accepts both flat top-level `profile: rfc` and nested `ods.profile: rfc`. Running `ods fmt --migrate` automatically canonicalizes engine keys under `ods:` while preserving custom keys at the top level.

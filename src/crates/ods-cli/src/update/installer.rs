@@ -69,9 +69,9 @@ fn install_release(tag: &str, target: &str, prefix: &Path) -> Result<(), String>
     } else {
         "tar.gz"
     };
-    // Prefer odc- archives; fall back to legacy ods- asset names during transition.
+    // Prefer ods- archives; fall back to legacy ods- asset names during transition.
     let candidates = [
-        format!("odc-{tag}-{target}.{ext}"),
+        format!("ods-{tag}-{target}.{ext}"),
         format!("ods-{tag}-{target}.{ext}"),
     ];
 
@@ -83,7 +83,7 @@ fn install_release(tag: &str, target: &str, prefix: &Path) -> Result<(), String>
         .find_map(|name| find_asset_id(&release_json, name).map(|id| (name.clone(), id)))
         .ok_or_else(|| {
             format!(
-                "asset odc-{tag}-{target}.{ext} (or legacy ods-*) not found on release {tag} (check GH_TOKEN for private repo)"
+                "asset ods-{tag}-{target}.{ext} (or legacy ods-*) not found on release {tag} (check GH_TOKEN for private repo)"
             )
         })?;
     let sums_id = find_asset_id(&release_json, "SHA256SUMS").ok_or_else(|| {
@@ -129,12 +129,12 @@ fn install_release(tag: &str, target: &str, prefix: &Path) -> Result<(), String>
         .map_err(|e| format!("create install dir {}: {e}", prefix.display()))?;
 
     let (odc_name, ods_name) = if is_windows_target(target) {
-        ("odc.exe", "ods.exe")
+        ("ods.exe", "ods.exe")
     } else {
-        ("odc", "ods")
+        ("ods", "ods")
     };
 
-    // Primary OpenDocify CLI + legacy argv0
+    // Primary Open Document Spec CLI + legacy argv0
     replace_binary(&bin_src, &prefix.join(odc_name))?;
     replace_binary(&bin_src, &prefix.join(ods_name))?;
 

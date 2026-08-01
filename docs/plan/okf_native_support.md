@@ -2,15 +2,15 @@
 profile: plan
 status: stable
 share: public
-description: Native Google OKF v0.2 in odc-core — full frontmatter vocabulary, mandatory odc okf CLI namespace (even though native), phases, touchpoints, and acceptance gates.
+description: Native Google OKF v0.2 in ods-core — full frontmatter vocabulary, mandatory ods okf CLI namespace (even though native), phases, touchpoints, and acceptance gates.
 owner: team:opendocify
-tags: [odc, okf, native, plan, lint, audit, multi-spec]
+tags: [ods, okf, native, plan, lint, audit, multi-spec]
 ---
 
-# Native Google OKF v0.2 Support in OpenDocify (`odc-core` / `odc okf`)
+# Native Google OKF v0.2 Support in Open Document Spec (`ods-core` / `ods okf`)
 
 > **Superseded for CLI UX and root keys** by [`odc_tool_keys_legacy_cleanup.md`](./odc_tool_keys_legacy_cleanup.md).
-> Bare `odc lint` **auto-detects**; CLI pin is **`odc:`** (not `ods-cli:`). This file remains useful for historical OKF engine detail.
+> Bare `ods lint` **auto-detects**; CLI pin is **`ods:`** (not `ods-cli:`). This file remains useful for historical OKF engine detail.
 
 ## Direct answer: native + separate CLI?
 
@@ -18,13 +18,13 @@ tags: [odc, okf, native, plan, lint, audit, multi-spec]
 
 | | |
 |---|---|
-| **Native** | OKF parse/lint/model lives **inside** `odc-core` (same binary as ODS) |
-| **CLI** | Bare `odc <command>` auto-detects; **`odc okf <command>`** forces OKF (see [tool/keys plan](./odc_tool_keys_legacy_cleanup.md)) |
+| **Native** | OKF parse/lint/model lives **inside** `ods-core` (same binary as ODS) |
+| **CLI** | Bare `ods <command>` auto-detects; **`ods okf <command>`** forces OKF (see [tool/keys plan](./odc_tool_keys_legacy_cleanup.md)) |
 
 ```
-odc lint         # auto-detect ODS / OKF / hybrid
-odc okf lint     # force OKF engine
-odc ods lint     # force ODS engine
+ods lint         # auto-detect ODS / OKF / hybrid
+ods okf lint     # force OKF engine
+ods ods lint     # force ODS engine
 ```
 
 **Why:** native is about *where the code lives*; namespaces are about *which spec rules apply*. See [migration plan](./ods_to_odc_migration_and_cli_architecture.md) and [key comparison](../specs/frontmatter-keys-ods-vs-okf.md).
@@ -35,9 +35,9 @@ odc ods lint     # force ODS engine
 
 | Question | Answer |
 |---|---|
-| Support OKF natively? | **Yes** — `odc-core` |
-| Invoke OKF | Bare auto-detect **or** **`odc okf <command>`** (force) |
-| Invoke ODS | Bare auto-detect **or** **`odc ods <command>`** (force) |
+| Support OKF natively? | **Yes** — `ods-core` |
+| Invoke OKF | Bare auto-detect **or** **`ods okf <command>`** (force) |
+| Invoke ODS | Bare auto-detect **or** **`ods ods <command>`** (force) |
 | Keys | **All OKF v0.2** frontmatter + bundle conventions |
 | Out of scope v1 | Execute executors/attesters, receipt wire protocol, attester sandbox |
 
@@ -48,13 +48,13 @@ odc ods lint     # force ODS engine
 ## 1. Architecture
 
 ```
-odc (CLI)
-├── odc ods <cmd>     → ODS engine
-├── odc okf <cmd>     → OKF engine (this plan)
-├── odc agents <cmd>
-└── odc <platform>    → update | upgrade | setup | version | workspaces | skill
+ods (CLI)
+├── ods ods <cmd>     → ODS engine
+├── ods okf <cmd>     → OKF engine (this plan)
+├── ods agents <cmd>
+└── ods <platform>    → update | upgrade | setup | version | workspaces | skill
 
-odc-core
+ods-core
 ├── ods/   (existing)
 ├── okf/   (new)
 │   ├── model.rs | parse.rs | lint.rs | bundle.rs
@@ -64,8 +64,8 @@ odc-core
 
 | Root marker | Valid for |
 |---|---|
-| `ods:` (+ `odc:`) | `odc ods *` |
-| `okf_version: "0.2"` | `odc okf *` |
+| `ods:` (+ `ods:`) | `ods ods *` |
+| `okf_version: "0.2"` | `ods okf *` |
 | both | hybrid; explicit namespace per command |
 
 ---
@@ -76,7 +76,7 @@ odc-core
 
 | Item | Support |
 |---|---|
-| Root `okf_version: "0.2"` | `odc okf init` write; lint warn if missing |
+| Root `okf_version: "0.2"` | `ods okf init` write; lint warn if missing |
 | `index.md` | Reserved; progressive disclosure |
 | `log.md` | Reserved; not a concept |
 | `references/` | Convention; normal path resolve |
@@ -132,20 +132,20 @@ Execute executor/attester · central type registry · replace domain schemas.
 
 ---
 
-## 3. CLI surface (`odc okf`)
+## 3. CLI surface (`ods okf`)
 
 | Command | Behavior |
 |---|---|
-| `odc okf init` | Scaffold + `okf_version: "0.2"` |
-| `odc okf lint` | Full shape + conformance |
-| `odc okf index` / `--check` | Progressive disclosure indexes |
-| `odc okf audit --write-report` | Inventory → `.odc/odc-errors.md` |
-| `odc okf adopt [--write]` | Draft `{ type, title }` |
-| `odc okf context` | Link-based reading list |
-| `odc okf doctor` | Version, stale, trust tiers, missing `runtime` |
-| `odc okf export` | Concept graph |
-| `odc okf fmt` | Normalize spacing; never drop keys |
-| `odc okf watch` / `serve` | Optional later |
+| `ods okf init` | Scaffold + `okf_version: "0.2"` |
+| `ods okf lint` | Full shape + conformance |
+| `ods okf index` / `--check` | Progressive disclosure indexes |
+| `ods okf audit --write-report` | Inventory → `.ods/ods-errors.md` |
+| `ods okf adopt [--write]` | Draft `{ type, title }` |
+| `ods okf context` | Link-based reading list |
+| `ods okf doctor` | Version, stale, trust tiers, missing `runtime` |
+| `ods okf export` | Concept graph |
+| `ods okf fmt` | Normalize spacing; never drop keys |
+| `ods okf watch` / `serve` | Optional later |
 
 ---
 
@@ -186,7 +186,7 @@ OKF-3  index, adopt, context, export, fmt + hybrid fixture
 OKF-4  Polish, skills/okf, website, full touchpoints
 ```
 
-May land under current `ods-core` crate name before binary rename; product docs always say `odc okf`.
+May land under current `ods-core` crate name before binary rename; product docs always say `ods okf`.
 
 ---
 
@@ -195,10 +195,10 @@ May land under current `ods-core` crate name before binary rename; product docs 
 | Area | Update |
 |---|---|
 | Tests | Golden parse per key family; CLI namespace; wrong-spec errors |
-| Fixtures | Mini acme_retail-style bundle under e.g. `ods-test/` or `odc-test/` |
-| README / app-web / CHANGELOG | `odc okf` examples |
+| Fixtures | Mini acme_retail-style bundle under e.g. `ods-test/` or `ods-test/` |
+| README / app-web / CHANGELOG | `ods okf` examples |
 | skills/okf | New skill package |
-| CI | Optional job: `odc okf lint` on OKF fixture |
+| CI | Optional job: `ods okf lint` on OKF fixture |
 | Specs | Comparison doc; ODS specs do not absorb OKF keys in v1 |
 
 Full multi-spec touchpoint list: [migration plan §5](./ods_to_odc_migration_and_cli_architecture.md).
@@ -212,18 +212,18 @@ Full multi-spec touchpoint list: [migration plan §5](./ods_to_odc_migration_and
 - [ ] bare `verified` map accepted  
 - [ ] missing `runtime` on Attested Computation → error  
 - [ ] unknown keys preserved  
-- [ ] `odc okf init|lint|audit|doctor` shipped  
+- [ ] `ods okf init|lint|audit|doctor` shipped  
 - [ ] Fixture green in CI  
-- [ ] `odc lint` without namespace → auto-detects based on markers
-- [ ] Wrong-spec errors for `odc okf` on pure ODS and reverse  
+- [ ] `ods lint` without namespace → auto-detects based on markers
+- [ ] Wrong-spec errors for `ods okf` on pure ODS and reverse  
 - [ ] Comparison doc lists OKF keys + purposes  
 
 ```bash
-odc okf init /tmp/okf-demo
-odc okf lint /tmp/okf-demo
-odc okf audit /tmp/okf-demo --write-report
-odc okf doctor /tmp/okf-demo
-odc lint   # auto-detects OKF workspace
+ods okf init /tmp/okf-demo
+ods okf lint /tmp/okf-demo
+ods okf audit /tmp/okf-demo --write-report
+ods okf doctor /tmp/okf-demo
+ods lint   # auto-detects OKF workspace
 ```
 
 ---
@@ -236,4 +236,4 @@ odc lint   # auto-detects OKF workspace
 | Bare doc command | Auto-detect (falls back to error if no markers) |
 | Stale | Lint warning; doctor counts |
 | Trust tier | Advisory only |
-| Report path | `.odc/odc-errors.md` |
+| Report path | `.ods/ods-errors.md` |

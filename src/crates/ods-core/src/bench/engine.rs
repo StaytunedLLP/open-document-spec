@@ -75,7 +75,7 @@ pub fn bench_strip_workspace(
 
     let mut total_profiles_removed = 0;
     if options.strip_profiles || options.full {
-        for dir_name in &[root.join(".odc").join("profiles"), root.join("ods-profiles")] {
+        for dir_name in &[root.join(".ods").join("profiles"), root.join("ods-profiles")] {
             if dir_name.exists() {
                 for path in collect_files_recursive(dir_name) {
                     let rel = path
@@ -96,7 +96,7 @@ pub fn bench_strip_workspace(
     }
 
     let error_file = if options.full {
-        let err_path = root.join(".odc").join("odc-errors.md");
+        let err_path = root.join(".ods").join("ods-errors.md");
         if err_path.exists() {
             let content = fs::read_to_string(&err_path).ok();
             if options.write {
@@ -206,7 +206,7 @@ pub fn bench_restore_workspace(
     }
 
     if let Some(err_content) = parsed_data.error_file {
-        let err_path = root.join(".odc").join("odc-errors.md");
+        let err_path = root.join(".ods").join("ods-errors.md");
         if let Some(parent) = err_path.parent() {
             let _ = fs::create_dir_all(parent);
         }

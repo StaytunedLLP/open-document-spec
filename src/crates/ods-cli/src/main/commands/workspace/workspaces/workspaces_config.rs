@@ -40,7 +40,7 @@ pub(crate) fn get_config_path() -> Result<PathBuf, CliError> {
         .or_else(|_| env::var("USERPROFILE"))
         .map_err(|_| failure("could not determine home directory"))?;
 
-    let modern = PathBuf::from(&home).join(".odc/odcconfig.toml");
+    let modern = PathBuf::from(&home).join(".ods/odcconfig.toml");
     let legacy = PathBuf::from(&home).join(".ods/odsconfig.toml");
 
     if modern.exists() || !legacy.exists() {
@@ -130,14 +130,14 @@ pub(crate) fn save_config_with_packs(paths: &[String], packs: &[PackEntry]) -> R
     let home = env::var("HOME")
         .or_else(|_| env::var("USERPROFILE"))
         .unwrap_or_else(|_| ".".into());
-    let reg_path = PathBuf::from(&home).join(".odc/odcconfig.toml");
+    let reg_path = PathBuf::from(&home).join(".ods/odcconfig.toml");
     if let Some(parent) = reg_path.parent() {
         fs::create_dir_all(parent)
             .map_err(|e| failure(format!("failed to create registry directory: {e}")))?;
     }
     let mut content = String::from(
-        "# OpenDocify global machine configuration (~/.odc/odcconfig.toml)\n\
-         # Managed by `odc workspaces` and `odc pack`. You can also edit this file directly.\n\n\
+        "# Open Document Spec global machine configuration (~/.ods/odcconfig.toml)\n\
+         # Managed by `ods workspaces` and `ods pack`. You can also edit this file directly.\n\n\
          [workspaces]\n\
          paths = [\n",
     );

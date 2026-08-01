@@ -4,18 +4,6 @@ pub(super) fn lint_root_spec(
     root_index: &Document,
     frontmatter: &crate::model::Frontmatter,
 ) -> Vec<Diagnostic> {
-    if frontmatter.ods.is_none() && frontmatter.odc.is_none() {
-        return vec![Diagnostic {
-            path: root_index.path.clone(),
-            severity: Severity::Error,
-            message: format!(
-                "root index.md missing ods: {} and odc: \"{}\"",
-                crate::model::current_ods_spec_version(),
-                crate::model::current_odc_requirement()
-            ),
-        }];
-    }
-
     let mut diagnostics = Vec::new();
 
     match frontmatter.ods.as_deref() {
@@ -34,33 +22,6 @@ pub(super) fn lint_root_spec(
             message: format!(
                 "root index.md missing ods: {}",
                 crate::model::current_ods_spec_version()
-            ),
-        }),
-    }
-
-    match frontmatter.odc.as_deref() {
-        Some(requirement) => match crate::model::odc_requirement_satisfied(requirement) {
-            Ok(true) => {}
-            Ok(false) => diagnostics.push(Diagnostic {
-                path: root_index.path.clone(),
-                severity: Severity::Error,
-                message: format!(
-                    "root odc requirement not satisfied: {requirement} (installed {})",
-                    crate::model::current_ods_version()
-                ),
-            }),
-            Err(err) => diagnostics.push(Diagnostic {
-                path: root_index.path.clone(),
-                severity: Severity::Error,
-                message: err,
-            }),
-        },
-        None => diagnostics.push(Diagnostic {
-            path: root_index.path.clone(),
-            severity: Severity::Error,
-            message: format!(
-                "root index.md missing odc: \"{}\"",
-                crate::model::current_odc_requirement()
             ),
         }),
     }
@@ -178,7 +139,7 @@ pub(super) fn lint_ods_scope(
     document: &Document,
     frontmatter: &crate::model::Frontmatter,
 ) -> Vec<Diagnostic> {
-    if (frontmatter.ods.is_none() && frontmatter.odc.is_none())
+    if (frontmatter.ods.is_none() && frontmatter.ods.is_none())
         || document.path == workspace.root.join("index.md")
     {
         return Vec::new();
@@ -190,7 +151,7 @@ pub(super) fn lint_ods_scope(
     vec![Diagnostic {
         path: document.path.clone(),
         severity: Severity::Error,
-        message: "ods and odc should be declared only in root index.md".to_string(),
+        message: "ods and ods should be declared only in root index.md".to_string(),
     }]
 }
 

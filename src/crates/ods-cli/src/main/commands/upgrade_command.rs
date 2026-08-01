@@ -20,17 +20,17 @@ fn run_upgrade_command(args: &[String]) -> Result<ExitCode, CliError> {
     }
     if !ods && !okf {
         actions.push(format!(
-            "no ODS/OKF root markers under {} (run odc ods init or odc okf init)",
+            "no ODS/OKF root markers under {} (run ods ods init or ods okf init)",
             root.display()
         ));
         pending += 1;
     }
 
-    // Config dir forward hint ~/.odc
+    // Config dir forward hint ~/.ods
     let home = env::var_os("HOME").or_else(|| env::var_os("USERPROFILE"));
     if let Some(home) = home {
         let legacy = PathBuf::from(&home).join(".ods");
-        let modern = PathBuf::from(&home).join(".odc");
+        let modern = PathBuf::from(&home).join(".ods");
         if legacy.exists() && !modern.exists() {
             actions.push(format!(
                 "machine: legacy config {} present; prefer {}",
@@ -64,26 +64,26 @@ fn run_upgrade_command(args: &[String]) -> Result<ExitCode, CliError> {
 
     if ods {
         actions.push(
-            "manual: review root index.md ods: / odc: pins if needed (~3 known repos)"
+            "manual: review root index.md ods: / ods: pins if needed (~3 known repos)"
                 .into(),
         );
-        actions.push("next: odc ods audit --write-report".into());
+        actions.push("next: ods ods audit --write-report".into());
     }
     if okf {
-        actions.push("next: odc okf lint && odc okf audit --write-report".into());
+        actions.push("next: ods okf lint && ods okf audit --write-report".into());
     }
 
-    // Rewrite legacy root pin ods-cli: → odc:
+    // Rewrite legacy root pin ods-cli: → ods:
     if ods {
         let index = root.join("index.md");
         if let Ok(text) = fs::read_to_string(&index) {
             if text.contains("ods-cli:") {
-                actions.push("root index.md still has legacy ods-cli: (should be odc:)".into());
+                actions.push("root index.md still has legacy ods-cli: (should be ods:)".into());
                 pending += 1;
                 if write {
-                    let updated = text.replace("ods-cli:", "odc:");
+                    let updated = text.replace("ods-cli:", "ods:");
                     fs::write(&index, updated).map_err(|e| failure(e.to_string()))?;
-                    actions.push("  rewrote ods-cli: → odc: on root index.md".into());
+                    actions.push("  rewrote ods-cli: → ods: on root index.md".into());
                     pending = pending.saturating_sub(1);
                 }
             }
@@ -111,7 +111,7 @@ fn run_upgrade_command(args: &[String]) -> Result<ExitCode, CliError> {
     match format {
         OutputFormat::Text => {
             println!(
-                "odc upgrade {} — {}",
+                "ods upgrade {} — {}",
                 if write { "--write" } else { "dry-run" },
                 root.display()
             );
@@ -163,7 +163,7 @@ fn run_ods_audit_command(args: &[String]) -> Result<ExitCode, CliError> {
     }
     let (root, _level, format) = parse_common_flags(&filtered, 2)?;
     require_ods_workspace(&root)?;
-    let report_path = report_path_opt.unwrap_or_else(|| root.join(".odc/odc-errors.md"));
+    let report_path = report_path_opt.unwrap_or_else(|| root.join(".ods/ods-errors.md"));
 
     let workspace = load_workspace(&root).map_err(|err| failure(err.to_string()))?;
     let mut plain = 0usize;
@@ -226,12 +226,12 @@ fn run_ods_audit_command(args: &[String]) -> Result<ExitCode, CliError> {
             fs::create_dir_all(parent).map_err(|e| failure(e.to_string()))?;
         }
         let mut md = String::new();
-        md.push_str("---\ngenerated_by: odc ods audit\n");
+        md.push_str("---\ngenerated_by: ods ods audit\n");
         md.push_str(&format!("workspace: {}\n", root.display()));
         md.push_str(&format!(
             "summary:\n  total_md: {total}\n  compliant: {compliant}\n  plain: {plain}\n  invalid: {invalid}\n  partial: {partial}\n---\n\n"
         ));
-        md.push_str("# ODC ODS Audit Report\n\n## Non-compliant\n\n");
+        md.push_str("# ODS ODS Audit Report\n\n## Non-compliant\n\n");
         if lines.is_empty() {
             md.push_str("_None._\n");
         } else {

@@ -30,9 +30,9 @@ fn extract_zip(archive: &Path, dest: &Path) -> Result<(), String> {
 
 fn find_cli_binary(root: &Path, windows: bool) -> Result<PathBuf, String> {
     let preferred = if windows {
-        ["odc.exe", "ods.exe"]
+        ["ods.exe", "ods.exe"]
     } else {
-        ["odc", "ods"]
+        ["ods", "ods"]
     };
     let mut found: Option<PathBuf> = None;
     let mut prefer: Option<PathBuf> = None;
@@ -47,7 +47,7 @@ fn find_cli_binary(root: &Path, windows: bool) -> Result<PathBuf, String> {
     });
     prefer
         .or(found)
-        .ok_or_else(|| format!("archive missing odc/ods under {}", root.display()))
+        .ok_or_else(|| format!("archive missing ods/ods under {}", root.display()))
 }
 
 /// Legacy name used by install_release.
@@ -80,10 +80,10 @@ mod test_archive_extractor {
         assert!(find_ods_binary(path, false).is_err());
         assert!(find_ods_binary(path, true).is_err());
 
-        let bin_path = path.join("odc");
+        let bin_path = path.join("ods");
         fs::write(&bin_path, "fake bin").unwrap();
         assert_eq!(find_ods_binary(path, false).unwrap(), bin_path);
-        // legacy name still found if no odc
+        // legacy name still found if no ods
         let _ = fs::remove_file(&bin_path);
         let legacy = path.join("ods");
         fs::write(&legacy, "fake bin").unwrap();

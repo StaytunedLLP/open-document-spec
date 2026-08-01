@@ -4,7 +4,7 @@ pub fn should_ignore_name(name: &std::ffi::OsStr) -> bool {
         return true;
     }
     // Auto-generated lint reports — not workspace documents.
-    if text.eq_ignore_ascii_case("ods-error.md") || text.eq_ignore_ascii_case("odc-errors.md") {
+    if text.eq_ignore_ascii_case("ods-error.md") || text.eq_ignore_ascii_case("ods-errors.md") {
         return true;
     }
     DEFAULT_IGNORE_NAMES

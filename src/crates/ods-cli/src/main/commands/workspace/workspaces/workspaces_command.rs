@@ -1,6 +1,6 @@
-// Global machine configuration (TOML) and `odc workspaces` command.
+// Global machine configuration (TOML) and `ods workspaces` command.
 //
-// Registry: ~/.odc/odcconfig.toml (legacy: ~/.ods/odsconfig.toml, ~/.ods/config.toml)
+// Registry: ~/.ods/odcconfig.toml (legacy: ~/.ods/odsconfig.toml, ~/.ods/config.toml)
 // Parsed manually to avoid adding external serde/toml crate dependencies.
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -14,12 +14,12 @@ pub struct PackEntry {
 }
 
 /// Path to the global machine configuration file.
-/// Prefer `~/.odc/odcconfig.toml`; fall back to legacy `~/.ods/odsconfig.toml`.
+/// Prefer `~/.ods/odcconfig.toml`; fall back to legacy `~/.ods/odsconfig.toml`.
 pub fn registry_path() -> PathBuf {
     let home = env::var("HOME")
         .or_else(|_| env::var("USERPROFILE"))
         .unwrap_or_else(|_| ".".into());
-    let modern = PathBuf::from(&home).join(".odc/odcconfig.toml");
+    let modern = PathBuf::from(&home).join(".ods/odcconfig.toml");
     if modern.exists() {
         return modern;
     }
@@ -98,10 +98,10 @@ fn require_ods_workspace(root: &Path) -> Result<(), CliError> {
     Err(failure(format!(
         "not an ODS workspace: {}\n\n\
          No root index.md with 'ods:' marker found, and this path is not\n\
-         registered in the global machine config (~/.odc/odcconfig.toml).\n\n\
+         registered in the global machine config (~/.ods/odcconfig.toml).\n\n\
          To fix:\n\
-         • Run 'odc init' here to make this folder ODS-compliant, or\n\
-         • Run 'odc workspaces add' to track it globally without modifying files.",
+         • Run 'ods init' here to make this folder ODS-compliant, or\n\
+         • Run 'ods workspaces add' to track it globally without modifying files.",
         root.display()
     )))
 }
@@ -112,9 +112,9 @@ fn run_workspaces_command(args: &[String]) -> Result<ExitCode, CliError> {
     match subcommand {
         "--help" | "-h" | "help" => {
             println!(
-                "odc workspaces <subcommand>\n\n\
+                "ods workspaces <subcommand>\n\n\
                  Manage globally tracked ODS workspaces.\n\
-                 Config file: ~/.odc/odcconfig.toml (legacy ~/.ods/odsconfig.toml is read)\n\n\
+                 Config file: ~/.ods/odcconfig.toml (legacy ~/.ods/odsconfig.toml is read)\n\n\
                  Subcommands:\n\
                  \x20 add [path]     Register a folder as an ODS workspace (default: current dir)\n\
                  \x20 remove [path]  Unregister a folder (default: current dir)\n\

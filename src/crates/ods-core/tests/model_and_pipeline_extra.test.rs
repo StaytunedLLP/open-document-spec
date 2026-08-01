@@ -1,33 +1,11 @@
-//! model odc pin + pipeline discover/gitignore coverage.
+//! model ods pin + pipeline discover/gitignore coverage.
 use ods_core::{
-    CodeRole, apply_document_upserts, current_odc_requirement, discover_markdown_paths,
-    load_options_graph, load_workspace, load_workspace_with_options, odc_requirement_satisfied,
+    CodeRole, apply_document_upserts, discover_markdown_paths,
+    load_options_graph, load_workspace, load_workspace_with_options,
     parse_document_text, parse_paths_parallel,
 };
 use std::fs;
 use tempfile::tempdir;
-
-#[test]
-fn odc_requirement_all_paths() {
-    assert!(odc_requirement_satisfied("").is_err());
-    assert!(odc_requirement_satisfied("   ").is_err());
-    assert!(odc_requirement_satisfied("<1.0.0").is_err());
-    assert!(odc_requirement_satisfied("=1.0.0").is_err());
-    assert!(odc_requirement_satisfied(">=").is_err());
-    assert!(odc_requirement_satisfied("not.a.version").is_err());
-    assert!(odc_requirement_satisfied("1.2.3.4").is_err());
-
-    let cur = current_odc_requirement();
-    assert!(cur.starts_with(">="));
-    assert!(odc_requirement_satisfied(&cur).unwrap());
-    assert!(odc_requirement_satisfied(">=0.0.1").unwrap());
-    // exact match of package version
-    let ver = env!("CARGO_PKG_VERSION");
-    assert!(odc_requirement_satisfied(ver).unwrap());
-    assert!(!odc_requirement_satisfied("999.0.0").unwrap());
-    assert!(odc_requirement_satisfied(&format!("v{ver}")).unwrap());
-    assert!(odc_requirement_satisfied(">=v0.0.1").unwrap());
-}
 
 #[test]
 fn discover_gitignore_and_excluded_roots() {
@@ -65,7 +43,7 @@ fn load_graph_options_and_parallel() {
     let root = dir.path();
     fs::write(
         root.join("index.md"),
-        "---\nprofile: index\nods: 0.1\nodc: \">=0.0.1\"\n---\n\n# R\n",
+        "---\nprofile: index\nods: 0.1\n---\n\n# R\n",
     )
     .unwrap();
     fs::write(
@@ -119,7 +97,7 @@ fn apply_upsert_when_by_path_stale() {
     let root = dir.path();
     fs::write(
         root.join("index.md"),
-        "---\nprofile: index\nods: 0.1\nodc: \">=0.0.1\"\n---\n\n# R\n",
+        "---\nprofile: index\nods: 0.1\n---\n\n# R\n",
     )
     .unwrap();
     let mut ws = load_workspace(root).unwrap();
@@ -144,9 +122,9 @@ fn parse_paths_parallel_jobs_and_error() {
     let file = root.join("test.md");
     fs::write(&file, "# Test\n").unwrap();
 
-    // Test ODC_JOBS = 0 and 2
+    // Test ODS_JOBS = 0 and 2
     unsafe {
-        std::env::set_var("ODC_JOBS", "0");
+        std::env::set_var("ODS_JOBS", "0");
     }
     assert_eq!(
         parse_paths_parallel(root, std::slice::from_ref(&file), true)
@@ -155,7 +133,7 @@ fn parse_paths_parallel_jobs_and_error() {
         1
     );
     unsafe {
-        std::env::set_var("ODC_JOBS", "2");
+        std::env::set_var("ODS_JOBS", "2");
     }
     assert_eq!(
         parse_paths_parallel(root, std::slice::from_ref(&file), true)
@@ -164,15 +142,15 @@ fn parse_paths_parallel_jobs_and_error() {
         1
     );
 
-    // Test invalid ODC_JOBS
+    // Test invalid ODS_JOBS
     unsafe {
-        std::env::set_var("ODC_JOBS", "invalid");
+        std::env::set_var("ODS_JOBS", "invalid");
     }
     let docs = parse_paths_parallel(root, std::slice::from_ref(&file), true).unwrap();
     assert_eq!(docs.len(), 1);
 
     unsafe {
-        std::env::remove_var("ODC_JOBS");
+        std::env::remove_var("ODS_JOBS");
     }
 
     // Error path: non-existent file

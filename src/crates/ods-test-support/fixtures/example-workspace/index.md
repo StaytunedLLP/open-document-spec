@@ -1,7 +1,7 @@
 ---
 profile: index
 ods: 0.1
-odc: ">=0.1.19"
+ods: ">=0.1.19"
 ---
 
 # Example Workspace

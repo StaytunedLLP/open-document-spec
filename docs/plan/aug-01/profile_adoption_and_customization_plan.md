@@ -7,7 +7,7 @@ This implementation plan outlines the complete engineering strategy to **restore
 ## 1. Objectives & Executive Summary
 
 1. **CLI Binary & Command Unification (`ods`)**:
-   - Rename primary CLI binary from `odc` back to **`ods`** (Open Document Spec).
+   - Rename primary CLI binary from `ods` back to **`ods`** (Open Document Spec).
    - Eliminate separate spec subcommands (`ods okf *`, `ods skill *`).
    - All commands become top-level `ods` actions: `ods lint`, `ods init`, `ods adopt`, `ods new`, `ods status`, `ods profile`, `ods coverage`, `ods format`, `ods audit`, `ods pack`.
    - Multi-spec support (e.g. OKF) is handled strictly via flag (`--okf` or `--spec okf`) rather than separate CLI command sub-namespaces.
@@ -75,7 +75,7 @@ skills/
 ```
 src/crates/
 ├── index.md
-├── ods-core/                           <-- Engine Core Crate (formerly odc-core)
+├── ods-core/                           <-- Engine Core Crate (formerly ods-core)
 │   ├── Cargo.toml
 │   └── src/
 │       ├── lib.rs
@@ -88,7 +88,7 @@ src/crates/
 │       ├── fs/                         <-- File Scanner & Loader
 │       ├── bench/                      <-- Scale Benchmarks
 │       └── export/                     <-- Workspace Exporters
-├── ods-cli/                            <-- CLI Binary Crate (formerly odc)
+├── ods-cli/                            <-- CLI Binary Crate (formerly ods)
 │   ├── Cargo.toml
 │   └── src/
 │       ├── main.rs
@@ -102,7 +102,7 @@ src/crates/
 │       ├── service/                    <-- Background Daemon Service
 │       ├── update/                     <-- Self-Update & Upgrade Runner
 │       └── support/                    <-- Terminal Formatting & Output Helpers
-└── ods-test-support/                   <-- Test Helpers Crate (formerly odc-test-support)
+└── ods-test-support/                   <-- Test Helpers Crate (formerly ods-test-support)
     ├── Cargo.toml
     └── src/
         └── lib.rs
@@ -117,7 +117,7 @@ src/crates/
 - [ ] Update `skills/ods/SKILL.md` to reference `ods` commands, `--okf` flag, and `custom-profiles:` root registration.
 
 ### Phase 2: Semantic Crate Renaming & Child Folder Refactoring
-- [ ] Rename crate folders: `odc-core` $\rightarrow$ `ods-core`, `odc` $\rightarrow$ `ods-cli`, `odc-test-support` $\rightarrow$ `ods-test-support`.
+- [ ] Rename crate folders: `ods-core` $\rightarrow$ `ods-core`, `ods` $\rightarrow$ `ods-cli`, `ods-test-support` $\rightarrow$ `ods-test-support`.
 - [ ] Update root `Cargo.toml` and crate `Cargo.toml` manifest files.
 - [ ] Rearrange `ods-core/src/` child files into semantic subfolders (`model/`, `parse/`, `profiles/`, `lint/`, `graph/`, `lifecycle/`, `fs/`, `bench/`, `export/`).
 - [ ] Rearrange `ods-cli/src/` child files into semantic subfolders (`cli/`, `commands/document/`, `commands/profile/`, `commands/workspace/`, `commands/lifecycle/`, `commands/service/`, `support/`).

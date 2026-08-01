@@ -24,10 +24,10 @@ fn run_okf_watch_command(args: &[String], headless: bool) -> Result<ExitCode, Cl
 
     tick(&root)?;
     if headless {
-        eprintln!("odc okf serve: polling {} every {}s", root.display(), poll.as_secs());
+        eprintln!("ods okf serve: polling {} every {}s", root.display(), poll.as_secs());
     } else {
         eprintln!(
-            "odc okf watch: re-linting {} on change (poll {}s; Ctrl+C to stop)",
+            "ods okf watch: re-linting {} on change (poll {}s; Ctrl+C to stop)",
             root.display(),
             poll.as_secs()
         );

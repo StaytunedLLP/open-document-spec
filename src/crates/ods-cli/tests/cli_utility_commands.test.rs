@@ -36,7 +36,7 @@ fn lint_clean_prints_ok_message() {
         stdout.contains("Everything is fine"),
         "expected green message: {stdout}"
     );
-    assert!(!dir.join(".odc/odc-errors.md").exists());
+    assert!(!dir.join(".ods/ods-errors.md").exists());
     assert!(!dir.join("ods-error.md").exists());
 }
 
@@ -73,8 +73,8 @@ fn lint_broken_writes_odc_error_report() {
         !out.status.success(),
         "lint should fail on dangling depends"
     );
-    let report = dir.join(".odc/odc-errors.md");
-    assert!(report.is_file(), "expected .odc/odc-errors.md");
+    let report = dir.join(".ods/ods-errors.md");
+    assert!(report.is_file(), "expected .ods/ods-errors.md");
     let body = fs::read_to_string(&report).unwrap();
     assert!(body.contains("missing/doc") || body.contains("dangling") || body.contains("error"));
 }

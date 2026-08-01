@@ -9,48 +9,6 @@ pub fn current_ods_spec_version() -> &'static str {
     "0.1"
 }
 
-pub fn current_odc_requirement() -> String {
-    format!(">={}", current_ods_version())
-}
-
-pub fn odc_requirement_satisfied(requirement: &str) -> Result<bool, String> {
-    let requirement = requirement.trim();
-    if requirement.is_empty() {
-        return Err("empty odc requirement".to_string());
-    }
-    let required = requirement.strip_prefix(">=").unwrap_or(requirement).trim();
-    if required.is_empty() || required.starts_with('<') || required.starts_with('=') {
-        return Err(format!("invalid odc requirement: {requirement}"));
-    }
-    let current = parse_semver_triplet(current_ods_version())
-        .ok_or_else(|| format!("invalid current CLI version: {}", current_ods_version()))?;
-    let required = parse_semver_triplet(required)
-        .ok_or_else(|| format!("invalid odc requirement: {requirement}"))?;
-    if requirement.starts_with(">=") {
-        Ok(current >= required)
-    } else {
-        Ok(current == required)
-    }
-}
-
-fn parse_semver_triplet(value: &str) -> Option<(u64, u64, u64)> {
-    let value = value.trim().trim_start_matches('v');
-    let mut parts = value.split('.');
-    let major = parts.next()?.parse().ok()?;
-    let minor = parts.next()?.parse().ok()?;
-    let patch_part = parts.next()?;
-    if parts.next().is_some() {
-        return None;
-    }
-    let patch = patch_part
-        .split_once('-')
-        .map(|(patch, _)| patch)
-        .unwrap_or(patch_part)
-        .parse()
-        .ok()?;
-    Some((major, minor, patch))
-}
-
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Severity {
     Error,
@@ -159,7 +117,6 @@ pub struct Frontmatter {
     pub owner: Option<String>,
     pub tags: Vec<String>,
     pub ods: Option<String>,
-    pub odc: Option<String>,
     pub aliases: BTreeMap<String, Vec<String>>,
     /// Workspace-relative path prefixes to exclude from scan/index (root `index.md` only).
     pub ignore: Vec<String>,

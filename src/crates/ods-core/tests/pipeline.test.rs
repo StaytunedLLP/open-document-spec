@@ -104,7 +104,7 @@ fn discover_respects_workspace_ignore() {
 
 #[test]
 fn discover_empty_missing_dir_ok() {
-    let missing = PathBuf::from("/tmp/odc-does-not-exist-coverage-xyz");
+    let missing = PathBuf::from("/tmp/ods-does-not-exist-coverage-xyz");
     let _ = fs::remove_dir_all(&missing);
     let paths = discover_markdown_paths(&missing, &[], &[], &[]).unwrap();
     assert!(paths.is_empty());

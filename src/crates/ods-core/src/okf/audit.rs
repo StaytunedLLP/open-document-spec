@@ -97,7 +97,7 @@ pub fn audit_okf_bundle(bundle: &OkfBundle) -> OkfAuditReport {
 pub fn render_okf_audit_markdown(bundle_root: &std::path::Path, report: &OkfAuditReport) -> String {
     let mut md = String::new();
     md.push_str("---\n");
-    md.push_str("generated_by: odc okf audit\n");
+    md.push_str("generated_by: ods okf audit\n");
     md.push_str(&format!("workspace: {}\n", bundle_root.display()));
     md.push_str("summary:\n");
     md.push_str(&format!("  total_md: {}\n", report.total_md));
@@ -105,7 +105,7 @@ pub fn render_okf_audit_markdown(bundle_root: &std::path::Path, report: &OkfAudi
     md.push_str(&format!("  plain: {}\n", report.plain));
     md.push_str(&format!("  invalid: {}\n", report.invalid));
     md.push_str(&format!("  partial: {}\n", report.partial));
-    md.push_str("---\n\n# ODC OKF Audit Report\n\n");
+    md.push_str("---\n\n# ODS OKF Audit Report\n\n");
     md.push_str("## Summary\n\n| Class | Count |\n|---|---|\n");
     md.push_str(&format!("| compliant | {} |\n", report.compliant));
     md.push_str(&format!("| plain | {} |\n", report.plain));
@@ -156,7 +156,7 @@ pub fn render_okf_audit_markdown(bundle_root: &std::path::Path, report: &OkfAudi
         OkfAuditClass::Partial,
     );
     md.push_str(
-        "## Suggested next commands\n\n```bash\nodc okf adopt --write\nodc okf lint\n```\n",
+        "## Suggested next commands\n\n```bash\nods adopt --okf --write\nods lint --okf\n```\n",
     );
     md
 }

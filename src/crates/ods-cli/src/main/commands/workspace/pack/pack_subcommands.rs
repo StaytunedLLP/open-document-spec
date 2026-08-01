@@ -1,7 +1,7 @@
 fn run_pack_remove(args: &[String]) -> Result<ExitCode, CliError> {
     let name = args
         .get(3)
-        .ok_or_else(|| usage("odc pack remove requires a pack name or path"))?;
+        .ok_or_else(|| usage("ods pack remove requires a pack name or path"))?;
 
     let root = resolve_root_path(env::current_dir().unwrap_or_else(|_| PathBuf::from(".")));
     let root_index_path = root.join("index.md");
@@ -22,7 +22,7 @@ fn run_pack_remove(args: &[String]) -> Result<ExitCode, CliError> {
 fn run_pack_preview(args: &[String]) -> Result<ExitCode, CliError> {
     let name = args
         .get(3)
-        .ok_or_else(|| usage("odc pack preview requires a pack name or path"))?;
+        .ok_or_else(|| usage("ods pack preview requires a pack name or path"))?;
 
     let root = resolve_root_path(env::current_dir().unwrap_or_else(|_| PathBuf::from(".")));
     let pack_dir = root.join(name);

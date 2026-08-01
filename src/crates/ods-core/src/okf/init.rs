@@ -65,10 +65,10 @@ okf_version: "{ver}"
                 r#"---
 type: Metric
 title: Sample metric
-description: Example OKF v0.2 concept for OpenDocify.
+description: Example OKF v0.2 concept for Open Document Spec.
 tags: [example]
 status: draft
-generated: { by: odc/okf-init, at: 2026-01-01T00:00:00Z }
+generated: { by: ods/okf-init, at: 2026-01-01T00:00:00Z }
 ---
 
 # Definition
@@ -92,7 +92,7 @@ Replace this sample with a real knowledge concept.
                 r#"---
 type: Attested Computation
 title: Sample computation
-description: Contract-only stub (OpenDocify does not execute attesters in v1).
+description: Contract-only stub (Open Document Spec does not execute attesters in v1).
 status: draft
 runtime: bigquery
 parameters:
@@ -120,7 +120,7 @@ attester:
         } else {
             fs::write(
                 &log,
-                "# Bundle update log\n\n## 2026-01-01\n* **Initialization**: Created OKF bundle via `odc okf init`.\n",
+                "# Bundle update log\n\n## 2026-01-01\n* **Initialization**: Created OKF bundle via `ods okf init`.\n",
             )?;
             report.created.push(log);
         }

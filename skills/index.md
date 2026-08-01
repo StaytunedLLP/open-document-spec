@@ -4,5 +4,5 @@ profile: index
 
 # skills
 
-- [ods/](ods/index.md) — OpenDocify CLI for **ODS** document graphs (`odc ods …`)
-- [okf/](okf/SKILL.md) — OpenDocify CLI for **OKF v0.2** knowledge bundles (`odc okf …`)
+- [ods/](ods/index.md) — Open Document Spec CLI for **ODS** document graphs (`ods ods …`)
+- [okf/](okf/SKILL.md) — Open Document Spec CLI for **OKF v0.2** knowledge bundles (`ods okf …`)

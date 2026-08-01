@@ -61,7 +61,7 @@ trap 'rm -rf "${TMP_WORKSPACE}"' EXIT
 cat > "${TMP_WORKSPACE}/index.md" << 'EOF'
 ---
 ods: 0.1
-odc: ">=0.0.1"
+ods: ">=0.0.1"
 ---
 # Root Index
 EOF

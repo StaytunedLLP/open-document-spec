@@ -2,7 +2,7 @@
 profile: research
 status: stable
 share: public
-description: Comprehensive strategic and technical research report on integrating Google OKF v0.2 into ODS (OpenDocify), scaling architecture, zero-Rust distribution, release pipelines, universal agent ecosystem, and 100K GitHub star growth plan.
+description: Comprehensive strategic and technical research report on integrating Google OKF v0.2 into ODS (Open Document Spec), scaling architecture, zero-Rust distribution, release pipelines, universal agent ecosystem, and 100K GitHub star growth plan.
 owner: team:opendocify
 tags: [okf, ods, research, architecture, scaling, agent-spec]
 ---
@@ -11,27 +11,27 @@ tags: [okf, ods, research, architecture, scaling, agent-spec]
 
 ## Executive Summary
 
-This report establishes the architectural roadmap, integration specification, distribution strategy, and open-source growth strategy for incorporating **Google Open Knowledge Format (OKF) v0.2** natively into **Open Document Specs (ODS)** under the umbrella brand **OpenDocify** (`opendocify.com`).
+This report establishes the architectural roadmap, integration specification, distribution strategy, and open-source growth strategy for incorporating **Google Open Knowledge Format (OKF) v0.2** natively into **Open Document Specs (ODS)** under the umbrella brand **Open Document Spec** (`opendocify.com`).
 
-Google OKF v0.2 introduces critical standards for machine-generated and agent-maintained knowledge bundles (provenance, trust signals, temporal staleness, and attested computations). By natively combining ODS (developer & codebase documentation graphs) with OKF v0.2 (data, metric, and knowledge bundle graphs), OpenDocify becomes the **universal document & knowledge specification for AI agents and human teams**.
+Google OKF v0.2 introduces critical standards for machine-generated and agent-maintained knowledge bundles (provenance, trust signals, temporal staleness, and attested computations). By natively combining ODS (developer & codebase documentation graphs) with OKF v0.2 (data, metric, and knowledge bundle graphs), Open Document Spec becomes the **universal document & knowledge specification for AI agents and human teams**.
 
 ---
 
-## 1. Native OKF v0.2 Support & Brand Strategy (`ods` vs `odc` / `opendocify.com`)
+## 1. Native OKF v0.2 Support & Brand Strategy (`ods` vs `ods` / `opendocify.com`)
 
 ### 1.1 Should we offer native support of Google OKF v0.2?
 **YES.** Google OKF v0.2 and ODS solve complementary halves of knowledge representation:
 * **ODS**: Optimizes software engineering repositories, file-to-code mapping (`code:`), dependency graphs (`depends:`, `related:`), context scoping (`ods context`), and structural section profiles (`profile:`).
 * **OKF v0.2**: Optimizes data asset catalogs, metrics, business logic provenance (`sources:`), trust verification (`generated:`, `verified:`), temporal staleness (`stale_after:`), and executable compute validation (`Attested Computation`).
 
-Natively supporting both specs in one engine positions OpenDocify as the standard protocol across both engineering codebases and data/AI agent knowledge bases.
+Natively supporting both specs in one engine positions Open Document Spec as the standard protocol across both engineering codebases and data/AI agent knowledge bases.
 
 ### 1.2 Dual-Spec Architecture
-OpenDocify's engine (`ods-core`) will natively recognize and validate two complementary specifications:
+Open Document Spec's engine (`ods-core`) will natively recognize and validate two complementary specifications:
 
 ```
                           ┌────────────────────────────────────────┐
-                          │   OpenDocify Platform (opendocify.com) │
+                          │   Open Document Spec Platform (opendocify.com) │
                           └───────────────────┬────────────────────┘
                                               │
                                    ┌──────────┴──────────┐
@@ -48,13 +48,13 @@ OpenDocify's engine (`ods-core`) will natively recognize and validate two comple
   * Hybrid Workspace: Root `index.md` contains both `ods: 0.2` and `okf: 0.2`.
 * **Cross-Spec Interoperability**: OKF files in an ODS workspace can link to ODS files via standard Markdown relative links. Commands like `ods lint`, `ods index`, `ods context`, and `ods export` operate seamlessly across both formats.
 
-### 1.3 Brand and Binary Naming (`ods` vs `odc`)
-* **Company & Domain**: **OpenDocify** (`opendocify.com`).
-* **Specification Suite**: **ODS / ODC Core Specifications**.
+### 1.3 Brand and Binary Naming (`ods` vs `ods`)
+* **Company & Domain**: **Open Document Spec** (`opendocify.com`).
+* **Specification Suite**: **ODS / ODS Core Specifications**.
 * **CLI Binary Strategy**:
   * Maintain `ods` as the primary CLI binary name for backwards compatibility, zero breakage of existing installations, and muscle memory.
-  * Provide `odc` and `opendocify` as native aliases / symlinks created during installation.
-  * CLI command usage examples: `ods lint`, `odc lint`, `opendocify lint` execute identically.
+  * Provide `ods` and `opendocify` as native aliases / symlinks created during installation.
+  * CLI command usage examples: `ods lint`, `ods lint`, `opendocify lint` execute identically.
 
 ---
 
@@ -71,11 +71,11 @@ Integrating OKF natively into the core Rust engine (`ods-core`) — rather than 
 
 ## 3. Zero-Rust Local Execution Architecture
 
-To guarantee that users do **NOT** need Rust or Cargo installed on their local machine, OpenDocify provides 4 zero-dependency distribution channels:
+To guarantee that users do **NOT** need Rust or Cargo installed on their local machine, Open Document Spec provides 4 zero-dependency distribution channels:
 
 ```
                               ┌─────────────────────────┐
-                              │  OpenDocify Core (Rust) │
+                              │  Open Document Spec Core (Rust) │
                               └────────────┬────────────┘
                                            │
          ┌──────────────────┬──────────────┴───────┬──────────────────┐
@@ -169,7 +169,7 @@ As AI software engineering matures, agent instructions are heavily fragmented ac
 
 ```
                            ┌───────────────────────────┐
-                           │ OpenDocify Universal Graph│
+                           │ Open Document Spec Universal Graph│
                            │  (ODS/OKF Agent Graph)   │
                            └─────────────┬─────────────┘
                                          │
@@ -181,7 +181,7 @@ As AI software engineering matures, agent instructions are heavily fragmented ac
 └───────────────┘   └───────────────┘         └───────────────┘   └───────────────┘
 ```
 
-By providing first-class ODS profiles (`profile: agent`, `profile: skill`, `profile: subagent`), OpenDocify brings structure, linting, and graph management to AI prompt instructions.
+By providing first-class ODS profiles (`profile: agent`, `profile: skill`, `profile: subagent`), Open Document Spec brings structure, linting, and graph management to AI prompt instructions.
 
 ### 7.2 Key Benefits
 1. **Elimination of AI Instruction Drift**: A single source of truth for agent rules. Updating an ODS agent document updates all exported agent formats automatically.
@@ -196,7 +196,7 @@ By providing first-class ODS profiles (`profile: agent`, `profile: skill`, `prof
 ### 8.1 Gap Analysis in ODS
 Comparing ODS v0.1 with Google OKF v0.2 reveals four critical metadata gaps in ODS:
 
-| Feature Area | ODS v0.1 | OKF v0.2 | Recommendation for OpenDocify |
+| Feature Area | ODS v0.1 | OKF v0.2 | Recommendation for Open Document Spec |
 |---|---|---|---|
 | **Provenance** | Only `owner` | `sources:` (with `author`, `usage_count`, `last_modified`) | Adopt `sources:` into ODS core schema |
 | **Freshness** | `status: draft\|stable` | `stale_after: YYYY-MM-DD` | Adopt `stale_after:` into ODS core schema |
@@ -204,7 +204,7 @@ Comparing ODS v0.1 with Google OKF v0.2 reveals four critical metadata gaps in O
 | **Computation** | None | `runtime:`, `parameters:`, `attester:`, `executor:` | Natively support OKF `Attested Computation` profile |
 
 ### 8.2 Unified Core Vocabulary
-Instead of maintaining divergent frontmatter keys, OpenDocify adopts a **Unified Common Frontmatter Standard**:
+Instead of maintaining divergent frontmatter keys, Open Document Spec adopts a **Unified Common Frontmatter Standard**:
 
 ```yaml
 ---
@@ -236,7 +236,7 @@ code:
 ## 9. Repository Compliance Audit Command (`ods audit` / `ods scan`)
 
 ### 9.1 Overview & Command Interface
-To allow developers and CI/CD pipelines to scan a repository and identify Markdown files that do not conform to ODS/OKF standards, OpenDocify introduces `ods audit` (alias `ods scan`).
+To allow developers and CI/CD pipelines to scan a repository and identify Markdown files that do not conform to ODS/OKF standards, Open Document Spec introduces `ods audit` (alias `ods scan`).
 
 ```bash
 # Scan repository for non-compliant markdown files
@@ -252,7 +252,7 @@ ods audit --format json
 ### 9.2 Execution Output Example
 
 ```
-🔍 OpenDocify Repository Audit Report
+🔍 Open Document Spec Repository Audit Report
 Workspace: /home/user/my-project
 
 Summary:
@@ -294,9 +294,9 @@ Every ODS workspace root `index.md` contains the explicit root marker `ods: 0.1`
    filename:index.md path:/ ("okf:" OR "okf_version:")
    ```
 
-3. **Combined OpenDocify Universal Search Query**:
+3. **Combined Open Document Spec Universal Search Query**:
    ```
-   filename:index.md path:/ ("ods:" OR "okf:" OR "okf_version:" OR "odc:")
+   filename:index.md path:/ ("ods:" OR "okf:" OR "okf_version:" OR "ods:")
    ```
 
 4. **GitHub Search API cURL Command**:
@@ -314,7 +314,7 @@ Every ODS workspace root `index.md` contains the explicit root marker `ods: 0.1`
 
 ## 11. Hyper-Scaling Strategy: 100K GitHub Stars & 1M Users Roadmap
 
-To scale OpenDocify to 100,000+ GitHub Stars and 1,000,000+ users:
+To scale Open Document Spec to 100,000+ GitHub Stars and 1,000,000+ users:
 
 ```
 ┌─────────────────────────────────────────────────────────────────────────┐
@@ -323,7 +323,7 @@ To scale OpenDocify to 100,000+ GitHub Stars and 1,000,000+ users:
 │ 1. Zero-Install NPX & WASM Demo ──► Instant User Delight                │
 │ 2. Prepackaged AI Agent Skills   ──► Automatic Adoption by AI Tools    │
 │ 3. GitHub Action Linter Gate     ──► PR Enforcement in Top Repositories│
-│ 4. "Powered by OpenDocify" Badge ──► Organic Star & Viral Discovery    │
+│ 4. "Powered by Open Document Spec" Badge ──► Organic Star & Viral Discovery    │
 └─────────────────────────────────────────────────────────────────────────┘
 ```
 
@@ -337,4 +337,4 @@ To scale OpenDocify to 100,000+ GitHub Stars and 1,000,000+ users:
 
 ## Conclusion & Action Plan
 
-Integrating Google OKF v0.2 into OpenDocify (`ods-core`) establishes a universal specification for code, knowledge, and AI agent memory. The strategy outlined above guarantees zero-friction local execution, unified versioning, real-time website release sync, and viral developer distribution.
+Integrating Google OKF v0.2 into Open Document Spec (`ods-core`) establishes a universal specification for code, knowledge, and AI agent memory. The strategy outlined above guarantees zero-friction local execution, unified versioning, real-time website release sync, and viral developer distribution.

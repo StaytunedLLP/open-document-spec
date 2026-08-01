@@ -39,7 +39,7 @@ All core architectural features and refactorings have been **100% executed and v
 - [x] Execute `cargo test --workspace` with 100% clean pass.
 
 ### Phase 5: Folder Auto-Discovery Removal (`ods-core/src/profiles.rs`)
-- [x] Refactor `profile_catalog_roots` to remove folder auto-discovery loops (`"ods-profiles"`, `".odc/profiles"`, `".ods/profiles"`, global home profiles).
+- [x] Refactor `profile_catalog_roots` to remove folder auto-discovery loops (`"ods-profiles"`, `".ods/profiles"`, `".ods/profiles"`, global home profiles).
 - [x] Ensure custom profile files are loaded exclusively from explicit `custom-profiles:` array in root `index.md` (and imported ODS Packs).
 
 ### Phase 6: CLI Profile Init & Test Alignment

@@ -1,5 +1,4 @@
 ---
-title: "Compliance & Governance Use Case"
 description: "Using ODS policy profiles, status enums, and level-3 CI checks for enterprise governance."
 status: "stable"
 order: 13
@@ -18,4 +17,4 @@ Enterprise software teams use ODS to enforce documentation compliance, mandatory
 
 1. **Policy Profile (`profile: policy`)**: Enforces required H2 sections (`## Purpose`, `## Scope`, `## Requirements`, `## Enforcement`).
 2. **Status Lifecycle (`status: draft | stable | deprecated | archived`)**: Enforces explicit document maturity.
-3. **Level-3 CI Gate (`odc ods lint --level 3`)**: Fails pull requests if required sections or links are missing.
+3. **Level-3 CI Gate (`ods lint --level 3`)**: Fails pull requests if required sections or links are missing.

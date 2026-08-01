@@ -25,7 +25,7 @@ fn run_find_command(args: &[String]) -> Result<ExitCode, CliError> {
     }
     if tags.is_empty() {
         return Err(usage(
-            "usage: odc find [path] --tag <name> [--tag <name> ...]  (OR match)",
+            "usage: ods find [path] --tag <name> [--tag <name> ...]  (OR match)",
         ));
     }
     let workspace = load_workspace_with_options(&root, load_options_graph())

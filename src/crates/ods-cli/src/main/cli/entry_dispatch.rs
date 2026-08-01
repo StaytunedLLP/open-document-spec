@@ -1,106 +1,10 @@
-/// Detect engines from CWD/path markers and run ODS and/or OKF handlers.
-fn dispatch_auto_detect(args: &[String]) -> Result<ExitCode, CliError> {
-    let cmd = args.get(1).map(String::as_str).unwrap_or("");
-    let probe = positional_args(args, 2)
-        .first()
-        .map(PathBuf::from)
-        .unwrap_or_else(|| env::current_dir().unwrap_or_else(|_| PathBuf::from(".")));
-    let root = resolve_root_path(probe);
 
-    let has_ods = ods_core::ods_enabled(&root);
-    let has_okf = ods_core::okf_enabled(&root);
-
-    if matches!(cmd, "init" | "enable") {
-        if args.iter().any(|a| a == "--okf") {
-            let mut okf_args = vec![args[0].clone(), "okf".into(), "init".into()];
-            okf_args.extend(args.iter().skip(2).filter(|a| a.as_str() != "--okf").cloned());
-            return dispatch_okf_command(&okf_args);
-        }
-        return dispatch_ods_command(args);
-    }
-
-    // Commands implemented on both engines (OKF namespace has a handler).
-    let dual_engine = matches!(
-        cmd,
-        "lint" | "index" | "doctor" | "audit" | "adopt" | "fmt" | "export" | "context" | "watch"
-            | "serve"
-    );
-    let ods_only_extra = matches!(
-        cmd,
-        "profiles" | "tags" | "find" | "tag" | "graph" | "mv" | "new" | "rm" | "remove"
-            | "archive" | "disable" | "revert" | "sync" | "start" | "stop" | "share" | "bench"
-            | "sandbox" | "logs" | "coverage"
-    );
-
-    // Hybrid R1: dual-run only lint/doctor/audit; other dual-engine bare cmds need namespace.
-    if has_ods && has_okf {
-        if matches!(cmd, "lint" | "doctor" | "audit") {
-            let ods_code = dispatch_ods_command(args)?;
-            let mut okf_args = vec![args[0].clone(), "okf".into()];
-            okf_args.extend(args.iter().skip(1).cloned());
-            let okf_code = dispatch_okf_command(&okf_args)?;
-            if ods_code != ExitCode::SUCCESS {
-                return Ok(ods_code);
-            }
-            return Ok(okf_code);
-        }
-        if dual_engine {
-            return Err(failure(format!(
-                "hybrid workspace (ODS + OKF markers) at {}\n\n\
-                 Bare `odc {cmd}` is ambiguous here. Use explicit:\n\
-                 • `odc ods {cmd}` — ODS engine\n\
-                 • `odc okf {cmd}` — OKF engine\n\n\
-                 Note: bare dual-run applies only to lint / doctor / audit.",
-                root.display(),
-                cmd = cmd
-            )));
-        }
-        // ODS-only commands still run against the ODS side of a hybrid tree.
-        if ods_only_extra {
-            return dispatch_ods_command(args);
-        }
-    }
-
-    if has_okf && !has_ods && dual_engine {
-        let mut okf_args = vec![args[0].clone(), "okf".into()];
-        okf_args.extend(args.iter().skip(1).cloned());
-        return dispatch_okf_command(&okf_args);
-    }
-
-    if has_ods {
-        return dispatch_ods_command(args);
-    }
-
-    if has_okf && dual_engine {
-        let mut okf_args = vec![args[0].clone(), "okf".into()];
-        okf_args.extend(args.iter().skip(1).cloned());
-        return dispatch_okf_command(&okf_args);
-    }
-
-    if ods_only_extra || dual_engine {
-        return Err(failure(format!(
-            "not an ODS or OKF workspace: {}\n\n\
-             • ODS: root index.md with `ods:` (+ `odc:` CLI pin) — run `odc init`\n\
-             • OKF: root index.md with `okf_version:` — run `odc init --okf`\n\
-             • Or use explicit: `odc ods {cmd}` / `odc okf {cmd}`",
-            root.display(),
-            cmd = cmd
-        )));
-    }
-
-    dispatch_ods_command(args)
-}
 
 fn dispatch_platform_command(args: &[String]) -> Result<ExitCode, CliError> {
     let command = args.get(1).map(String::as_str).unwrap_or("");
     match command {
         "--version" | "-V" | "version" => {
-            let name = if allows_bare_ods_commands(args) {
-                "ods"
-            } else {
-                "odc"
-            };
-            println!("{name} {}", env!("CARGO_PKG_VERSION"));
+            println!("ods {}", env!("CARGO_PKG_VERSION"));
             Ok(ExitCode::from(0))
         }
         "--help" | "-h" | "help" => {
@@ -121,7 +25,7 @@ fn dispatch_ods_command(args: &[String]) -> Result<ExitCode, CliError> {
     let command = args.get(1).map(String::as_str).unwrap_or("");
     match command {
         "--version" | "-V" | "version" => {
-            println!("odc ods {}", env!("CARGO_PKG_VERSION"));
+            println!("ods ods {}", env!("CARGO_PKG_VERSION"));
             Ok(ExitCode::from(0))
         }
         "--help" | "-h" | "help" => {

@@ -1,6 +1,6 @@
 # Changelog
 
-All notable changes to **OpenDocify (`odc`)** are documented in this file.
+All notable changes to **Open Document Spec (`ods`)** are documented in this file.
 
 The format is inspired by [Keep a Changelog](https://keepachangelog.com/),
 and this project follows [Semantic Versioning](https://semver.org/).
@@ -10,36 +10,36 @@ GitHub Releases use GitHub’s auto-generated notes. Edit this file by hand when
 ## [Unreleased]
 
 ### Fixed
-- Hybrid workspaces: bare dual-run only for `lint`/`doctor`/`audit`; other dual-engine bare cmds require `odc ods` / `odc okf`.
-- `odc watch` no longer prints a fake log-stream banner; `odc logs` reads `~/.odc/logs/odc-serve.log`.
-- `odc archive` updates nested `ods.status` as well as flat `status`.
-- `odc coverage --write-report` writes `.odc/coverage.md` (not root `odc-report.md`).
-- CLI/help strings teach product binary `odc` (not primary `ods …`).
+- Hybrid workspaces: bare dual-run only for `lint`/`doctor`/`audit`; other dual-engine bare cmds require `ods ods` / `ods okf`.
+- `ods watch` no longer prints a fake log-stream banner; `ods logs` reads `~/.ods/logs/ods-serve.log`.
+- `ods archive` updates nested `ods.status` as well as flat `status`.
+- `ods coverage --write-report` writes `.ods/coverage.md` (not root `ods-report.md`).
+- CLI/help strings teach product binary `ods` (not primary `ods …`).
 
 ### Breaking
 
-- Root CLI pin key renamed: `ods-cli:` → **`odc:`** (tool is OpenDocify). Spec marker remains `ods:`. OKF remains `okf_version:`.
-- Lint health report path: root **`ods-error.md`** → **`.odc/odc-errors.md`** (legacy file is cleared when present).
-- Machine config / logs / backups prefer **`~/.odc/`** (legacy `~/.ods/` still read; `odc upgrade --write` migrates).
-- OS service unit names: `odc-watch-*` / `llp.odc.watch.*` (replaces `ods-watch-*` / `llp.ods.watch.*`).
+- Root CLI pin key renamed: `ods-cli:` → **`ods:`** (tool is Open Document Spec). Spec marker remains `ods:`. OKF remains `okf_version:`.
+- Lint health report path: root **`ods-error.md`** → **`.ods/ods-errors.md`** (legacy file is cleared when present).
+- Machine config / logs / backups prefer **`~/.ods/`** (legacy `~/.ods/` still read; `ods upgrade --write` migrates).
+- OS service unit names: `ods-watch-*` / `llp.ods.watch.*` (replaces `ods-watch-*` / `llp.ods.watch.*`).
 
 ### Added
 
-- **Crate rename** — workspace packages `odc`, `odc-core`, `odc-test-support` (was `ods` / `ods-core` / `ods-test-support`).
-- **OKF full CLI surface** — `odc okf index|context|export|fmt|watch|serve` plus existing init/lint/doctor/audit/adopt.
-- **Seamless bare CLI** — `odc lint|init|doctor|audit|…` auto-detects ODS vs OKF from root markers; explicit `odc ods` / `odc okf` still available.
+- **Crate rename** — workspace packages `ods`, `ods-core`, `ods-test-support` (was `ods` / `ods-core` / `ods-test-support`).
+- **OKF full CLI surface** — `ods okf index|context|export|fmt|watch|serve` plus existing init/lint/doctor/audit/adopt.
+- **Seamless bare CLI** — `ods lint|init|doctor|audit|…` auto-detects ODS vs OKF from root markers; explicit `ods ods` / `ods okf` still available.
 - **Cutover checklist** — `docs/plan/external_repo_cutover_checklist.md` for the ≈3 external ODS workspaces.
 - **Tool/keys plan** — `docs/plan/odc_tool_keys_legacy_cleanup.md` (source of truth for naming + legacy inventory).
-- **`skills/okf`** — agent skill for OKF via `odc okf`; ODS skill updated for OpenDocify.
-- **`odc agents sync`** — writes `AGENTS.md` plus optional `.claude` / `.cursor` snippets.
-- **OpenDocify multi-spec CLI (`odc`)** — primary binary `odc`:
+- **`skills/okf`** — agent skill for OKF via `ods okf`; ODS skill updated for Open Document Spec.
+- **`ods agents sync`** — writes `AGENTS.md` plus optional `.claude` / `.cursor` snippets.
+- **Open Document Spec multi-spec CLI (`ods`)** — primary binary `ods`:
   - Bare document commands auto-detect; namespaces force an engine
-  - `odc ods <cmd>` — ODS document graphs (Markdown keys still `ods:` / nested `ods`)
-  - `odc okf <cmd>` — **native Google OKF v0.2**
-  - `odc agents <cmd>` — agent graph MVP (`sync`)
-  - Platform: `odc update`, `odc upgrade` (`ods-cli:`→`odc:`; `~/.ods`→`~/.odc`), `setup`, `workspaces`, `skill`
+  - `ods ods <cmd>` — ODS document graphs (Markdown keys still `ods:` / nested `ods`)
+  - `ods okf <cmd>` — **native Google OKF v0.2**
+  - `ods agents <cmd>` — agent graph MVP (`sync`)
+  - Platform: `ods update`, `ods upgrade` (`ods-cli:`→`ods:`; `~/.ods`→`~/.ods`), `setup`, `workspaces`, `skill`
 - Legacy binary **`ods`** still ships (same code); bare `ods lint` ≡ ODS engine only.
-- `odc audit` / `odc ods audit` / `odc okf audit` — compliance inventory; `--write-report` → `.odc/odc-errors.md`
+- `ods audit` / `ods ods audit` / `ods okf audit` — compliance inventory; `--write-report` → `.ods/ods-errors.md`
 - Plans & key map: `docs/plan/odc_tool_keys_legacy_cleanup.md`, migration + OKF plans, `docs/specs/frontmatter-keys-ods-vs-okf.md`
 - `ods bench` — benchmarking and frontmatter snapshot/restore system (`stats`, `strip`, `restore`, `run`). Allows teams to take machine-level JSON snapshots (`~/.ods/backups/<repo-hash>/`), temporarily strip frontmatter, index lockfiles, and profiles to test AI task performance without ODS, restore workspace artifacts losslessly (`ods bench restore`), and calculate token & API cost ROI metrics (~94% token savings). Added `--full` flag for complete baseline isolation.
 - `ods workspaces` — manage globally tracked ODS workspace paths (`add`, `remove`, `list`, `path`) stored in human-readable TOML at `~/.ods/odsconfig.toml` (legacy `~/.ods/workspaces.toml` is auto-migrated on read).
@@ -47,14 +47,14 @@ GitHub Releases use GitHub’s auto-generated notes. Edit this file by hand when
 
 - **Comprehensive Workspace Test & Line Coverage Elevation**:
   - Elevated workspace line coverage from **78.84%** baseline to **82.31%** across 11,900 lines with **100% green test execution** (`cargo test --workspace` passing 200+ unit & integration tests).
-  - Target core engine modules (`odc-core`) elevated to **90%–100%** line coverage:
+  - Target core engine modules (`ods-core`) elevated to **90%–100%** line coverage:
     - 100%: `okf/audit`, `okf/model`, `pipeline/apply`
     - 95–99%: `okf/lint` (99.40%), `share` (99.05%), `model` (99.03%), `adopt` (98.80%), `parse/frontmatter` (98.14%), `fs/scanner` (97.50%), `profiles` (96.58%), `tags/suggestions` (96.46%), `mv/migrator` (96.12%), `okf/bundle` (95.83%), `pipeline/discover` (95.65%)
     - 90–94%: `okf/init` (94.74%), `mv/healer` (94.12%), `tags/aliases` (93.33%), `export` (92.86%), `lifecycle/init_and_disable` (91.91%), `lint/checker` (91.59%), `index/generator` (91.56%), `okf/index` (90.46%)
   - Added unit and integration tests covering:
     - Profile scaffolding templates (`decision`, `sop`, `api`, `meeting`, `faq`) & AlreadyExists/NotFound error paths (`scaffold_and_remove.rs`)
     - Custom hand-authored index profile preservation during index pruning (`index/generator.rs`)
-    - Root ODS/ODC metadata validation and non-root ODS key prohibition (`lint/canonical.rs`)
+    - Root ODS/ODS metadata validation and non-root ODS key prohibition (`lint/canonical.rs`)
     - Resource indexing and single-quoted ODS version frontmatter unquoting (`index/checker.rs`)
     - Code path line-number suffix error validation and extra index entry warnings (`lint/helpers.rs`)
     - `okf doctor` (text/JSON), `okf audit --format json`, `okf adopt --write`, `okf index --check` (`okf_commands.rs`)
@@ -63,14 +63,14 @@ GitHub Releases use GitHub’s auto-generated notes. Edit this file by hand when
     - `pack add` and `pack rm` (`pack_command.rs`)
     - Git status porcelain rename detection inside git repositories (`update_command.rs`)
     - `PathChangeReport` human-readable summary and issue detection (`mv/remover.rs`)
-- **Test coverage:** policy in `docs/maintainer/coverage.md`; scripts `coverage.sh` + `coverage-100-check.sh`; CI floor **75%** lines. New tests: OKF audit/model/init/parse (full surface), pipeline apply, model `CodeRole`/`odc` pin, CLI okf/upgrade/share/export/help. Engine (`odc-core`) ~**84%** lines; first modules at **100%**: `okf/audit`, `okf/model`, `pipeline/apply`.
+- **Test coverage:** policy in `docs/maintainer/coverage.md`; scripts `coverage.sh` + `coverage-100-check.sh`; CI floor **75%** lines. New tests: OKF audit/model/init/parse (full surface), pipeline apply, model `CodeRole`/`ods` pin, CLI okf/upgrade/share/export/help. Engine (`ods-core`) ~**84%** lines; first modules at **100%**: `okf/audit`, `okf/model`, `pipeline/apply`.
 - **10K-oriented performance (no disk cache):**
-  - Functional pipeline modules (`odc-core/src/pipeline/`): discover → parallel parse (`rayon`) → index.
+  - Functional pipeline modules (`ods-core/src/pipeline/`): discover → parallel parse (`rayon`) → index.
   - Graph commands (`lint`, `doctor`, `index`, `context`, `graph`, `find`, `tags`, `profiles`) load with `include_body: false` (note bodies dropped; **`index.md` bodies kept** for child-list rules).
-  - `odc watch` / `serve` keep a long-lived workspace and reparse **dirty paths only** (full reload only on first tick or large dirty sets). `ODC_JOBS` caps parse threads.
-  - Lint report `.odc/odc-errors.md` capped at 500 diagnostics + summary.
+  - `ods watch` / `serve` keep a long-lived workspace and reparse **dirty paths only** (full reload only on first tick or large dirty sets). `ODC_JOBS` caps parse threads.
+  - Lint report `.ods/ods-errors.md` capped at 500 diagnostics + summary.
 - **Codebase Refactoring & <300 Line File Modularization**:
-  - Restructured and modularized 100% of Rust files in `src/crates/` (`odc-core` & `odc`) to be strictly under 300 lines of code (0 files exceeding 300 lines).
+  - Restructured and modularized 100% of Rust files in `src/crates/` (`ods-core` & `ods`) to be strictly under 300 lines of code (0 files exceeding 300 lines).
   - Extracted sub-modules semantically across test suites, entry dispatchers, configuration helpers, watch handlers, and rename algorithms (`entry_dispatch.rs`, `okf_watch.rs`, `agents_command.rs`, `pack_subcommands.rs`, `rename_pairing.rs`, `classifier_rewriter.rs`, `workspaces_config.rs`, `lint_tests.rs`).
   - Renamed generic test file names to explicit semantic names (`parse_refs_and_links.test.rs`, `cli_service_lifecycle.test.rs`, `cli_frontmatter_commands.test.rs`, `cli_workspaces_command.test.rs`).
   - Resolved all merge conflicts with `origin/main` branch (`v0.0.5`), aligning lockfiles, documentation, and dependencies.

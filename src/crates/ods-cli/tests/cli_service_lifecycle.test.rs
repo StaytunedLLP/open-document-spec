@@ -145,7 +145,7 @@ fn logs_shows_service_log_path_not_watch_alias() {
     assert!(out.status.success(), "{out:?}");
     let stdout = String::from_utf8_lossy(&out.stdout);
     assert!(
-        stdout.contains("no service logs found") || stdout.contains("odc-serve.log"),
+        stdout.contains("no service logs found") || stdout.contains("ods-serve.log"),
         "{stdout}"
     );
     assert!(
@@ -172,7 +172,7 @@ fn watch_does_not_print_fake_log_stream_banner() {
     child.stdout.unwrap().read_to_string(&mut stdout).unwrap();
     assert!(
         !stdout.contains("streaming ods serve logs")
-            && !stdout.contains("streaming odc serve logs"),
+            && !stdout.contains("streaming ods serve logs"),
         "watch must not print logs banner: {stdout}"
     );
 }

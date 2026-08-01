@@ -1,5 +1,4 @@
 ---
-title: "Quickstart Guide"
 description: "Installation options, workspace initialization, service background daemon, validation, and AI context commands."
 status: "stable"
 order: 2
@@ -10,7 +9,7 @@ ods:
 
 # Quickstart
 
-OpenDocify is one native CLI binary: **`odc`** (optional legacy argv0 **`ods`** = ODS engine only). The normal flow is install, run `odc setup`, initialize or adopt Markdown, keep the user service running, then validate with bare **`odc lint`** / **`odc index --check`** (or explicit `odc ods …` in CI).
+Open Document Spec is one native CLI binary: **`ods`** (optional legacy argv0 **`ods`** = ODS engine only). The normal flow is install, run `ods setup`, initialize or adopt Markdown, keep the user service running, then validate with bare **`ods lint`** / **`ods index --check`** (or explicit `ods …` in CI).
 
 ---
 
@@ -22,13 +21,13 @@ The recommended, zero-friction entry point for ODS is via the **ODS Skill** in y
 
 When an AI assistant activates the ODS skill, the bundled cross-platform bootstrap script automatically:
 1. Detects your host Operating System (macOS, Linux, Windows) and architecture (`x86_64`, `arm64`).
-2. Downloads and verifies the matching native `odc` (legacy `ods`) release binary.
+2. Downloads and verifies the matching native `ods` (legacy `ods`) release binary.
 3. Registers and starts the persistent background OS user service (`systemd` user unit / `launchd` agent / Windows Scheduled Task).
 4. Validates workspace health and prints status:
 
 ```text
-==> OpenDocify is installed and running on your machine!
-==> Version: odc v0.0.x
+==> Open Document Spec is installed and running on your machine!
+==> Version: ods v0.0.x
 ```
 
 ---
@@ -41,14 +40,14 @@ If you are operating directly in a terminal without an AI coding skill, you can 
 
 ```bash
 curl -fsSL https://opendocify.com/install.sh | bash
-odc --version
+ods --version
 ```
 
 **Windows (PowerShell)**:
 
 ```powershell
 irm https://opendocify.com/install.ps1 | iex
-odc --version
+ods --version
 ```
 
 ---
@@ -60,58 +59,58 @@ New documentation folder:
 ```bash
 mkdir my-docs
 cd my-docs
-odc init .          # ODS default (writes ods: + odc:); or: odc ods init .
+ods init .          # ODS default (writes ods: + ods:); or: ods init .
 ```
 
 Existing Markdown tree:
 
 ```bash
 cd existing-docs
-odc init . --adopt  # or: odc ods init . --adopt
+ods init . --adopt  # or: ods init . --adopt
 ```
 
 OKF knowledge bundle:
 
 ```bash
-odc init --okf .    # or: odc okf init .
+ods init --okf .    # or: ods okf init .
 ```
 
-`odc init` (ODS) makes the folder ODS-compliant by creating a root `index.md` with `ods: 0.1` and `odc: ">=0.0.1"` metadata and generating child index files.
+`ods init` (ODS) makes the folder ODS-compliant by creating a root `index.md` with `ods: 0.1` and `ods: ">=0.0.1"` metadata and generating child index files.
 
 ---
 
 ## 3. Run Setup & Start Background Service
 
 ```bash
-odc setup
+ods setup
 ```
 
-`odc setup` checks release freshness, verifies the root spec header, starts/registers the background OS user service (`systemd` / `launchd` / `schtasks`), and runs `odc ods doctor`.
+`ods setup` checks release freshness, verifies the root spec header, starts/registers the background OS user service (`systemd` / `launchd` / `schtasks`), and runs `ods doctor`.
 
 Direct service commands:
 
 ```bash
-odc ods start .
-odc ods start --status
-odc ods stop .
-odc ods stop --unregister .
+ods start .
+ods start --status
+ods stop .
+ods stop --unregister .
 ```
 
 Foreground alternative:
 
 ```bash
-odc ods watch .
+ods watch .
 ```
 
-While `odc ods start` or `odc ods watch` runs, rename/move Markdown normally. ODS keeps path-shaped `id`, `depends`, `related`, body links, resource paths, context path entries, and generated `index.md` child lists current.
+While `ods start` or `ods watch` runs, rename/move Markdown normally. ODS keeps path-shaped `id`, `depends`, `related`, body links, resource paths, context path entries, and generated `index.md` child lists current.
 
 ---
 
 ## 4. Validate Trust
 
 ```bash
-odc ods lint
-odc ods index --check
+ods lint
+ods index --check
 ```
 
 Clean lint output:
@@ -127,20 +126,20 @@ Everything is fine — graph and links are consistent. No update required.
 Preferred bounded reading list:
 
 ```bash
-odc ods context <doc-id>
+ods context <doc-id>
 ```
 
 Optional full graph file:
 
 ```bash
-odc ods export
-odc ods export --out ai/graph.md
+ods export
+ods export --out ai/graph.md
 ```
 
 Publishing a filtered subset for external hand-off:
 
 ```bash
-odc ods share . --out ../shared-docs
+ods share . --out ../shared-docs
 ```
 
 ---
@@ -148,11 +147,11 @@ odc ods share . --out ../shared-docs
 ## 6. Keep Current
 
 ```bash
-odc update --check
-odc update
+ods update --check
+ods update
 ```
 
-`odc update` downloads the latest binary release from GitHub Releases and automatically restarts the background service so it runs with the updated binary.
+`ods update` downloads the latest binary release from GitHub Releases and automatically restarts the background service so it runs with the updated binary.
 
 ---
 

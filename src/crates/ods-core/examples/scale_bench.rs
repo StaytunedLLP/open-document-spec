@@ -3,8 +3,8 @@
 //! Not part of `cargo test` — run explicitly:
 //!
 //! ```text
-//! cargo run -p odc-core --release --example scale_bench -- 100000
-//! cargo run -p odc-core --release --example scale_bench -- 1000000 200
+//! cargo run -p ods-core --release --example scale_bench -- 100000
+//! cargo run -p ods-core --release --example scale_bench -- 1000000 200
 //! ```
 //!
 //! Args: `<doc_count> [docs_per_dir]` (default docs_per_dir=100).

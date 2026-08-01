@@ -35,7 +35,7 @@ mod test_share_command {
     #[test]
     fn share_command_not_an_ods_workspace_error() {
         let td = tempfile::tempdir().unwrap();
-        let args = vec!["odc".into(), "share".into(), td.path().to_string_lossy().to_string(), "--out".into(), td.path().join("out").to_string_lossy().to_string()];
+        let args = vec!["ods".into(), "share".into(), td.path().to_string_lossy().to_string(), "--out".into(), td.path().join("out").to_string_lossy().to_string()];
         let res = run_share_command(&args);
         assert!(res.is_err());
     }

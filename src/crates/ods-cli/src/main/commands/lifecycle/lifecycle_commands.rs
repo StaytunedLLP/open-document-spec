@@ -5,7 +5,7 @@ use ods_core::{
 
 fn run_new_command(args: &[String]) -> Result<ExitCode, CliError> {
     if args.len() < 3 {
-        return Err(usage("odc new <path> [--profile <p>] [--title \"<t>\"]"));
+        return Err(usage("ods new <path> [--profile <p>] [--title \"<t>\"]"));
     }
 
     let mut target_path = None;
@@ -36,7 +36,7 @@ fn run_new_command(args: &[String]) -> Result<ExitCode, CliError> {
     }
 
     let Some(path) = target_path else {
-        return Err(usage("odc new requires a file path (e.g. odc new docs/guides/oauth.md)"));
+        return Err(usage("ods new requires a file path (e.g. ods new docs/guides/oauth.md)"));
     };
 
     let root = env::current_dir().unwrap_or_else(|_| PathBuf::from("."));
@@ -56,7 +56,7 @@ fn run_new_command(args: &[String]) -> Result<ExitCode, CliError> {
 
 fn run_rm_command(args: &[String]) -> Result<ExitCode, CliError> {
     if args.len() < 3 {
-        return Err(usage("odc rm <path-or-id>"));
+        return Err(usage("ods rm <path-or-id>"));
     }
 
     let target = PathBuf::from(&args[2]);
@@ -78,7 +78,7 @@ fn run_rm_command(args: &[String]) -> Result<ExitCode, CliError> {
 
 fn run_archive_command(args: &[String]) -> Result<ExitCode, CliError> {
     if args.len() < 3 {
-        return Err(usage("odc archive <path-or-id>"));
+        return Err(usage("ods archive <path-or-id>"));
     }
 
     let target = PathBuf::from(&args[2]);
@@ -215,15 +215,15 @@ fn set_frontmatter_status_archived(fm: &str) -> Vec<String> {
     lines
 }
 
-/// Show background service logs under `~/.odc/logs/` (not a watch alias).
+/// Show background service logs under `~/.ods/logs/` (not a watch alias).
 fn run_logs_command(args: &[String]) -> Result<ExitCode, CliError> {
     let follow = args.iter().any(|a| a == "-f" || a == "--follow");
     let home = std::env::var("HOME")
         .or_else(|_| std::env::var("USERPROFILE"))
         .unwrap_or_else(|_| ".".into());
-    let log_dir = std::path::PathBuf::from(&home).join(".odc").join("logs");
+    let log_dir = std::path::PathBuf::from(&home).join(".ods").join("logs");
     // Prefer modern name; dual-read legacy filename from older installs.
-    let modern = log_dir.join("odc-serve.log");
+    let modern = log_dir.join("ods-serve.log");
     let legacy = log_dir.join("ods-serve.log");
     let log_path = if modern.exists() {
         modern
@@ -231,7 +231,7 @@ fn run_logs_command(args: &[String]) -> Result<ExitCode, CliError> {
         legacy
     } else {
         println!("no service logs found under {}", log_dir.display());
-        println!("hint: start the background service with `odc start` (OS service writes odc-serve.log)");
+        println!("hint: start the background service with `ods start` (OS service writes ods-serve.log)");
         return Ok(ExitCode::from(0));
     };
 
@@ -268,7 +268,7 @@ fn run_logs_command(args: &[String]) -> Result<ExitCode, CliError> {
                 }
             }
             Err(e) => {
-                eprintln!("odc logs: read error: {e}");
+                eprintln!("ods logs: read error: {e}");
             }
         }
         std::thread::sleep(std::time::Duration::from_millis(500));

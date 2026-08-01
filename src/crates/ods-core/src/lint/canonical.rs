@@ -219,9 +219,8 @@ fn lint_root_ods_metadata(workspace: &Workspace) -> Vec<Diagnostic> {
             path: root_index_path,
             severity: Severity::Error,
             message: format!(
-                "missing root index.md with ods: {} and odc: \"{}\"",
-                crate::model::current_ods_spec_version(),
-                crate::model::current_odc_requirement()
+                "missing root index.md with ods: {}",
+                crate::model::current_ods_spec_version()
             ),
         }];
     };

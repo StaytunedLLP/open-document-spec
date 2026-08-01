@@ -206,7 +206,7 @@ fn lint_canonical_edge_cases() {
     let diags = lint_workspace(&ws);
     assert!(diags.iter().any(|d| {
         d.message
-            .contains("ods and odc should be declared only in root index.md")
+            .contains("ods and ods should be declared only in root index.md")
     }));
     assert!(
         diags

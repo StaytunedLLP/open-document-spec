@@ -100,10 +100,10 @@ impl SpecDescriptor {
                 description: "Nested ODS engine map".into(),
             },
             KeySchema {
-                name: "odc".into(),
+                name: "ods".into(),
                 key_type: KeyType::Scalar,
                 aliases: vec![],
-                description: "ODC CLI version requirement".into(),
+                description: "ODS CLI version requirement".into(),
             },
             KeySchema {
                 name: "profiles".into(),

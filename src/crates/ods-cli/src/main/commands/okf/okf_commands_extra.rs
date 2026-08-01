@@ -55,7 +55,7 @@ fn run_okf_index_command(args: &[String]) -> Result<ExitCode, CliError> {
                 if current {
                     println!("okf indexes up to date");
                 } else {
-                    eprintln!("okf indexes out of date; run `odc okf index`");
+                    eprintln!("okf indexes out of date; run `ods okf index`");
                 }
             }
             OutputFormat::Json => {

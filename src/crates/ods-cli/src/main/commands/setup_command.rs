@@ -1,30 +1,21 @@
 fn print_help() {
     println!(
-        "odc — OpenDocify CLI (multi-spec)
+        "ods — Open Document Spec CLI
 
-OpenDocify (`odc`) is the tool. ODS and OKF are formats.
+  ods lint / init / doctor / status …   Manage ODS document graph and profiles
+  ods init                              Initialize ODS workspace (ods: spec marker)
+  ods init --okf                        OKF bundle (okf_version: \"0.2\")
 
-  odc lint / init / doctor …   Auto-detect engine from root markers
-  odc init                     ODS workspace (ods: + odc: CLI pin)
-  odc init --okf               OKF bundle (okf_version: \"0.2\")
-
-Optional explicit engines:
-  odc ods <command>            Force ODS document graph
-  odc okf <command>            Force Google OKF v0.2
-  odc agents <command>         Agent instruction graph
-
-Platform:
+Platform & Service:
   update                   Self-update binary from GitHub Releases
-  upgrade [path]           Forward cutover (ods-cli→odc rewrite; --write)
-  setup [path]             Machine service + health
+  setup [path]             Machine service + health check
   workspaces …             Global workspace registry
   skill install            Install skill into an AI agent
   version / help
 
-Root markers: ods: (spec) · odc: (CLI pin) · okf_version: (OKF)
-Legacy: binary name `ods` accepts bare ODS commands.
+Root markers: ods: (spec) · okf_version: (OKF)
 
-Commands (auto-detect or via `odc ods` / `odc okf`):
+Commands:
   init [path]              Make folder/repo ODS-compliant (add root index.md + ods: spec, generate indexes)
   disable [path]           Opt-out dry-run: strip ODS metadata (alias: revert)
   disable --write [path]   Apply disable / revert to plain Markdown
@@ -40,20 +31,19 @@ Commands (auto-detect or via `odc ods` / `odc okf`):
   context [path] <id>      Resolve reading list for a document
   graph [path]             Print depends/related edges
   export [path]            Write graph.md for AI (optional --out PATH, --include-private)
-  share [path] --out DIR   Publish a share-filtered copy of a workspace/subtree (git it yourself; --include-org, --include-private)
+  share [path] --out DIR   Publish a share-filtered copy of a workspace/subtree
   new <path>               Scaffold new document with inferred profile and valid frontmatter
   rm <path-or-id>          Atomically delete document and scrub graph references workspace-wide
-  archive <path-or-id>     Set document status to archived (frontmatter only; does not move the file)
+  archive <path-or-id>     Set document status to archived (frontmatter only)
   mv [path] <from> <to>    Move file/folder and rewrite refs + indexes
   fmt [path]               Normalize frontmatter/body blank lines
   fmt --refs md-paths      Also rewrite Document refs to .md paths
-  fmt --migrate            Also migrate legacy/out-of-order ods: keys into canonical nested block
   doctor [path]            Report workspace health and version skew
   audit [path]             Inventory plain/invalid/partial Markdown
-  audit --write-report     Write .odc/odc-errors.md (shared with lint diagnostics)
-  coverage [path]          Documentation health % (--write-report → .odc/coverage.md)
+  audit --write-report     Write .ods/ods-errors.md (shared with lint diagnostics)
+  coverage [path]          Documentation health % (--write-report → .ods/coverage.md)
   sync [path]              Reconcile git-tracked renames and rewrite refs
-  logs [-f]                Show background service logs (~/.odc/logs/odc-serve.log); -f follows
+  logs [-f]                Show background service logs (~/.ods/logs/ods-serve.log); -f follows
   watch [path]             Foreground live rename map + re-lint
   serve --root <path>      Headless watch loop (used by OS service)
   serve --mode poll        Low-memory polling loop (auto|watch|poll)
@@ -64,11 +54,8 @@ Commands (auto-detect or via `odc ods` / `odc okf`):
   adopt [path]             Report adoption status (dry-run)
   adopt --write [path]     Draft minimal frontmatter for plain Markdown
   bench stats [path]       Display token & cost efficiency ROI report
-  bench strip [path]       Backup frontmatter to JSON snapshot and strip (dry-run; --write)
-  bench restore [path]     Restore frontmatter from snapshot (--snapshot <id>)
-  bench run [path]         Print a simulated LLM task cost/token comparison (--prompt \"<task>\"; does not call any LLM API)
 
-OKF: run `odc okf help` for init/lint/doctor/audit/adopt.
+OKF: run `ods lint --okf` for Google OKF v0.2 knowledge bundle linting.
 
 Flags:
   --version, -V            Print version and exit
@@ -83,37 +70,24 @@ Flags:
   --check                  With index / update: check only
   --canonical-refs         With lint: warn on extensionless Document refs
   --refs md-paths          With fmt: rewrite Document refs to .md paths
-  --migrate                With fmt: migrate flat/legacy ods-engine keys into canonical nested ods: block
-  --migrate-fm             With upgrade: same as fmt --migrate when --write
   --write-report           With audit/coverage: write report file
   --fail-on plain|invalid|any  With audit: CI gate
   --force                  With update: reinstall even if current
-  --version <tag>          With update: install exact release tag (e.g. v0.1.5)
+  --version <tag>          With update: install exact release tag (e.g. v0.0.13)
   --mode auto|watch|poll   With serve: choose watcher strategy
-  --memory-report          With serve: print RSS/document snapshot diagnostics
-  --poll-secs <n>          With serve --mode poll: polling interval
 
 Environment:
-  ODS_AUTO_UPDATE=0 / ODC_AUTO_UPDATE=0  Disable auto-update (default: on)
-  ODS_LOW_MEMORY=1 / ODC_LOW_MEMORY=1       serve --mode auto → poll
-  ODS_SERVE_MODE / ODC_SERVE_MODE          Default serve mode
-  ODS_POLL_SECS / ODC_POLL_SECS            Default poll interval
-  GH_TOKEN / GITHUB_TOKEN                  Required for private release download
+  ODS_AUTO_UPDATE=0        Disable auto-update (default: on)
+  ODS_LOW_MEMORY=1         serve --mode auto → poll
+  ODS_SERVE_MODE           Default serve mode
+  ODS_POLL_SECS             Default poll interval
+  GH_TOKEN / GITHUB_TOKEN  Required for private release download
 "
     );
 }
 
 fn print_ods_help() {
-    println!(
-        "odc ods <command> [path] [flags]
-
-ODS (Open Document Spec) — codebase documentation graphs.
-Markdown keys remain ods: / odc: (unchanged).
-
-Common commands: init, lint, index, context, doctor, audit, adopt, fmt, export, watch, serve
-Run `odc help` for the full list. Bare `ods <command>` is an alias for `odc ods <command>`.
-"
-    );
+    print_help();
 }
 fn run_setup_command(args: &[String]) -> Result<ExitCode, CliError> {
     let mut path = None;
@@ -122,7 +96,7 @@ fn run_setup_command(args: &[String]) -> Result<ExitCode, CliError> {
         match args[i].as_str() {
             "--help" | "-h" => {
                 println!(
-                    "odc setup [path]\n\nChecks release freshness, detects an ODS workspace, starts the user service when possible, and runs doctor."
+                    "ods setup [path]\n\nChecks release freshness, detects an ODS workspace, starts the user service when possible, and runs doctor."
                 );
                 return Ok(ExitCode::from(0));
             }
@@ -146,11 +120,11 @@ fn run_setup_command(args: &[String]) -> Result<ExitCode, CliError> {
             version: None,
         }) {
             Ok(UpdateOutcome::UpToDate { current, remote }) => {
-                println!("setup: odc {current} is up to date (latest {remote})");
+                println!("setup: ods {current} is up to date (latest {remote})");
             }
             Ok(UpdateOutcome::Available { current, remote }) => {
                 println!("setup: update available: {current} -> {remote}");
-                println!("run: odc update");
+                println!("run: ods update");
                 return Ok(ExitCode::from(1));
             }
             Ok(UpdateOutcome::Updated { .. }) => {}
@@ -175,7 +149,7 @@ fn run_setup_command(args: &[String]) -> Result<ExitCode, CliError> {
                     .unwrap_or_else(|| PathBuf::from("."))
             };
             println!("setup: no ODS workspace found at or above {}", probe.display());
-            println!("setup: run 'odc init {}' to make this folder ODS-compliant", target.display());
+            println!("setup: run 'ods init {}' to make this folder ODS-compliant", target.display());
             return Ok(ExitCode::from(0));
         }
     };
@@ -184,9 +158,8 @@ fn run_setup_command(args: &[String]) -> Result<ExitCode, CliError> {
         .map_err(|err| failure(err.to_string()))?;
     if init.initialized {
         println!(
-            "setup: root index ensured with ods: {} and odc: \"{}\"",
-            ods_core::current_ods_spec_version(),
-            ods_core::current_odc_requirement()
+            "setup: root index ensured with ods: {}",
+            ods_core::current_ods_spec_version()
         );
     }
 

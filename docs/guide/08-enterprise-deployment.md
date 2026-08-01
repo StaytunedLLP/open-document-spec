@@ -1,5 +1,4 @@
 ---
-title: "Enterprise Deployment and Governance Guide"
 description: "Enterprise ODS Pack distribution, multi-repo governance, CI/CD pipelines, security controls, and ROI modeling."
 status: "stable"
 order: 8
@@ -18,10 +17,10 @@ This guide describes patterns for deploying and governing Open Document Spec (OD
 
 An **ODS Pack** is a reusable workspace bundle containing custom document profiles (`ods-profiles/`), AI agent skills (`skills/`), standard operating procedures (SOPs), and architectural guidelines.
 
-### Creating a Company-Wide Pack (`odc pack init`)
+### Creating a Company-Wide Pack (`ods pack init`)
 
 ```bash
-odc pack init acme-engineering-pack
+ods pack init acme-engineering-pack
 cd acme-engineering-pack
 ```
 
@@ -40,7 +39,7 @@ acme-engineering-pack/
 ### Hosting & Distributing Packs via Private Git Repositories
 
 ```bash
-odc pack add git@github.com:acme-org/engineering-pack.git --auto-update daily
+ods pack add git@github.com:acme-org/engineering-pack.git --auto-update daily
 ```
 
 This clones the pack into `vendor/engineering-pack` and appends `- vendor/engineering-pack` to the project's root `index.md` `packs:` key.
@@ -51,7 +50,7 @@ This clones the pack into `vendor/engineering-pack` and appends `- vendor/engine
 
 Ods provides **3-Tier Visibility Control** (`share: public | org | private`):
 
-| Share Level | Meaning | AI Context (`odc ods context`) | Graph Snapshot (`odc ods export`) | Directory Export (`odc ods share`) |
+| Share Level | Meaning | AI Context (`ods context`) | Graph Snapshot (`ods export`) | Directory Export (`ods share`) |
 | :--- | :--- | :--- | :--- | :--- |
 | **`public`** (default) | Open documentation | Included | Included | Copied to output directory |
 | **`org`** | Internal team documentation | Excluded by default | Excluded by default | Excluded by default (use `--include-org`) |
@@ -80,8 +79,8 @@ jobs:
         uses: actions/checkout@v7
 
       - name: Check Index Lockfile Freshness
-        run: odc ods index --check
+        run: ods index --check
 
       - name: Level-3 Graph & Schema Linting
-        run: odc ods lint --level 3
+        run: ods lint --level 3
 ```

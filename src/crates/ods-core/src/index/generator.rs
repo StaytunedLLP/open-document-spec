@@ -155,7 +155,7 @@ fn is_auto_managed_index(path: &Path) -> bool {
     };
     // Generated indexes always use profile: index (default).
     // Also treat empty/minimal as managed.
-    if let Some((_, profile, _, _, _, _, _)) = extract_title_and_meta(&text) {
+    if let Some((_, profile, _, _, _, _)) = extract_title_and_meta(&text) {
         profile == "index" || profile.is_empty()
     } else {
         true

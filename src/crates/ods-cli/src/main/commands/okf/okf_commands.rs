@@ -1,6 +1,6 @@
 fn print_okf_help() {
     println!(
-        "odc okf <command> [path] [flags]
+        "ods okf <command> [path] [flags]
 
 Native Google OKF v0.2 commands (knowledge bundles).
 
@@ -16,7 +16,7 @@ Commands:
   fmt [path]               Normalize frontmatter trailing whitespace
   doctor [path]            Bundle health: version, stale counts, trust tiers
   audit [path]             Classify concepts (plain/invalid/partial/compliant)
-  audit --write-report     Write .odc/odc-errors.md
+  audit --write-report     Write .ods/ods-errors.md
   adopt [path]             Report plain .md files (dry-run)
   adopt --write [path]     Draft minimal type/title frontmatter for plain files
   watch [path]             Re-lint OKF bundle on file changes (foreground)
@@ -30,7 +30,7 @@ Flags:
   --report-path <file>     Custom audit report path
   --fail-on plain|invalid|any  CI gate for audit
 
-See also: odc ods <cmd> for ODS workspaces; odc update for binary updates.
+See also: ods ods <cmd> for ODS workspaces; ods update for binary updates.
 "
     );
 }
@@ -42,7 +42,7 @@ fn require_okf_bundle(root: &Path) -> Result<(), CliError> {
     Err(failure(format!(
         "not an OKF bundle: {}\n\n\
          No root index.md with okf_version found.\n\
-         Run `odc okf init` here to create an OKF v0.2 bundle.",
+         Run `ods okf init` here to create an OKF v0.2 bundle.",
         root.display()
     )))
 }
@@ -154,7 +154,7 @@ fn run_okf_doctor_command(args: &[String]) -> Result<ExitCode, CliError> {
             println!(
                 "  status: {}",
                 if has_error {
-                    "issues found (run odc okf lint)"
+                    "issues found (run ods okf lint)"
                 } else {
                     "ok"
                 }
@@ -183,7 +183,7 @@ fn run_okf_audit_command(args: &[String]) -> Result<ExitCode, CliError> {
     let filtered = filter_audit_flags(args);
     let (root, _level, format) = parse_common_flags(&filtered, 2)?;
     require_okf_bundle(&root)?;
-    let report_path = report_path_opt.unwrap_or_else(|| root.join(".odc/odc-errors.md"));
+    let report_path = report_path_opt.unwrap_or_else(|| root.join(".ods/ods-errors.md"));
     let bundle = ods_core::load_okf_bundle(&root).map_err(|e| failure(e.to_string()))?;
     let report = ods_core::audit_okf_bundle(&bundle);
 
@@ -272,7 +272,7 @@ fn dispatch_okf_command(full_args: &[String]) -> Result<ExitCode, CliError> {
             Ok(ExitCode::from(0))
         }
         other => Err(usage(format!(
-            "unknown okf command: {other}\nRun `odc okf help` for available commands."
+            "unknown okf command: {other}\nRun `ods okf help` for available commands."
         ))),
     }
 }

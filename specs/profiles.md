@@ -1,5 +1,4 @@
 ---
-title: "ODS Profiles and Catalogs"
 description: "Standard document profiles, workspace custom catalogs, ODS pack resolution, and section header mapping rules."
 status: "stable"
 order: 1
@@ -36,7 +35,7 @@ Rules:
 ---
 profile: index
 ods: 0.1
-odc: ">=0.0.1"
+ods: ">=0.0.1"
 custom-profiles:
   - docs/profiles/rfc.md
   - docs/profiles/api_endpoint.md
@@ -47,7 +46,7 @@ packs:
 
 - **Zero Folder Auto-Discovery:** ODS does NOT implicitly scan directories like `ods-profiles/` or `.ods/profiles/`. Custom profile definitions are recognized **strictly** when explicitly declared in `custom-profiles:` or imported ODS Packs.
 - An **ODS Pack** is a versioned repository or directory containing reusable document profiles (`ods-profiles/`), skills (`skills/`), or templates (`templates/`).
-- Remote Git packs (HTTPS, SSH, or shorthand like `user/repo`) are synced by tooling to `~/.odc/packs/` (legacy `~/.ods/packs/` is still read) and referenced in root `index.md`. Local path packs are linked relatively.
+- Remote Git packs (HTTPS, SSH, or shorthand like `user/repo`) are synced by tooling to `~/.ods/packs/` (legacy `~/.ods/packs/` is still read) and referenced in root `index.md`. Local path packs are linked relatively.
 - Profile definitions MUST resolve in the following order of precedence: Standard Profiles, explicit file paths listed under root `custom-profiles:`, and imported ODS Packs listed in `packs:`.
 - If a profile name is defined in multiple catalogs, tools SHOULD use the first definition loaded and issue a conflict warning. Level-3 workspaces SHOULD treat duplicate profile definitions as validation errors.
 - Profile catalogs are workspace-local utilities. They do not participate in the document graph and SHOULD be excluded from ordinary index listings.

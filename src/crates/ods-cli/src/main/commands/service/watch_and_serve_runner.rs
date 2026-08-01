@@ -1,5 +1,5 @@
 /// Install a `SIGTERM`/`SIGINT`/Ctrl-C handler that flips a shared flag instead
-/// of leaving the process to be hard-killed. Lets `odc serve`/`watch` exit via
+/// of leaving the process to be hard-killed. Lets `ods serve`/`watch` exit via
 /// a normal return from `main` (flushing coverage/profiling data, closing
 /// files cleanly) instead of only ever dying to an external `SIGKILL`. Safe to
 /// call once per process; a failed registration (e.g. handler already set) is
@@ -79,7 +79,7 @@ fn watch_workspace(
             root.display()
         );
     } else {
-        eprintln!("odc serve: watching {}", root.display());
+        eprintln!("ods serve: watching {}", root.display());
     }
     loop {
         match rx.recv_timeout(Duration::from_millis(250)) {
@@ -99,7 +99,7 @@ fn watch_workspace(
             Err(RecvTimeoutError::Disconnected) => break,
         }
     }
-    eprintln!("odc serve: shutting down {}", root.display());
+    eprintln!("ods serve: shutting down {}", root.display());
     Ok(())
 }
 
@@ -132,7 +132,7 @@ fn poll_workspace(options: ServeOptions) -> Result<(), CliError> {
                 .map_err(|err| failure(err.to_string()))?,
         )))
     };
-    eprintln!("odc serve: polling {}", options.root.display());
+    eprintln!("ods serve: polling {}", options.root.display());
     while !shutdown.load(Ordering::SeqCst) {
         run_watch_tick(
             &options.root,
@@ -149,7 +149,7 @@ fn poll_workspace(options: ServeOptions) -> Result<(), CliError> {
         }
         sleep_checking_shutdown(Duration::from_secs(options.poll_secs), &shutdown);
     }
-    eprintln!("odc serve: shutting down {}", options.root.display());
+    eprintln!("ods serve: shutting down {}", options.root.display());
     Ok(())
 }
 
@@ -257,7 +257,7 @@ fn run_watch_tick(
             write_or_clear_ods_error_report(root, &diagnostics, OutputFormat::Text)?;
             if !diagnostics.is_empty() {
                 eprintln!(
-                    "odc serve: {} diagnostic(s) in {}",
+                    "ods serve: {} diagnostic(s) in {}",
                     diagnostics.len(),
                     root.display()
                 );
@@ -284,6 +284,6 @@ fn print_memory_report(mode: &str, root: &Path, retained_snapshot_files: usize) 
         .map(|workspace| workspace.documents.len())
         .unwrap_or(0);
     eprintln!(
-        "odc serve: mode={mode} documents={documents} retained_snapshot_files={retained_snapshot_files} rss_kb={rss}"
+        "ods serve: mode={mode} documents={documents} retained_snapshot_files={retained_snapshot_files} rss_kb={rss}"
     );
 }

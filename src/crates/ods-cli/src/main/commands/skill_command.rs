@@ -180,9 +180,9 @@ globs: ["*.md"]
 
 When editing Markdown files in this project:
 1. **Frontmatter Integrity**: Keep ODS metadata (`profile`, `status`, `share`, `depends`, `related`, `code`) consistent.
-2. **Context Resolution**: Use `odc context <file>` to resolve dependency graphs before sending text to the LLM prompt.
-3. **Automatic Link Repair**: Use `odc mv <src> <dst>` instead of `mv` when renaming or moving documents.
-4. **Validation**: Run `odc lint` to check for broken links and structural compliance.
+2. **Context Resolution**: Use `ods context <file>` to resolve dependency graphs before sending text to the LLM prompt.
+3. **Automatic Link Repair**: Use `ods mv <src> <dst>` instead of `mv` when renaming or moving documents.
+4. **Validation**: Run `ods lint` to check for broken links and structural compliance.
 "#;
 
 const WINDSURF_RULE_TEMPLATE: &str = r#"---
@@ -193,9 +193,9 @@ description: Keep Markdown documentation compliant with Open Document Specs.
 
 When editing Markdown files in this project:
 1. Keep ODS metadata (`profile`, `status`, `share`, `depends`, `related`, `code`) consistent.
-2. Run `odc context <file>` before loading a document's dependency graph into the agent context.
-3. Use `odc mv <src> <dst>` instead of `mv` when renaming or moving documents.
-4. Run `odc lint` to check links and structural compliance.
+2. Run `ods context <file>` before loading a document's dependency graph into the agent context.
+3. Use `ods mv <src> <dst>` instead of `mv` when renaming or moving documents.
+4. Run `ods lint` to check links and structural compliance.
 "#;
 
 const SKILL_BUNDLE: &[(&str, &[u8])] = &[

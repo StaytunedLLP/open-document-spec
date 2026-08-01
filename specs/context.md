@@ -1,5 +1,4 @@
 ---
-title: "ODS Context Specification"
 description: "AI agent context scope loading configurations and visibility filtering rules."
 status: "stable"
 order: 3

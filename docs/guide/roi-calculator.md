@@ -1,5 +1,4 @@
 ---
-title: "ODS ROI & Token Savings Calculator"
 description: "Quantifying context window optimization, developer productivity gains, and API cost reduction."
 status: "stable"
 order: 10
@@ -23,21 +22,21 @@ When AI Coding Assistants ingest entire Markdown documentation trees into LLM co
 
 ---
 
-## 2. The ODS Solution: Bounded Context (`odc ods context`)
+## 2. The ODS Solution: Bounded Context (`ods context`)
 
-ODS introduces **Deterministic Graph Traversal** (`odc ods context <doc-id>`):
+ODS introduces **Deterministic Graph Traversal** (`ods context <doc-id>`):
 - Resolves only direct and transitive `depends` links up to `context.max-depth` (default 2).
 - Filters out non-relevant trees and `share: private`/`org` documents.
 - Reduces total prompt context size by **~94%** while increasing prompt accuracy.
 
 ---
 
-## 3. Benchmarking Your Workspace (`odc ods bench stats`)
+## 3. Benchmarking Your Workspace (`ods bench stats`)
 
-Run `odc ods bench stats` on any repository to calculate your team's exact token savings:
+Run `ods bench stats` on any repository to calculate your team's exact token savings:
 
 ```bash
-odc ods bench stats
+ods bench stats
 ```
 
 Outputs:
