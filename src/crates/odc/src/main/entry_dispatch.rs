@@ -132,6 +132,8 @@ fn dispatch_ods_command(args: &[String]) -> Result<ExitCode, CliError> {
         "bench" | "sandbox" => run_bench_command(args),
         "audit" => run_ods_audit_command(args),
         "coverage" => run_coverage_command(args),
+        "update" => run_update_command(args),
+        "upgrade" => run_upgrade_command(args),
         other => Err(usage(format!("unknown ods command: {other}"))),
     }
 }

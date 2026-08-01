@@ -201,6 +201,6 @@ fn heal_orphan_path_ids_edge_cases() {
 
     let report = heal_orphan_path_ids(&dir).unwrap();
     // sub/a.md shouldn't be healed because sub/b is owned by real sub/b.md
-    assert!(!report.rewritten_files.contains(&dir.join("sub/a.md")));
+    assert!(!report.rewritten_files.iter().any(|p| p.ends_with("sub/a.md")));
     let _ = fs::remove_dir_all(&dir);
 }

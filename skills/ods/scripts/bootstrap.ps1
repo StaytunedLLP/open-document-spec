@@ -124,6 +124,10 @@ function Invoke-Default {
     } else {
         Write-Step "No ODS root markers under $Path (ok — use 'odc ods init' to create)"
     }
+    if (Have-Cli) {
+        Write-Step "Running odc update..."
+        Invoke-Cli update
+    }
     Write-Host ""
     Write-Host "OpenDocify is installed."
     Write-Host "  $(Get-CliVersion)"
@@ -136,6 +140,11 @@ switch ($Command.ToLower()) {
     "update" {
         if (Have-Cli) { Invoke-Cli update }
         else { Invoke-Install }
+        $ws = Find-WorkspaceRoot -TargetDir $Path
+        if ($ws) {
+            Write-Step "Running workspace & machine migration (odc upgrade --write)..."
+            Invoke-Cli upgrade --write $ws
+        }
     }
     "ensure" {
         $ws = Find-WorkspaceRoot -TargetDir $Path

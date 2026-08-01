@@ -63,19 +63,23 @@ cmd_install() {
 # Update in place. Prefer the binary's own self-update; fall back to reinstall.
 cmd_update() {
   if ! have_cli; then
-    log "ods not installed; installing instead"
+    log "odc not installed; installing instead"
     cmd_install
-    return 0
+  else
+    require_gh
+    if odc update --check >/dev/null 2>&1; then
+      log "odc binary is up to date"
+    else
+      log "updating odc"
+      if ! odc update 2>/dev/null; then
+        warn "self-update failed; reinstalling from release"
+        cmd_install --force
+      fi
+    fi
   fi
-  require_gh
-  if odc update --check >/dev/null 2>&1; then
-    log "ods is already up to date"
-    return 0
-  fi
-  log "updating ods"
-  if ! odc update 2>/dev/null; then
-    warn "self-update failed; reinstalling from release"
-    cmd_install --force
+  if find_workspace_root . >/dev/null 2>&1; then
+    log "running workspace & machine migration (odc upgrade --write)"
+    odc upgrade --write . 2>/dev/null || true
   fi
   log "now on $(odc --version)"
 }
@@ -171,6 +175,7 @@ main() {
       else
         warn "no ODS workspace at '.'; run 'odc ods init .' then 'bootstrap.sh ensure .'"
       fi
+      cmd_update
       log "ODS is installed and running now in your machine!"
       log "Version: $(odc --version)"
       ;;
