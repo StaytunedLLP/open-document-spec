@@ -16,7 +16,7 @@ ignore:
 - [CONTRIBUTING.md](CONTRIBUTING.md)
 - [README.md](README.md)
 - [SECURITY.md](SECURITY.md)
+- [app-web/](app-web/index.md)
 - [docs/](docs/index.md)
-- [references/](references/index.md)
 - [specs/](specs/index.md)
 - [src/](src/index.md)

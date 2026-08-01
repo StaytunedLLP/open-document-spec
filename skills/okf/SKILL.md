@@ -28,7 +28,7 @@ odc okf watch [path]          # re-lint on change
 odc okf serve [path]          # headless re-lint poll loop
 ```
 
-Bare `odc lint` is **not** valid — always use `odc okf …` or `odc ods …`.
+Bare `odc lint` seamlessly auto-detects OKF and ODS workspaces; explicit `odc okf …` or `odc ods …` can be used for clarity.
 
 ## Key rules (summary)
 

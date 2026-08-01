@@ -48,6 +48,34 @@ fn upgrade_rewrites_ods_cli_pin() {
 }
 
 #[test]
+fn update_and_ods_update_subcommands() {
+    let dir = tempdir().unwrap();
+    let path = dir.path().to_str().unwrap();
+    assert!(
+        Command::new(odc_bin())
+            .args(["init", path])
+            .status()
+            .unwrap()
+            .success()
+    );
+    // odc ods update --check
+    let out = Command::new(odc_bin())
+        .current_dir(dir.path())
+        .args(["ods", "update", "--check"])
+        .output()
+        .unwrap();
+    assert!(out.status.success() || out.status.code() == Some(1), "{:?}", out);
+
+    // odc ods upgrade
+    let out = Command::new(odc_bin())
+        .current_dir(dir.path())
+        .args(["ods", "upgrade"])
+        .output()
+        .unwrap();
+    assert!(out.status.success(), "{:?}", out);
+}
+
+#[test]
 fn workspaces_list_add_remove() {
     let dir = tempdir().unwrap();
     let path = dir.path().to_str().unwrap();
