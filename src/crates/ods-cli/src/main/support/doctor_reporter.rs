@@ -30,6 +30,27 @@ fn print_diagnostics(diagnostics: &[Diagnostic], format: OutputFormat) {
                 .collect();
             println!("[{}]", items.join(","));
         }
+        OutputFormat::Sarif => {
+            let results: Vec<String> = diagnostics
+                .iter()
+                .map(|d| {
+                    let level = match d.severity {
+                        Severity::Error => "error",
+                        Severity::Warning => "warning",
+                    };
+                    format!(
+                        r#"{{"ruleId":"ods-lint","level":"{level}","message":{{"text":{}}},"locations":[{{"physicalLocation":{{"artifactLocation":{{"uri":{}}}}}}}]}}"#,
+                        json_escape(&d.message),
+                        json_escape(&d.path.display().to_string())
+                    )
+                })
+                .collect();
+            println!(
+                r#"{{"$schema":"https://raw.githubusercontent.com/oasis-tcs/sarif-spec/master/Schemata/sarif-schema-2.1.0.json","version":"2.1.0","runs":[{{"tool":{{"driver":{{"name":"ODS","informationUri":"https://github.com/StaytunedLLP/open-document-spec","version":"{}"}}}},"results":[{}]}}]}}"#,
+                env!("CARGO_PKG_VERSION"),
+                results.join(",")
+            );
+        }
     }
 }
 

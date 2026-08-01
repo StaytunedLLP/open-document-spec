@@ -29,7 +29,7 @@ pub fn workspace_aliases(workspace: &Workspace) -> BTreeMap<String, BTreeSet<Str
         .document_by_path(&workspace.root.join("index.md"))
         .or_else(|| {
             workspace.documents.iter().find(|document| {
-                document.path.file_name().and_then(|name| name.to_str()) == Some("index.md")
+                document.path.file_name().is_some_and(|name| name == "index.md")
             })
         });
 

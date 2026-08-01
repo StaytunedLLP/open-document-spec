@@ -1,10 +1,12 @@
 use std::collections::{BTreeMap, HashMap, HashSet};
 use std::path::PathBuf;
 
+#[must_use]
 pub fn current_ods_version() -> &'static str {
     env!("CARGO_PKG_VERSION")
 }
 
+#[must_use]
 pub fn current_ods_spec_version() -> &'static str {
     "0.1"
 }
@@ -57,6 +59,7 @@ pub enum CodeRole {
 }
 
 impl CodeRole {
+    #[must_use]
     pub fn parse(value: &str) -> Option<Self> {
         match value.trim().to_lowercase().as_str() {
             "entrypoint" => Some(Self::Entrypoint),
@@ -71,6 +74,7 @@ impl CodeRole {
         }
     }
 
+    #[must_use]
     pub fn as_str(self) -> &'static str {
         match self {
             Self::Entrypoint => "entrypoint",

@@ -1,10 +1,6 @@
-/// Canonical lint report: `.ods/ods-errors.md`. Legacy root `ods-error.md` is cleared on write/clear.
+/// Canonical lint report: `.ods/ods-errors.md`.
 fn lint_error_report_path(root: &Path) -> PathBuf {
     root.join(".ods").join("ods-errors.md")
-}
-
-fn legacy_lint_error_report_path(root: &Path) -> PathBuf {
-    root.join("ods-error.md")
 }
 
 fn write_or_clear_ods_error_report(
@@ -13,13 +9,9 @@ fn write_or_clear_ods_error_report(
     format: OutputFormat,
 ) -> Result<(), CliError> {
     let path = lint_error_report_path(root);
-    let legacy = legacy_lint_error_report_path(root);
     if diagnostics.is_empty() {
         if path.is_file() {
             let _ = fs::remove_file(&path);
-        }
-        if legacy.is_file() {
-            let _ = fs::remove_file(&legacy);
         }
         return Ok(());
     }
@@ -69,10 +61,6 @@ fn write_or_clear_ods_error_report(
         ));
     }
     fs::write(&path, body).map_err(|err| failure(err.to_string()))?;
-    // Drop legacy root report so tools do not double-report.
-    if legacy.is_file() {
-        let _ = fs::remove_file(&legacy);
-    }
     eprintln!("wrote {}", path.display());
     Ok(())
 }

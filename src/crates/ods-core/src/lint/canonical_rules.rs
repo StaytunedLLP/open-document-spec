@@ -144,7 +144,7 @@ pub(super) fn lint_ods_scope(
     {
         return Vec::new();
     }
-    if document.path.file_name().and_then(|name| name.to_str()) == Some("index.md") {
+    if document.path.file_name().is_some_and(|name| name == "index.md") {
         return Vec::new();
     }
 

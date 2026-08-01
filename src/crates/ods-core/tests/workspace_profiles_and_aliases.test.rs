@@ -10,7 +10,7 @@ use std::fs;
 fn fixture_root() -> std::path::PathBuf {
     std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR"))
         .join("../../..")
-        .join("ods-test/ecommerce")
+        .join("src/fixtures/ecommerce")
         .canonicalize()
         .expect("fixture root")
 }

@@ -53,7 +53,7 @@ fn run_fmt_command(args: &[String]) -> Result<ExitCode, CliError> {
                 }
             }
         }
-        OutputFormat::Json => {
+        OutputFormat::Json | OutputFormat::Sarif => {
             let items: Vec<_> = changed
                 .iter()
                 .map(|p| json_escape(&p.display().to_string()))

@@ -22,7 +22,7 @@ fn run_context_command(args: &[String]) -> Result<ExitCode, CliError> {
                 println!("{}", path.display());
             }
         }
-        OutputFormat::Json => {
+        OutputFormat::Json | OutputFormat::Sarif => {
             let items: Vec<_> = paths
                 .iter()
                 .map(|p| json_escape(&p.display().to_string()))
@@ -49,7 +49,7 @@ fn run_graph_command(args: &[String]) -> Result<ExitCode, CliError> {
                 println!("{line}");
             }
         }
-        OutputFormat::Json => {
+        OutputFormat::Json | OutputFormat::Sarif => {
             let items: Vec<_> = lines.iter().map(|l| json_escape(l)).collect();
             println!("[{}]", items.join(","));
         }

@@ -48,7 +48,7 @@ fn count_tokens_in_directory(dir: &Path, ignore_private: bool) -> usize {
 }
 
 fn main() {
-    let benchmark_dir = Path::new("ods-test/benchmarks");
+    let benchmark_dir = Path::new("src/fixtures/benchmarks");
     let without_ods = benchmark_dir.join("without-ods");
     let with_ods = benchmark_dir.join("with-ods");
 

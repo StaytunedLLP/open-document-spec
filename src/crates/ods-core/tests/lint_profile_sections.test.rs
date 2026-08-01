@@ -100,8 +100,6 @@ fn stale_root_ods_version_errors() {
     );
 }
 
-
-
 #[test]
 fn unknown_profile_warns() {
     let dir = temp_workspace();

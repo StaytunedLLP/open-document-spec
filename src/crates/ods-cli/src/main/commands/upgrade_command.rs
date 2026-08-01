@@ -73,22 +73,7 @@ fn run_upgrade_command(args: &[String]) -> Result<ExitCode, CliError> {
         actions.push("next: ods okf lint && ods okf audit --write-report".into());
     }
 
-    // Rewrite legacy root pin ods-cli: → ods:
-    if ods {
-        let index = root.join("index.md");
-        if let Ok(text) = fs::read_to_string(&index) {
-            if text.contains("ods-cli:") {
-                actions.push("root index.md still has legacy ods-cli: (should be ods:)".into());
-                pending += 1;
-                if write {
-                    let updated = text.replace("ods-cli:", "ods:");
-                    fs::write(&index, updated).map_err(|e| failure(e.to_string()))?;
-                    actions.push("  rewrote ods-cli: → ods: on root index.md".into());
-                    pending = pending.saturating_sub(1);
-                }
-            }
-        }
-    }
+
 
     if migrate_fm && ods {
         if write {
@@ -126,7 +111,7 @@ fn run_upgrade_command(args: &[String]) -> Result<ExitCode, CliError> {
                 println!("nothing required");
             }
         }
-        OutputFormat::Json => {
+        OutputFormat::Json | OutputFormat::Sarif => {
             println!(
                 r#"{{"write":{},"pending":{},"ods":{},"okf":{}}}"#,
                 write, pending, ods, okf
@@ -214,7 +199,7 @@ fn run_ods_audit_command(args: &[String]) -> Result<ExitCode, CliError> {
                 println!("  {l}");
             }
         }
-        OutputFormat::Json => {
+        OutputFormat::Json | OutputFormat::Sarif => {
             println!(
                 r#"{{"total_md":{total},"compliant":{compliant},"plain":{plain},"invalid":{invalid},"partial":{partial}}}"#
             );

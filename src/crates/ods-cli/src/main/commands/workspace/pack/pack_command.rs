@@ -125,7 +125,7 @@ fn run_pack_add(args: &[String]) -> Result<ExitCode, CliError> {
         pack_entry = format!("vendor/{pack_name}");
     }
 
-    // Record pack entry in global config (~/.ods/odcconfig.toml; legacy ~/.ods still read)
+    // Record pack entry in global config (~/.ods/odsconfig.toml)
     let workspace_str = root.to_string_lossy().into_owned();
     let entry = PackEntry {
         workspace: workspace_str,

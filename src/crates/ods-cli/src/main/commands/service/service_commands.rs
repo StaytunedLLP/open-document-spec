@@ -4,7 +4,7 @@ fn run_doctor_command(args: &[String]) -> Result<ExitCode, CliError> {
     let report = doctor_workspace(&root)?;
     match format {
         OutputFormat::Text => println!("{}", report.text),
-        OutputFormat::Json => println!("{}", report.json),
+        OutputFormat::Json | OutputFormat::Sarif => println!("{}", report.json),
     }
     Ok(ExitCode::from(if report.has_error { 1 } else { 0 }))
 }

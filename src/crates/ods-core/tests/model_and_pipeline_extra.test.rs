@@ -1,8 +1,7 @@
 //! model ods pin + pipeline discover/gitignore coverage.
 use ods_core::{
-    CodeRole, apply_document_upserts, discover_markdown_paths,
-    load_options_graph, load_workspace, load_workspace_with_options,
-    parse_document_text, parse_paths_parallel,
+    CodeRole, apply_document_upserts, discover_markdown_paths, load_options_graph, load_workspace,
+    load_workspace_with_options, parse_document_text, parse_paths_parallel,
 };
 use std::fs;
 use tempfile::tempdir;

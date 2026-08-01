@@ -64,7 +64,7 @@ fn run_disable_command(args: &[String]) -> Result<ExitCode, CliError> {
                 }
             }
         }
-        OutputFormat::Json => {
+        OutputFormat::Json | OutputFormat::Sarif => {
             println!(
                 r#"{{"root":{},"dry_run":{},"already_disabled":{},"would_edit":{},"edited":{},"would_delete":{},"deleted":{}}}"#,
                 json_escape(&report.root.display().to_string()),

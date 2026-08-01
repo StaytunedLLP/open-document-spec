@@ -59,7 +59,7 @@ fn run_init_command(args: &[String]) -> Result<ExitCode, CliError> {
             println!("indexes: {} file(s)", report.indexes.len());
             println!("next: ods lint   # or: ods watch");
         }
-        OutputFormat::Json => {
+        OutputFormat::Json | OutputFormat::Sarif => {
             println!(
                 r#"{{"root":{},"initialized":{},"already_initialized":{},"adopted":{},"indexes":{}}}"#,
                 json_escape(&report.root.display().to_string()),

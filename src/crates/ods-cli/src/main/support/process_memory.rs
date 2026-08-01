@@ -27,7 +27,7 @@ fn print_path_change_report(
                 eprintln!("error: {e}");
             }
         }
-        OutputFormat::Json => {
+        OutputFormat::Json | OutputFormat::Sarif => {
             let rewritten: Vec<_> = report
                 .rewritten_files
                 .iter()
@@ -100,7 +100,7 @@ fn print_tags(workspace: &ods_core::Workspace, include_all: bool, format: Output
                 }
             }
         }
-        OutputFormat::Json => {
+        OutputFormat::Json | OutputFormat::Sarif => {
             let items: Vec<_> = rows
                 .iter()
                 .map(|(tag, count, is_default)| {

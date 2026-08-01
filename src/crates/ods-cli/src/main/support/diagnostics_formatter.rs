@@ -59,49 +59,7 @@ fn run_update_command(args: &[String]) -> Result<ExitCode, CliError> {
 }
 
 fn migrate_machine_and_workspace_on_update() {
-    // 1. Machine config migration: ~/.ods -> ~/.ods
-    let home = std::env::var_os("HOME").or_else(|| std::env::var_os("USERPROFILE"));
-    if let Some(home) = home {
-        let legacy = std::path::PathBuf::from(&home).join(".ods");
-        let modern = std::path::PathBuf::from(&home).join(".ods");
-        if legacy.exists() && !modern.exists() {
-            let _ = std::fs::create_dir_all(&modern);
-            for name in ["odsconfig.toml", "workspaces.toml"] {
-                let src = legacy.join(name);
-                if src.exists() {
-                    let dst_name = if name == "odsconfig.toml" { "odcconfig.toml" } else { name };
-                    let dst = modern.join(dst_name);
-                    if !dst.exists()
-                        && std::fs::copy(&src, &dst).is_ok()
-                    {
-                        println!(
-                            "ods: migrated machine config {} -> {}",
-                            src.display(),
-                            dst.display()
-                        );
-                    }
-                }
-            }
-        }
-    }
-
-    // 2. Workspace root pin rewrite: ods-cli: -> ods: and cleanup legacy ods-error.md
-    let probe = std::env::current_dir().unwrap_or_else(|_| std::path::PathBuf::from("."));
-    if let Some(root) = find_marked_ods_workspace_root(&probe) {
-        let index = root.join("index.md");
-        if let Ok(text) = std::fs::read_to_string(&index) {
-            if text.contains("ods-cli:") {
-                let updated = text.replace("ods-cli:", "ods:");
-                if std::fs::write(&index, updated).is_ok() {
-                    println!("ods: rewrote legacy ods-cli: → ods: on root index.md");
-                }
-            }
-        }
-        let legacy_err = root.join("ods-error.md");
-        if legacy_err.exists() {
-            let _ = std::fs::remove_file(&legacy_err);
-        }
-    }
+    // Zero dual-compat / legacy migration logic needed.
 }
 
 fn restart_service_if_active() {

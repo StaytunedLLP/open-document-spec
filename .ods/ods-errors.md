@@ -7,31 +7,33 @@ ods:
 
 # Open Document Spec errors
 
-Summary: **24** issue(s) (0 error(s), 24 warning(s)).
+Summary: **26** issue(s) (2 error(s), 24 warning(s)).
 
 Fix the items below, then re-run `ods lint` (or keep `ods watch` running).
 
-- **warning** `/home/beingminimal/Downloads/gh-beingminimal/StaytunedLLP/open-document-spec/docs/plan/external_repo_cutover_checklist.md`: unknown profile: plan
-- **warning** `/home/beingminimal/Downloads/gh-beingminimal/StaytunedLLP/open-document-spec/docs/plan/non_tech_user_ods_spec_report.md`: missing expected section: Context
-- **warning** `/home/beingminimal/Downloads/gh-beingminimal/StaytunedLLP/open-document-spec/docs/plan/non_tech_user_ods_spec_report.md`: missing expected section: Decision
-- **warning** `/home/beingminimal/Downloads/gh-beingminimal/StaytunedLLP/open-document-spec/docs/plan/non_tech_user_ods_spec_report.md`: missing expected section: Alternatives
-- **warning** `/home/beingminimal/Downloads/gh-beingminimal/StaytunedLLP/open-document-spec/docs/plan/non_tech_user_ods_spec_report.md`: missing expected section: Consequences
-- **warning** `/home/beingminimal/Downloads/gh-beingminimal/StaytunedLLP/open-document-spec/docs/plan/odc_tool_keys_legacy_cleanup.md`: unknown profile: plan
-- **warning** `/home/beingminimal/Downloads/gh-beingminimal/StaytunedLLP/open-document-spec/docs/plan/odc_tool_keys_legacy_cleanup.md`: duplicate tag: ods
-- **warning** `/home/beingminimal/Downloads/gh-beingminimal/StaytunedLLP/open-document-spec/docs/plan/ods_to_odc_migration_and_cli_architecture.md`: unknown profile: plan
-- **warning** `/home/beingminimal/Downloads/gh-beingminimal/StaytunedLLP/open-document-spec/docs/plan/ods_to_odc_migration_and_cli_architecture.md`: duplicate tag: ods
-- **warning** `/home/beingminimal/Downloads/gh-beingminimal/StaytunedLLP/open-document-spec/docs/plan/ods_to_odc_migration_and_cli_architecture.md`: tag collides with profile name: architecture (use profile: field)
-- **warning** `/home/beingminimal/Downloads/gh-beingminimal/StaytunedLLP/open-document-spec/docs/plan/okf_native_support.md`: unknown profile: plan
-- **warning** `/home/beingminimal/Downloads/gh-beingminimal/StaytunedLLP/open-document-spec/docs/plan/okf_vs_ods_specification_report.md`: tag collides with profile name: architecture (use profile: field)
-- **warning** `/home/beingminimal/Downloads/gh-beingminimal/StaytunedLLP/open-document-spec/docs/plan/okf_vs_ods_specification_report.md`: duplicate tag: ods
-- **warning** `/home/beingminimal/Downloads/gh-beingminimal/StaytunedLLP/open-document-spec/docs/plan/okf_vs_ods_specification_report.md`: missing expected section: Context
-- **warning** `/home/beingminimal/Downloads/gh-beingminimal/StaytunedLLP/open-document-spec/docs/plan/okf_vs_ods_specification_report.md`: missing expected section: Decision
-- **warning** `/home/beingminimal/Downloads/gh-beingminimal/StaytunedLLP/open-document-spec/docs/plan/okf_vs_ods_specification_report.md`: missing expected section: Alternatives
-- **warning** `/home/beingminimal/Downloads/gh-beingminimal/StaytunedLLP/open-document-spec/docs/plan/okf_vs_ods_specification_report.md`: missing expected section: Consequences
-- **warning** `/home/beingminimal/Downloads/gh-beingminimal/StaytunedLLP/open-document-spec/docs/plan/unified_multispec_audit_custom_profiles_plan.md`: unknown profile: plan
-- **warning** `/home/beingminimal/Downloads/gh-beingminimal/StaytunedLLP/open-document-spec/docs/plan/unified_multispec_audit_custom_profiles_plan.md`: duplicate tag: ods
-- **warning** `/home/beingminimal/Downloads/gh-beingminimal/StaytunedLLP/open-document-spec/docs/plan/unified_multispec_audit_custom_profiles_plan.md`: tag collides with profile name: architecture (use profile: field)
-- **warning** `/home/beingminimal/Downloads/gh-beingminimal/StaytunedLLP/open-document-spec/docs/research/okf_v02_ods_strategy_report.md`: unknown profile: research
-- **warning** `/home/beingminimal/Downloads/gh-beingminimal/StaytunedLLP/open-document-spec/docs/research/okf_v02_ods_strategy_report.md`: tag collides with profile name: architecture (use profile: field)
-- **warning** `/home/beingminimal/Downloads/gh-beingminimal/StaytunedLLP/open-document-spec/docs/specs/frontmatter-keys-ods-vs-okf.md`: unknown profile: plan
-- **warning** `/home/beingminimal/Downloads/gh-beingminimal/StaytunedLLP/open-document-spec/docs/specs/frontmatter-keys-ods-vs-okf.md`: duplicate tag: ods
+- **error** `index.md`: index has extra entries: specs/index.md
+- **warning** `docs/plan/external_repo_cutover_checklist.md`: unknown profile: plan
+- **warning** `docs/plan/non_tech_user_ods_spec_report.md`: missing expected section: Context
+- **warning** `docs/plan/non_tech_user_ods_spec_report.md`: missing expected section: Decision
+- **warning** `docs/plan/non_tech_user_ods_spec_report.md`: missing expected section: Alternatives
+- **warning** `docs/plan/non_tech_user_ods_spec_report.md`: missing expected section: Consequences
+- **warning** `docs/plan/odc_tool_keys_legacy_cleanup.md`: unknown profile: plan
+- **warning** `docs/plan/odc_tool_keys_legacy_cleanup.md`: duplicate tag: ods
+- **warning** `docs/plan/ods_to_odc_migration_and_cli_architecture.md`: unknown profile: plan
+- **warning** `docs/plan/ods_to_odc_migration_and_cli_architecture.md`: duplicate tag: ods
+- **warning** `docs/plan/ods_to_odc_migration_and_cli_architecture.md`: tag collides with profile name: architecture (use profile: field)
+- **warning** `docs/plan/okf_native_support.md`: unknown profile: plan
+- **warning** `docs/plan/okf_vs_ods_specification_report.md`: tag collides with profile name: architecture (use profile: field)
+- **warning** `docs/plan/okf_vs_ods_specification_report.md`: duplicate tag: ods
+- **warning** `docs/plan/okf_vs_ods_specification_report.md`: missing expected section: Context
+- **warning** `docs/plan/okf_vs_ods_specification_report.md`: missing expected section: Decision
+- **warning** `docs/plan/okf_vs_ods_specification_report.md`: missing expected section: Alternatives
+- **warning** `docs/plan/okf_vs_ods_specification_report.md`: missing expected section: Consequences
+- **warning** `docs/plan/unified_multispec_audit_custom_profiles_plan.md`: unknown profile: plan
+- **warning** `docs/plan/unified_multispec_audit_custom_profiles_plan.md`: duplicate tag: ods
+- **warning** `docs/plan/unified_multispec_audit_custom_profiles_plan.md`: tag collides with profile name: architecture (use profile: field)
+- **warning** `docs/research/okf_v02_ods_strategy_report.md`: unknown profile: research
+- **warning** `docs/research/okf_v02_ods_strategy_report.md`: tag collides with profile name: architecture (use profile: field)
+- **warning** `docs/specs/frontmatter-keys-ods-vs-okf.md`: unknown profile: plan
+- **warning** `docs/specs/frontmatter-keys-ods-vs-okf.md`: duplicate tag: ods
+- **error** `src/index.md`: index missing children: specs/index.md

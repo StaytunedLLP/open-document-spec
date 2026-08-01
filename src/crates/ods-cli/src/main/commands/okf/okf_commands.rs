@@ -72,7 +72,7 @@ fn run_okf_init_command(args: &[String]) -> Result<ExitCode, CliError> {
                 println!("  skipped {}", p.display());
             }
         }
-        OutputFormat::Json => {
+        OutputFormat::Json | OutputFormat::Sarif => {
             println!(
                 r#"{{"root":{},"created":{},"skipped":{}}}"#,
                 json_escape(&report.root.display().to_string()),
@@ -160,7 +160,7 @@ fn run_okf_doctor_command(args: &[String]) -> Result<ExitCode, CliError> {
                 }
             );
         }
-        OutputFormat::Json => {
+        OutputFormat::Json | OutputFormat::Sarif => {
             println!(
                 r#"{{"okf_version":{},"concepts":{},"stale":{},"human_reviewed":{},"machine_confirmed":{},"unverified":{},"has_error":{}}}"#,
                 json_escape(bundle.okf_version.as_deref().unwrap_or("")),
@@ -210,7 +210,7 @@ fn run_okf_audit_command(args: &[String]) -> Result<ExitCode, CliError> {
                 }
             }
         }
-        OutputFormat::Json => {
+        OutputFormat::Json | OutputFormat::Sarif => {
             println!(
                 r#"{{"total_md":{},"compliant":{},"plain":{},"invalid":{},"partial":{},"skipped":{}}}"#,
                 report.total_md,

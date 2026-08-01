@@ -82,7 +82,7 @@ fn run_tag_command(args: &[String]) -> Result<ExitCode, CliError> {
                         println!("re-run with --write to apply");
                     }
                 }
-                OutputFormat::Json => {
+                OutputFormat::Json | OutputFormat::Sarif => {
                     let files: Vec<_> = report
                         .rewritten_files
                         .iter()

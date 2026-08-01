@@ -41,7 +41,7 @@ fn run_bench_command(args: &[String]) -> Result<ExitCode, CliError> {
                         println!("Re-run with --write to apply frontmatter and workspace baseline stripping.");
                     }
                 }
-                OutputFormat::Json => {
+                OutputFormat::Json | OutputFormat::Sarif => {
                     println!(
                         r#"{{"snapshot_id":{},"snapshot_path":{},"total_processed":{},"total_stripped":{},"total_indexes_deleted":{},"total_profiles_removed":{},"dry_run":{}}}"#,
                         json_escape(&report.snapshot_id),
@@ -73,7 +73,7 @@ fn run_bench_command(args: &[String]) -> Result<ExitCode, CliError> {
                         report.total_profiles_restored
                     );
                 }
-                OutputFormat::Json => {
+                OutputFormat::Json | OutputFormat::Sarif => {
                     println!(
                         r#"{{"snapshot_id":{},"snapshot_path":{},"total_restored":{},"total_indexes_restored":{},"total_profiles_restored":{}}}"#,
                         json_escape(&report.snapshot_id),
@@ -113,7 +113,7 @@ fn run_bench_command(args: &[String]) -> Result<ExitCode, CliError> {
                         stats.est_monthly_cost_savings_usd
                     );
                 }
-                OutputFormat::Json => {
+                OutputFormat::Json | OutputFormat::Sarif => {
                     println!(
                         r#"{{"total_files":{},"total_raw_bytes":{},"estimated_total_tokens":{},"avg_ods_context_tokens":{},"token_reduction_percentage":{:.2},"est_monthly_cost_savings_usd":{:.2}}}"#,
                         stats.total_files,
@@ -140,7 +140,7 @@ fn run_bench_command(args: &[String]) -> Result<ExitCode, CliError> {
                 OutputFormat::Text => {
                     println!("{}", report.simulated_output);
                 }
-                OutputFormat::Json => {
+                OutputFormat::Json | OutputFormat::Sarif => {
                     println!(
                         r#"{{"prompt":{},"provider":{},"raw_context_tokens":{},"ods_context_tokens":{},"token_savings_pct":{:.2},"est_raw_cost_usd":{:.4},"est_ods_cost_usd":{:.4}}}"#,
                         json_escape(&report.prompt),

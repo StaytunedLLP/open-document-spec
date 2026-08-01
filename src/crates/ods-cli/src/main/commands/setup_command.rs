@@ -91,14 +91,18 @@ fn print_ods_help() {
 }
 fn run_setup_command(args: &[String]) -> Result<ExitCode, CliError> {
     let mut path = None;
+    let mut install_git_hooks = false;
     let mut i = 2;
     while i < args.len() {
         match args[i].as_str() {
             "--help" | "-h" => {
                 println!(
-                    "ods setup [path]\n\nChecks release freshness, detects an ODS workspace, starts the user service when possible, and runs doctor."
+                    "ods setup [path] [--git-hooks]\n\nChecks release freshness, detects an ODS workspace, starts the user service when possible, and runs doctor.\nUse --git-hooks to install .git/hooks/pre-commit automatic lint runner."
                 );
                 return Ok(ExitCode::from(0));
+            }
+            "--git-hooks" => {
+                install_git_hooks = true;
             }
             flag if flag.starts_with('-') => {
                 return Err(usage(format!("unknown setup flag: {flag}")));
@@ -110,6 +114,25 @@ fn run_setup_command(args: &[String]) -> Result<ExitCode, CliError> {
             }
         }
         i += 1;
+    }
+
+    if install_git_hooks {
+        let probe = path.clone().unwrap_or_else(|| env::current_dir().unwrap_or_else(|_| PathBuf::from(".")));
+        let root = ods_core::find_workspace_root(&probe).unwrap_or(probe);
+        let git_hooks_dir = root.join(".git").join("hooks");
+        if git_hooks_dir.exists() {
+            let hook_file = git_hooks_dir.join("pre-commit");
+            let hook_script = "#!/bin/sh\n# ODS git pre-commit hook\nods lint . --format text\n";
+            let _ = fs::write(&hook_file, hook_script);
+            #[cfg(unix)]
+            {
+                use std::os::unix::fs::PermissionsExt;
+                let _ = fs::set_permissions(&hook_file, fs::Permissions::from_mode(0o755));
+            }
+            println!("Installed ODS pre-commit hook to {}", hook_file.display());
+        } else {
+            println!("No .git/hooks directory found at {}; skipped git hook setup.", root.display());
+        }
     }
 
     if setup_update_check_enabled() {

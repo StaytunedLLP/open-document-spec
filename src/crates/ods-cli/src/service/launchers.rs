@@ -226,7 +226,7 @@ mod test_launchers {
 
     #[test]
     fn test_launcher_helpers() {
-        let root = Path::new("ods-test/ecommerce");
+        let root = Path::new("src/fixtures/ecommerce");
         let id = workspace_unit_id(root);
         assert!(!id.is_empty());
 

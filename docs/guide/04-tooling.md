@@ -45,7 +45,13 @@ Happy path: [Quickstart Guide](/docs/quickstart).
 | `ods watch [path]` | Foreground live rename map + re-lint terminal loop. |
 | `ods logs [path] [-f]` | Show background service logs (`~/.ods/logs/ods-serve.log`); `-f` follows. Not a watch alias. |
 | `ods serve --root <path>` | Headless daemon loop executed by background service (`--mode auto\|watch\|poll`, `--memory-report`, `--poll-secs`). |
-| `ods lint` / `ods lint [path]` | Validate graph & schemas (`--level 1\|3`, `--format text\|json`, `--canonical-refs`). Generates or clears `.ods/ods-errors.md`. |
+| `ods lint` / `ods lint [path]` | Validate graph & schemas (`--level 1\|3`, `--format text\|json\|sarif`, `--canonical-refs`). Generates or clears `.ods/ods-errors.md`. |
+| `ods stats [path]` | Display workspace document telemetry, graph density, profile distribution, and health score (`--format text\|json`). |
+| `ods completion <shell>` | Generate shell autocompletion scripts (`bash`, `zsh`, `fish`, `powershell`). |
+| `ods schema [path]` | Export JSON Schema (`ods.schema.json`) for IDE frontmatter autocomplete and validation (`--write`, `--out PATH`). |
+| `ods tree [path]` | Display visual ASCII/Unicode hierarchy tree of index navigation and dependency graphs (`--format text\|json`). |
+| `ods diff [target]` | Compare document graph dependencies and frontmatter changes against git commits or branches (`--format text\|json`). |
+| `ods clean [path]` | Clean `.ods/ods-errors.md`, `.ods/coverage.md`, and diagnostic cache files. |
 | `ods coverage [path]` | Documentation health % (`--write-report` → `.ods/coverage.md`; separate from lint `.ods/ods-errors.md`). |
 | `ods index [path]` | Generate `index.md` lockfiles (`--check` exits 1 if stale in CI). |
 | `ods mv <from> <to>` | Offline document move + rewrite graph references workspace-wide. |
@@ -61,7 +67,7 @@ Happy path: [Quickstart Guide](/docs/quickstart).
 | `ods tags [path]` | List document tags with counts (`--all` includes default unused tags). |
 | `ods find [path] --tag <t>` | Find and list documents by tag (repeat `--tag` for OR query). |
 | `ods tag rename <old> <new>` | Workspace-wide tag rename (dry-run; `--write`). |
-| `ods workspaces <subcommand>` | Manage globally tracked ODS workspaces in `~/.ods/odcconfig.toml` (`add`, `remove`, `list`, `path`; legacy `~/.ods` is read). |
+| `ods workspaces <subcommand>` | Manage globally tracked ODS workspaces in `~/.ods/odsconfig.toml` (`add`, `remove`, `list`, `path`). |
 | `ods pack <subcommand>` | Manage reusable ODS Packs (`add`, `sync`, `list`, `preview`, `remove`, `init`). |
 | `ods bench <subcommand>` | ROI benchmarking & frontmatter snapshot (`stats`, `strip`, `restore`, `run`). |
 | `ods doctor [path]` | Workspace health check (version, doc count, index freshness, profile conflicts, service status, pending git renames). |

@@ -178,6 +178,7 @@ fn parse_share_args(
 enum OutputFormat {
     Text,
     Json,
+    Sarif,
 }
 
 fn parse_common_flags(
@@ -209,9 +210,10 @@ fn parse_common_flags(
                 format = match value.as_str() {
                     "text" => OutputFormat::Text,
                     "json" => OutputFormat::Json,
+                    "sarif" => OutputFormat::Sarif,
                     other => {
                         return Err(usage(format!(
-                            "invalid --format {other} (use text or json)"
+                            "invalid --format {other} (use text, json, or sarif)"
                         )));
                     }
                 };

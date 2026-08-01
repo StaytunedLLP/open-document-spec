@@ -37,7 +37,7 @@ fn run_find_command(args: &[String]) -> Result<ExitCode, CliError> {
                 println!("{id}");
             }
         }
-        OutputFormat::Json => {
+        OutputFormat::Json | OutputFormat::Sarif => {
             let items: Vec<_> = ids.iter().map(|id| json_escape(id)).collect();
             println!(
                 r#"{{"tags":[{}],"ids":[{}],"count":{}}}"#,
@@ -65,7 +65,7 @@ mod test_find_command {
         let err2 = run_find_command(&["ods".into(), "find".into(), "--tag".into()]);
         assert!(err2.is_err());
 
-        let sample = std::path::Path::new("ods-test/ecommerce");
+        let sample = std::path::Path::new("src/fixtures/ecommerce");
         if sample.exists() {
             let res = run_find_command(&[
                 "ods".into(),

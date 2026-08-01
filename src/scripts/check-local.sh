@@ -2,7 +2,7 @@
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
-SAMPLE="${ROOT}/ods-test/ecommerce"
+SAMPLE="${ROOT}/src/fixtures/ecommerce"
 EXPORT_OUT="${TMPDIR:-/tmp}/ods-graph-local.md"
 
 export CARGO_TERM_COLOR="${CARGO_TERM_COLOR:-always}"
@@ -69,17 +69,12 @@ if [ -z "${ODS}" ]; then
   exit 1
 fi
 
-# Use ODS namespace when binary is ods
-if [[ "$(basename "${ODS}")" == "ods" ]]; then
-  ODS_CMD=("${ODS}" ods)
-else
-  ODS_CMD=("${ODS}")
-fi
+ODS_CMD=("${ODS}")
 
 FIXTURES=(
-  "${ROOT}/ods-test/ecommerce"
-  "${ROOT}/ods-test/policy-handbook"
-  "${ROOT}/ods-test/packs/engineering-pack"
+  "${ROOT}/src/fixtures/ecommerce"
+  "${ROOT}/src/fixtures/policy-handbook"
+  "${ROOT}/src/fixtures/packs/engineering-pack"
 )
 
 for fixture in "${FIXTURES[@]}"; do

@@ -39,7 +39,7 @@ fn run_index_command(args: &[String]) -> Result<ExitCode, CliError> {
                     eprintln!("indexes out of date; run `ods index`");
                 }
             }
-            OutputFormat::Json => {
+            OutputFormat::Json | OutputFormat::Sarif => {
                 println!(
                     r#"{{"current":{},"root":{}}}"#,
                     if current { "true" } else { "false" },
@@ -56,7 +56,7 @@ fn run_index_command(args: &[String]) -> Result<ExitCode, CliError> {
                     println!("{}", path.display());
                 }
             }
-            OutputFormat::Json => {
+            OutputFormat::Json | OutputFormat::Sarif => {
                 let items: Vec<_> = paths
                     .iter()
                     .map(|p| json_escape(&p.display().to_string()))
@@ -115,7 +115,7 @@ fn run_coverage_command(args: &[String]) -> Result<ExitCode, CliError> {
             println!("  ✔ Compliant:     {} documents", compliant);
             println!("  ✖ Non-Compliant:  {} documents", non_compliant);
         }
-        OutputFormat::Json => {
+        OutputFormat::Json | OutputFormat::Sarif => {
             println!(
                 r#"{{"health_pct":{:.1},"compliant":{},"non_compliant":{},"total":{}}}"#,
                 pct, compliant, non_compliant, total

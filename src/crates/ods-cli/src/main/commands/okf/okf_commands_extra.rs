@@ -58,7 +58,7 @@ fn run_okf_index_command(args: &[String]) -> Result<ExitCode, CliError> {
                     eprintln!("okf indexes out of date; run `ods okf index`");
                 }
             }
-            OutputFormat::Json => {
+            OutputFormat::Json | OutputFormat::Sarif => {
                 println!(r#"{{"current":{}}}"#, if current { "true" } else { "false" });
             }
         }
@@ -72,7 +72,7 @@ fn run_okf_index_command(args: &[String]) -> Result<ExitCode, CliError> {
                 println!("{}", p.display());
             }
         }
-        OutputFormat::Json => {
+        OutputFormat::Json | OutputFormat::Sarif => {
             println!(r#"{{"written":{},"count":{}}}"#, paths.len(), paths.len());
         }
     }
@@ -101,7 +101,7 @@ fn run_okf_context_command(args: &[String]) -> Result<ExitCode, CliError> {
                 println!("{}", rel.display());
             }
         }
-        OutputFormat::Json => {
+        OutputFormat::Json | OutputFormat::Sarif => {
             let items: Vec<_> = list
                 .iter()
                 .map(|p| json_escape(&p.display().to_string()))
@@ -162,7 +162,7 @@ fn run_okf_fmt_command(args: &[String]) -> Result<ExitCode, CliError> {
                 }
             }
         }
-        OutputFormat::Json => {
+        OutputFormat::Json | OutputFormat::Sarif => {
             println!(r#"{{"changed":{},"count":{}}}"#, changed.len(), changed.len());
         }
     }

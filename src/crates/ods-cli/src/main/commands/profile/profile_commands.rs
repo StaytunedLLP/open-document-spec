@@ -25,7 +25,7 @@ fn run_profile_list_command(args: &[String]) -> Result<ExitCode, CliError> {
                 println!("{name}: {kind} ({}) — {source_path}", section_summary.join(", "));
             }
         }
-        OutputFormat::Json => {
+        OutputFormat::Json | OutputFormat::Sarif => {
             let mut list = Vec::new();
             for (name, def) in &catalog.definitions {
                 let layer = if def.source.to_string_lossy().starts_with("<builtin:") {

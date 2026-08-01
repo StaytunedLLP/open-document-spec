@@ -79,6 +79,12 @@ fn is_platform_command(cmd: &str) -> bool {
             | "workspaces"
             | "skill"
             | "pack"
+            | "stats"
+            | "completion"
+            | "schema"
+            | "tree"
+            | "diff"
+            | "clean"
     )
 }
 
@@ -118,6 +124,12 @@ fn is_ods_document_command(cmd: &str) -> bool {
             | "sandbox"
             | "audit"
             | "coverage"
+            | "stats"
+            | "completion"
+            | "schema"
+            | "tree"
+            | "diff"
+            | "clean"
     )
 }
 

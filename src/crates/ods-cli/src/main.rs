@@ -31,6 +31,12 @@ include!("main/commands/workspace/workspaces/workspaces_command.rs");
 include!("main/commands/workspace/pack/pack_command.rs");
 include!("main/commands/share_command.rs");
 include!("main/commands/bench_command.rs");
+include!("main/commands/stats_command.rs");
+include!("main/commands/completion_command.rs");
+include!("main/commands/schema_command.rs");
+include!("main/commands/tree_command.rs");
+include!("main/commands/diff_command.rs");
+include!("main/commands/clean_command.rs");
 
 // --- support (formatters, loaders, helpers) ---
 include!("main/support/diagnostics_formatter.rs");

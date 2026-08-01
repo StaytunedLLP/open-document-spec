@@ -1,6 +1,6 @@
 use ods_core::{
-    DisableOptions, InitOptions, current_ods_spec_version,
-    disable_workspace, init_workspace, load_workspace, ods_enabled,
+    DisableOptions, InitOptions, current_ods_spec_version, disable_workspace, init_workspace,
+    load_workspace, ods_enabled,
 };
 use ods_test_support::temp_workspace;
 use std::fs;

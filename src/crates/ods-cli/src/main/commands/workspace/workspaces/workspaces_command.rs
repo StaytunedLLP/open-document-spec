@@ -1,7 +1,6 @@
 // Global machine configuration (TOML) and `ods workspaces` command.
 //
-// Registry: ~/.ods/odcconfig.toml (legacy: ~/.ods/odsconfig.toml, ~/.ods/config.toml)
-// Parsed manually to avoid adding external serde/toml crate dependencies.
+// Registry: ~/.ods/odsconfig.toml
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct PackEntry {
@@ -13,46 +12,20 @@ pub struct PackEntry {
     pub last_updated: String,
 }
 
-/// Path to the global machine configuration file.
-/// Prefer `~/.ods/odcconfig.toml`; fall back to legacy `~/.ods/odsconfig.toml`.
+/// Path to the global machine configuration file: `~/.ods/odsconfig.toml`.
 pub fn registry_path() -> PathBuf {
     let home = env::var("HOME")
         .or_else(|_| env::var("USERPROFILE"))
         .unwrap_or_else(|_| ".".into());
-    let modern = PathBuf::from(&home).join(".ods/odcconfig.toml");
-    if modern.exists() {
-        return modern;
-    }
-    let legacy_primary = PathBuf::from(&home).join(".ods/odsconfig.toml");
-    if legacy_primary.exists() {
-        return legacy_primary;
-    }
-    let legacy_fallback = PathBuf::from(&home).join(".ods/config.toml");
-    if legacy_fallback.exists() {
-        return legacy_fallback;
-    }
-    // Default write path going forward
-    modern
+    PathBuf::from(&home).join(".ods/odsconfig.toml")
 }
 
-/// Load registered workspace paths from machine config (or legacy workspaces.toml).
+/// Load registered workspace paths from machine config.
 pub fn load_registry_paths() -> Vec<String> {
     let path = registry_path();
     if let Ok(content) = fs::read_to_string(&path) {
         return parse_workspace_paths(&content);
     }
-
-    // Check legacy ~/.ods/workspaces.toml for automatic migration
-    let home = env::var("HOME").unwrap_or_else(|_| ".".into());
-    let legacy_path = PathBuf::from(home).join(".ods/workspaces.toml");
-    if let Ok(content) = fs::read_to_string(&legacy_path) {
-        let paths = parse_workspace_paths(&content);
-        if !paths.is_empty() {
-            let _ = save_registry_paths(&paths);
-        }
-        return paths;
-    }
-
     Vec::new()
 }
 
@@ -114,7 +87,7 @@ fn run_workspaces_command(args: &[String]) -> Result<ExitCode, CliError> {
             println!(
                 "ods workspaces <subcommand>\n\n\
                  Manage globally tracked ODS workspaces.\n\
-                 Config file: ~/.ods/odcconfig.toml (legacy ~/.ods/odsconfig.toml is read)\n\n\
+                 Config file: ~/.ods/odsconfig.toml\n\n\
                  Subcommands:\n\
                  \x20 add [path]     Register a folder as an ODS workspace (default: current dir)\n\
                  \x20 remove [path]  Unregister a folder (default: current dir)\n\

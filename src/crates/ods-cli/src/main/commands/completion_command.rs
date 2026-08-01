@@ -1,0 +1,99 @@
+fn run_completion_command(args: &[String]) -> Result<ExitCode, CliError> {
+    let shell = args
+        .get(2)
+        .map(|s| s.to_lowercase())
+        .ok_or_else(|| usage("ods completion <bash|zsh|fish|powershell>"))?;
+
+    match shell.as_str() {
+        "bash" => {
+            println!("{}", BASH_COMPLETION);
+        }
+        "zsh" => {
+            println!("{}", ZSH_COMPLETION);
+        }
+        "fish" => {
+            println!("{}", FISH_COMPLETION);
+        }
+        "powershell" => {
+            println!("{}", POWERSHELL_COMPLETION);
+        }
+        other => {
+            return Err(usage(format!(
+                "unsupported shell '{other}' (use bash, zsh, fish, or powershell)"
+            )));
+        }
+    }
+
+    Ok(ExitCode::from(0))
+}
+
+const BASH_COMPLETION: &str = r#"_ods_completions() {
+    local cur prev opts
+    COMPREPLY=()
+    cur="${COMP_WORDS[COMP_CWORD]}"
+    prev="${COMP_WORDS[COMP_CWORD-1]}"
+    opts="lint index profiles find tag context graph mv fmt adopt new rm archive init disable doctor sync watch logs serve export start stop share bench audit coverage setup update upgrade workspaces skill pack stats completion schema tree diff clean"
+
+    if [[ ${COMP_CWORD} -eq 1 ]] ; then
+        COMPREPLY=( $(compgen -W "${opts}" -- ${cur}) )
+        return 0
+    fi
+}
+complete -F _ods_completions ods
+"#;
+
+const ZSH_COMPLETION: &str = r#"#compdef ods
+_ods() {
+    local -a commands
+    commands=(
+        'lint:Validate workspace markdown files and graph consistency'
+        'index:Generate or check navigation index markdown files'
+        'profiles:List or initialize document profile schemas'
+        'find:Find documents by tag, profile, or query'
+        'tag:Tag management and workspace-wide tag renaming'
+        'context:Resolve bounded context for a target document'
+        'graph:Export workspace dependency graph'
+        'mv:Move document and automatically heal relative references'
+        'fmt:Format frontmatter and Markdown structure'
+        'adopt:Draft profile frontmatter for unindexed Markdown files'
+        'new:Scaffold a new document with frontmatter'
+        'rm:Remove document and scrub references'
+        'archive:Archive document status'
+        'init:Initialize ODS workspace'
+        'disable:Remove ODS markers and indexes'
+        'doctor:Report workspace health and configuration status'
+        'sync:Synchronize git status and workspace metadata'
+        'watch:Watch file system and auto-reindex on changes'
+        'logs:View service watcher logs'
+        'serve:Run foreground language server / watcher'
+        'export:Export graph visualization'
+        'stats:Display workspace document telemetry and health metrics'
+        'completion:Generate shell autocompletion scripts'
+        'schema:Export JSON Schema for frontmatter validation'
+        'tree:Display visual hierarchy tree of workspace documents'
+        'diff:Compare document graph changes against git commit/branch'
+        'clean:Clean diagnostic reports and cache files'
+    )
+    _describe 'ods command' commands
+}
+_ods "$@"
+"#;
+
+const FISH_COMPLETION: &str = r#"complete -c ods -f
+complete -c ods -n "__fish_use_subcommand" -a "lint" -d "Validate workspace consistency"
+complete -c ods -n "__fish_use_subcommand" -a "index" -d "Generate navigation index.md files"
+complete -c ods -n "__fish_use_subcommand" -a "stats" -d "Display document telemetry and health score"
+complete -c ods -n "__fish_use_subcommand" -a "schema" -d "Export JSON Schema for frontmatter"
+complete -c ods -n "__fish_use_subcommand" -a "tree" -d "Display visual document tree"
+complete -c ods -n "__fish_use_subcommand" -a "diff" -d "Compare graph changes"
+complete -c ods -n "__fish_use_subcommand" -a "clean" -d "Clean diagnostic reports"
+"#;
+
+const POWERSHELL_COMPLETION: &str = r#"Register-ArgumentCompleter -Native -CommandName ods -ScriptBlock {
+    param($wordToComplete, $commandAst, $cursorPosition)
+    $commands = @('lint', 'index', 'profiles', 'find', 'tag', 'context', 'graph', 'mv', 'fmt', 'adopt', 'new', 'rm', 'archive', 'init', 'disable', 'doctor', 'sync', 'watch', 'logs', 'serve', 'export', 'stats', 'completion', 'schema', 'tree', 'diff', 'clean')
+    $commands | Where-Object { $_ -like "$wordToComplete*" } | ForEach-Object {
+        [System.Management.Automation.CompletionResult]::new($_, $_, 'ParameterValue', $_)
+    }
+}
+"#;
