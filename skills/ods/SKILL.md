@@ -64,7 +64,9 @@ Creation is free; promoting a doc to `status: stable` earns Level-3 checks.
 | --- | --- |
 | `profile` | Document kind; defaults to `note` (Default Profile). There is no separate `type`. |
 | `status` | `draft` \| `stable` \| `deprecated` \| `archived` (lowercase). Default `draft`. |
-| `share` | `public` (default, open) \| `org` (currently treated the same as `private` by tooling — no distinct org-only tier yet) \| `private` (excluded from `odc ods context`/`odc ods export` by default). |
+| `created` | Document creation timestamp (`YYYY-MM-DD` or ISO-8601). Optional; for non-Git authors. |
+| `updated` | Document last update timestamp (`YYYY-MM-DD` or ISO-8601). Optional; accepts `last_updated` alias. |
+| `share` | `public` (default, open) \| `org` \| `private` (excluded from `odc context`/`odc export` by default). |
 | `id` | Override the path-derived id (use for rename stability). Usually omitted. |
 | `description` | One-line summary; feeds index listings. |
 | `depends` | IDs this doc requires first (directional; loaded transitively). |

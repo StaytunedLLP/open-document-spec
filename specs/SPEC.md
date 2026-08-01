@@ -95,6 +95,8 @@ Frontmatter is segregated into **Universal Top-Level Metadata** (read by SSGs, O
 | `description` | string | Single-line summary of the document. Used by ODS index listings AND extracted by SSGs for HTML `<meta name="description">` and social preview cards. |
 | `tags` | list of strings | Free-form search facets up to $N$ items. Normalizes to lowercase. Natively parsed by Obsidian, Logseq, Hugo, Docusaurus, and Rspress. |
 | `owner` | string \| list | Responsible individual/team or list of teams up to $N$ owners. |
+| `created` | string | Document creation timestamp (`YYYY-MM-DD` or ISO-8601). Optional; for non-Git authors. |
+| `updated` | string | Document last update timestamp (`YYYY-MM-DD` or ISO-8601). Optional; accepts `last_updated` alias. |
 
 ### ODS Engine Metadata Keys (Nested inside `ods:`)
 

@@ -156,6 +156,8 @@ fn parse_frontmatter(block: &str) -> Result<Frontmatter, String> {
         match key {
             "profile" => frontmatter.profile = scalar_value(rest).map(|s| s.to_lowercase()),
             "status" => frontmatter.status = scalar_value(rest).map(|s| s.to_lowercase()),
+            "created" | "created_at" | "date" => frontmatter.created = scalar_value(rest),
+            "updated" | "last_updated" | "updated_at" => frontmatter.updated = scalar_value(rest),
             "share" => frontmatter.share = scalar_value(rest).map(|s| s.to_lowercase()),
             "description" => frontmatter.description = scalar_value(rest),
             "id" => {
@@ -181,6 +183,12 @@ fn parse_frontmatter(block: &str) -> Result<Frontmatter, String> {
                     }
                     if nested_fm.status.is_some() {
                         frontmatter.status = nested_fm.status;
+                    }
+                    if nested_fm.created.is_some() {
+                        frontmatter.created = nested_fm.created;
+                    }
+                    if nested_fm.updated.is_some() {
+                        frontmatter.updated = nested_fm.updated;
                     }
                     if nested_fm.share.is_some() {
                         frontmatter.share = nested_fm.share;

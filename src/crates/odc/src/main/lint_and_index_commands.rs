@@ -87,3 +87,55 @@ fn run_tags_command(args: &[String]) -> Result<ExitCode, CliError> {
     print_tags(&workspace, include_all, format);
     Ok(ExitCode::from(0))
 }
+
+fn run_coverage_command(args: &[String]) -> Result<ExitCode, CliError> {
+    let (root, level, format) = parse_common_flags(args, 2)?;
+    require_ods_workspace(&root)?;
+    let write_report = args.iter().any(|a| a == "--write-report");
+    let workspace = load_workspace_with_options(&root, load_options_graph())
+        .map_err(|err| failure(err.to_string()))?;
+
+    let total = workspace.documents.len();
+    let mut compliant = 0usize;
+    let mut non_compliant = 0usize;
+
+    for doc in &workspace.documents {
+        let is_parsed = matches!(doc.frontmatter, odc_core::FrontmatterState::Parsed(_));
+        let diags = odc_core::lint_document_in_workspace(&workspace, &doc.path, level);
+        if is_parsed && diags.is_empty() {
+            compliant += 1;
+        } else {
+            non_compliant += 1;
+        }
+    }
+
+    let pct = if total == 0 {
+        100.0
+    } else {
+        (compliant as f64 / total as f64) * 100.0
+    };
+
+    match format {
+        OutputFormat::Text => {
+            println!("Documentation Health: {:.1}% Compliant ({}/{} files)", pct, compliant, total);
+            println!("  ✔ Compliant:     {} documents", compliant);
+            println!("  ✖ Non-Compliant:  {} documents", non_compliant);
+        }
+        OutputFormat::Json => {
+            println!(
+                r#"{{"health_pct":{:.1},"compliant":{},"non_compliant":{},"total":{}}}"#,
+                pct, compliant, non_compliant, total
+            );
+        }
+    }
+
+    if write_report {
+        let report_content = format!(
+            "# Documentation Health & Coverage Report\n\n- Score: {:.1}% Compliant\n- Compliant Documents: {}\n- Non-Compliant Documents: {}\n- Total Documents: {}\n",
+            pct, compliant, non_compliant, total
+        );
+        let _ = std::fs::write(root.join("odc-report.md"), report_content);
+    }
+
+    Ok(ExitCode::from(0))
+}

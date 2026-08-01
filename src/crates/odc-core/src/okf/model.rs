@@ -7,11 +7,20 @@ pub fn current_okf_version() -> &'static str {
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
-pub enum OkfLintLevel {
+pub enum OkfComplianceMode {
     #[default]
-    Level3,
-    Level1,
+    Strict,
+    Standard,
 }
+
+impl OkfComplianceMode {
+    #[allow(non_upper_case_globals)]
+    pub const Level3: Self = Self::Strict;
+    #[allow(non_upper_case_globals)]
+    pub const Level1: Self = Self::Standard;
+}
+
+pub type OkfLintLevel = OkfComplianceMode;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum OkfStatus {

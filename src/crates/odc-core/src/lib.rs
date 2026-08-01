@@ -17,6 +17,7 @@ pub mod pipeline;
 pub mod profiles;
 pub mod refs;
 pub mod share;
+pub mod spec;
 pub mod tags;
 
 pub use bench::{
@@ -57,11 +58,12 @@ pub use lint::{
     workspace_alias_suggestions, workspace_aliases,
 };
 pub use model::{
-    CodeRef, CodeRole, Diagnostic, Document, Frontmatter, FrontmatterState, LintLevel, LoadOptions,
+    CodeRef, CodeRole, ComplianceMode, Diagnostic, Document, Frontmatter, FrontmatterState, LintLevel, LoadOptions,
     ProfileCatalog, ProfileConflict, ProfileDefinition, ResourceRef, Severity, Workspace,
     current_odc_requirement, current_ods_spec_version, current_ods_version,
     odc_requirement_satisfied,
 };
+pub use spec::{ExtractedKeys, KeySchema, KeyType, SpecDescriptor, SpecKeyProcessor, SpecKind};
 pub use mv::{
     PathChange, PathChangeReport, apply_path_changes, canonicalize_workspace_document_refs,
     canonicalize_workspace_document_refs_with_workspace, classify_watch_events,

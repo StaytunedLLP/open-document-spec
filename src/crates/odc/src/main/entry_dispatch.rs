@@ -24,7 +24,7 @@ fn dispatch_auto_detect(args: &[String]) -> Result<ExitCode, CliError> {
         cmd,
         "profiles" | "tags" | "find" | "tag" | "graph" | "mv" | "new" | "rm" | "remove"
             | "archive" | "disable" | "revert" | "sync" | "start" | "stop" | "share" | "bench"
-            | "sandbox" | "logs"
+            | "sandbox" | "logs" | "coverage"
     );
 
     if has_ods && has_okf && okf_only && matches!(cmd, "lint" | "doctor" | "audit") {
@@ -131,6 +131,7 @@ fn dispatch_ods_command(args: &[String]) -> Result<ExitCode, CliError> {
         "share" => run_share_command(args),
         "bench" | "sandbox" => run_bench_command(args),
         "audit" => run_ods_audit_command(args),
+        "coverage" => run_coverage_command(args),
         other => Err(usage(format!("unknown ods command: {other}"))),
     }
 }
