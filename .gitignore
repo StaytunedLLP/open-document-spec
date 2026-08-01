@@ -150,6 +150,7 @@ vite.config.ts.timestamp-*
 target/
 src/target/
 src/zed-ods-lsp/target/
+.odc/
 
 # Never commit built Zed extension wasm (CI packs it into release artifacts only)
 *.wasm

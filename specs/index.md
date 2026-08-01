@@ -1,6 +1,5 @@
 ---
-title: "Open Document Specification (ODS)"
-description: "Normative specifications for Open Document Spec (ODS), covering file formats, frontmatter, graph edges, context engine, and Level 0-3 validation."
+profile: index
 ---
 
 # Open Document Specification (ODS)
@@ -11,14 +10,14 @@ This directory contains the normative specifications for Open Document Spec.
 
 ## ODS modules
 
-- [SPEC.md](SPEC.md) — Core Normative Specification
-- [context.md](context.md) — Context Engine & Reading List Bounds
-- [graph.md](graph.md) — Dependency Graph & Edge Types
-- [indexes.md](indexes.md) — Directory Indexes & Progressive Disclosure
-- [non-goals.md](non-goals.md) — Scope Boundaries & Non-Goals
-- [profiles.md](profiles.md) — Standard Profiles & Heading Schemas
-- [resources-and-code.md](resources-and-code.md) — Resource Lists & Code Reference Mapping
-- [validation.md](validation.md) — Conformance Levels 0-3 & Validation Rules
+- [SPEC.md](SPEC.md)
+- [context.md](context.md)
+- [graph.md](graph.md)
+- [indexes.md](indexes.md)
+- [non-goals.md](non-goals.md)
+- [profiles.md](profiles.md)
+- [resources-and-code.md](resources-and-code.md)
+- [validation.md](validation.md)
 
 ## Multi-spec (OpenDocify)
 

@@ -1,9 +1,11 @@
 ---
-packs:
 profile: index
 ods: 
 ---
 
 # crates
 
-- [ods-test-support/](ods-test-support/index.md)
+- [odc/](odc/index.md)
+- [odc-core/](odc-core/index.md)
+
+- [odc-test-support/](odc-test-support/index.md)
