@@ -49,14 +49,14 @@ fi
 cd "${ROOT}"
 ODC=""
 for candidate in \
-  "${ROOT}/.artifacts/target/release/odc" \
-  "${ROOT}/target/release/odc" \
-  "${ROOT}/.artifacts/target/debug/odc" \
-  "${ROOT}/target/debug/odc" \
   "${ROOT}/.artifacts/target/release/ods" \
   "${ROOT}/target/release/ods" \
   "${ROOT}/.artifacts/target/debug/ods" \
-  "${ROOT}/target/debug/ods"; do
+  "${ROOT}/target/debug/ods" \
+  "${ROOT}/.artifacts/target/release/odc" \
+  "${ROOT}/target/release/odc" \
+  "${ROOT}/.artifacts/target/debug/odc" \
+  "${ROOT}/target/debug/odc"; do
   if [ -x "${candidate}" ]; then
     ODC="${candidate}"
     break

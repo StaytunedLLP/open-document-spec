@@ -134,12 +134,12 @@ if [ "${INSTALLED}" = "false" ]; then
   if [ -z "${DOWNLOADED}" ]; then
     if command -v cargo >/dev/null 2>&1; then
       info "Release asset not available — compiling local Cargo fallback (odc)..."
-      cargo build --release -p odc --bin odc --bin ods 2>/dev/null \
-        || cargo build --release --bin odc --bin ods 2>/dev/null \
-        || cargo build --release --bin ods
-      FOUND_CARGO_BIN="$(find target .artifacts/target -type f \( -name odc -o -name ods \) 2>/dev/null | grep release | head -1 || true)"
+      cargo build --release -p ods-cli --bin ods 2>/dev/null \
+        || cargo build --release --bin ods 2>/dev/null \
+        || cargo build --release
+      FOUND_CARGO_BIN="$(find target .artifacts/target -type f \( -name ods -o -name odc \) -path "*/release/*" 2>/dev/null | xargs ls -t 2>/dev/null | head -1 || true)"
       if [ -z "${FOUND_CARGO_BIN}" ]; then
-        FOUND_CARGO_BIN="target/release/odc"
+        FOUND_CARGO_BIN=".artifacts/target/release/ods"
         [ -f "${FOUND_CARGO_BIN}" ] || FOUND_CARGO_BIN="target/release/ods"
       fi
       install -m 755 "${FOUND_CARGO_BIN}" "${ODC_BIN}"

@@ -1,15 +1,15 @@
 [workspace]
 members = [
-    "src/crates/odc-core",
-    "src/crates/odc",
-    "src/crates/odc-test-support",
+    "src/crates/ods-core",
+    "src/crates/ods-cli",
+    "src/crates/ods-test-support",
 ]
 # Removed from product: ods-lsp, zed-ods-lsp (CLI + service only).
 resolver = "3"
 
 [workspace.package]
 edition = "2024"
-version = "0.0.12"
+version = "0.0.13"
 license = "Apache-2.0"
 rust-version = "1.85"
 
