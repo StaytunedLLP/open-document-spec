@@ -554,8 +554,17 @@ jobs:
 
           $HashOut = (Get-FileHash "dist\$Out.zip" -Algorithm SHA256).Hash.ToLowerInvariant()
           $HashLegacy = (Get-FileHash "dist\$Legacy.zip" -Algorithm SHA256).Hash.ToLowerInvariant()
-          "$HashOut  $Out.zip" | Add-Content "dist\SHA256SUMS.$Asset"
-          "$HashLegacy  $Legacy.zip" | Add-Content "dist\SHA256SUMS.$Asset"
+          # Unix LF only — CRLF breaks sha256sum -c filename matching on Linux verify runners.
+          $sumsPath = "dist\SHA256SUMS.$Asset"
+          $lineOut = "$HashOut  $Out.zip"
+          $lineLegacy = "$HashLegacy  $Legacy.zip"
+          if (Test-Path $sumsPath) {
+            $existing = [System.IO.File]::ReadAllText($sumsPath).TrimEnd("`r", "`n")
+            $text = if ([string]::IsNullOrEmpty($existing)) { "$lineOut`n$lineLegacy`n" } else { "$existing`n$lineOut`n$lineLegacy`n" }
+          } else {
+            $text = "$lineOut`n$lineLegacy`n"
+          }
+          [System.IO.File]::WriteAllText((Resolve-Path .).Path + "\$sumsPath", $text.Replace("`r`n", "`n").Replace("`r", "`n"))
 
           Get-ChildItem dist | Format-Table Name, Length
 
@@ -591,8 +600,8 @@ jobs:
         run: |
           set -euo pipefail
           ls -la dist/
-          cat dist/SHA256SUMS.* > dist/SHA256SUMS 2>/dev/null || true
-          sort -u dist/SHA256SUMS -o dist/SHA256SUMS
+          # Normalize CRLF from Windows packaging before merge/verify.
+          cat dist/SHA256SUMS.* 2>/dev/null | tr -d '\r' | sed '/^$/d' | sort -u > dist/SHA256SUMS
           cat dist/SHA256SUMS
           test -s dist/SHA256SUMS
 
@@ -725,6 +734,9 @@ jobs:
           fi
 
           [ -s SHA256SUMS ] || { echo "error: SHA256SUMS missing or empty" >&2; exit 1; }
+          # Strip CR so Windows-produced SUMS lines match downloaded filenames.
+          tr -d '\r' < SHA256SUMS > SHA256SUMS.lf
+          mv SHA256SUMS.lf SHA256SUMS
           mapfile -t sums_files < <(awk 'NF >= 2 { print $2 }' SHA256SUMS | sed 's|^\./||')
           if [ "${#sums_files[@]}" -eq 0 ]; then
             echo "error: SHA256SUMS has no file entries" >&2
