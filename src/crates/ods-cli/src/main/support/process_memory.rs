@@ -116,12 +116,3 @@ fn print_tags(workspace: &ods_core::Workspace, include_all: bool, format: Output
         }
     }
 }
-
-fn profile_layer(source: &std::path::Path) -> &'static str {
-    let s = source.to_string_lossy();
-    if s.starts_with("<builtin:") {
-        "default ODS"
-    } else {
-        "project"
-    }
-}

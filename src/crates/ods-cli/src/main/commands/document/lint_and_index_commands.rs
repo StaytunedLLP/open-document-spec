@@ -72,15 +72,6 @@ fn run_index_command(args: &[String]) -> Result<ExitCode, CliError> {
     }
 }
 
-fn run_profiles_command(args: &[String]) -> Result<ExitCode, CliError> {
-    let (root, _level, format) = parse_common_flags(args, 2)?;
-    require_ods_workspace(&root)?;
-    let workspace = load_workspace_with_options(&root, load_options_graph())
-        .map_err(|err| failure(err.to_string()))?;
-    print_profiles(&workspace, format);
-    Ok(ExitCode::from(0))
-}
-
 fn run_tags_command(args: &[String]) -> Result<ExitCode, CliError> {
     let (root, _level, format) = parse_common_flags(args, 2)?;
     require_ods_workspace(&root)?;

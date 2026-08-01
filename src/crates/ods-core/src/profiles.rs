@@ -307,10 +307,7 @@ pub fn render_profile_template(
     Ok(out)
 }
 
-pub fn resolve_document_profile<'a>(
-    doc: &'a Document,
-    catalog: &'a ProfileCatalog,
-) -> &'a str {
+pub fn resolve_document_profile<'a>(doc: &'a Document, catalog: &'a ProfileCatalog) -> &'a str {
     // Tier 1: Explicit Frontmatter Profile
     if let FrontmatterState::Parsed(fm) = &doc.frontmatter {
         if let Some(ref p) = fm.profile {
@@ -379,7 +376,6 @@ pub fn resolve_document_profile<'a>(
     // Tier 4: Default Fallback
     "note"
 }
-
 
 #[cfg(test)]
 mod tests {

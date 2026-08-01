@@ -70,15 +70,74 @@ impl SpecSchemaRegistry {
         let mut schema = SpecSchema::new(SpecKind::Ods, "0.1");
 
         let ods_keys = [
-            ("profile", KeyPlacement::NestedEngineMap, KeyType::String, false, "Document profile type"),
-            ("status", KeyPlacement::NestedEngineMap, KeyType::Enum(vec!["draft".into(), "stable".into(), "deprecated".into(), "archived".into()]), false, "Document lifecycle status"),
-            ("id", KeyPlacement::NestedEngineMap, KeyType::String, false, "Explicit document identifier"),
-            ("share", KeyPlacement::NestedEngineMap, KeyType::Enum(vec!["public".into(), "org".into(), "private".into()]), false, "Document visibility level"),
-            ("depends", KeyPlacement::NestedEngineMap, KeyType::List, false, "Required dependency IDs"),
-            ("related", KeyPlacement::NestedEngineMap, KeyType::List, false, "Related document IDs"),
-            ("code", KeyPlacement::NestedEngineMap, KeyType::List, false, "Code references"),
-            ("resources", KeyPlacement::NestedEngineMap, KeyType::List, false, "Resource file references"),
-            ("context", KeyPlacement::NestedEngineMap, KeyType::Map, false, "AI reading scope configuration"),
+            (
+                "profile",
+                KeyPlacement::NestedEngineMap,
+                KeyType::String,
+                false,
+                "Document profile type",
+            ),
+            (
+                "status",
+                KeyPlacement::NestedEngineMap,
+                KeyType::Enum(vec![
+                    "draft".into(),
+                    "stable".into(),
+                    "deprecated".into(),
+                    "archived".into(),
+                ]),
+                false,
+                "Document lifecycle status",
+            ),
+            (
+                "id",
+                KeyPlacement::NestedEngineMap,
+                KeyType::String,
+                false,
+                "Explicit document identifier",
+            ),
+            (
+                "share",
+                KeyPlacement::NestedEngineMap,
+                KeyType::Enum(vec!["public".into(), "org".into(), "private".into()]),
+                false,
+                "Document visibility level",
+            ),
+            (
+                "depends",
+                KeyPlacement::NestedEngineMap,
+                KeyType::List,
+                false,
+                "Required dependency IDs",
+            ),
+            (
+                "related",
+                KeyPlacement::NestedEngineMap,
+                KeyType::List,
+                false,
+                "Related document IDs",
+            ),
+            (
+                "code",
+                KeyPlacement::NestedEngineMap,
+                KeyType::List,
+                false,
+                "Code references",
+            ),
+            (
+                "resources",
+                KeyPlacement::NestedEngineMap,
+                KeyType::List,
+                false,
+                "Resource file references",
+            ),
+            (
+                "context",
+                KeyPlacement::NestedEngineMap,
+                KeyType::Map,
+                false,
+                "AI reading scope configuration",
+            ),
         ];
 
         for (name, placement, key_type, required, desc) in ods_keys {
@@ -92,11 +151,41 @@ impl SpecSchemaRegistry {
         }
 
         let root_keys = [
-            ("custom-profiles", KeyPlacement::RootIndexOnly, KeyType::List, false, "Workspace custom profile schema definitions"),
-            ("profiles", KeyPlacement::RootIndexOnly, KeyType::List, false, "Legacy profile catalog roots"),
-            ("packs", KeyPlacement::RootIndexOnly, KeyType::List, false, "Imported ODS packs"),
-            ("ignore", KeyPlacement::RootIndexOnly, KeyType::List, false, "Ignore path prefixes"),
-            ("aliases", KeyPlacement::RootIndexOnly, KeyType::Map, false, "Vocabulary section aliases"),
+            (
+                "custom-profiles",
+                KeyPlacement::RootIndexOnly,
+                KeyType::List,
+                false,
+                "Workspace custom profile schema definitions",
+            ),
+            (
+                "profiles",
+                KeyPlacement::RootIndexOnly,
+                KeyType::List,
+                false,
+                "Legacy profile catalog roots",
+            ),
+            (
+                "packs",
+                KeyPlacement::RootIndexOnly,
+                KeyType::List,
+                false,
+                "Imported ODS packs",
+            ),
+            (
+                "ignore",
+                KeyPlacement::RootIndexOnly,
+                KeyType::List,
+                false,
+                "Ignore path prefixes",
+            ),
+            (
+                "aliases",
+                KeyPlacement::RootIndexOnly,
+                KeyType::Map,
+                false,
+                "Vocabulary section aliases",
+            ),
         ];
 
         for (name, placement, key_type, required, desc) in root_keys {
@@ -116,11 +205,45 @@ impl SpecSchemaRegistry {
         let mut schema = SpecSchema::new(SpecKind::Okf, "0.2");
 
         let okf_keys = [
-            ("okf_version", KeyPlacement::TopLevel, KeyType::String, true, "Google OKF bundle version"),
-            ("concept_id", KeyPlacement::TopLevel, KeyType::String, false, "OKF concept identifier"),
-            ("trust_tier", KeyPlacement::TopLevel, KeyType::Enum(vec!["verified".into(), "provisional".into(), "untrusted".into()]), false, "Trust level"),
-            ("attested", KeyPlacement::TopLevel, KeyType::Map, false, "Attested computation block"),
-            ("date_range", KeyPlacement::TopLevel, KeyType::Map, false, "Temporal applicability range"),
+            (
+                "okf_version",
+                KeyPlacement::TopLevel,
+                KeyType::String,
+                true,
+                "Google OKF bundle version",
+            ),
+            (
+                "concept_id",
+                KeyPlacement::TopLevel,
+                KeyType::String,
+                false,
+                "OKF concept identifier",
+            ),
+            (
+                "trust_tier",
+                KeyPlacement::TopLevel,
+                KeyType::Enum(vec![
+                    "verified".into(),
+                    "provisional".into(),
+                    "untrusted".into(),
+                ]),
+                false,
+                "Trust level",
+            ),
+            (
+                "attested",
+                KeyPlacement::TopLevel,
+                KeyType::Map,
+                false,
+                "Attested computation block",
+            ),
+            (
+                "date_range",
+                KeyPlacement::TopLevel,
+                KeyType::Map,
+                false,
+                "Temporal applicability range",
+            ),
         ];
 
         for (name, placement, key_type, required, desc) in okf_keys {
@@ -175,9 +298,12 @@ mod tests {
     #[test]
     fn test_custom_profile_registration() {
         let mut registry = SpecSchemaRegistry::with_defaults();
-        registry.register_custom_profile("api_endpoint", &["endpoint_url".into(), "service".into()]);
+        registry
+            .register_custom_profile("api_endpoint", &["endpoint_url".into(), "service".into()]);
 
-        let custom = registry.get("api_endpoint").expect("custom schema registered");
+        let custom = registry
+            .get("api_endpoint")
+            .expect("custom schema registered");
         assert!(custom.keys.contains_key("endpoint_url"));
         assert!(custom.keys.contains_key("service"));
     }

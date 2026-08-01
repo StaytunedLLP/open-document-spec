@@ -2,8 +2,9 @@
 profile: index
 ods: 0.1
 odc: ">=0.0.1"
-profiles:
-  - ods-profiles
+custom-profiles:
+  - ods-profiles/marketing.md
+  - ods-profiles/product.md
 packs:
   - ../packs/engineering-pack
 ---
