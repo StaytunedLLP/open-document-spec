@@ -734,6 +734,9 @@ jobs:
           fi
 
           [ -s SHA256SUMS ] || { echo "error: SHA256SUMS missing or empty" >&2; exit 1; }
+          # Strip CR so Windows-produced SUMS lines match downloaded filenames.
+          tr -d '\r' < SHA256SUMS > SHA256SUMS.lf
+          mv SHA256SUMS.lf SHA256SUMS
           mapfile -t sums_files < <(awk 'NF >= 2 { print $2 }' SHA256SUMS | sed 's|^\./||')
           if [ "${#sums_files[@]}" -eq 0 ]; then
             echo "error: SHA256SUMS has no file entries" >&2
