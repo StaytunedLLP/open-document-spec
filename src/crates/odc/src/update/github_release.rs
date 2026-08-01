@@ -98,7 +98,7 @@ fn maybe_auto_update_inner(force_check: bool) {
             eprintln!("ods: updated {from} → {to}");
             if force_check {
                 eprintln!(
-                    "ods: restart `ods watch` / `ods start` to use the new binary in long-running processes"
+                    "odc: restart `odc watch` / `odc start` to use the new binary in long-running processes"
                 );
             }
         }

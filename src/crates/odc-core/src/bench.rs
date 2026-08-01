@@ -92,4 +92,4 @@ include!("bench/engine.rs");
 include!("bench/stats.rs");
 
 #[cfg(test)]
-include!("bench_tests.rs");
+include!("bench/tests.rs");

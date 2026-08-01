@@ -35,9 +35,20 @@ pub fn profile_catalog_roots(root: &Path, root_index: Option<&Document>) -> Vec<
         }
     }
 
-    let default_root = root.join("ods-profiles");
-    if default_root.exists() {
-        roots.push(default_root);
+    // Convention paths (workspace-local).
+    for rel in ["ods-profiles", ".odc/profiles"] {
+        let p = root.join(rel);
+        if p.exists() {
+            roots.push(p);
+        }
+    }
+
+    // Machine-global custom profiles (optional).
+    if let Ok(home) = std::env::var("HOME").or_else(|_| std::env::var("USERPROFILE")) {
+        let global = PathBuf::from(home).join(".odc").join("profiles");
+        if global.exists() {
+            roots.push(global);
+        }
     }
 
     roots.sort();

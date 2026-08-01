@@ -25,15 +25,36 @@ cargo install --path src/crates/odc --bin odc --bin ods --locked --force
 
 | Path | Role |
 | --- | --- |
-| `specs/` | Normative specification |
-| `docs/guide/` | End-user guide |
-| `docs/FEATURE_MATRIX.md` | Keys × auto-update matrix |
-| `docs/maintainer/functional-style.md` | Prefer free functions / pipelines over OOP managers |
+| `specs/` | Normative specification (ODS keys stay `ods:`) |
+| `docs/guide/` | End-user guide (keep in sync with `app-web/src/content/docs/`) |
+| `docs/plan/` | Cutover / architecture plans (`odc_tool_keys_legacy_cleanup.md` is product SoT) |
+| `docs/specs/` | Author key maps (ODS vs OKF) |
+| `docs/maintainer/` | Coverage, functional style |
 | `CHANGELOG.md` | Optional manual release history |
-| `src/crates/odc-core` | Shared library (`pipeline/` discover/parse/apply) |
-| `src/crates/odc` | `odc` (legacy `ods`) CLI (only shipped binary) |
+| `skills/ods`, `skills/okf` | AI assistant skills |
+| `src/crates/odc-core` | Shared library (ODS + native OKF engines) |
+| `src/crates/odc` | Primary binary `odc` + legacy argv0 `ods` |
+| `src/scripts/` | install, check-local, coverage, smoke-odc |
+| `src/action/` | GitHub composite action |
+
+### CLI crate layout (`src/crates/odc/src/`)
+
+| Path | Role |
+| --- | --- |
+| `main.rs` / `ods_main.rs` | Thin bin entrypoints (`include!` of main/*) |
+| `main/cli/` | Entry, dispatch, argv parser, exit codes |
+| `main/commands/` | User-facing commands (`okf/`, `pack/`, `workspaces/`, …) |
+| `main/support/` | Formatters, loaders, git helpers |
+| `service/`, `update/` | OS service + self-update implementation |
+| `tests/*.test.rs` | Integration tests (declared in `Cargo.toml`) |
+
+### Core crate layout (`src/crates/odc-core/src/`)
+
+Domain folders (`lint/`, `mv/`, `parse/`, `okf/`, `bench/`, `share/`, …). Prefer unit tests inside the domain folder; cross-module integration tests under `tests/`.
 
 New engine code should follow [functional style](docs/maintainer/functional-style.md): data + free functions, no `*Manager` types.
+
+**Product naming:** teach **`odc`** as the tool; bare commands auto-detect ODS/OKF; nested document key **`ods:`** is intentional and must not be renamed.
 
 Coverage: see [docs/maintainer/coverage.md](docs/maintainer/coverage.md). Run `./src/scripts/coverage.sh`. CI enforces a line floor (currently 75%).
 
@@ -76,7 +97,7 @@ Jobs: **fmt → clippy → test → release build → ods index/lint/export smok
 2. Prefer [Conventional Commits](https://www.conventionalcommits.org/) so release notes group well:
    - `feat(ods): …`, `fix(watch): …`, `docs: …`, `ci: …`, `chore: …`
    - Breaking: `feat!: …` or body containing `BREAKING CHANGE`
-3. Update `docs/FEATURE_MATRIX.md` / guide if you add a user-visible feature.
+3. Update `docs/guide/` (and `app-web/src/content/docs/`) if you add a user-visible feature.
 4. Do not commit `.artifacts/` or `target/`.
 5. Ensure CI is green on the self-hosted runner.
 6. **Reuse the same PR branch** — keep pushing commits to the existing head branch; do not open a new branch/PR for follow-up fixes on the same change set.

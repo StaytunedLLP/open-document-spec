@@ -19,7 +19,12 @@ fn dispatch_auto_detect(args: &[String]) -> Result<ExitCode, CliError> {
         return dispatch_ods_command(args);
     }
 
-    let okf_only = matches!(cmd, "lint" | "index" | "doctor" | "audit" | "adopt" | "fmt" | "export" | "context" | "watch" | "serve");
+    // Commands implemented on both engines (OKF namespace has a handler).
+    let dual_engine = matches!(
+        cmd,
+        "lint" | "index" | "doctor" | "audit" | "adopt" | "fmt" | "export" | "context" | "watch"
+            | "serve"
+    );
     let ods_only_extra = matches!(
         cmd,
         "profiles" | "tags" | "find" | "tag" | "graph" | "mv" | "new" | "rm" | "remove"
@@ -27,18 +32,36 @@ fn dispatch_auto_detect(args: &[String]) -> Result<ExitCode, CliError> {
             | "sandbox" | "logs" | "coverage"
     );
 
-    if has_ods && has_okf && okf_only && matches!(cmd, "lint" | "doctor" | "audit") {
-        let ods_code = dispatch_ods_command(args)?;
-        let mut okf_args = vec![args[0].clone(), "okf".into()];
-        okf_args.extend(args.iter().skip(1).cloned());
-        let okf_code = dispatch_okf_command(&okf_args)?;
-        if ods_code != ExitCode::SUCCESS {
-            return Ok(ods_code);
+    // Hybrid R1: dual-run only lint/doctor/audit; other dual-engine bare cmds need namespace.
+    if has_ods && has_okf {
+        if matches!(cmd, "lint" | "doctor" | "audit") {
+            let ods_code = dispatch_ods_command(args)?;
+            let mut okf_args = vec![args[0].clone(), "okf".into()];
+            okf_args.extend(args.iter().skip(1).cloned());
+            let okf_code = dispatch_okf_command(&okf_args)?;
+            if ods_code != ExitCode::SUCCESS {
+                return Ok(ods_code);
+            }
+            return Ok(okf_code);
         }
-        return Ok(okf_code);
+        if dual_engine {
+            return Err(failure(format!(
+                "hybrid workspace (ODS + OKF markers) at {}\n\n\
+                 Bare `odc {cmd}` is ambiguous here. Use explicit:\n\
+                 • `odc ods {cmd}` — ODS engine\n\
+                 • `odc okf {cmd}` — OKF engine\n\n\
+                 Note: bare dual-run applies only to lint / doctor / audit.",
+                root.display(),
+                cmd = cmd
+            )));
+        }
+        // ODS-only commands still run against the ODS side of a hybrid tree.
+        if ods_only_extra {
+            return dispatch_ods_command(args);
+        }
     }
 
-    if has_okf && !has_ods && okf_only {
+    if has_okf && !has_ods && dual_engine {
         let mut okf_args = vec![args[0].clone(), "okf".into()];
         okf_args.extend(args.iter().skip(1).cloned());
         return dispatch_okf_command(&okf_args);
@@ -48,13 +71,13 @@ fn dispatch_auto_detect(args: &[String]) -> Result<ExitCode, CliError> {
         return dispatch_ods_command(args);
     }
 
-    if has_okf && okf_only {
+    if has_okf && dual_engine {
         let mut okf_args = vec![args[0].clone(), "okf".into()];
         okf_args.extend(args.iter().skip(1).cloned());
         return dispatch_okf_command(&okf_args);
     }
 
-    if ods_only_extra || okf_only {
+    if ods_only_extra || dual_engine {
         return Err(failure(format!(
             "not an ODS or OKF workspace: {}\n\n\
              • ODS: root index.md with `ods:` (+ `odc:` CLI pin) — run `odc init`\n\
@@ -123,7 +146,8 @@ fn dispatch_ods_command(args: &[String]) -> Result<ExitCode, CliError> {
         "disable" | "revert" => run_disable_command(args),
         "doctor" => run_doctor_command(args),
         "sync" => run_sync_command(args),
-        "logs" | "watch" => run_logs_command(args),
+        "watch" => run_watch_command(args),
+        "logs" => run_logs_command(args),
         "serve" => run_serve_command(args),
         "export" => run_export_command(args),
         "start" => run_start_command(args),

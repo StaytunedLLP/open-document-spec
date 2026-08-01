@@ -33,7 +33,7 @@ fn run_index_command(args: &[String]) -> Result<ExitCode, CliError> {
                 if current {
                     println!("indexes up to date");
                 } else {
-                    eprintln!("indexes out of date; run `ods index`");
+                    eprintln!("indexes out of date; run `odc index`");
                 }
             }
             OutputFormat::Json => {
@@ -131,10 +131,17 @@ fn run_coverage_command(args: &[String]) -> Result<ExitCode, CliError> {
 
     if write_report {
         let report_content = format!(
-            "# Documentation Health & Coverage Report\n\n- Score: {:.1}% Compliant\n- Compliant Documents: {}\n- Non-Compliant Documents: {}\n- Total Documents: {}\n",
+            "# Documentation Health & Coverage Report\n\n- Score: {:.1}% Compliant\n- Compliant Documents: {}\n- Non-Compliant Documents: {}\n- Total Documents: {}\n\nNote: this is separate from lint/audit diagnostics (`.odc/odc-errors.md`).\n",
             pct, compliant, non_compliant, total
         );
-        let _ = std::fs::write(root.join("odc-report.md"), report_content);
+        let odc_dir = root.join(".odc");
+        let _ = std::fs::create_dir_all(&odc_dir);
+        let report_path = odc_dir.join("coverage.md");
+        std::fs::write(&report_path, report_content)
+            .map_err(|e| failure(format!("write {}: {e}", report_path.display())))?;
+        if matches!(format, OutputFormat::Text) {
+            println!("wrote {}", report_path.display());
+        }
     }
 
     Ok(ExitCode::from(0))

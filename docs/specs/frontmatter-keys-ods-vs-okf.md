@@ -45,7 +45,15 @@ odc init --okf   # OKF bundle (okf_version: "0.2")
 | Progressive disclosure via **ODS indexes** + profiles | Progressive disclosure via OKF **index.md** / **log.md** conventions |
 | Workspace root is an engineering repo | Bundle is a knowledge pack (often agent-maintained) |
 
-**Hybrid repos** may carry both root markers. Bare `odc lint` / `doctor` / `audit` may run **both** engines; use `odc ods` or `odc okf` when you mean one.
+**Hybrid repos** may carry both root markers.
+
+| Bare command on hybrid | Behavior |
+|---|---|
+| `lint` / `doctor` / `audit` | Run **both** engines (ODS then OKF) |
+| `index` / `fmt` / `export` / `context` / `watch` / `serve` / `adopt` | **Error** — use `odc ods …` or `odc okf …` (Hybrid R1) |
+| ODS-only cmds (`mv`, `tags`, …) | ODS engine |
+
+Use `odc ods` or `odc okf` whenever you mean one engine only.
 
 ---
 

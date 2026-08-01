@@ -176,7 +176,7 @@ main() {
         warn "no ODS workspace at '.'; run 'odc ods init .' then 'bootstrap.sh ensure .'"
       fi
       cmd_update
-      log "ODS is installed and running now in your machine!"
+      log "OpenDocify (odc) is installed and running on your machine!"
       log "Version: $(odc --version)"
       ;;
     -h|--help|help)

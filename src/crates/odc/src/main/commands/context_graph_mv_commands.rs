@@ -67,7 +67,7 @@ fn run_mv_command(args: &[String]) -> Result<ExitCode, CliError> {
     } else if positionals.len() == 2 {
         (positionals[0].clone(), positionals[1].clone())
     } else {
-        return Err(usage("usage: ods mv [root] <from> <to>"));
+        return Err(usage("usage: odc mv [root] <from> <to>"));
     };
     let report = move_document_and_rewrite_refs_report(&root, &from, &to)
         .map_err(|err| failure(err.to_string()))?;

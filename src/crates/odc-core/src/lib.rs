@@ -58,12 +58,11 @@ pub use lint::{
     workspace_alias_suggestions, workspace_aliases,
 };
 pub use model::{
-    CodeRef, CodeRole, ComplianceMode, Diagnostic, Document, Frontmatter, FrontmatterState, LintLevel, LoadOptions,
-    ProfileCatalog, ProfileConflict, ProfileDefinition, ResourceRef, Severity, Workspace,
-    current_odc_requirement, current_ods_spec_version, current_ods_version,
+    CodeRef, CodeRole, ComplianceMode, Diagnostic, Document, Frontmatter, FrontmatterState,
+    LintLevel, LoadOptions, ProfileCatalog, ProfileConflict, ProfileDefinition, ResourceRef,
+    Severity, Workspace, current_odc_requirement, current_ods_spec_version, current_ods_version,
     odc_requirement_satisfied,
 };
-pub use spec::{ExtractedKeys, KeySchema, KeyType, SpecDescriptor, SpecKeyProcessor, SpecKind};
 pub use mv::{
     PathChange, PathChangeReport, apply_path_changes, canonicalize_workspace_document_refs,
     canonicalize_workspace_document_refs_with_workspace, classify_watch_events,
@@ -84,6 +83,7 @@ pub use refs::{
     document_ref_to_path, is_file_like_ref, is_markdown_ref,
 };
 pub use share::{ShareLevel, ShareOptions, SharePublishReport, effective_share, publish_workspace};
+pub use spec::{ExtractedKeys, KeySchema, KeyType, SpecDescriptor, SpecKeyProcessor, SpecKind};
 pub use tags::{
     TagRenameReport, builtin_tags, completion_tags, docs_with_any_tag, docs_with_tag,
     is_builtin_tag, normalize_tag, normalize_tag_list, observed_tags, rename_tag_in_workspace,

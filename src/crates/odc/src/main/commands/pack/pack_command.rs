@@ -67,7 +67,7 @@ fn run_pack_list(args: &[String]) -> Result<ExitCode, CliError> {
 fn run_pack_add(args: &[String]) -> Result<ExitCode, CliError> {
     let source = args
         .get(3)
-        .ok_or_else(|| usage("ods pack add requires a pack source (Git URL or local path)"))?;
+        .ok_or_else(|| usage("odc pack add requires a pack source (Git URL or local path)"))?;
 
     let auto_update = args
         .windows(2)
@@ -80,7 +80,7 @@ fn run_pack_add(args: &[String]) -> Result<ExitCode, CliError> {
 
     if !root_index_path.exists() {
         return Err(failure(
-            "root index.md not found. Run 'ods init' to make this workspace ODS-compliant first.",
+            "root index.md not found. Run 'odc init' to make this workspace ODS-compliant first.",
         ));
     }
 
@@ -125,7 +125,7 @@ fn run_pack_add(args: &[String]) -> Result<ExitCode, CliError> {
         pack_entry = format!("vendor/{pack_name}");
     }
 
-    // Record pack entry in global config (~/.ods/odsconfig.toml)
+    // Record pack entry in global config (~/.odc/odcconfig.toml; legacy ~/.ods still read)
     let workspace_str = root.to_string_lossy().into_owned();
     let entry = PackEntry {
         workspace: workspace_str,

@@ -43,8 +43,8 @@ Different specs → different required keys, root markers, and lint rules.
 | ODS Markdown keys | Stay **`ods:` / `odc:`** only — never `odc-cli:` |
 | Root ODS indexes (≈3 repos) | **Manual** edit |
 | Dual-compat API | **Out** |
-| Spec namespaces | **Mandatory** `odc ods` / `odc okf` / `odc agents` |
-| Bare doc commands | **Usage error** |
+| Spec namespaces | **(historical row — superseded)** optional force `odc ods` / `odc okf` |
+| Bare doc commands | **(historical — superseded)** auto-detect |
 | Platform | `odc update`, `upgrade`, `setup`, `version`, `workspaces`, `skill` |
 | OKF | **Native** in `odc-core` + **`odc okf *` CLI** |
 | OKF keys | **All v0.2** frontmatter + bundle conventions |
@@ -166,7 +166,7 @@ Bare `odc audit` → usage error.
 | CLI crate | Dispatcher: `odc ods` / `odc okf` / platform |
 | Unit tests | OKF key families; bare `verified`; unknown key preserve |
 | Integration / production matrix | Binary `odc`; namespace required |
-| CLI tests | `odc lint` → exit 2; namespaced paths green |
+| CLI tests | **(superseded)** bare `odc lint` auto-detects; namespaced paths green |
 | Fixtures | ODS fixtures + OKF mini-bundle + hybrid root |
 | `ods-test/**` smoke | `odc ods …` |
 | Post-rename | All imports / binary names |
@@ -199,7 +199,7 @@ See §6 and [frontmatter-keys-ods-vs-okf.md](../specs/frontmatter-keys-ods-vs-ok
 ### 5.5 Touchpoint acceptance
 
 - [ ] Tests green under `odc` + namespaces  
-- [ ] No docs teaching bare `odc lint` as primary  
+- [x] Bare `odc lint` is primary (auto-detect); namespaces for CI/hybrid  
 - [ ] CI/action uses namespaced commands  
 - [ ] Key comparison doc published  
 - [ ] ODS SPEC CLI strings use `odc ods`  
@@ -261,7 +261,7 @@ Maintainer script: manifest renames; never rewrite user `ods:` keys.
 | Scenario | Expected |
 |---|---|
 | `odc ods lint` on ODS fixture | Green / parity with old `ods lint` |
-| `odc lint` | Usage error exit 2 |
+| `odc lint` | **(superseded)** auto-detect ODS/OKF/hybrid |
 | `odc ods init` | Root has `ods:` + `odc:` only |
 | `odc okf init` | Root has `okf_version: "0.2"` |
 | OKF full-key fixture | `odc okf lint` green |

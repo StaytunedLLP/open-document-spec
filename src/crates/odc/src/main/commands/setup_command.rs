@@ -50,9 +50,10 @@ Commands (auto-detect or via `odc ods` / `odc okf`):
   fmt --migrate            Also migrate legacy/out-of-order ods: keys into canonical nested block
   doctor [path]            Report workspace health and version skew
   audit [path]             Inventory plain/invalid/partial Markdown
-  audit --write-report     Write .odc/odc-errors.md
+  audit --write-report     Write .odc/odc-errors.md (shared with lint diagnostics)
+  coverage [path]          Documentation health % (--write-report → .odc/coverage.md)
   sync [path]              Reconcile git-tracked renames and rewrite refs
-  logs [path] [-f]         Currently an alias for `watch` (foreground re-lint loop, not a log tail)
+  logs [-f]                Show background service logs (~/.odc/logs/odc-serve.log); -f follows
   watch [path]             Foreground live rename map + re-lint
   serve --root <path>      Headless watch loop (used by OS service)
   serve --mode poll        Low-memory polling loop (auto|watch|poll)
@@ -84,7 +85,7 @@ Flags:
   --refs md-paths          With fmt: rewrite Document refs to .md paths
   --migrate                With fmt: migrate flat/legacy ods-engine keys into canonical nested ods: block
   --migrate-fm             With upgrade: same as fmt --migrate when --write
-  --write-report           With audit: write report file
+  --write-report           With audit/coverage: write report file
   --fail-on plain|invalid|any  With audit: CI gate
   --force                  With update: reinstall even if current
   --version <tag>          With update: install exact release tag (e.g. v0.1.5)
@@ -145,11 +146,11 @@ fn run_setup_command(args: &[String]) -> Result<ExitCode, CliError> {
             version: None,
         }) {
             Ok(UpdateOutcome::UpToDate { current, remote }) => {
-                println!("setup: ods {current} is up to date (latest {remote})");
+                println!("setup: odc {current} is up to date (latest {remote})");
             }
             Ok(UpdateOutcome::Available { current, remote }) => {
                 println!("setup: update available: {current} -> {remote}");
-                println!("run: ods update");
+                println!("run: odc update");
                 return Ok(ExitCode::from(1));
             }
             Ok(UpdateOutcome::Updated { .. }) => {}

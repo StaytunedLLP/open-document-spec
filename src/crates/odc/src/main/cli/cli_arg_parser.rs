@@ -219,6 +219,7 @@ fn parse_common_flags(
             }
             "--check"
             | "--write"
+            | "--write-report"
             | "--all"
             | "--adopt"
             | "--status"

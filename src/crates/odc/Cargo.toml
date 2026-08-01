@@ -103,3 +103,11 @@ path = "tests/cli_upgrade_and_workspaces.test.rs"
 [[test]]
 name = "cli_workspaces_command_test"
 path = "tests/cli_workspaces_command.test.rs"
+
+[[test]]
+name = "pack_test"
+path = "tests/pack.test.rs"
+
+[[test]]
+name = "skill_command_test"
+path = "tests/skill_command.test.rs"

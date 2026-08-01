@@ -71,10 +71,14 @@ fn migrate_machine_and_workspace_on_update() {
                 if src.exists() {
                     let dst_name = if name == "odsconfig.toml" { "odcconfig.toml" } else { name };
                     let dst = modern.join(dst_name);
-                    if !dst.exists() {
-                        if std::fs::copy(&src, &dst).is_ok() {
-                            println!("odc: migrated machine config {} -> {}", src.display(), dst.display());
-                        }
+                    if !dst.exists()
+                        && std::fs::copy(&src, &dst).is_ok()
+                    {
+                        println!(
+                            "odc: migrated machine config {} -> {}",
+                            src.display(),
+                            dst.display()
+                        );
                     }
                 }
             }

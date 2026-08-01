@@ -728,10 +728,10 @@ import { REPO_URL } from "../lib/releases";
           </svg>
         </div>
         <h3>1. Prepare Your Folder</h3>
-        <p>Run <code>ods init .</code> in your folder. ODS creates a main map file (<code>index.md</code>) so AI knows where to find your files!</p>
+        <p>Run <code>odc init .</code> in your folder. ODS creates a main map file (<code>index.md</code>) so AI knows where to find your files!</p>
         <div class="step-code-box">
           <code class="step-code-line"><span class="code-prompt">$</span> <span class="code-cmd">ods</span> <span class="code-args">init .</span></code>
-          <button class="step-copy-btn" data-code="ods init ." title="Copy Command">
+          <button class="step-copy-btn" data-code="odc init ." title="Copy Command">
             <svg class="copy-icon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>
             <svg class="check-icon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:none;"><polyline points="20 6 9 17 4 12"/></svg>
             <span class="copy-text">Copy</span>
@@ -756,7 +756,7 @@ import { REPO_URL } from "../lib/releases";
         <p>Ask AI to read a file. ODS picks only the exact right pages in under 5 milliseconds, saving 94% on AI reading costs!</p>
         <div class="step-code-box">
           <code class="step-code-line"><span class="code-prompt">$</span> <span class="code-cmd">ods</span> <span class="code-args">context doc.md</span></code>
-          <button class="step-copy-btn" data-code="ods context doc.md" title="Copy Command">
+          <button class="step-copy-btn" data-code="odc context doc.md" title="Copy Command">
             <svg class="copy-icon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>
             <svg class="check-icon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:none;"><polyline points="20 6 9 17 4 12"/></svg>
             <span class="copy-text">Copy</span>
@@ -779,7 +779,7 @@ import { REPO_URL } from "../lib/releases";
         <p>Keep ODS running in the background. If you move or rename any file, ODS automatically repairs all your document links!</p>
         <div class="step-code-box">
           <code class="step-code-line"><span class="code-prompt">$</span> <span class="code-cmd">ods</span> <span class="code-args">serve</span></code>
-          <button class="step-copy-btn" data-code="ods serve" title="Copy Command">
+          <button class="step-copy-btn" data-code="odc serve" title="Copy Command">
             <svg class="copy-icon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>
             <svg class="check-icon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:none;"><polyline points="20 6 9 17 4 12"/></svg>
             <span class="copy-text">Copy</span>
@@ -4262,7 +4262,7 @@ import { REPO_URL } from "../lib/releases";
       cargo: {
         mode: "Direct CLI Binary",
         data: {
-          install: '<span class="t-cmd-line"><span class="t-prompt">$</span> <span class="t-cmd">cargo</span> <span class="t-sub">install</span> <span class="t-arg">ods-cli</span></span>\n<span class="t-comment"># Or via 1-line shell script:</span>\n<span class="t-cmd-line"><span class="t-prompt">$</span> <span class="t-cmd">curl</span> <span class="t-flag">-fsSL</span> <span class="t-arg">https://opendocify.com/install.sh</span> | <span class="t-cmd">bash</span></span>\n<span class="t-success">✓ Installed ods v0.1.0 to /usr/local/bin/ods</span>',
+          install: '<span class="t-cmd-line"><span class="t-prompt">$</span> <span class="t-cmd">cargo</span> <span class="t-sub">install</span> <span class="t-arg">odc</span></span>\n<span class="t-comment"># Or via 1-line shell script:</span>\n<span class="t-cmd-line"><span class="t-prompt">$</span> <span class="t-cmd">curl</span> <span class="t-flag">-fsSL</span> <span class="t-arg">https://opendocify.com/install.sh</span> | <span class="t-cmd">bash</span></span>\n<span class="t-success">✓ Installed odc v0.1.0 to /usr/local/bin/odc</span>',
           query: '<span class="t-cmd-line"><span class="t-prompt">$</span> <span class="t-cmd">ods</span> <span class="t-sub">context</span> <span class="t-arg">docs/guide/01-introduction.md</span> <span class="t-flag">--format</span> <span class="t-arg">json</span></span>\n<span class="t-json">{</span>\n<span class="t-json">&nbsp;&nbsp;<span class="t-arg">"root"</span>: <span class="t-sub">"docs/guide/01-introduction.md"</span>,</span>\n<span class="t-json">&nbsp;&nbsp;<span class="t-arg">"cost_savings_pct"</span>: <span class="t-flag">94.97</span>,</span>\n<span class="t-json">&nbsp;&nbsp;<span class="t-arg">"nodes"</span>: [<span class="t-sub">"specs/SPEC.md"</span>, <span class="t-sub">"src/crates/ods-core/src/graph.rs"</span>]</span>\n<span class="t-json">}</span>',
           mcp: '<span class="t-cmd-line"><span class="t-prompt">$</span> <span class="t-cmd">ods</span> <span class="t-sub">serve</span> <span class="t-flag">--daemon</span></span>\n<span class="t-success">✓ Smart background link repair started (pid 84210)</span>\n<span class="t-success">✓ Automatically repairing links and checking for errors</span>'
         }

@@ -180,3 +180,131 @@ fn okf_cli_subcommands_exhaustive() {
         .unwrap();
     assert!(idx_check.status.success());
 }
+
+#[test]
+fn hybrid_bare_lint_runs_both_engines() {
+    let dir = tempdir().unwrap();
+    let path = dir.path().to_str().unwrap();
+    assert!(
+        Command::new(odc_bin())
+            .args(["ods", "init", path])
+            .status()
+            .unwrap()
+            .success()
+    );
+    // Add OKF root marker alongside ODS
+    let index = dir.path().join("index.md");
+    let mut text = std::fs::read_to_string(&index).unwrap();
+    if !text.contains("okf_version:") {
+        text = text.replacen("---\n", "---\nokf_version: \"0.2\"\n", 1);
+        std::fs::write(&index, text).unwrap();
+    }
+    let out = Command::new(odc_bin())
+        .args(["lint", path])
+        .output()
+        .unwrap();
+    // May warn but should not fail with hybrid-ambiguous error
+    let combined = format!(
+        "{}{}",
+        String::from_utf8_lossy(&out.stdout),
+        String::from_utf8_lossy(&out.stderr)
+    );
+    assert!(
+        !combined.contains("Bare `odc lint` is ambiguous"),
+        "{combined}"
+    );
+}
+
+#[test]
+fn hybrid_bare_index_requires_explicit_namespace() {
+    let dir = tempdir().unwrap();
+    let path = dir.path().to_str().unwrap();
+    assert!(
+        Command::new(odc_bin())
+            .args(["ods", "init", path])
+            .status()
+            .unwrap()
+            .success()
+    );
+    let index = dir.path().join("index.md");
+    let mut text = std::fs::read_to_string(&index).unwrap();
+    text = text.replacen("---\n", "---\nokf_version: \"0.2\"\n", 1);
+    std::fs::write(&index, text).unwrap();
+
+    let out = Command::new(odc_bin())
+        .args(["index", path])
+        .output()
+        .unwrap();
+    assert!(!out.status.success(), "{:?}", out);
+    let combined = format!(
+        "{}{}",
+        String::from_utf8_lossy(&out.stdout),
+        String::from_utf8_lossy(&out.stderr)
+    );
+    assert!(
+        combined.contains("hybrid") && combined.contains("odc ods") && combined.contains("odc okf"),
+        "{combined}"
+    );
+
+    // Explicit namespace still works
+    let out = Command::new(odc_bin())
+        .args(["ods", "index", path])
+        .output()
+        .unwrap();
+    assert!(out.status.success(), "{:?}", out);
+}
+
+#[test]
+fn coverage_write_report_goes_under_dot_odc() {
+    let dir = tempdir().unwrap();
+    let path = dir.path().to_str().unwrap();
+    assert!(
+        Command::new(odc_bin())
+            .args(["ods", "init", path])
+            .status()
+            .unwrap()
+            .success()
+    );
+    let out = Command::new(odc_bin())
+        .args(["coverage", path, "--write-report"])
+        .output()
+        .unwrap();
+    assert!(out.status.success(), "{:?}", out);
+    assert!(dir.path().join(".odc/coverage.md").exists());
+    assert!(!dir.path().join("odc-report.md").exists());
+}
+
+#[test]
+fn archive_updates_nested_ods_status() {
+    let dir = tempdir().unwrap();
+    let path = dir.path().to_str().unwrap();
+    assert!(
+        Command::new(odc_bin())
+            .args(["ods", "init", path])
+            .status()
+            .unwrap()
+            .success()
+    );
+    let doc = dir.path().join("note.md");
+    std::fs::write(
+        &doc,
+        "---\nods:\n  profile: note\n  status: draft\n---\n\n# Note\n",
+    )
+    .unwrap();
+    let out = Command::new(odc_bin())
+        .current_dir(dir.path())
+        .args(["archive", "note.md"])
+        .output()
+        .unwrap();
+    assert!(out.status.success(), "{:?}", out);
+    let body = std::fs::read_to_string(&doc).unwrap();
+    assert!(
+        body.contains("status: archived"),
+        "expected archived status: {body}"
+    );
+    // nested form preserved under ods:
+    assert!(
+        body.contains("ods:") && body.lines().any(|l| l.trim() == "status: archived"),
+        "{body}"
+    );
+}

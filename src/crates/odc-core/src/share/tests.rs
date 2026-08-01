@@ -227,5 +227,5 @@ mod tests {
         let _ = fs::remove_dir_all(&out);
     }
 
-    include!("share_pack_tests.rs");
+    include!("pack_tests.rs");
 }

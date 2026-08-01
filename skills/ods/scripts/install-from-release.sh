@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# OpenDocify (odc) installer — downloads prebuilt `odc` (+ `ods` symlink) binary from GitHub Releases.
+# OpenDocify (odc) installer — downloads prebuilt `odc` (+ optional `ods` alias) from GitHub Releases.
 #
 # Supported platforms (auto-detected):
 #   macOS  — Apple Silicon (arm64), Intel (x86_64)
@@ -51,8 +51,8 @@ installed_ods_version() {
     odc --version 2>/dev/null | awk '{print $2}' | head -1
   elif command -v ods >/dev/null 2>&1; then
     ods --version 2>/dev/null | awk '{print $2}' | head -1
-  elif [ -x "${ODS_PREFIX:-${ODC_PREFIX:-${HOME}/.local/bin}}/odc" ]; then
-    "${ODS_PREFIX:-${ODC_PREFIX:-${HOME}/.local/bin}}/odc" --version 2>/dev/null | awk '{print $2}' | head -1
+  elif [ -x "${ODC_PREFIX:-${ODS_PREFIX:-${HOME}/.local/bin}}/odc" ]; then
+    "${ODC_PREFIX:-${ODS_PREFIX:-${HOME}/.local/bin}}/odc" --version 2>/dev/null | awk '{print $2}' | head -1
   elif [ -x "${ODS_PREFIX:-${HOME}/.local/bin}/ods" ]; then
     "${ODS_PREFIX:-${HOME}/.local/bin}/ods" --version 2>/dev/null | awk '{print $2}' | head -1
   else
@@ -258,38 +258,30 @@ fi
 # ── Extract ───────────────────────────────────────────────────────────────────
 info "Extracting..."
 tar xzf "${TMPDIR_ODS}/${FILENAME}" -C "${TMPDIR_ODS}"
-EXTRACTED=""
+BIN_SRC=""
 for try in \
   "${TMPDIR_ODS}/odc-${VERSION}-${ASSET}" \
   "${TMPDIR_ODS}/ods-${VERSION}-${ASSET}"; do
-  if [ -f "${try}/odc" ] || [ -f "${try}/ods" ]; then
-    EXTRACTED="${try}"
-    break
-  fi
+  if [ -f "${try}/odc" ]; then BIN_SRC="${try}/odc"; break; fi
+  if [ -f "${try}/ods" ]; then BIN_SRC="${try}/ods"; break; fi
 done
-if [ -z "${EXTRACTED}" ]; then
-  FOUND_BIN=$(find "${TMPDIR_ODS}" -type f \( -name odc -o -name ods \) 2>/dev/null | head -1 || true)
-  if [ -n "${FOUND_BIN}" ]; then
-    EXTRACTED=$(dirname "${FOUND_BIN}")
-  fi
+if [ -z "${BIN_SRC}" ]; then
+  FOUND=$(find "${TMPDIR_ODS}" -type f \( -name odc -o -name ods \) 2>/dev/null | head -1 || true)
+  [ -n "${FOUND}" ] && BIN_SRC="${FOUND}"
 fi
-[ -n "${EXTRACTED:-}" ] || fatal "binary 'odc'/'ods' not found in archive"
+[ -n "${BIN_SRC}" ] && [ -f "${BIN_SRC}" ] || fatal "binary 'odc' or 'ods' not found in archive"
 
 # ── Install ───────────────────────────────────────────────────────────────────
-PREFIX="${ODC_PREFIX:-${ODS_PREFIX:-${HOME}/.local/bin}}"
+PREFIX="${ODS_PREFIX:-${ODC_PREFIX:-${HOME}/.local/bin}}"
 mkdir -p "${PREFIX}"
-SRC=""
-if [ -f "${EXTRACTED}/odc" ]; then SRC="${EXTRACTED}/odc"
-elif [ -f "${EXTRACTED}/ods" ]; then SRC="${EXTRACTED}/ods"
-fi
-[ -n "$SRC" ] || fatal "odc/ods binary missing in archive"
-install -m 755 "${SRC}" "${PREFIX}/odc"
-ln -sfn "${PREFIX}/odc" "${PREFIX}/ods" 2>/dev/null || install -m 755 "${SRC}" "${PREFIX}/ods"
+# Primary OpenDocify CLI + legacy argv0 for bare ODS commands
+install -m 755 "${BIN_SRC}" "${PREFIX}/odc"
+ln -sfn "${PREFIX}/odc" "${PREFIX}/ods"
 
 echo ""
 info "Installed successfully:"
 echo "    ${PREFIX}/odc  (primary)"
-echo "    ${PREFIX}/ods  (symlink → odc)"
+echo "    ${PREFIX}/ods  (symlink → odc; bare ODS commands)"
 
 # ── PATH hint ─────────────────────────────────────────────────────────────────
 case ":${PATH}:" in
@@ -308,17 +300,18 @@ esac
 # ── Next steps ────────────────────────────────────────────────────────────────
 echo ""
 echo "  Verify installation:"
-echo "    ${PREFIX}/ods --version"
+echo "    ${PREFIX}/odc --version"
 echo ""
 echo "  Get started:"
-echo "    ods init .              # make project ODS-compliant (creates root index.md)"
-echo "    ods setup               # set up machine background service & check workspace health"
-echo "    ods lint"
-echo "    ods export              # optional graph.md for AI"
+echo "    odc ods init .          # ODS workspace (or: ods init .)"
+echo "    odc okf init .          # OKF v0.2 knowledge bundle"
+echo "    odc setup               # machine service & health"
+echo "    odc ods lint"
+echo "    odc ods export"
 echo ""
-echo "  Keep tools current (auto-check ~daily; opt-out: ODS_AUTO_UPDATE=0):"
+echo "  Keep tools current (opt-out: ODC_AUTO_UPDATE=0 or ODS_AUTO_UPDATE=0):"
 echo "    export GH_TOKEN=\"\$(gh auth token)\"   # needed for private releases"
-echo "    ods update              # update binary & restart background service"
+echo "    odc update              # update binary & restart background service"
 echo ""
 echo "  Guide: https://github.com/${REPO}/blob/main/README.md"
 echo "  Changelog: https://github.com/${REPO}/blob/main/CHANGELOG.md"
