@@ -6,7 +6,8 @@ name: release
 # Manual git tags do NOT trigger this workflow.
 #
 # End users install from release archives (manual first install, then odc update).
-# Ships OpenDocify `odc` multi-OS archives (+ optional legacy `ods` Windows zip aliases).
+# Ships one archive per OS/arch: odc-<tag>-<os-arch>.{tar.gz|zip}
+# Each archive contains both `odc` and `ods` binaries (argv0 alias), not separate assets.
 
 on:
   workflow_run:
@@ -227,7 +228,7 @@ jobs:
           echo "release_sha=${HEAD_SHA}" >> "$GITHUB_OUTPUT"
           echo "Will release ${TAG} at ${HEAD_SHA}"
 
-  # Multi-OS build matrix — `ods` only
+  # Multi-OS build matrix — one `odc` archive per OS/arch
   build:
     name: Build ${{ matrix.target }}
     needs: [prepare]
@@ -523,9 +524,9 @@ jobs:
           $Version = "${{ steps.version.outputs.tag }}"
           $Asset   = "${{ matrix.asset }}"
           $Out     = "odc-$Version-$Asset"
-          $Legacy  = "ods-$Version-$Asset"
           New-Item -ItemType Directory -Force -Path "dist\$Out" | Out-Null
 
+          # One zip per OS/arch. Include both binaries inside the same archive (ods = argv0 alias).
           Copy-Item "${{ steps.bins.outputs.odc }}" "dist\$Out\odc.exe"
           try { Copy-Item "${{ steps.bins.outputs.ods }}" "dist\$Out\ods.exe" } catch { Copy-Item "${{ steps.bins.outputs.odc }}" "dist\$Out\ods.exe" }
 
@@ -535,12 +536,12 @@ jobs:
 
           First install (private repo -- use gh or a logged-in browser):
             gh release download $Version -R StaytunedLLP/open-document-spec -p $Out.zip -p SHA256SUMS
-            Expand the zip; copy odc.exe (and ods.exe) to a folder on PATH
+            Expand the zip; copy odc.exe (and optional ods.exe alias) to a folder on PATH
             Set user env GH_TOKEN for odc update / auto-update
 
           After first install:
             odc update
-            odc ods init .
+            odc init .
             odc okf init .   # optional OKF bundle
 
           Guide: README.md · Changelog: CHANGELOG.md
@@ -549,36 +550,25 @@ jobs:
 
           Compress-Archive -Path "dist\$Out" -DestinationPath "dist\$Out.zip" -Force
 
-          Copy-Item -Recurse "dist\$Out" "dist\$Legacy"
-          Compress-Archive -Path "dist\$Legacy" -DestinationPath "dist\$Legacy.zip" -Force
-
           $HashOut = (Get-FileHash "dist\$Out.zip" -Algorithm SHA256).Hash.ToLowerInvariant()
-          $HashLegacy = (Get-FileHash "dist\$Legacy.zip" -Algorithm SHA256).Hash.ToLowerInvariant()
           # Unix LF only — CRLF breaks sha256sum -c filename matching on Linux verify runners.
-          $sumsPath = "dist\SHA256SUMS.$Asset"
-          $lineOut = "$HashOut  $Out.zip"
-          $lineLegacy = "$HashLegacy  $Legacy.zip"
-          if (Test-Path $sumsPath) {
-            $existing = [System.IO.File]::ReadAllText($sumsPath).TrimEnd("`r", "`n")
-            $text = if ([string]::IsNullOrEmpty($existing)) { "$lineOut`n$lineLegacy`n" } else { "$existing`n$lineOut`n$lineLegacy`n" }
-          } else {
-            $text = "$lineOut`n$lineLegacy`n"
-          }
-          [System.IO.File]::WriteAllText((Resolve-Path .).Path + "\$sumsPath", $text.Replace("`r`n", "`n").Replace("`r", "`n"))
+          $sumsPath = Join-Path (Get-Location) "dist\SHA256SUMS.$Asset"
+          $lineOut = "$HashOut  $Out.zip`n"
+          [System.IO.File]::WriteAllText($sumsPath, $lineOut.Replace("`r`n", "`n").Replace("`r", "`n"))
 
           Get-ChildItem dist | Format-Table Name, Length
 
       - name: Upload workflow artifact
         uses: actions/upload-artifact@v7
         with:
-          name: ods-release-${{ matrix.asset }}
+          name: odc-release-${{ matrix.asset }}
           path: |
             dist/*.tar.gz
             dist/*.zip
             dist/SHA256SUMS.*
           if-no-files-found: error
 
-  # Zed extension / ods-lsp removed from product — release ships `odc` (+ optional `ods` Windows zips).
+  # One published asset per OS/arch (odc-*). No duplicate ods-* archive uploads.
 
   merge-checksums:
     name: Merge SHA256SUMS
@@ -593,7 +583,7 @@ jobs:
         uses: actions/download-artifact@v8
         with:
           path: dist
-          pattern: ods-release-*
+          pattern: odc-release-*
           merge-multiple: true
 
       - name: Merge and deduplicate checksums
@@ -604,11 +594,17 @@ jobs:
           cat dist/SHA256SUMS.* 2>/dev/null | tr -d '\r' | sed '/^$/d' | sort -u > dist/SHA256SUMS
           cat dist/SHA256SUMS
           test -s dist/SHA256SUMS
+          # Exactly one checksum line per primary archive (6 platforms).
+          count="$(wc -l < dist/SHA256SUMS | tr -d ' ')"
+          if [ "${count}" -ne 6 ]; then
+            echo "error: expected 6 unique platform checksums, got ${count}" >&2
+            exit 1
+          fi
 
       - name: Upload merged SHA256SUMS
         uses: actions/upload-artifact@v7
         with:
-          name: ods-release-checksums
+          name: odc-release-checksums
           path: dist/SHA256SUMS
           if-no-files-found: error
 
@@ -630,7 +626,7 @@ jobs:
         uses: actions/download-artifact@v8
         with:
           path: dist
-          pattern: ods-release-*
+          pattern: odc-release-*
           merge-multiple: true
 
       - name: List assets
@@ -710,13 +706,14 @@ jobs:
               || { echo "error: required asset ${asset} missing from release ${TAG}" >&2; exit 1; }
           done
 
-          # Download the full release (odc-* plus any legacy ods-* Windows zips,
-          # SHA256SUMS, etc.) so checksum verification cannot miss listed files.
-          echo "Downloading all assets for ${TAG}..."
+          # Download only primary assets listed in required[] / SHA256SUMS (one per OS/arch).
+          echo "Downloading release assets for ${TAG}..."
           if command -v gh &>/dev/null; then
-            gh release download "${TAG}" -R "${REPO}"
+            for asset in "${required[@]}"; do
+              gh release download "${TAG}" -R "${REPO}" -p "${asset}" --clobber
+            done
           else
-            for asset in "${published[@]}"; do
+            for asset in "${required[@]}"; do
               echo "downloading ${asset}"
               ASSET_URL=$(echo "${RELEASE_JSON}" | python3 -c "
           import sys, json
@@ -738,14 +735,22 @@ jobs:
           tr -d '\r' < SHA256SUMS > SHA256SUMS.lf
           mv SHA256SUMS.lf SHA256SUMS
           mapfile -t sums_files < <(awk 'NF >= 2 { print $2 }' SHA256SUMS | sed 's|^\./||')
-          if [ "${#sums_files[@]}" -eq 0 ]; then
-            echo "error: SHA256SUMS has no file entries" >&2
+          if [ "${#sums_files[@]}" -ne 6 ]; then
+            echo "error: expected 6 unique platform checksums in SHA256SUMS, got ${#sums_files[@]}" >&2
+            cat SHA256SUMS >&2
             exit 1
           fi
           for asset in "${sums_files[@]}"; do
+            case "${asset}" in
+              odc-*) ;;
+              *)
+                echo "error: unexpected non-odc asset in SHA256SUMS: ${asset}" >&2
+                exit 1
+                ;;
+            esac
             [ -s "${asset}" ] || { echo "error: SUMS lists ${asset} but file is missing/empty" >&2; exit 1; }
           done
 
-          echo "Verifying checksums for ${#sums_files[@]} asset(s)..."
+          echo "Verifying checksums for ${#sums_files[@]} unique OS/arch asset(s)..."
           sha256sum -c SHA256SUMS
-          echo "Release ${TAG} assets verified OK"
+          echo "Release ${TAG} assets verified OK (6 unique platforms)"
