@@ -5,8 +5,8 @@ name: release
 # Tag format: vMAJOR.MINOR.PATCH (stable GitHub Releases only).
 # Manual git tags do NOT trigger this workflow.
 #
-# End users install from release archives (manual first install, then ods update).
-# Ships `ods` multi-OS archives only (no ods-lsp / Zed).
+# End users install from release archives (manual first install, then odc update).
+# Ships OpenDocify `odc` multi-OS archives (+ optional legacy `ods` Windows zip aliases).
 
 on:
   workflow_run:
@@ -569,7 +569,7 @@ jobs:
             dist/SHA256SUMS.*
           if-no-files-found: error
 
-  # Zed extension / ods-lsp removed from product — release ships `ods` only.
+  # Zed extension / ods-lsp removed from product — release ships `odc` (+ optional `ods` Windows zips).
 
   merge-checksums:
     name: Merge SHA256SUMS
@@ -647,10 +647,15 @@ jobs:
   verify-release:
     name: Verify Published Release Assets
     needs: [prepare, publish]
+    # Run after a fresh publish, or when prepare skipped rebuild because assets
+    # already exist (re-verify on workflow_dispatch / next main CI success).
     if: |
       always() &&
-      needs.prepare.outputs.should_release == 'true' &&
-      needs.publish.result == 'success'
+      needs.prepare.result == 'success' &&
+      (
+        (needs.prepare.outputs.should_release == 'true' && needs.publish.result == 'success')
+        || (needs.prepare.outputs.should_release == 'false' && needs.prepare.outputs.tag != '')
+      )
     runs-on: ubuntu-latest
     timeout-minutes: 30
     permissions:
@@ -666,7 +671,8 @@ jobs:
           mkdir -p verify
           cd verify
 
-          expected=(
+          # Primary product archives (must always exist on every release).
+          required=(
             "odc-${TAG}-linux-x86_64.tar.gz"
             "odc-${TAG}-linux-arm64.tar.gz"
             "odc-${TAG}-macos-x86_64.tar.gz"
@@ -677,45 +683,57 @@ jobs:
           )
 
           if command -v gh &>/dev/null; then
-            for asset in "${expected[@]}"; do
-              echo "checking release asset: ${asset}"
-              gh release view "${TAG}" -R "${REPO}" --json assets \
-                --jq '.assets[].name' | grep -Fx "${asset}" >/dev/null
-            done
-
-            for asset in "${expected[@]}"; do
-              gh release download "${TAG}" -R "${REPO}" -p "${asset}"
-            done
+            mapfile -t published < <(gh release view "${TAG}" -R "${REPO}" --json assets --jq '.assets[].name')
           else
-            echo "gh CLI not found; falling back to curl + python3"
             RELEASE_JSON="$(curl -s -S -H "Authorization: token ${GH_TOKEN:-${GITHUB_TOKEN}}" \
               "https://api.github.com/repos/${REPO}/releases/tags/${TAG}")"
             if echo "${RELEASE_JSON}" | grep -q "message.*Not Found"; then
               echo "error: release not found via GitHub API" >&2
               exit 1
             fi
-            for asset in "${expected[@]}"; do
-              echo "checking and downloading release asset: ${asset}"
+            mapfile -t published < <(echo "${RELEASE_JSON}" | python3 -c \
+              'import json,sys; print("\n".join(a["name"] for a in json.load(sys.stdin).get("assets",[])))')
+          fi
+
+          for asset in "${required[@]}"; do
+            echo "checking required release asset: ${asset}"
+            printf '%s\n' "${published[@]}" | grep -Fx "${asset}" >/dev/null \
+              || { echo "error: required asset ${asset} missing from release ${TAG}" >&2; exit 1; }
+          done
+
+          # Download the full release (odc-* plus any legacy ods-* Windows zips,
+          # SHA256SUMS, etc.) so checksum verification cannot miss listed files.
+          echo "Downloading all assets for ${TAG}..."
+          if command -v gh &>/dev/null; then
+            gh release download "${TAG}" -R "${REPO}"
+          else
+            for asset in "${published[@]}"; do
+              echo "downloading ${asset}"
               ASSET_URL=$(echo "${RELEASE_JSON}" | python3 -c "
-            import sys, json
-            data = json.load(sys.stdin)
-            assets = data.get('assets', [])
-            found = [a['url'] for a in assets if a['name'] == '${asset}']
-            if found:
-                print(found[0])
-            ")
-              if [ -z "${ASSET_URL}" ]; then
-                echo "error: asset ${asset} not found in release assets" >&2
-                exit 1
-              fi
+          import sys, json
+          data = json.load(sys.stdin)
+          name = '''${asset}'''
+          found = [a['url'] for a in data.get('assets', []) if a['name'] == name]
+          print(found[0] if found else '')
+          ")
+              [ -n "${ASSET_URL}" ] || { echo "error: no URL for ${asset}" >&2; exit 1; }
               curl -s -S -L -H "Authorization: token ${GH_TOKEN:-${GITHUB_TOKEN}}" \
                 -H "Accept: application/octet-stream" \
                 -o "${asset}" "${ASSET_URL}"
+              [ -s "${asset}" ] || { echo "error: ${asset} empty" >&2; exit 1; }
             done
           fi
 
-          for asset in "${expected[@]}"; do
-            [ -s "${asset}" ] || { echo "error: ${asset} is missing or empty" >&2; exit 1; }
+          [ -s SHA256SUMS ] || { echo "error: SHA256SUMS missing or empty" >&2; exit 1; }
+          mapfile -t sums_files < <(awk 'NF >= 2 { print $2 }' SHA256SUMS | sed 's|^\./||')
+          if [ "${#sums_files[@]}" -eq 0 ]; then
+            echo "error: SHA256SUMS has no file entries" >&2
+            exit 1
+          fi
+          for asset in "${sums_files[@]}"; do
+            [ -s "${asset}" ] || { echo "error: SUMS lists ${asset} but file is missing/empty" >&2; exit 1; }
           done
 
+          echo "Verifying checksums for ${#sums_files[@]} asset(s)..."
           sha256sum -c SHA256SUMS
+          echo "Release ${TAG} assets verified OK"
