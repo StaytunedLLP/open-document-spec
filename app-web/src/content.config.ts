@@ -8,7 +8,8 @@ const docs = defineCollection({
     description: z.string().optional(),
     status: z.string().optional(),
     order: z.number().optional(),
-    ods: z.record(z.string(), z.any()).optional(),
+    // Accept map, empty `ods:`, or nested profile/status objects from authoring tools.
+    ods: z.any().optional(),
   }).passthrough(),
 });
 
@@ -19,7 +20,7 @@ const specs = defineCollection({
     description: z.string().optional(),
     status: z.string().optional(),
     order: z.number().optional(),
-    ods: z.record(z.string(), z.any()).optional(),
+    ods: z.any().optional(),
   }).passthrough(),
 });
 
