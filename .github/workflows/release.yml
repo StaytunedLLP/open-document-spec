@@ -98,7 +98,7 @@ jobs:
           open(path, 'w', encoding='utf-8').write(text2)
           lock_path = 'Cargo.lock' if os.path.exists('Cargo.lock') else 'src/Cargo.lock'
           lock = open(lock_path, encoding='utf-8').read()
-          for name in ('odc', 'odc-core', 'odc-test-support'):
+          for name in ('ods-cli', 'ods-core', 'ods-test-support'):
               lock, n = re.subn(
                   rf'(name = \"{name}\"\nversion = \")[^\"]+(\")',
                   rf'\g<1>{new_v}\2',

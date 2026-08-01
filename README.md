@@ -49,7 +49,7 @@ Add the Open Document Spec skill to your AI environment. The skill detects your 
 
 ```text
 ==> Open Document Spec is installed and running on your machine!
-==> Version: ods v0.0.12
+==> Version: ods v0.0.13
 ```
 
 <details>
