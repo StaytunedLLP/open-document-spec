@@ -91,8 +91,8 @@ grep -q "ODS workspace graph" "${EXPORT_OUT}"
 # OKF smoke when binary is ods
 if [[ "$(basename "${ODS}")" == "ods" ]]; then
   OKF_TMP=$(mktemp -d)
-  run "${ODS}" okf init "${OKF_TMP}"
-  run "${ODS}" okf lint "${OKF_TMP}"
+  run "${ODS}" init --okf "${OKF_TMP}"
+  run "${ODS}" lint --okf "${OKF_TMP}"
   rm -rf "${OKF_TMP}"
 fi
 
