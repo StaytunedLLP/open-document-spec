@@ -1,7 +1,7 @@
 use std::process::Command;
 use tempfile::tempdir;
 
-fn odc_bin() -> std::path::PathBuf {
+fn ods_bin() -> std::path::PathBuf {
     eprintln!(
         "odc_bin: {}, ods_bin: {}",
         env!("CARGO_BIN_EXE_ods"),
@@ -13,7 +13,7 @@ fn odc_bin() -> std::path::PathBuf {
 #[test]
 fn bare_lint_auto_detects_or_explains() {
     let dir = tempdir().unwrap();
-    let out = Command::new(odc_bin())
+    let out = Command::new(ods_bin())
         .args(["lint", dir.path().to_str().unwrap()])
         .output()
         .unwrap();
@@ -33,17 +33,17 @@ fn bare_lint_auto_detects_or_explains() {
 fn okf_init_lint_audit() {
     let dir = tempdir().unwrap();
     let path = dir.path().to_str().unwrap();
-    let st = Command::new(odc_bin())
+    let st = Command::new(ods_bin())
         .args(["okf", "init", path, "--attested"])
         .status()
         .unwrap();
     assert!(st.success());
-    let out = Command::new(odc_bin())
+    let out = Command::new(ods_bin())
         .args(["okf", "lint", path])
         .output()
         .unwrap();
     assert!(out.status.success(), "{:?}", out);
-    let out = Command::new(odc_bin())
+    let out = Command::new(ods_bin())
         .args(["okf", "audit", path, "--write-report"])
         .output()
         .unwrap();
@@ -55,12 +55,12 @@ fn okf_init_lint_audit() {
 fn ods_namespace_init_lint() {
     let dir = tempdir().unwrap();
     let path = dir.path().to_str().unwrap();
-    let st = Command::new(odc_bin())
+    let st = Command::new(ods_bin())
         .args(["init", path])
         .status()
         .unwrap();
     assert!(st.success());
-    let out = Command::new(odc_bin())
+    let out = Command::new(ods_bin())
         .args(["lint", path])
         .output()
         .unwrap();
@@ -72,34 +72,34 @@ fn okf_index_export_fmt_context() {
     let dir = tempdir().unwrap();
     let path = dir.path().to_str().unwrap();
     assert!(
-        Command::new(odc_bin())
+        Command::new(ods_bin())
             .args(["okf", "init", path])
             .status()
             .unwrap()
             .success()
     );
     assert!(
-        Command::new(odc_bin())
+        Command::new(ods_bin())
             .args(["okf", "index", path])
             .status()
             .unwrap()
             .success()
     );
     assert!(
-        Command::new(odc_bin())
+        Command::new(ods_bin())
             .args(["okf", "export", path, "--out", &format!("{path}/g.md")])
             .status()
             .unwrap()
             .success()
     );
     assert!(
-        Command::new(odc_bin())
+        Command::new(ods_bin())
             .args(["okf", "fmt", path])
             .status()
             .unwrap()
             .success()
     );
-    let out = Command::new(odc_bin())
+    let out = Command::new(ods_bin())
         .args(["okf", "context", path, "sample-metric"])
         .output()
         .unwrap();
@@ -111,13 +111,13 @@ fn agents_sync_writes_agents_md() {
     let dir = tempdir().unwrap();
     let path = dir.path().to_str().unwrap();
     assert!(
-        Command::new(odc_bin())
+        Command::new(ods_bin())
             .args(["init", path])
             .status()
             .unwrap()
             .success()
     );
-    let out = Command::new(odc_bin())
+    let out = Command::new(ods_bin())
         .args(["agents", "sync", path])
         .output()
         .unwrap();
@@ -129,7 +129,7 @@ fn okf_cli_subcommands_exhaustive() {
     let dir = tempdir().unwrap();
     let path = dir.path().to_str().unwrap();
     assert!(
-        Command::new(odc_bin())
+        Command::new(ods_bin())
             .args(["okf", "init", path, "--log"])
             .status()
             .unwrap()
@@ -137,19 +137,19 @@ fn okf_cli_subcommands_exhaustive() {
     );
 
     // doctor text and json
-    let doc_text = Command::new(odc_bin())
+    let doc_text = Command::new(ods_bin())
         .args(["okf", "doctor", path])
         .output()
         .unwrap();
     assert!(doc_text.status.success());
-    let doc_json = Command::new(odc_bin())
+    let doc_json = Command::new(ods_bin())
         .args(["okf", "doctor", path, "--format", "json"])
         .output()
         .unwrap();
     assert!(doc_json.status.success());
 
     // audit json
-    let aud_json = Command::new(odc_bin())
+    let aud_json = Command::new(ods_bin())
         .args(["okf", "audit", path, "--format", "json"])
         .output()
         .unwrap();
@@ -157,24 +157,24 @@ fn okf_cli_subcommands_exhaustive() {
 
     // adopt dry-run and write
     std::fs::write(dir.path().join("plain.md"), "# Plain\n").unwrap();
-    let adopt_dry = Command::new(odc_bin())
+    let adopt_dry = Command::new(ods_bin())
         .args(["okf", "adopt", path])
         .output()
         .unwrap();
     assert!(adopt_dry.status.success());
-    let adopt_write = Command::new(odc_bin())
+    let adopt_write = Command::new(ods_bin())
         .args(["okf", "adopt", "--write", path])
         .output()
         .unwrap();
     assert!(adopt_write.status.success());
 
     // index and index check
-    let idx_gen = Command::new(odc_bin())
+    let idx_gen = Command::new(ods_bin())
         .args(["okf", "index", path])
         .output()
         .unwrap();
     assert!(idx_gen.status.success());
-    let idx_check = Command::new(odc_bin())
+    let idx_check = Command::new(ods_bin())
         .args(["okf", "index", "--check", path])
         .output()
         .unwrap();
@@ -186,7 +186,7 @@ fn hybrid_bare_lint_runs_both_engines() {
     let dir = tempdir().unwrap();
     let path = dir.path().to_str().unwrap();
     assert!(
-        Command::new(odc_bin())
+        Command::new(ods_bin())
             .args(["init", path])
             .status()
             .unwrap()
@@ -199,7 +199,7 @@ fn hybrid_bare_lint_runs_both_engines() {
         text = text.replacen("---\n", "---\nokf_version: \"0.2\"\n", 1);
         std::fs::write(&index, text).unwrap();
     }
-    let out = Command::new(odc_bin())
+    let out = Command::new(ods_bin())
         .args(["lint", path])
         .output()
         .unwrap();
@@ -220,7 +220,7 @@ fn hybrid_bare_index_requires_explicit_namespace() {
     let dir = tempdir().unwrap();
     let path = dir.path().to_str().unwrap();
     assert!(
-        Command::new(odc_bin())
+        Command::new(ods_bin())
             .args(["init", path])
             .status()
             .unwrap()
@@ -231,7 +231,7 @@ fn hybrid_bare_index_requires_explicit_namespace() {
     text = text.replacen("---\n", "---\nokf_version: \"0.2\"\n", 1);
     std::fs::write(&index, text).unwrap();
 
-    let out = Command::new(odc_bin())
+    let out = Command::new(ods_bin())
         .args(["index", path])
         .output()
         .unwrap();
@@ -243,13 +243,13 @@ fn coverage_write_report_goes_under_dot_odc() {
     let dir = tempdir().unwrap();
     let path = dir.path().to_str().unwrap();
     assert!(
-        Command::new(odc_bin())
+        Command::new(ods_bin())
             .args(["init", path])
             .status()
             .unwrap()
             .success()
     );
-    let out = Command::new(odc_bin())
+    let out = Command::new(ods_bin())
         .args(["coverage", path, "--write-report"])
         .output()
         .unwrap();
@@ -263,7 +263,7 @@ fn archive_updates_nested_ods_status() {
     let dir = tempdir().unwrap();
     let path = dir.path().to_str().unwrap();
     assert!(
-        Command::new(odc_bin())
+        Command::new(ods_bin())
             .args(["init", path])
             .status()
             .unwrap()
@@ -275,7 +275,7 @@ fn archive_updates_nested_ods_status() {
         "---\nods:\n  profile: note\n  status: draft\n---\n\n# Note\n",
     )
     .unwrap();
-    let out = Command::new(odc_bin())
+    let out = Command::new(ods_bin())
         .current_dir(dir.path())
         .args(["archive", "note.md"])
         .output()

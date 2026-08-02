@@ -175,6 +175,145 @@ pub fn render_graph_markdown(workspace: &Workspace, include_private: bool) -> St
     out
 }
 
+fn json_escape(text: &str) -> String {
+    text.replace('\\', "\\\\")
+        .replace('"', "\\\"")
+        .replace('\n', "\\n")
+        .replace('\r', "\\r")
+        .replace('\t', "\\t")
+}
+
+pub fn render_graph_json(workspace: &Workspace, include_private: bool, spec: &str) -> String {
+    let mut docs: Vec<_> = workspace
+        .documents
+        .iter()
+        .filter(|doc| include_private || is_shared_out(doc))
+        .collect();
+    docs.sort_by(|a, b| a.path.cmp(&b.path));
+
+    let mut compliant_count = 0usize;
+    let total = docs.len();
+
+    let mut nodes_json = Vec::new();
+    let mut edges_json = Vec::new();
+
+    for document in &docs {
+        let fm = parsed_fm(document);
+        let id = document_id(&workspace.root, &document.path, fm);
+
+        let diags = crate::lint_document_in_workspace(
+            workspace,
+            &document.path,
+            crate::model::ComplianceMode::Strict,
+        );
+        if diags.is_empty() && fm.is_some() {
+            compliant_count += 1;
+        }
+
+        let title = fm
+            .and_then(|f| f.title.as_deref().or(f.name.as_deref()))
+            .unwrap_or("");
+        let name = fm.and_then(|f| f.name.as_deref()).unwrap_or("");
+        let profile = fm.and_then(|f| f.profile.as_deref()).unwrap_or("");
+        let status = fm.and_then(|f| f.status.as_deref()).unwrap_or("");
+        let description = fm.and_then(|f| f.description.as_deref()).unwrap_or("");
+        let share = fm.and_then(|f| f.share.as_deref()).unwrap_or("public");
+
+        let depends_items: Vec<String> = fm
+            .map(|f| {
+                f.depends
+                    .iter()
+                    .map(|d| format!("\"{}\"", json_escape(d)))
+                    .collect()
+            })
+            .unwrap_or_default();
+        let related_items: Vec<String> = fm
+            .map(|f| {
+                f.related
+                    .iter()
+                    .map(|r| format!("\"{}\"", json_escape(r)))
+                    .collect()
+            })
+            .unwrap_or_default();
+        let tags_items: Vec<String> = fm
+            .map(|f| {
+                f.tags
+                    .iter()
+                    .map(|t| format!("\"{}\"", json_escape(t)))
+                    .collect()
+            })
+            .unwrap_or_default();
+
+        let code_items: Vec<String> = fm
+            .map(|f| {
+                f.code
+                    .iter()
+                    .map(|c| {
+                        format!(
+                            r#"{{"path":"{}","symbol":{},"role":"{}"}}"#,
+                            json_escape(&c.path.display().to_string()),
+                            c.symbol
+                                .as_ref()
+                                .map(|s| format!("\"{}\"", json_escape(s)))
+                                .unwrap_or_else(|| "null".to_string()),
+                            c.role.as_str()
+                        )
+                    })
+                    .collect()
+            })
+            .unwrap_or_default();
+
+        if let Some(fm) = fm {
+            for dep in &fm.depends {
+                edges_json.push(format!(
+                    r#"{{"from":"{}","to":"{}","type":"depends"}}"#,
+                    json_escape(&id),
+                    json_escape(dep)
+                ));
+            }
+            for rel in &fm.related {
+                edges_json.push(format!(
+                    r#"{{"from":"{}","to":"{}","type":"related"}}"#,
+                    json_escape(&id),
+                    json_escape(rel)
+                ));
+            }
+        }
+
+        nodes_json.push(format!(
+            r#""{}":{{"title":"{}","name":"{}","profile":"{}","status":"{}","description":"{}","depends":[{}],"related":[{}],"code":[{}],"tags":[{}],"share":"{}"}}"#,
+            json_escape(&id),
+            json_escape(title),
+            json_escape(name),
+            json_escape(profile),
+            json_escape(status),
+            json_escape(description),
+            depends_items.join(","),
+            related_items.join(","),
+            code_items.join(","),
+            tags_items.join(","),
+            json_escape(share)
+        ));
+    }
+
+    let health_pct = if total == 0 {
+        100.0
+    } else {
+        (compliant_count as f64 / total as f64) * 100.0
+    };
+
+    format!(
+        r#"{{"spec":"{}","root":"{}","stats":{{"documents":{},"compliant":{},"health_score_pct":{:.1}}},"nodes":{{{}}},"edges":[{}]}}"#,
+        spec,
+        json_escape(&workspace.root.display().to_string()),
+        total,
+        compliant_count,
+        health_pct,
+        nodes_json.join(","),
+        edges_json.join(",")
+    )
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

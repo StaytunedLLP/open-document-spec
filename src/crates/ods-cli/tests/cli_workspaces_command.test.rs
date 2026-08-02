@@ -2,7 +2,7 @@ use std::fs;
 use std::process::Command;
 use tempfile::tempdir;
 
-fn odc_bin() -> std::path::PathBuf {
+fn ods_bin() -> std::path::PathBuf {
     std::path::PathBuf::from(env!("CARGO_BIN_EXE_ods"))
 }
 
@@ -11,18 +11,18 @@ fn okf_doctor_and_fmt() {
     let dir = tempdir().unwrap();
     let path = dir.path().to_str().unwrap();
     assert!(
-        Command::new(odc_bin())
+        Command::new(ods_bin())
             .args(["okf", "init", path])
             .status()
             .unwrap()
             .success()
     );
-    let out = Command::new(odc_bin())
+    let out = Command::new(ods_bin())
         .args(["okf", "doctor", path])
         .output()
         .unwrap();
     assert!(out.status.success(), "{:?}", out);
-    let out = Command::new(odc_bin())
+    let out = Command::new(ods_bin())
         .args(["okf", "fmt", path])
         .output()
         .unwrap();
@@ -38,13 +38,13 @@ fn tags_list() {
     let dir = tempdir().unwrap();
     let path = dir.path().to_str().unwrap();
     assert!(
-        Command::new(odc_bin())
+        Command::new(ods_bin())
             .args(["init", path])
             .status()
             .unwrap()
             .success()
     );
-    let out = Command::new(odc_bin())
+    let out = Command::new(ods_bin())
         .args(["tags", path])
         .output()
         .unwrap();
@@ -56,7 +56,7 @@ fn okf_full_command_surface() {
     let dir = tempdir().unwrap();
     let path = dir.path().to_str().unwrap();
     assert!(
-        Command::new(odc_bin())
+        Command::new(ods_bin())
             .args(["okf", "init", path, "--attested", "--log"])
             .status()
             .unwrap()
@@ -75,7 +75,7 @@ fn okf_full_command_surface() {
         vec!["okf", "context", path, "sample-metric"],
         vec!["okf", "help"],
     ] {
-        let out = Command::new(odc_bin()).args(&args).output().unwrap();
+        let out = Command::new(ods_bin()).args(&args).output().unwrap();
         assert!(
             out.status.success() || out.status.code() == Some(1),
             "cmd {args:?} => {:?}",
@@ -87,7 +87,7 @@ fn okf_full_command_surface() {
 #[test]
 fn upgrade_empty_and_okf_and_migrate() {
     let empty = tempdir().unwrap();
-    let out = Command::new(odc_bin())
+    let out = Command::new(ods_bin())
         .args(["upgrade", empty.path().to_str().unwrap(), "--check"])
         .output()
         .unwrap();
@@ -100,13 +100,13 @@ fn upgrade_empty_and_okf_and_migrate() {
     let okf = tempdir().unwrap();
     let path = okf.path().to_str().unwrap();
     assert!(
-        Command::new(odc_bin())
+        Command::new(ods_bin())
             .args(["okf", "init", path])
             .status()
             .unwrap()
             .success()
     );
-    let out = Command::new(odc_bin())
+    let out = Command::new(ods_bin())
         .args(["upgrade", path, "--check"])
         .output()
         .unwrap();
@@ -119,13 +119,13 @@ fn upgrade_empty_and_okf_and_migrate() {
     let ods = tempdir().unwrap();
     let op = ods.path().to_str().unwrap();
     assert!(
-        Command::new(odc_bin())
+        Command::new(ods_bin())
             .args(["init", op])
             .status()
             .unwrap()
             .success()
     );
-    let out = Command::new(odc_bin())
+    let out = Command::new(ods_bin())
         .args(["upgrade", op, "--write"])
         .output()
         .unwrap();
@@ -137,7 +137,7 @@ fn share_and_export_and_disable_dry() {
     let dir = tempdir().unwrap();
     let path = dir.path().to_str().unwrap();
     assert!(
-        Command::new(odc_bin())
+        Command::new(ods_bin())
             .args(["init", path])
             .status()
             .unwrap()
@@ -148,9 +148,9 @@ fn share_and_export_and_disable_dry() {
         "---\nprofile: note\nstatus: draft\nshare: public\n---\n\n# P\n",
     )
     .unwrap();
-    let _ = Command::new(odc_bin()).args(["index", path]).status();
+    let _ = Command::new(ods_bin()).args(["index", path]).status();
     let out_dir = dir.path().join("published");
-    let out = Command::new(odc_bin())
+    let out = Command::new(ods_bin())
         .args(["share", path, "--out", out_dir.to_str().unwrap()])
         .output()
         .unwrap();
@@ -161,7 +161,7 @@ fn share_and_export_and_disable_dry() {
     );
 
     let graph = dir.path().join("graph.md");
-    let out = Command::new(odc_bin())
+    let out = Command::new(ods_bin())
         .args(["export", path, "--out", graph.to_str().unwrap()])
         .output()
         .unwrap();
@@ -171,7 +171,7 @@ fn share_and_export_and_disable_dry() {
         out
     );
 
-    let out = Command::new(odc_bin())
+    let out = Command::new(ods_bin())
         .args(["disable", path])
         .output()
         .unwrap();
@@ -190,10 +190,10 @@ fn help_and_version_and_unknown() {
         vec!["version"],
         vec!["--version"],
     ] {
-        let out = Command::new(odc_bin()).args(&args).output().unwrap();
+        let out = Command::new(ods_bin()).args(&args).output().unwrap();
         assert!(out.status.success(), "{args:?} {:?}", out);
     }
-    let out = Command::new(odc_bin())
+    let out = Command::new(ods_bin())
         .args(["not-a-real-command"])
         .output()
         .unwrap();
@@ -243,7 +243,7 @@ fn git_detect_renames_in_git_repo() {
         .current_dir(root)
         .output();
 
-    let sync_out = Command::new(odc_bin())
+    let sync_out = Command::new(ods_bin())
         .args(["sync", root.to_str().unwrap()])
         .output()
         .unwrap();

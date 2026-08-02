@@ -1,5 +1,4 @@
-#![allow(unused_imports, dead_code)]
-use ods_core::{LintLevel, Severity, lint_workspace, lint_workspace_with_level, load_workspace};
+use ods_core::{LintLevel, lint_workspace, lint_workspace_with_level, load_workspace};
 use ods_test_support::temp_workspace;
 use std::fs;
 use std::path::Path;

@@ -1,8 +1,6 @@
-#![allow(unused_imports, dead_code)]
 use ods_core::{
-    AdoptOptions, adopt_workspace, generate_indexes, lint_workspace, load_workspace,
-    move_document_and_rewrite_refs, profile_section_labels, resolve_context,
-    workspace_alias_suggestions, workspace_aliases,
+    generate_indexes, lint_workspace, load_workspace, move_document_and_rewrite_refs,
+    profile_section_labels, resolve_context, workspace_alias_suggestions, workspace_aliases,
 };
 use ods_test_support::{copy_fixture_to_temp, temp_workspace};
 use std::fs;

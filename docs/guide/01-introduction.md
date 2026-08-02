@@ -13,6 +13,28 @@ Open Document Spec (ODS) is a Markdown-first documentation specification for rep
 
 Documents stay plain `.md` files. Metadata is optional YAML frontmatter. Nothing requires a new file extension or proprietary store.
 
+## 🧭 The 5W1H Framework
+
+ODS is built on six foundational dimensions:
+
+- ❓ **WHAT**: A human-first Markdown specification standard and sub-5ms Rust CLI engine (`ods`) that turns flat `.md` files into a validated, auto-healing document graph.
+- 💡 **WHY**: Eliminates documentation drift, prevents AI model hallucinations, reduces AI prompt token costs by up to ~95% using bounded context graphs, and enforces mandatory section trees.
+- 👥 **WHO**: Connects Developers, Product Managers, Technical Writers, Compliance Leads, and AI Coding Assistants (Antigravity, Claude, Cursor, ChatGPT).
+- 📍 **WHERE**: Runs in local terminals, IDE prompt windows, CI/CD GitHub Actions (`ods/action`), and outputs OASIS SARIF v2.1.0 security diagnostics.
+- ⏰ **WHEN**: Used from day 1 repo setup (`ods init`), during active refactoring (`ods mv`), feature scaffolding (`ods new`), and automated pull request gates (`ods lint`).
+- 🛠️ **HOW**: Hands-on CLI commands and Skill-first AI automation across a 4-Tier Novice-to-Expert Learning Arc.
+
+---
+
+## 🎓 Novice-to-Expert Mastery Roadmap
+
+| Tier | Level & Audience | Key Focus & Concepts | Primary Commands |
+| --- | --- | --- | --- |
+| **Tier 1** | 🏁 **Novice**<br/>(Foundations) | Installation, root spec (`ods: 0.1`), basic frontmatter (`profile`, `status`), Level-3 validation. | `ods init`<br/>`ods setup`<br/>`ods lint` |
+| **Tier 2** | 🛠️ **Practitioner**<br/>(Day-to-Day Graph) | Document graphs (`depends`, `related`), code linking (`code`), auto-indexes (`index.md`), atomic moves. | `ods index`<br/>`ods mv`<br/>`ods new`<br/>`ods adopt` |
+| **Tier 3** | 📋 **Power User**<br/>(Custom Schemas) | Custom Profile Schemas (`custom-profiles:`), ODS Packs (`ods pack`), AI bounded context, token ROI benchmarking. | `ods profile`<br/>`ods context`<br/>`ods pack`<br/>`ods bench` |
+| **Tier 4** | 🏢 **Architect**<br/>(Enterprise CI/CD) | Persistent OS background daemons (`ods serve`), GitHub Actions (`ods/action`), SARIF reporting, pre-commit hooks. | `ods setup --git-hooks`<br/>`ods serve`<br/>`ods lint --format sarif` |
+
 ---
 
 ## Core design principles

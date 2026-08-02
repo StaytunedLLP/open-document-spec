@@ -92,10 +92,18 @@ fn resolved_serve_mode(mode: ServeMode) -> ServeMode {
     }
 }
 
-fn parse_export_args(args: &[String]) -> Result<(PathBuf, PathBuf), CliError> {
+fn parse_export_args(args: &[String]) -> Result<(PathBuf, PathBuf, OutputFormat, String), CliError> {
     let mut out = None;
     let mut path = None;
+    let mut format = OutputFormat::Text;
+    let mut spec = "ods:0.1".to_string();
+
     let mut i = 2;
+    // Skip optional "graph" subcommand token if present (e.g. ods export graph)
+    if i < args.len() && (args[i] == "graph" || args[i] == "all") {
+        i += 1;
+    }
+
     while i < args.len() {
         match args[i].as_str() {
             "--out" => {
@@ -109,6 +117,32 @@ fn parse_export_args(args: &[String]) -> Result<(PathBuf, PathBuf), CliError> {
                 out = Some(PathBuf::from(&other["--out=".len()..]));
                 i += 1;
             }
+            "--format" => {
+                let v = args
+                    .get(i + 1)
+                    .ok_or_else(|| usage("export --format requires text, json, or md"))?;
+                format = match v.as_str() {
+                    "text" => OutputFormat::Text,
+                    "json" => OutputFormat::Json,
+                    "md" | "markdown" => OutputFormat::Text, // md triggers markdown file or text output
+                    other => return Err(usage(format!("invalid export --format {other} (use text, json, or md)"))),
+                };
+                i += 2;
+            }
+            "--spec" => {
+                let v = args
+                    .get(i + 1)
+                    .ok_or_else(|| usage("export --spec requires ods or okf"))?;
+                spec = match v.to_lowercase().as_str() {
+                    "okf" | "okf:0.2" => "okf:0.2".to_string(),
+                    _ => "ods:0.1".to_string(),
+                };
+                i += 2;
+            }
+            "--okf" => {
+                spec = "okf:0.2".to_string();
+                i += 1;
+            }
             other if !other.starts_with('-') => {
                 path = Some(PathBuf::from(other));
                 i += 1;
@@ -120,7 +154,7 @@ fn parse_export_args(args: &[String]) -> Result<(PathBuf, PathBuf), CliError> {
         path.unwrap_or_else(|| env::current_dir().unwrap_or_else(|_| PathBuf::from("."))),
     );
     let out = out.unwrap_or_else(|| root.join("graph.md"));
-    Ok((root, out))
+    Ok((root, out, format, spec))
 }
 
 /// Parsed `ods share` arguments: `(workspace root, scope, out, include_org, include_private)`.

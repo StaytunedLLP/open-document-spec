@@ -85,6 +85,7 @@ fn is_platform_command(cmd: &str) -> bool {
             | "tree"
             | "diff"
             | "clean"
+            | "lsp"
     )
 }
 
@@ -130,6 +131,7 @@ fn is_ods_document_command(cmd: &str) -> bool {
             | "tree"
             | "diff"
             | "clean"
+            | "lsp"
     )
 }
 

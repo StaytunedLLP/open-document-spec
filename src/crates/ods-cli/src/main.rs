@@ -23,6 +23,7 @@ include!("main/commands/lifecycle/lifecycle_commands.rs");
 include!("main/commands/lifecycle/disable_command.rs");
 include!("main/commands/profile/profile_commands.rs");
 include!("main/commands/service/service_commands.rs");
+include!("main/commands/lsp_command.rs");
 include!("main/commands/setup_command.rs");
 include!("main/commands/skill_command.rs");
 include!("main/commands/update_command.rs");

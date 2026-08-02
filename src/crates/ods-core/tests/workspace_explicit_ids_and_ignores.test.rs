@@ -1,19 +1,6 @@
-#![allow(unused_imports, dead_code)]
-use ods_core::{
-    AdoptOptions, adopt_workspace, generate_indexes, lint_workspace, load_workspace,
-    move_document_and_rewrite_refs, profile_section_labels, resolve_context,
-    workspace_alias_suggestions, workspace_aliases,
-};
-use ods_test_support::{copy_fixture_to_temp, temp_workspace};
+use ods_core::{generate_indexes, lint_workspace, load_workspace};
+use ods_test_support::temp_workspace;
 use std::fs;
-
-fn fixture_root() -> std::path::PathBuf {
-    std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-        .join("../../..")
-        .join("docs/guide/07-examples/ecommerce")
-        .canonicalize()
-        .expect("fixture root")
-}
 
 #[test]
 fn root_ignore_excludes_code_tree_from_scan_and_index() {

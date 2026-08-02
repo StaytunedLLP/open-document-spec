@@ -174,14 +174,15 @@ fn frontmatter_parser_exhaustive_coverage() {
 }
 
 #[test]
-fn test_frontmatter_title_prohibited() {
+fn test_frontmatter_title_permitted() {
     let root = PathBuf::from("/ws");
-    let text = "---\ntitle: Invalid Title Key\nprofile: guide\n---\n\n# Document Header\n";
+    let text = "---\ntitle: Valid Title Key\nprofile: guide\n---\n\n# Document Header\n";
     let doc = parse_document_text(&root, root.join("doc.md"), text, true);
     match doc.frontmatter {
-        FrontmatterState::Invalid(err) => {
-            assert!(err.contains("MUST NOT contain a title field"));
+        FrontmatterState::Parsed(fm) => {
+            assert_eq!(fm.title.as_deref(), Some("Valid Title Key"));
+            assert_eq!(fm.profile.as_deref(), Some("guide"));
         }
-        other => panic!("expected invalid frontmatter due to title key, got {other:?}"),
+        other => panic!("expected parsed frontmatter with title key, got {other:?}"),
     }
 }

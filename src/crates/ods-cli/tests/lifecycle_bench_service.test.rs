@@ -6,24 +6,9 @@ use ods_test_support::temp_workspace;
 use std::fs;
 use std::path::PathBuf;
 use std::process::Command;
-use std::time::Duration;
 
 fn ods_bin() -> PathBuf {
     PathBuf::from(env!("CARGO_BIN_EXE_ods"))
-}
-
-#[allow(dead_code)]
-fn terminate_gracefully(child: &mut std::process::Child) {
-    #[cfg(unix)]
-    {
-        // SAFETY: `kill(2)` with a valid pid and the SIGTERM signal number;
-        // no memory is touched, only signal delivery.
-        unsafe {
-            libc::kill(child.id() as libc::pid_t, libc::SIGTERM);
-        }
-        std::thread::sleep(Duration::from_millis(300));
-    }
-    let _ = child.kill();
 }
 
 fn init(dir: &std::path::Path) {

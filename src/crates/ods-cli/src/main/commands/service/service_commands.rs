@@ -34,14 +34,24 @@ fn run_serve_command(args: &[String]) -> Result<ExitCode, CliError> {
 }
 
 fn run_export_command(args: &[String]) -> Result<ExitCode, CliError> {
-    let (root, out) = parse_export_args(args)?;
+    let (root, out, format, spec) = parse_export_args(args)?;
     require_ods_workspace(&root)?;
     let include_private = args.iter().any(|a| a == "--include-private");
-    let path = export_workspace_graph(&root, &out, include_private)
-        .map_err(|e| failure(e.to_string()))?;
-    println!("wrote {}", path.display());
-    if !include_private {
-        println!("(documents marked share: private or share: org were omitted; pass --include-private to include them)");
+
+    match format {
+        OutputFormat::Json => {
+            let workspace = ods_core::load_workspace(&root).map_err(|e| failure(e.to_string()))?;
+            let json_str = ods_core::render_graph_json(&workspace, include_private, &spec);
+            println!("{json_str}");
+        }
+        OutputFormat::Text | OutputFormat::Sarif => {
+            let path = export_workspace_graph(&root, &out, include_private)
+                .map_err(|e| failure(e.to_string()))?;
+            println!("wrote {}", path.display());
+            if !include_private {
+                println!("(documents marked share: private or share: org were omitted; pass --include-private to include them)");
+            }
+        }
     }
     Ok(ExitCode::from(0))
 }

@@ -1,8 +1,4 @@
-#![allow(unused_imports, dead_code)]
-use ods_core::{
-    AdoptOptions, adopt_workspace, generate_indexes, lint_workspace, load_workspace,
-    resolve_context,
-};
+use ods_core::{AdoptOptions, adopt_workspace, lint_workspace, load_workspace, resolve_context};
 use ods_test_support::temp_workspace;
 use std::fs;
 

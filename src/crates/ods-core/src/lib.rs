@@ -28,7 +28,7 @@ pub use bench::{
 
 pub use adopt::{AdoptOptions, AdoptReport, adopt_workspace};
 pub use context::resolve_context;
-pub use export::{export_workspace_graph, render_graph_markdown};
+pub use export::{export_workspace_graph, render_graph_json, render_graph_markdown};
 pub use fs::{
     find_workspace_root, index_has_ods_field, load_options_graph, load_workspace,
     load_workspace_with_options, normalize_join, normalize_path, path_matches_workspace_ignore,

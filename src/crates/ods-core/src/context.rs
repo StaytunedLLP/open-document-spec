@@ -1,5 +1,4 @@
 use crate::model::{FrontmatterState, Workspace};
-use crate::parse::document_id;
 use std::collections::{BTreeSet, VecDeque};
 use std::path::{Path, PathBuf};
 
@@ -154,10 +153,4 @@ fn context_depth(workspace: &Workspace, path: &Path) -> Option<usize> {
     let document = workspace.document_by_path(path)?;
     let frontmatter = frontmatter(document)?;
     frontmatter.context.as_ref()?.max_depth
-}
-
-#[allow(dead_code)]
-fn id_for(workspace: &Workspace, document: &crate::model::Document) -> String {
-    let fm = frontmatter(document);
-    document_id(&workspace.root, &document.path, fm)
 }

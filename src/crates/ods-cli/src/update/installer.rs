@@ -128,14 +128,13 @@ fn install_release(tag: &str, target: &str, prefix: &Path) -> Result<(), String>
     fs::create_dir_all(prefix)
         .map_err(|e| format!("create install dir {}: {e}", prefix.display()))?;
 
-    let (odc_name, ods_name) = if is_windows_target(target) {
-        ("ods.exe", "ods.exe")
+    let ods_name = if is_windows_target(target) {
+        "ods.exe"
     } else {
-        ("ods", "ods")
+        "ods"
     };
 
-    // Primary Open Document Spec CLI + legacy argv0
-    replace_binary(&bin_src, &prefix.join(odc_name))?;
+    // Primary Open Document Spec CLI
     replace_binary(&bin_src, &prefix.join(ods_name))?;
 
     let _ = fs::remove_dir_all(&tmp);

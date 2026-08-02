@@ -150,7 +150,7 @@ fn parse_frontmatter(block: &str) -> Result<Frontmatter, String> {
         let rest = rest.trim();
 
         if key == "title" {
-            return Err("frontmatter MUST NOT contain a title field (title is derived from first H1 header)".to_string());
+            frontmatter.title = scalar_value(rest);
         }
 
         match key {

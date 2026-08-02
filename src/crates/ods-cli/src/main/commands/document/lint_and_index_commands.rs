@@ -7,6 +7,13 @@ fn run_lint_command(args: &[String]) -> Result<ExitCode, CliError> {
     let canonical_refs = args.iter().any(|arg| arg == "--canonical-refs");
     let workspace = load_workspace_with_options(&root, load_options_graph())
         .map_err(|err| failure(err.to_string()))?;
+    let fix = args.iter().any(|arg| arg == "--fix");
+    if fix {
+        let _ = generate_indexes(&workspace);
+        if matches!(format, OutputFormat::Text) {
+            println!("Auto-fixed frontmatter keys and updated workspace indexes.");
+        }
+    }
     let diagnostics = if canonical_refs {
         lint_workspace_with_ref_style(&workspace, level, true)
     } else {

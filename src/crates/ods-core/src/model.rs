@@ -125,6 +125,7 @@ pub struct Frontmatter {
     /// Workspace-relative path prefixes to exclude from scan/index (root `index.md` only).
     pub ignore: Vec<String>,
     pub name: Option<String>,
+    pub title: Option<String>,
     pub expected_keys: Vec<String>,
 }
 
