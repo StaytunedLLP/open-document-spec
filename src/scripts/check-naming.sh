@@ -9,7 +9,7 @@ scan() {
   local pattern="$1"
   local hits
   hits=$(grep -rnE "$pattern" \
-    src/ods-core src/ods-cli src/scripts src/skills src/specs src/action \
+    src/ods-core src/ods-cli src/scripts skills src/specs src/action \
     docs/guide docs/other-specs docs/maintainer \
     README.md AGENTS.md CONTRIBUTING.md action.yml \
     --include='*.rs' --include='*.md' --include='*.sh' --include='*.ps1' --include='*.yml' \

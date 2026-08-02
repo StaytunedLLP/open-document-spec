@@ -7,7 +7,6 @@ custom-profiles:
   - src/fixtures/ecommerce/ods-profiles/product.md
 ignore:
   - src/fixtures
-  - src/skills
   - ods-test
   - skills
   - specs

@@ -62,7 +62,7 @@ Coverage: see [docs/maintainer/coverage.md](docs/maintainer/coverage.md). Run `.
 
 ### Touchpoint rule
 
-CLI surface or multi-spec changes must update: `src/specs/`, `docs/guide/`, `docs/other-specs/`, `src/skills/ods/`, tests, help strings, and `CHANGELOG.md` in the same change set when practical.
+CLI surface or multi-spec changes must update: `src/specs/`, `docs/guide/`, `docs/other-specs/`, `skills/ods/`, tests, help strings, and `CHANGELOG.md` in the same change set when practical.
 
 ## Tests & coverage
 
