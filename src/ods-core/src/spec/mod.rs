@@ -5,6 +5,4 @@
 
 pub mod schema;
 
-pub use schema::{
-    KeyDefinition, KeyPlacement, KeyType, SpecKind, SpecSchema, SpecSchemaRegistry,
-};
+pub use schema::{KeyDefinition, KeyPlacement, KeyType, SpecKind, SpecSchema, SpecSchemaRegistry};

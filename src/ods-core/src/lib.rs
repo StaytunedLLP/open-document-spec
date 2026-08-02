@@ -42,16 +42,15 @@ pub use bench::{
     compute_repo_hash, get_backup_dir,
 };
 
-pub use mutate::{AdoptOptions, AdoptReport, adopt_workspace};
-pub use graph::{
-    canonical_document_ref, canonical_document_ref_for_reference, document_ref_to_id,
-    document_ref_to_path, export_workspace_graph, is_file_like_ref, is_markdown_ref,
-    render_graph_json, render_graph_markdown, resolve_context,
-};
 pub use fs::{
     find_workspace_root, index_has_ods_field, load_options_graph, load_workspace,
     load_workspace_with_options, normalize_join, normalize_path, path_matches_workspace_ignore,
     rebuild_indexes, remove_document, upsert_document,
+};
+pub use graph::{
+    canonical_document_ref, canonical_document_ref_for_reference, document_ref_to_id,
+    document_ref_to_path, export_workspace_graph, is_file_like_ref, is_markdown_ref,
+    render_graph_json, render_graph_markdown, resolve_context,
 };
 pub use lifecycle::{
     DisableOptions, DisableReport, InitOptions, InitReport, NewDocumentOptions, NewDocumentReport,
@@ -59,6 +58,7 @@ pub use lifecycle::{
     init_workspace, ods_enabled, ods_enabled_for_path, scaffold_new_document,
     strip_ods_from_document_text,
 };
+pub use mutate::{AdoptOptions, AdoptReport, adopt_workspace};
 pub use observe::{
     TreeSnapshot, WatchTree, observe_renames, paired_from_paths, scan_markdown_tree,
     scan_markdown_tree_with_code_paths,
@@ -100,9 +100,7 @@ pub use profiles::{
     standard_profile_catalog,
 };
 pub use share::{ShareLevel, ShareOptions, SharePublishReport, effective_share, publish_workspace};
-pub use spec::{
-    KeyDefinition, KeyPlacement, SpecKind, SpecSchema, SpecSchemaRegistry,
-};
+pub use spec::{KeyDefinition, KeyPlacement, SpecKind, SpecSchema, SpecSchemaRegistry};
 pub use tags::{
     TagRenameReport, builtin_tags, completion_tags, docs_with_any_tag, docs_with_tag,
     is_builtin_tag, normalize_tag, normalize_tag_list, observed_tags, rename_tag_in_workspace,

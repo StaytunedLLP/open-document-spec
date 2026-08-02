@@ -18,7 +18,14 @@ fn ods() -> Command {
 fn hybrid_ods_okf_skills_lint_and_fix() {
     let dir = temp_workspace();
     let root = dir.to_str().unwrap();
-    assert!(ods().args(["init", root]).output().unwrap().status.success());
+    assert!(
+        ods()
+            .args(["init", root])
+            .output()
+            .unwrap()
+            .status
+            .success()
+    );
 
     // also plant OKF marker alongside (hybrid)
     let index = fs::read_to_string(dir.join("index.md")).unwrap();
@@ -67,7 +74,14 @@ fn hybrid_ods_okf_skills_lint_and_fix() {
 fn export_flag_matrix() {
     let dir = temp_workspace();
     let root = dir.to_str().unwrap();
-    assert!(ods().args(["init", root]).output().unwrap().status.success());
+    assert!(
+        ods()
+            .args(["init", root])
+            .output()
+            .unwrap()
+            .status
+            .success()
+    );
     fs::write(
         dir.join("a.md"),
         "---\nprofile: note\nstatus: draft\nid: a\n---\n\n# A\n",
@@ -106,7 +120,14 @@ fn export_flag_matrix() {
 fn lifecycle_new_rm_archive_mv_edges() {
     let dir = temp_workspace();
     let root = dir.to_str().unwrap();
-    assert!(ods().args(["init", root]).output().unwrap().status.success());
+    assert!(
+        ods()
+            .args(["init", root])
+            .output()
+            .unwrap()
+            .status
+            .success()
+    );
 
     for (path, profile) in [
         ("docs/n1.md", "note"),
@@ -118,7 +139,14 @@ fn lifecycle_new_rm_archive_mv_edges() {
             fs::create_dir_all(p).unwrap();
         }
         let out = ods()
-            .args(["new", full.to_str().unwrap(), "--profile", profile, "--title", "T"])
+            .args([
+                "new",
+                full.to_str().unwrap(),
+                "--profile",
+                profile,
+                "--title",
+                "T",
+            ])
             .output()
             .unwrap();
         if !out.status.success() {
@@ -135,32 +163,30 @@ fn lifecycle_new_rm_archive_mv_edges() {
         .args(["archive", dir.join("docs/n1.md").to_str().unwrap()])
         .output();
     let _ = ods()
-        .args([
-            "mv",
-            root,
-            "docs/n2.md",
-            "docs/renamed.md",
-        ])
+        .args(["mv", root, "docs/n2.md", "docs/renamed.md"])
         .output();
-    let _ = ods()
-        .args(["context", root, "docs/renamed"])
-        .output();
+    let _ = ods().args(["context", root, "docs/renamed"]).output();
     let _ = ods()
         .args(["context", root, "docs/renamed", "--format", "json"])
         .output();
     let _ = ods()
         .args(["rm", dir.join("docs/n3.md").to_str().unwrap()])
         .output();
-    let _ = ods()
-        .args(["rm", "docs/n3", root])
-        .output();
+    let _ = ods().args(["rm", "docs/n3", root]).output();
 }
 
 #[test]
 fn fmt_and_adopt_disable_write_paths() {
     let dir = temp_workspace();
     let root = dir.to_str().unwrap();
-    assert!(ods().args(["init", root]).output().unwrap().status.success());
+    assert!(
+        ods()
+            .args(["init", root])
+            .output()
+            .unwrap()
+            .status
+            .success()
+    );
     fs::write(dir.join("p.md"), "# plain\n").unwrap();
     fs::write(
         dir.join("spaced.md"),
@@ -182,7 +208,14 @@ fn fmt_and_adopt_disable_write_paths() {
 fn coverage_and_audit_and_clean_reports() {
     let dir = temp_workspace();
     let root = dir.to_str().unwrap();
-    assert!(ods().args(["init", root]).output().unwrap().status.success());
+    assert!(
+        ods()
+            .args(["init", root])
+            .output()
+            .unwrap()
+            .status
+            .success()
+    );
     fs::write(dir.join("plain.md"), "# p\n").unwrap();
 
     let _ = ods().args(["coverage", root]).output();
@@ -221,7 +254,14 @@ fn init_with_adopt_and_okf_skills_roots() {
 fn workspaces_and_tag_json_formats() {
     let dir = temp_workspace();
     let root = dir.to_str().unwrap();
-    assert!(ods().args(["init", root]).output().unwrap().status.success());
+    assert!(
+        ods()
+            .args(["init", root])
+            .output()
+            .unwrap()
+            .status
+            .success()
+    );
     fs::write(
         dir.join("t.md"),
         "---\nprofile: note\nstatus: draft\ntags:\n  - one\n---\n\n# T\n",
@@ -238,10 +278,14 @@ fn workspaces_and_tag_json_formats() {
         .env("HOME", &home)
         .args(["workspaces", "list", "--format", "json"])
         .output();
-    let _ = ods().args(["tag", "list", root, "--format", "json"]).output();
+    let _ = ods()
+        .args(["tag", "list", root, "--format", "json"])
+        .output();
     let _ = ods().args(["tags", root, "--all"]).output();
     let _ = ods()
-        .args(["tag", "rename", "one", "two", root, "--write", "--format", "json"])
+        .args([
+            "tag", "rename", "one", "two", root, "--write", "--format", "json",
+        ])
         .output();
 }
 
@@ -253,7 +297,14 @@ fn lsp_tcp_port_session() {
 
     let dir = temp_workspace();
     let root = dir.to_str().unwrap();
-    assert!(ods().args(["init", root]).output().unwrap().status.success());
+    assert!(
+        ods()
+            .args(["init", root])
+            .output()
+            .unwrap()
+            .status
+            .success()
+    );
 
     // Bind ephemeral to discover a free port, drop, then let lsp bind it.
     let listener = std::net::TcpListener::bind("127.0.0.1:0").unwrap();
@@ -283,12 +334,8 @@ fn lsp_tcp_port_session() {
         // port path may still have been partially executed
         return;
     };
-    stream
-        .set_read_timeout(Some(Duration::from_secs(3)))
-        .ok();
-    stream
-        .set_write_timeout(Some(Duration::from_secs(3)))
-        .ok();
+    stream.set_read_timeout(Some(Duration::from_secs(3))).ok();
+    stream.set_write_timeout(Some(Duration::from_secs(3))).ok();
 
     let init = format!(
         r#"{{"jsonrpc":"2.0","id":1,"method":"initialize","params":{{"rootUri":"file://{root}"}}}}"#
@@ -318,7 +365,14 @@ fn lsp_tcp_port_session() {
 fn upgrade_with_legacy_home_config() {
     let dir = temp_workspace();
     let root = dir.to_str().unwrap();
-    assert!(ods().args(["init", root]).output().unwrap().status.success());
+    assert!(
+        ods()
+            .args(["init", root])
+            .output()
+            .unwrap()
+            .status
+            .success()
+    );
 
     let home = dir.join("home");
     // legacy and modern are same path in current code (.ods) — still exercise HOME branch
@@ -346,11 +400,28 @@ fn upgrade_with_legacy_home_config() {
 fn lifecycle_scaffold_many_profiles_and_errors() {
     let dir = temp_workspace();
     let root = dir.to_str().unwrap();
-    assert!(ods().args(["init", root]).output().unwrap().status.success());
+    assert!(
+        ods()
+            .args(["init", root])
+            .output()
+            .unwrap()
+            .status
+            .success()
+    );
 
     for profile in [
-        "note", "feature", "decision", "api", "sop", "faq", "meeting", "guide", "policy", "rfc",
-        "checklist", "architecture",
+        "note",
+        "feature",
+        "decision",
+        "api",
+        "sop",
+        "faq",
+        "meeting",
+        "guide",
+        "policy",
+        "rfc",
+        "checklist",
+        "architecture",
     ] {
         let path = dir.join(format!("p-{profile}.md"));
         let out = ods()
@@ -378,13 +449,9 @@ fn lifecycle_scaffold_many_profiles_and_errors() {
         .args(["rm", dir.join("nope.md").to_str().unwrap()])
         .output();
     // archive missing
-    let _ = ods()
-        .args(["archive", "missing-id", root])
-        .output();
+    let _ = ods().args(["archive", "missing-id", root]).output();
     // mv missing
-    let _ = ods()
-        .args(["mv", root, "missing.md", "other.md"])
-        .output();
+    let _ = ods().args(["mv", root, "missing.md", "other.md"]).output();
 
     let _ = ods().args(["index", root]).output();
     let _ = ods().args(["context", root, "p-note"]).output();
@@ -411,7 +478,13 @@ fn okf_extra_commands_surface() {
         vec!["fmt", "--okf", root],
         vec!["index", "--okf", root],
         vec!["index", "--okf", root, "--check"],
-        vec!["export", "--okf", root, "--out", dir.join("okf.md").to_str().unwrap()],
+        vec![
+            "export",
+            "--okf",
+            root,
+            "--out",
+            dir.join("okf.md").to_str().unwrap(),
+        ],
         vec!["context", "--okf", root, "index"],
         vec!["adopt", "--okf", root],
         vec!["adopt", "--okf", root, "--write"],
@@ -425,7 +498,14 @@ fn okf_extra_commands_surface() {
 fn bench_strip_write_and_restore() {
     let dir = temp_workspace();
     let root = dir.to_str().unwrap();
-    assert!(ods().args(["init", root]).output().unwrap().status.success());
+    assert!(
+        ods()
+            .args(["init", root])
+            .output()
+            .unwrap()
+            .status
+            .success()
+    );
     fs::write(
         dir.join("n.md"),
         "---\nprofile: note\nstatus: draft\n---\n\n# N\n",

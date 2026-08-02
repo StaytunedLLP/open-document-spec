@@ -42,7 +42,10 @@ fn schema_stdout_and_write() {
     let out = ods().args(["schema"]).output().unwrap();
     assert!(out.status.success());
     let stdout = String::from_utf8_lossy(&out.stdout);
-    assert!(stdout.contains("profile") || stdout.contains("$schema"), "{stdout}");
+    assert!(
+        stdout.contains("profile") || stdout.contains("$schema"),
+        "{stdout}"
+    );
 
     let dest = dir.join("myschema.json");
     let out = ods()
@@ -68,7 +71,10 @@ fn stats_text_and_json() {
     let out = ods().args(["stats", root]).output().unwrap();
     assert!(out.status.success(), "{:?}", out);
     let s = String::from_utf8_lossy(&out.stdout);
-    assert!(s.contains("Documents") || s.contains("Health") || s.contains("Statistics"), "{s}");
+    assert!(
+        s.contains("Documents") || s.contains("Health") || s.contains("Statistics"),
+        "{s}"
+    );
 
     let out = ods()
         .args(["stats", root, "--format", "json"])
@@ -124,7 +130,11 @@ fn upgrade_check_and_dry_run() {
     let s = String::from_utf8_lossy(&out.stdout);
     let e = String::from_utf8_lossy(&out.stderr);
     assert!(
-        out.status.success() || s.contains("ODS") || e.contains("ODS") || !s.is_empty() || !e.is_empty(),
+        out.status.success()
+            || s.contains("ODS")
+            || e.contains("ODS")
+            || !s.is_empty()
+            || !e.is_empty(),
         "stdout={s} stderr={e}"
     );
 
@@ -164,10 +174,7 @@ fn init_skills_and_lint_skills() {
         .unwrap();
     }
 
-    let out = ods()
-        .args(["lint", "--skills", root])
-        .output()
-        .unwrap();
+    let out = ods().args(["lint", "--skills", root]).output().unwrap();
     // may fail if hybrid requirements; just exercise path
     let _ = out.status;
     let s = String::from_utf8_lossy(&out.stdout);
@@ -265,10 +272,16 @@ fn find_fmt_doctor_coverage_paths() {
     let out = ods().args(["doctor", root]).output().unwrap();
     assert!(out.status.success(), "{:?}", out);
 
-    let out = ods().args(["coverage", root, "--write-report"]).output().unwrap();
+    let out = ods()
+        .args(["coverage", root, "--write-report"])
+        .output()
+        .unwrap();
     let _ = out.status;
 
-    let out = ods().args(["graph", root, "--format", "json"]).output().unwrap();
+    let out = ods()
+        .args(["graph", root, "--format", "json"])
+        .output()
+        .unwrap();
     let _ = out.status;
 
     let out = ods()

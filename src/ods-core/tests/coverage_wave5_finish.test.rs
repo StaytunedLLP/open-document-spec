@@ -1,8 +1,8 @@
 //! Final coverage push: force index fallback paths, lint helpers, rewrite edges.
 use ods_core::{
-    FrontmatterState, PathChange, apply_path_changes, compute_path_change_edits, generate_indexes,
-    index_directories, lint_workspace, lint_workspace_with_level, load_workspace, render_index,
-    LintLevel,
+    FrontmatterState, LintLevel, PathChange, apply_path_changes, compute_path_change_edits,
+    generate_indexes, index_directories, lint_workspace, lint_workspace_with_level, load_workspace,
+    render_index,
 };
 use std::fs;
 use std::path::PathBuf;
@@ -64,7 +64,11 @@ fn render_index_fallback_when_children_cache_empty() {
 
     // nested with empty children + existing prose extract
     let nested = root.join("area/nested");
-    let r2 = render_index(&ws, &nested, Some("---\nprofile: index\n---\n\n# Nested\n\n- [b](b.md)\n"));
+    let r2 = render_index(
+        &ws,
+        &nested,
+        Some("---\nprofile: index\n---\n\n# Nested\n\n- [b](b.md)\n"),
+    );
     assert!(!r2.is_empty());
 
     // empty / missing directory
@@ -106,7 +110,10 @@ fn lint_helpers_extra_and_missing_with_resources_and_code() {
         .collect::<Vec<_>>()
         .join("\n");
     assert!(
-        text.contains("missing") || text.contains("extra") || text.contains("index") || !diags.is_empty(),
+        text.contains("missing")
+            || text.contains("extra")
+            || text.contains("index")
+            || !diags.is_empty(),
         "{text}"
     );
 
@@ -183,12 +190,19 @@ fn root_index_preserves_packs_profiles_ignore_on_render() {
     )
     .unwrap();
     fs::create_dir_all(root.join("my-pack")).unwrap();
-    fs::write(root.join("n.md"), "---\nprofile: note\nstatus: draft\n---\n\n# N\n").unwrap();
+    fs::write(
+        root.join("n.md"),
+        "---\nprofile: note\nstatus: draft\n---\n\n# N\n",
+    )
+    .unwrap();
 
     let ws = load_workspace(root).unwrap();
     let existing = fs::read_to_string(root.join("index.md")).unwrap();
     let out = render_index(&ws, root, Some(&existing));
-    assert!(out.contains("packs:") || out.contains("my-pack") || out.contains("ignore:"), "{out}");
+    assert!(
+        out.contains("packs:") || out.contains("my-pack") || out.contains("ignore:"),
+        "{out}"
+    );
     // clear cache and render again
     let mut ws = ws;
     ws.children.clear();

@@ -96,7 +96,9 @@ fn skills_init_parse_lint_roundtrip() {
     let parsed = parse_skill_package(&pkg).unwrap();
     let diags = lint_skill_package(&parsed);
     assert!(
-        diags.iter().all(|d| d.severity != ods_core::Severity::Error),
+        diags
+            .iter()
+            .all(|d| d.severity != ods_core::Severity::Error),
         "{diags:?}"
     );
 }
@@ -125,7 +127,10 @@ fn skills_lint_edge_cases() {
     .unwrap();
     let p = parse_skill_package(&pkg).unwrap();
     let d = lint_skill_package(&p);
-    assert!(d.iter().any(|x| x.message.contains("64") || x.message.contains("lowercase")));
+    assert!(
+        d.iter()
+            .any(|x| x.message.contains("64") || x.message.contains("lowercase"))
+    );
 
     fs::write(
         pkg.join("SKILL.md"),
@@ -139,7 +144,10 @@ fn skills_lint_edge_cases() {
     // long description + compatibility + body warning
     let long_desc = "x".repeat(1025);
     let long_compat = "y".repeat(501);
-    let long_body = (0..520).map(|i| format!("line {i}")).collect::<Vec<_>>().join("\n");
+    let long_body = (0..520)
+        .map(|i| format!("line {i}"))
+        .collect::<Vec<_>>()
+        .join("\n");
     fs::write(
         pkg.join("SKILL.md"),
         format!(
@@ -151,7 +159,9 @@ fn skills_lint_edge_cases() {
     let d = lint_skill_package(&p);
     assert!(d.iter().any(|x| x.message.contains("1024")));
     assert!(d.iter().any(|x| x.message.contains("500")));
-    assert!(d.iter().any(|x| x.message.contains("500") || x.message.contains("progressive") || x.message.contains("lines")));
+    assert!(d.iter().any(|x| x.message.contains("500")
+        || x.message.contains("progressive")
+        || x.message.contains("lines")));
 }
 
 #[test]

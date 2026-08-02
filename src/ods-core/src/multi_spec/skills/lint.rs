@@ -38,7 +38,12 @@ pub fn lint_skill_package(pkg: &SkillPackage) -> Vec<Diagnostic> {
         }
     }
 
-    match fm.description.as_deref().map(str::trim).filter(|s| !s.is_empty()) {
+    match fm
+        .description
+        .as_deref()
+        .map(str::trim)
+        .filter(|s| !s.is_empty())
+    {
         None => out.push(err(
             path.clone(),
             "missing required frontmatter field: description",

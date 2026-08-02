@@ -1,9 +1,9 @@
 //! Wave 3 pure-logic coverage: renames, path-change edits, lint edges, profiles.
 use ods_core::{
-    PathChange, TreeSnapshot, compute_path_change_edits, generate_indexes, lint_workspace,
-    lint_workspace_with_level, load_profile_catalog, load_workspace, observe_renames,
-    profile_catalog_roots, render_profile_template, rewrite_references_in_text,
-    standard_profile_catalog, LintLevel,
+    LintLevel, PathChange, TreeSnapshot, compute_path_change_edits, generate_indexes,
+    lint_workspace, lint_workspace_with_level, load_profile_catalog, load_workspace,
+    observe_renames, profile_catalog_roots, render_profile_template, rewrite_references_in_text,
+    standard_profile_catalog,
 };
 use std::collections::BTreeMap;
 use std::fs;
@@ -60,17 +60,15 @@ fn observe_renames_pairs_unique_hashes_and_dir_moves() {
     let mut curr = TreeSnapshot {
         files: BTreeMap::new(),
     };
-    prev.files
-        .insert(PathBuf::from("old/one.md"), 1);
-    prev.files
-        .insert(PathBuf::from("old/two.md"), 2);
-    curr.files
-        .insert(PathBuf::from("new/one.md"), 1);
-    curr.files
-        .insert(PathBuf::from("new/two.md"), 2);
+    prev.files.insert(PathBuf::from("old/one.md"), 1);
+    prev.files.insert(PathBuf::from("old/two.md"), 2);
+    curr.files.insert(PathBuf::from("new/one.md"), 1);
+    curr.files.insert(PathBuf::from("new/two.md"), 2);
     let changes = observe_renames(&prev, &curr);
     assert!(
-        changes.iter().any(|c| matches!(c, PathChange::DirMoved { .. }))
+        changes
+            .iter()
+            .any(|c| matches!(c, PathChange::DirMoved { .. }))
             || changes.len() >= 2,
         "{changes:?}"
     );
@@ -138,7 +136,8 @@ fn compute_path_change_edits_file_and_dir_and_traversal() {
 
 #[test]
 fn rewrite_references_edges() {
-    let text = "---\ndepends:\n  - old-id\nrelated:\n  - old.md\n---\n\n[link](old.md)\n[id](old-id)\n";
+    let text =
+        "---\ndepends:\n  - old-id\nrelated:\n  - old.md\n---\n\n[link](old.md)\n[id](old-id)\n";
     let out = rewrite_references_in_text(text, "old-id", "new-id", "old.md", "new.md");
     assert!(out.contains("new") || out.contains("old"), "{out}");
 
@@ -226,10 +225,7 @@ fn profiles_all_standard_templates_and_unknown() {
     .unwrap();
     let ws = load_workspace(td.path()).unwrap();
     let root_doc = ws.documents.iter().find(|d| {
-        d.path
-            .file_name()
-            .and_then(|n| n.to_str())
-            == Some("index.md")
+        d.path.file_name().and_then(|n| n.to_str()) == Some("index.md")
             && d.path.parent() == Some(td.path())
     });
     let roots = profile_catalog_roots(td.path(), root_doc);
@@ -310,11 +306,7 @@ fn resolve_profile_by_directory_and_headings() {
     use ods_core::{Document, Frontmatter, FrontmatterState, resolve_document_profile};
     use std::path::PathBuf;
 
-    fn doc(
-        path: &str,
-        headings: Vec<String>,
-        frontmatter: FrontmatterState,
-    ) -> Document {
+    fn doc(path: &str, headings: Vec<String>, frontmatter: FrontmatterState) -> Document {
         let path = PathBuf::from(path);
         let directory = path
             .parent()
@@ -369,7 +361,7 @@ fn resolve_profile_by_directory_and_headings() {
 
 #[test]
 fn index_checker_stale_and_resource_refs() {
-    use ods_core::{indexes_are_current, render_index, index_directories};
+    use ods_core::{index_directories, indexes_are_current, render_index};
 
     let td = tempdir();
     let root = td.path();
@@ -427,11 +419,7 @@ fn lint_index_missing_and_extra_children() {
     )
     .unwrap();
     // resource referenced
-    fs::write(
-        root.join("area/data.bin"),
-        "xx",
-    )
-    .unwrap();
+    fs::write(root.join("area/data.bin"), "xx").unwrap();
     fs::write(
         root.join("area/res.md"),
         "---\nprofile: note\nstatus: draft\nresources:\n  - path: data.bin\n---\n\n# Res\n",
@@ -451,7 +439,7 @@ fn lint_index_missing_and_extra_children() {
 
 #[test]
 fn rewriter_dir_move_not_yet_on_disk() {
-    use ods_core::{PathChange, compute_path_change_edits, apply_path_changes};
+    use ods_core::{PathChange, apply_path_changes, compute_path_change_edits};
     use std::path::PathBuf;
 
     let td = tempdir();

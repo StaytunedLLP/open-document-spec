@@ -433,7 +433,10 @@ fn test_lsp_okf_hover_and_diagnostics() {
             ),
         );
         let h = read_until_id_or_method(&mut reader, id, None);
-        assert!(h.contains("contents") || h.contains("result"), "hover {id}: {h}");
+        assert!(
+            h.contains("contents") || h.contains("result"),
+            "hover {id}: {h}"
+        );
     }
 
     write_jsonrpc_msg(stdin, r#"{"jsonrpc":"2.0","method":"exit"}"#);

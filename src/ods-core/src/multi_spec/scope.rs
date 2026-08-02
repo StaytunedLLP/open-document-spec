@@ -68,13 +68,11 @@ impl ScopeResolveError {
                  Run `ods init --skills` to scaffold a skill package."
                     .into()
             }
-            ScopeResolveError::ForbiddenOdsFlag => {
-                "unknown flag: --ods\n\n\
+            ScopeResolveError::ForbiddenOdsFlag => "unknown flag: --ods\n\n\
                  ODS is the default native engine of this CLI — no flag is needed.\n\
                  Use bare `ods <cmd>` for ODS.\n\
                  Use `--okf` or `--skills` only for other specs."
-                    .into()
-            }
+                .into(),
         }
     }
 }
@@ -172,7 +170,8 @@ mod tests {
 
     #[test]
     fn pure_okf_bare_errors_with_hint() {
-        let err = resolve_engines(ExtraSpecs::default(), det(false, true, false), true).unwrap_err();
+        let err =
+            resolve_engines(ExtraSpecs::default(), det(false, true, false), true).unwrap_err();
         match err {
             ScopeResolveError::NotOdsWorkspace { hint_okf, .. } => assert!(hint_okf),
             other => panic!("unexpected {other:?}"),

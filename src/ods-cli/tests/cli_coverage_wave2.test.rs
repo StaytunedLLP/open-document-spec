@@ -16,7 +16,12 @@ fn ods() -> Command {
 
 fn init(root: &str) {
     assert!(
-        ods().args(["init", root]).output().unwrap().status.success(),
+        ods()
+            .args(["init", root])
+            .output()
+            .unwrap()
+            .status
+            .success(),
         "init failed"
     );
 }
@@ -42,7 +47,10 @@ fn audit_inventory_text_json_report_and_fail_on() {
     let out = ods().args(["audit", root]).output().unwrap();
     assert!(out.status.success(), "{:?}", out);
     let s = String::from_utf8_lossy(&out.stdout);
-    assert!(s.contains("audit") || s.contains("plain") || s.contains("compliant"), "{s}");
+    assert!(
+        s.contains("audit") || s.contains("plain") || s.contains("compliant"),
+        "{s}"
+    );
 
     let out = ods()
         .args(["audit", root, "--format", "json"])
@@ -102,10 +110,7 @@ fn upgrade_migrate_fm_and_json_and_empty_workspace() {
         .unwrap();
     let _ = out.status;
 
-    let out = ods()
-        .args(["upgrade", root, "--write"])
-        .output()
-        .unwrap();
+    let out = ods().args(["upgrade", root, "--write"]).output().unwrap();
     assert!(out.status.success(), "{:?}", out);
 
     let out = ods()
@@ -196,11 +201,7 @@ fn profiles_list_and_init_profile_doc() {
     let index = if index.contains("profiles:") {
         index
     } else {
-        index.replacen(
-            "---\n",
-            "---\nprofiles:\n  - ods-profiles\n",
-            1,
-        )
+        index.replacen("---\n", "---\nprofiles:\n  - ods-profiles\n", 1)
     };
     fs::write(dir.join("index.md"), index).unwrap();
 
@@ -215,7 +216,12 @@ fn profiles_list_and_init_profile_doc() {
 
     // new with profile
     let out = ods()
-        .args(["new", dir.join("feat.md").to_str().unwrap(), "--profile", "feature"])
+        .args([
+            "new",
+            dir.join("feat.md").to_str().unwrap(),
+            "--profile",
+            "feature",
+        ])
         .output()
         .unwrap();
     let _ = out.status;
@@ -241,7 +247,10 @@ fn lifecycle_new_archive_rm_mv_context() {
     }
     let _ = ods().args(["index", root]).output();
 
-    let out = ods().args(["archive", doc.to_str().unwrap()]).output().unwrap();
+    let out = ods()
+        .args(["archive", doc.to_str().unwrap()])
+        .output()
+        .unwrap();
     let _ = out.status;
 
     let dest = dir.join("life2.md");
@@ -254,16 +263,10 @@ fn lifecycle_new_archive_rm_mv_context() {
         let _ = fs::rename(&doc, &dest);
     }
 
-    let out = ods()
-        .args(["context", root, "life2"])
-        .output()
-        .unwrap();
+    let out = ods().args(["context", root, "life2"]).output().unwrap();
     let _ = out.status;
 
-    let out = ods()
-        .args(["rm", dest.to_str().unwrap()])
-        .output()
-        .unwrap();
+    let out = ods().args(["rm", dest.to_str().unwrap()]).output().unwrap();
     let _ = out.status;
 }
 
@@ -318,7 +321,13 @@ fn okf_flag_commands_matrix() {
         vec!["index", "--okf", root],
         vec!["index", "--okf", root, "--check"],
         vec!["fmt", "--okf", root],
-        vec!["export", "--okf", root, "--out", dir.join("okf-graph.md").to_str().unwrap()],
+        vec![
+            "export",
+            "--okf",
+            root,
+            "--out",
+            dir.join("okf-graph.md").to_str().unwrap(),
+        ],
     ] {
         let out = ods().args(&args).output().unwrap();
         let _ = out.status;
@@ -400,12 +409,7 @@ fn find_and_tag_and_share() {
 
     let share_out = dir.join("share-out");
     let out = ods()
-        .args([
-            "share",
-            root,
-            "--out",
-            share_out.to_str().unwrap(),
-        ])
+        .args(["share", root, "--out", share_out.to_str().unwrap()])
         .output()
         .unwrap();
     let _ = out.status;

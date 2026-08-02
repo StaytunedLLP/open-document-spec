@@ -49,10 +49,16 @@ fn render_graph_json_covers_nodes_edges_and_private() {
 
     let full = render_graph_json(&ws, true, "0.1");
     assert!(full.contains("private") || full.contains("\"b\""), "{full}");
-    assert!(full.contains("entrypoint") || full.contains("src/a.rs"), "{full}");
+    assert!(
+        full.contains("entrypoint") || full.contains("src/a.rs"),
+        "{full}"
+    );
 
     let md = render_graph_markdown(&ws, true);
-    assert!(md.contains("depends") || md.contains("related") || md.contains("Documents"), "{md}");
+    assert!(
+        md.contains("depends") || md.contains("related") || md.contains("Documents"),
+        "{md}"
+    );
 }
 
 #[test]
@@ -84,7 +90,10 @@ fn profiles_catalog_and_templates() {
     ] {
         if cat.definitions.contains_key(profile) {
             let text = render_profile_template(&cat, profile, "Demo Title").unwrap();
-            assert!(text.contains("Demo Title") || text.contains("---"), "{text}");
+            assert!(
+                text.contains("Demo Title") || text.contains("---"),
+                "{text}"
+            );
         }
     }
 
@@ -347,7 +356,8 @@ fn profiles_load_custom_definitions_from_dir() {
 #[test]
 fn okf_rich_frontmatter_sources_parameters_and_lint() {
     use ods_core::{
-        OkfInitOptions, init_okf_bundle, lint_okf_bundle, load_okf_bundle, parse_okf_frontmatter_block,
+        OkfInitOptions, init_okf_bundle, lint_okf_bundle, load_okf_bundle,
+        parse_okf_frontmatter_block,
     };
 
     let block = r#"
@@ -432,8 +442,9 @@ fn index_render_and_checker_paths() {
 #[test]
 fn mv_applier_classifier_healer_smoke() {
     use ods_core::{
-        PathChange, apply_path_changes, canonicalize_workspace_document_refs, classify_watch_events,
-        heal_orphan_path_ids, migrate_workspace_frontmatter, normalize_workspace_frontmatter_spacing,
+        PathChange, apply_path_changes, canonicalize_workspace_document_refs,
+        classify_watch_events, heal_orphan_path_ids, migrate_workspace_frontmatter,
+        normalize_workspace_frontmatter_spacing,
     };
     use std::path::PathBuf;
 

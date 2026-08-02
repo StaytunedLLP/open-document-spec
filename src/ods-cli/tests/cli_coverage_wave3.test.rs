@@ -16,14 +16,7 @@ fn ods() -> Command {
 
 #[test]
 fn help_matrix_for_common_commands() {
-    for cmd in [
-        "help",
-        "--help",
-        "-h",
-        "version",
-        "--version",
-        "-V",
-    ] {
+    for cmd in ["help", "--help", "-h", "version", "--version", "-V"] {
         let out = ods().args([cmd]).output().unwrap();
         let _ = out.status;
     }
@@ -69,7 +62,14 @@ fn help_matrix_for_common_commands() {
 fn pack_and_profiles_and_find_edges() {
     let dir = temp_workspace();
     let root = dir.to_str().unwrap();
-    assert!(ods().args(["init", root]).output().unwrap().status.success());
+    assert!(
+        ods()
+            .args(["init", root])
+            .output()
+            .unwrap()
+            .status
+            .success()
+    );
 
     let pack = dir.join("p1");
     assert!(
@@ -114,9 +114,7 @@ fn pack_and_profiles_and_find_edges() {
     )
     .unwrap();
     let _ = ods().args(["index", root]).output();
-    let _ = ods()
-        .args(["find", root, "--query", "F"])
-        .output();
+    let _ = ods().args(["find", root, "--query", "F"]).output();
     let _ = ods()
         .args(["find", root, "--tag", "z", "--format", "json"])
         .output();
@@ -125,16 +123,21 @@ fn pack_and_profiles_and_find_edges() {
         .output();
 
     let _ = ods().args(["profiles", root]).output();
-    let _ = ods()
-        .args(["profiles", root, "--format", "json"])
-        .output();
+    let _ = ods().args(["profiles", root, "--format", "json"]).output();
 }
 
 #[test]
 fn setup_editor_configs_write() {
     let dir = temp_workspace();
     let root = dir.to_str().unwrap();
-    assert!(ods().args(["init", root]).output().unwrap().status.success());
+    assert!(
+        ods()
+            .args(["init", root])
+            .output()
+            .unwrap()
+            .status
+            .success()
+    );
     let home = dir.join("home");
     fs::create_dir_all(&home).unwrap();
 
@@ -168,7 +171,14 @@ fn sync_git_workspace_and_diff() {
     let dir = temp_workspace();
     let root = dir.path();
     let root_s = root.to_str().unwrap();
-    assert!(ods().args(["init", root_s]).output().unwrap().status.success());
+    assert!(
+        ods()
+            .args(["init", root_s])
+            .output()
+            .unwrap()
+            .status
+            .success()
+    );
     fs::write(
         root.join("n.md"),
         "---\nprofile: note\nstatus: draft\n---\n\n# N\n",
@@ -213,7 +223,14 @@ fn sync_git_workspace_and_diff() {
 fn workspaces_json_and_path_ops() {
     let dir = temp_workspace();
     let root = dir.to_str().unwrap();
-    assert!(ods().args(["init", root]).output().unwrap().status.success());
+    assert!(
+        ods()
+            .args(["init", root])
+            .output()
+            .unwrap()
+            .status
+            .success()
+    );
     let home = dir.join("home");
     fs::create_dir_all(&home).unwrap();
 
@@ -239,7 +256,14 @@ fn workspaces_json_and_path_ops() {
 fn bench_full_and_run_help() {
     let dir = temp_workspace();
     let root = dir.to_str().unwrap();
-    assert!(ods().args(["init", root]).output().unwrap().status.success());
+    assert!(
+        ods()
+            .args(["init", root])
+            .output()
+            .unwrap()
+            .status
+            .success()
+    );
     let home = dir.join("home");
     fs::create_dir_all(&home).unwrap();
 
@@ -266,7 +290,9 @@ fn skill_install_and_agents_on_okf() {
 
     let out = ods()
         .current_dir(dir.path())
-        .args(["skill", "install", "--agent", "cursor", "--scope", "project"])
+        .args([
+            "skill", "install", "--agent", "cursor", "--scope", "project",
+        ])
         .output()
         .unwrap();
     let _ = out.status;
@@ -276,7 +302,14 @@ fn skill_install_and_agents_on_okf() {
 fn service_status_and_logs_only() {
     let dir = temp_workspace();
     let root = dir.to_str().unwrap();
-    assert!(ods().args(["init", root]).output().unwrap().status.success());
+    assert!(
+        ods()
+            .args(["init", root])
+            .output()
+            .unwrap()
+            .status
+            .success()
+    );
     let home = dir.join("home");
     fs::create_dir_all(&home).unwrap();
 

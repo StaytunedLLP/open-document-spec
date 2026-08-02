@@ -35,7 +35,14 @@ fn pack_add_errors_and_url_paths() {
         .unwrap();
     assert!(!out.status.success() || out.status.success());
 
-    assert!(ods().args(["init", root_s]).output().unwrap().status.success());
+    assert!(
+        ods()
+            .args(["init", root_s])
+            .output()
+            .unwrap()
+            .status
+            .success()
+    );
 
     // local pack
     let pack = root.join("local-pack");
@@ -177,17 +184,20 @@ fn lifecycle_from_cwd_new_rm_archive_logs() {
         "---\nprofile: note\nstatus: draft\n---\n\n# Flat\n",
     )
     .unwrap();
-    let _ = ods().current_dir(root).args(["archive", "flat.md"]).output();
-
-    // archive by id
     let _ = ods()
         .current_dir(root)
-        .args(["archive", "flat"])
+        .args(["archive", "flat.md"])
         .output();
+
+    // archive by id
+    let _ = ods().current_dir(root).args(["archive", "flat"]).output();
 
     // rm by path and id
     let _ = ods().current_dir(root).args(["rm", "flat.md"]).output();
-    let _ = ods().current_dir(root).args(["rm", "docs/guide.md"]).output();
+    let _ = ods()
+        .current_dir(root)
+        .args(["rm", "docs/guide.md"])
+        .output();
 
     // new missing args
     let _ = ods().current_dir(root).args(["new"]).output();
@@ -198,7 +208,10 @@ fn lifecycle_from_cwd_new_rm_archive_logs() {
     let out = ods().env("HOME", &home).args(["logs"]).output().unwrap();
     assert!(out.status.success(), "{:?}", out);
     let s = String::from_utf8_lossy(&out.stdout);
-    assert!(s.contains("line1") || s.contains("ods-serve") || !s.is_empty(), "{s}");
+    assert!(
+        s.contains("line1") || s.contains("ods-serve") || !s.is_empty(),
+        "{s}"
+    );
 
     // empty logs dir
     let home2 = dir.join("home2");
@@ -211,7 +224,14 @@ fn lifecycle_from_cwd_new_rm_archive_logs() {
 fn lint_index_fix_canonical_and_hybrid_skills_empty() {
     let dir = temp_workspace();
     let root = dir.to_str().unwrap();
-    assert!(ods().args(["init", root]).output().unwrap().status.success());
+    assert!(
+        ods()
+            .args(["init", root])
+            .output()
+            .unwrap()
+            .status
+            .success()
+    );
     fs::write(
         dir.join("x.md"),
         "---\nprofile: note\nstatus: draft\ndepends:\n  - missing\n---\n\n# X\n",
@@ -221,13 +241,9 @@ fn lint_index_fix_canonical_and_hybrid_skills_empty() {
     let _ = ods().args(["lint", root, "--fix"]).output();
     let _ = ods().args(["lint", root, "--canonical-refs"]).output();
     let _ = ods().args(["lint", root, "--skills"]).output(); // no skills package
-    let _ = ods()
-        .args(["index", root, "--check"])
-        .output();
+    let _ = ods().args(["index", root, "--check"]).output();
     let _ = ods().args(["index", root]).output();
-    let _ = ods()
-        .args(["index", root, "--format", "json"])
-        .output();
+    let _ = ods().args(["index", root, "--format", "json"]).output();
 }
 
 #[test]
@@ -242,12 +258,16 @@ fn adopt_init_disable_full_matrix() {
     let _ = ods().args(["adopt", root, "--write"]).output();
     let _ = ods().args(["index", root]).output();
     let _ = ods().args(["fmt", root]).output();
-    let _ = ods()
-        .args(["fmt", root, "--refs", "md-paths"])
-        .output();
+    let _ = ods().args(["fmt", root, "--refs", "md-paths"]).output();
     let _ = ods().args(["disable", root]).output();
     let _ = ods()
-        .args(["disable", root, "--write", "--keep-frontmatter", "--remove-indexes"])
+        .args([
+            "disable",
+            root,
+            "--write",
+            "--keep-frontmatter",
+            "--remove-indexes",
+        ])
         .output();
 }
 
@@ -279,7 +299,13 @@ fn okf_commands_full_surface() {
         vec!["fmt", "--okf", root],
         vec!["index", "--okf", root],
         vec!["index", "--okf", root, "--check"],
-        vec!["export", "--okf", root, "--out", dir.join("g.md").to_str().unwrap()],
+        vec![
+            "export",
+            "--okf",
+            root,
+            "--out",
+            dir.join("g.md").to_str().unwrap(),
+        ],
         vec!["context", "--okf", root, "concept"],
         vec!["context", "--okf", root, "concept", "--format", "json"],
         vec!["adopt", "--okf", root],
@@ -295,14 +321,17 @@ fn okf_commands_full_surface() {
 fn upgrade_audit_fail_on_and_json() {
     let dir = temp_workspace();
     let root = dir.to_str().unwrap();
-    assert!(ods().args(["init", root]).output().unwrap().status.success());
+    assert!(
+        ods()
+            .args(["init", root])
+            .output()
+            .unwrap()
+            .status
+            .success()
+    );
     fs::write(dir.join("plain.md"), "# p\n").unwrap();
     fs::write(dir.join("bad.md"), "---\n:\n---\n\n# b\n").unwrap();
-    fs::write(
-        dir.join("part.md"),
-        "---\nstatus: draft\n---\n\n# part\n",
-    )
-    .unwrap();
+    fs::write(dir.join("part.md"), "---\nstatus: draft\n---\n\n# part\n").unwrap();
 
     let home = dir.join("home");
     fs::create_dir_all(home.join(".ods")).unwrap();
@@ -329,7 +358,14 @@ fn upgrade_audit_fail_on_and_json() {
 fn service_and_workspaces_and_find_edges() {
     let dir = temp_workspace();
     let root = dir.to_str().unwrap();
-    assert!(ods().args(["init", root]).output().unwrap().status.success());
+    assert!(
+        ods()
+            .args(["init", root])
+            .output()
+            .unwrap()
+            .status
+            .success()
+    );
     fs::write(
         dir.join("t.md"),
         "---\nprofile: note\nstatus: draft\ntags:\n  - alpha\n---\n\n# T\n",
@@ -342,12 +378,8 @@ fn service_and_workspaces_and_find_edges() {
     let _ = ods()
         .args(["find", root, "--tag", "alpha", "--format", "json"])
         .output();
-    let _ = ods()
-        .args(["find", root, "--profile", "note"])
-        .output();
-    let _ = ods()
-        .args(["find", root, "--query", "T"])
-        .output();
+    let _ = ods().args(["find", root, "--profile", "note"]).output();
+    let _ = ods().args(["find", root, "--query", "T"]).output();
 
     let _ = ods()
         .env("HOME", &home)

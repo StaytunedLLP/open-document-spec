@@ -80,8 +80,7 @@ pub fn parse_skill_frontmatter_block(block: &str) -> SkillFrontmatter {
                         break;
                     }
                     if let Some((k, v)) = t.trim().split_once(':') {
-                        fm.metadata
-                            .insert(k.trim().to_string(), unquote(v.trim()));
+                        fm.metadata.insert(k.trim().to_string(), unquote(v.trim()));
                     }
                     i += 1;
                 }
