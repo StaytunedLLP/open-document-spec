@@ -411,10 +411,11 @@ fn lsp_more_hover_keys() {
 
     let dir = temp_workspace();
     let root = dir.path();
-    let root_s = root.to_str().unwrap();
+    let root_raw = root.to_str().unwrap();
+    let root_s = root_raw.replace('\\', "/");
     assert!(
         ods()
-            .args(["init", root_s])
+            .args(["init", root_raw])
             .output()
             .unwrap()
             .status
@@ -456,15 +457,19 @@ See [a](a.md).
 
     let write_msg = |stdin: &mut std::process::ChildStdin, body: &str| {
         let h = format!("Content-Length: {}\r\n\r\n", body.len());
-        stdin.write_all(h.as_bytes()).unwrap();
-        stdin.write_all(body.as_bytes()).unwrap();
-        stdin.flush().unwrap();
+        if stdin.write_all(h.as_bytes()).is_err() {
+            return;
+        }
+        if stdin.write_all(body.as_bytes()).is_err() {
+            return;
+        }
+        let _ = stdin.flush();
     };
     let read_msg = |reader: &mut BufReader<&mut std::process::ChildStdout>| -> String {
         let mut content_length = None;
         loop {
             let mut line = String::new();
-            if reader.read_line(&mut line).unwrap() == 0 {
+            if reader.read_line(&mut line).unwrap_or(0) == 0 {
                 return String::new();
             }
             let t = line.trim();

@@ -296,10 +296,11 @@ fn lsp_tcp_port_session() {
     use std::time::Duration;
 
     let dir = temp_workspace();
-    let root = dir.to_str().unwrap();
+    let root_raw = dir.to_str().unwrap();
+    let root = root_raw.replace('\\', "/");
     assert!(
         ods()
-            .args(["init", root])
+            .args(["init", root_raw])
             .output()
             .unwrap()
             .status

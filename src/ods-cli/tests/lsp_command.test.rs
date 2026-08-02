@@ -59,7 +59,7 @@ fn read_until_id_or_method<R: BufRead>(reader: &mut R, id: u64, method: Option<&
 #[test]
 fn test_lsp_jsonrpc_handshake_and_completion() {
     let dir = temp_workspace();
-    let root = dir.to_str().unwrap();
+    let root = dir.to_str().unwrap().replace('\\', "/");
 
     let mut child = Command::new(ods_bin())
         .arg("lsp")
@@ -109,7 +109,7 @@ fn test_lsp_jsonrpc_handshake_and_completion() {
 fn test_lsp_document_lifecycle_hover_definition_and_diagnostics() {
     let dir = temp_workspace();
     let root = dir.path();
-    let root_s = root.to_str().unwrap();
+    let root_s = root.to_str().unwrap().replace('\\', "/");
 
     // Minimal ODS workspace
     fs::write(
@@ -316,7 +316,7 @@ impl WaitTimeout for std::process::Child {
 fn test_lsp_skills_and_okf_hover_paths() {
     let dir = temp_workspace();
     let root = dir.path();
-    let root_s = root.to_str().unwrap();
+    let root_s = root.to_str().unwrap().replace('\\', "/");
 
     // Skill package
     fs::write(
@@ -385,7 +385,7 @@ fn test_lsp_skills_and_okf_hover_paths() {
 fn test_lsp_okf_hover_and_diagnostics() {
     let dir = temp_workspace();
     let root = dir.path();
-    let root_s = root.to_str().unwrap();
+    let root_s = root.to_str().unwrap().replace('\\', "/");
 
     fs::write(
         root.join("index.md"),
