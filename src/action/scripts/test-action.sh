@@ -36,21 +36,21 @@ fi
 info "Test 3: Execute setup.sh in setup-only mode (command: none)"
 INPUT_COMMAND="none" \
 INPUT_VERSION="v0.1.24" \
-INPUT_PATH="${REPO_ROOT}/ods-test/ecommerce" \
+INPUT_PATH="${REPO_ROOT}/src/fixtures/ecommerce" \
 "${SCRIPT_DIR}/setup.sh" || fatal "setup.sh failed in setup-only mode"
 
 # 4. Test clean workspace linting
 info "Test 4: Execute setup.sh lint command on clean workspace"
 INPUT_COMMAND="lint" \
 INPUT_VERSION="v0.1.24" \
-INPUT_PATH="${REPO_ROOT}/ods-test/ecommerce" \
+INPUT_PATH="${REPO_ROOT}/src/fixtures/ecommerce" \
 "${SCRIPT_DIR}/setup.sh" || fatal "setup.sh lint command failed on clean workspace"
 
 # 5. Test clean workspace index check
 info "Test 5: Execute setup.sh index-check command"
 INPUT_COMMAND="index-check" \
 INPUT_VERSION="v0.1.24" \
-INPUT_PATH="${REPO_ROOT}/ods-test/ecommerce" \
+INPUT_PATH="${REPO_ROOT}/src/fixtures/ecommerce" \
 "${SCRIPT_DIR}/setup.sh" || fatal "setup.sh index-check command failed"
 
 # 6. Test failure detection on broken workspace
@@ -61,7 +61,7 @@ trap 'rm -rf "${TMP_WORKSPACE}"' EXIT
 cat > "${TMP_WORKSPACE}/index.md" << 'EOF'
 ---
 ods: 0.1
-odc: ">=0.0.1"
+ods: ">=0.0.1"
 ---
 # Root Index
 EOF

@@ -1,5 +1,5 @@
 
-# Functional style for OpenDocify (`odc-core` / `odc`)
+# Functional style for Open Document Spec (`ods-core` / `ods`)
 
 Prefer **data + free functions** over OOP service objects.
 
@@ -22,4 +22,4 @@ Prefer **data + free functions** over OOP service objects.
 
 ## Modules
 
-- `odc-core/src/pipeline/` — discover, parse_stage, apply
+- `ods-core/src/pipeline/` — discover, parse_stage, apply

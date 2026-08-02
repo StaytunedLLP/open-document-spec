@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Build release binaries and a local archive shaped like GitHub Releases (odc-*).
+# Build release binaries and a local archive shaped like GitHub Releases (ods-*).
 # Does NOT publish. Use to validate installers offline.
 #
 #   ./src/scripts/package-local-release.sh
@@ -13,35 +13,35 @@ VERSION="$(grep -E '^version\s*=' Cargo.toml | head -1 | sed -E 's/.*"([^"]+)".*
 TAG="v${VERSION}"
 ASSET="${ASSET:-linux-x86_64}"
 OUT_DIR="${OUT:-${ROOT}/dist-local}"
-NAME="odc-${TAG}-${ASSET}"
+NAME="ods-${TAG}-${ASSET}"
 
-echo "==> cargo build --release -p odc"
-cargo build --release -p odc --bin odc --bin ods
+echo "==> cargo build --release -p ods"
+cargo build --release -p ods --bin ods --bin ods
 
 BIN_DIR=""
 for d in .artifacts/target/release target/release; do
-  if [ -x "${d}/odc" ]; then BIN_DIR="${d}"; break; fi
+  if [ -x "${d}/ods" ]; then BIN_DIR="${d}"; break; fi
 done
-[ -n "${BIN_DIR}" ] || { echo "error: odc binary not found" >&2; exit 1; }
+[ -n "${BIN_DIR}" ] || { echo "error: ods binary not found" >&2; exit 1; }
 
 rm -rf "${OUT_DIR}/${NAME}"
 mkdir -p "${OUT_DIR}/${NAME}"
-cp "${BIN_DIR}/odc" "${OUT_DIR}/${NAME}/odc"
+cp "${BIN_DIR}/ods" "${OUT_DIR}/${NAME}/ods"
 if [ -x "${BIN_DIR}/ods" ]; then
   cp "${BIN_DIR}/ods" "${OUT_DIR}/${NAME}/ods"
 else
-  cp "${BIN_DIR}/odc" "${OUT_DIR}/${NAME}/ods"
+  cp "${BIN_DIR}/ods" "${OUT_DIR}/${NAME}/ods"
 fi
 
 cat > "${OUT_DIR}/${NAME}/INSTALL.txt" <<EOF
-OpenDocify CLI ${TAG} (${ASSET}) — local package (not a GitHub Release)
+Open Document Spec CLI ${TAG} (${ASSET}) — local package (not a GitHub Release)
 
-  install -m 755 odc ~/.local/bin/odc
-  ln -sfn ~/.local/bin/odc ~/.local/bin/ods
+  install -m 755 ods ~/.local/bin/ods
+  ln -sfn ~/.local/bin/ods ~/.local/bin/ods
 
-  odc --version
-  odc ods lint .
-  odc okf init /tmp/okf-demo && odc okf lint /tmp/okf-demo
+  ods --version
+  ods lint .
+  ods init --okf /tmp/okf-demo && ods lint --okf /tmp/okf-demo
 EOF
 
 (

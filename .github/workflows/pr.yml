@@ -390,8 +390,12 @@ jobs:
           if ! command -v cargo-llvm-cov >/dev/null 2>&1; then
             cargo install cargo-llvm-cov --locked
           fi
-          # Ratchet threshold (workspace currently ~72.5%).
-          cargo llvm-cov --workspace --locked --fail-under-lines 70
+          # T3 excludes: network download, OS service install, long-running watch loops.
+          # See docs/maintainer/coverage-excludes.md. Ratchet upward only.
+          IGNORE_T3='(asset_downloader\.rs|update/installer\.rs|service/launchers\.rs|watch_and_serve_runner\.rs|okf_watch\.rs|github_release\.rs|setup_command\.rs)'
+          cargo llvm-cov --workspace --locked \
+            --ignore-filename-regex "$IGNORE_T3" \
+            --fail-under-lines 88
 
   # Job 3: Windows native quality gate
   windows-test:

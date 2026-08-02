@@ -1,6 +1,5 @@
 #!/usr/bin/env bash
-# GitHub Action setup & runner for OpenDocify CLI (odc) — Linux / macOS
-# Runs ODS document commands via `odc ods …` (or legacy `ods …` when only that binary exists).
+# GitHub Action setup & runner for Open Document Spec CLI (ods) — Linux / macOS
 set -euo pipefail
 
 REPO="${GITHUB_REPOSITORY:-StaytunedLLP/open-document-spec}"
@@ -37,7 +36,7 @@ api_curl() {
     -fsSL --tlsv1.2
     --connect-timeout 30 --max-time 300
     --retry 3 --retry-delay 2
-    -H "User-Agent: odc-github-action"
+    -H "User-Agent: ods-github-action"
   )
   if [ -n "${INPUT_TOKEN}" ]; then
     args+=(-H "Authorization: Bearer ${INPUT_TOKEN}")
@@ -81,7 +80,7 @@ raise SystemExit(1)
 
 VERSION="${INPUT_VERSION}"
 if [ "${VERSION}" = "latest" ] || [ -z "${VERSION}" ]; then
-  info "Resolving latest OpenDocify release..."
+  info "Resolving latest Open Document Spec release..."
   API_RESPONSE=$(api_curl -H "Accept: application/vnd.github+json" "${API}/releases/latest" 2>/dev/null || true)
   if [ -n "${API_RESPONSE}" ]; then
     VERSION=$(printf '%s' "${API_RESPONSE}" | grep '"tag_name"' | head -1 | sed 's/.*"tag_name": *"\([^"]*\)".*/\1/' || true)
@@ -99,18 +98,15 @@ else
   CLEAN_VERSION="latest"
 fi
 
-info "Target CLI version: ${TAG} (${ASSET})"
+info "Target ODS CLI version: ${TAG} (${ASSET})"
 
 INSTALL_DIR="${HOME}/.local/bin"
 mkdir -p "${INSTALL_DIR}"
-ODC_BIN="${INSTALL_DIR}/odc"
 ODS_BIN="${INSTALL_DIR}/ods"
 
 INSTALLED=false
-if [ -x "${ODC_BIN}" ] || [ -x "${ODS_BIN}" ]; then
-  CUR_BIN="${ODC_BIN}"
-  [ -x "${CUR_BIN}" ] || CUR_BIN="${ODS_BIN}"
-  CUR_VER=$("${CUR_BIN}" --version 2>/dev/null | awk '{print $2}' | head -1 || true)
+if [ -x "${ODS_BIN}" ]; then
+  CUR_VER=$("${ODS_BIN}" --version 2>/dev/null | awk '{print $2}' | head -1 || true)
   if [ "${CUR_VER}" = "${CLEAN_VERSION}" ]; then
     INSTALLED=true
     info "CLI ${CLEAN_VERSION} is already installed."
@@ -118,49 +114,45 @@ if [ -x "${ODC_BIN}" ] || [ -x "${ODS_BIN}" ]; then
 fi
 
 if [ "${INSTALLED}" = "false" ]; then
-  TMPDIR_ODC=$(mktemp -d)
-  trap 'rm -rf "${TMPDIR_ODC}"' EXIT
+  TMPDIR_ODS=$(mktemp -d)
+  trap 'rm -rf "${TMPDIR_ODS}"' EXIT
 
   DOWNLOADED=""
-  for PREFIX in odc ods; do
-    FILENAME="${PREFIX}-${TAG}-${ASSET}.tar.gz"
-    info "Trying ${FILENAME}..."
-    if download_asset "${TAG}" "${FILENAME}" "${TMPDIR_ODC}/${FILENAME}"; then
-      DOWNLOADED="${FILENAME}"
-      break
-    fi
-  done
+  FILENAME="ods-${TAG}-${ASSET}.tar.gz"
+  info "Trying ${FILENAME}..."
+  if download_asset "${TAG}" "${FILENAME}" "${TMPDIR_ODS}/${FILENAME}"; then
+    DOWNLOADED="${FILENAME}"
+  fi
 
   if [ -z "${DOWNLOADED}" ]; then
     if command -v cargo >/dev/null 2>&1; then
-      info "Release asset not available — compiling local Cargo fallback (odc)..."
+      info "Release asset not available — compiling local Cargo fallback (ods)..."
       cargo build --release -p ods-cli --bin ods 2>/dev/null \
         || cargo build --release --bin ods 2>/dev/null \
         || cargo build --release
-      FOUND_CARGO_BIN="$(find target .artifacts/target -type f \( -name ods -o -name odc \) -path "*/release/*" 2>/dev/null | xargs ls -t 2>/dev/null | head -1 || true)"
+      FOUND_CARGO_BIN="$(find target .artifacts/target -type f -name ods -path "*/release/*" 2>/dev/null | xargs ls -t 2>/dev/null | head -1 || true)"
       if [ -z "${FOUND_CARGO_BIN}" ]; then
         FOUND_CARGO_BIN=".artifacts/target/release/ods"
         [ -f "${FOUND_CARGO_BIN}" ] || FOUND_CARGO_BIN="target/release/ods"
       fi
-      install -m 755 "${FOUND_CARGO_BIN}" "${ODC_BIN}"
-      ln -sfn "${ODC_BIN}" "${ODS_BIN}" 2>/dev/null || install -m 755 "${FOUND_CARGO_BIN}" "${ODS_BIN}"
-      info "Installed ${ODC_BIN}"
+      install -m 755 "${FOUND_CARGO_BIN}" "${ODS_BIN}"
+      info "Installed ${ODS_BIN}"
       INSTALLED=true
     else
-      fatal "Failed to download odc-/ods- release asset for ${TAG} and Cargo is not installed."
+      fatal "Failed to download ods- release asset for ${TAG} and Cargo is not installed."
     fi
   fi
 
   if [ "${INSTALLED}" = "false" ]; then
     FILENAME="${DOWNLOADED}"
     info "Verifying SHA256 checksum..."
-    if download_asset "${TAG}" "SHA256SUMS" "${TMPDIR_ODC}/SHA256SUMS"; then
-      EXPECTED=$(grep " ${FILENAME}$" "${TMPDIR_ODC}/SHA256SUMS" | awk '{print $1}')
+    if download_asset "${TAG}" "SHA256SUMS" "${TMPDIR_ODS}/SHA256SUMS"; then
+      EXPECTED=$(grep " ${FILENAME}$" "${TMPDIR_ODS}/SHA256SUMS" | awk '{print $1}')
       if [ -n "${EXPECTED}" ]; then
         if command -v sha256sum >/dev/null 2>&1; then
-          ACTUAL=$(sha256sum "${TMPDIR_ODC}/${FILENAME}" | awk '{print $1}')
+          ACTUAL=$(sha256sum "${TMPDIR_ODS}/${FILENAME}" | awk '{print $1}')
         elif command -v shasum >/dev/null 2>&1; then
-          ACTUAL=$(shasum -a 256 "${TMPDIR_ODC}/${FILENAME}" | awk '{print $1}')
+          ACTUAL=$(shasum -a 256 "${TMPDIR_ODS}/${FILENAME}" | awk '{print $1}')
         else
           ACTUAL="${EXPECTED}"
         fi
@@ -170,25 +162,15 @@ if [ "${INSTALLED}" = "false" ]; then
     fi
 
     info "Extracting CLI binary..."
-    tar xzf "${TMPDIR_ODC}/${FILENAME}" -C "${TMPDIR_ODC}"
-    SRC=""
-    for name in odc ods; do
-      FOUND=$(find "${TMPDIR_ODC}" -type f -name "${name}" 2>/dev/null | head -1 || true)
-      if [ -n "${FOUND}" ]; then
-        SRC="${FOUND}"
-        break
-      fi
-    done
-    [ -n "${SRC}" ] || fatal "Binary 'odc'/'ods' not found in archive."
-    install -m 755 "${SRC}" "${ODC_BIN}"
-    ln -sfn "${ODC_BIN}" "${ODS_BIN}" 2>/dev/null || install -m 755 "${SRC}" "${ODS_BIN}"
-    info "Installed ${ODC_BIN} (+ ods symlink)"
+    tar xzf "${TMPDIR_ODS}/${FILENAME}" -C "${TMPDIR_ODS}"
+    SRC="$(find "${TMPDIR_ODS}" -type f -name ods 2>/dev/null | head -1 || true)"
+    [ -n "${SRC}" ] || fatal "Binary 'ods' not found in archive."
+    install -m 755 "${SRC}" "${ODS_BIN}"
+    info "Installed ${ODS_BIN}"
   fi
 fi
 
-# Prefer odc for namespaced commands
-CLI_BIN="${ODC_BIN}"
-[ -x "${CLI_BIN}" ] || CLI_BIN="${ODS_BIN}"
+CLI_BIN="${ODS_BIN}"
 
 if [ -n "${GITHUB_PATH:-}" ]; then
   echo "${INSTALL_DIR}" >> "${GITHUB_PATH}"
@@ -197,8 +179,6 @@ fi
 if [ -n "${GITHUB_OUTPUT:-}" ]; then
   echo "ods-version=${CLEAN_VERSION}" >> "${GITHUB_OUTPUT}"
   echo "ods-path=${CLI_BIN}" >> "${GITHUB_OUTPUT}"
-  echo "odc-version=${CLEAN_VERSION}" >> "${GITHUB_OUTPUT}"
-  echo "odc-path=${CLI_BIN}" >> "${GITHUB_OUTPUT}"
 fi
 
 if [ "${INPUT_ANNOTATE}" = "true" ] && [ -n "${GITHUB_ACTION_PATH:-}" ]; then
@@ -218,58 +198,28 @@ if [ -z "${COMMAND}" ] || [ "${COMMAND}" = "none" ] || [ "${COMMAND}" = "setup" 
   exit 0
 fi
 
-# Document commands go through ODS namespace when using odc binary
-use_ods_ns=false
-case "$(basename "${CLI_BIN}")" in
-  odc|opendocify) use_ods_ns=true ;;
-esac
-
-# Build argument array (ODS document ops)
+# Build argument array for native ODS CLI execution
 case "${COMMAND}" in
   lint)
-    if [ "${use_ods_ns}" = "true" ]; then
-      ARGS=("ods" "lint" "${INPUT_PATH}" "--level" "${INPUT_LEVEL}" "--format" "${INPUT_FORMAT}")
-    else
-      ARGS=("lint" "${INPUT_PATH}" "--level" "${INPUT_LEVEL}" "--format" "${INPUT_FORMAT}")
-    fi
+    ARGS=("lint" "${INPUT_PATH}" "--level" "${INPUT_LEVEL}" "--format" "${INPUT_FORMAT}")
     ;;
   index-check|index_check)
-    if [ "${use_ods_ns}" = "true" ]; then
-      ARGS=("ods" "index" "${INPUT_PATH}" "--check")
-    else
-      ARGS=("index" "${INPUT_PATH}" "--check")
-    fi
+    ARGS=("index" "${INPUT_PATH}" "--check")
     ;;
   doctor)
-    if [ "${use_ods_ns}" = "true" ]; then
-      ARGS=("ods" "doctor" "${INPUT_PATH}")
-    else
-      ARGS=("doctor" "${INPUT_PATH}")
-    fi
+    ARGS=("doctor" "${INPUT_PATH}")
     ;;
   fmt-check|fmt_check)
-    if [ "${use_ods_ns}" = "true" ]; then
-      ARGS=("ods" "fmt" "${INPUT_PATH}")
-    else
-      ARGS=("fmt" "${INPUT_PATH}")
-    fi
+    ARGS=("fmt" "${INPUT_PATH}")
     ;;
   bench)
-    if [ "${use_ods_ns}" = "true" ]; then
-      ARGS=("ods" "bench" "stats" "${INPUT_PATH}")
-    else
-      ARGS=("bench" "stats" "${INPUT_PATH}")
-    fi
+    ARGS=("bench" "stats" "${INPUT_PATH}")
     ;;
   export)
-    if [ "${use_ods_ns}" = "true" ]; then
-      ARGS=("ods" "export" "${INPUT_PATH}")
-    else
-      ARGS=("export" "${INPUT_PATH}")
-    fi
+    ARGS=("export" "${INPUT_PATH}")
     ;;
-  okf-lint)
-    ARGS=("okf" "lint" "${INPUT_PATH}")
+  okf-lint|okf_lint)
+    ARGS=("lint" "${INPUT_PATH}" "--okf")
     ;;
   *)
     # shellcheck disable=SC2206
@@ -284,5 +234,5 @@ fi
 
 info "Executing: $(basename "${CLI_BIN}") ${ARGS[*]}"
 export ODS_AUTO_UPDATE=0
-export ODC_AUTO_UPDATE=0
 "${CLI_BIN}" "${ARGS[@]}"
+

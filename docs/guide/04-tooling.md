@@ -1,5 +1,4 @@
 ---
-title: "Tooling & Service Reference"
 description: "CLI command matrix, service daemon vs watch comparison, CI integration, and updates."
 status: "stable"
 order: 4
@@ -10,7 +9,7 @@ ods:
 
 # Tooling
 
-Reference implementation: the **`odc` (legacy `ods`) CLI** only. There is no language server or editor extension in the production install.
+Reference implementation: the single native **`ods` CLI**. ODS is the default engine (no `--ods` flag). Extra specs use flags only: `--okf`, `--skills`. Editor support is built in via **`ods lsp`** (JSON-RPC over stdio; not the same as `ods serve`).
 
 ---
 
@@ -18,67 +17,74 @@ Reference implementation: the **`odc` (legacy `ods`) CLI** only. There is no lan
 
 | Check | Action |
 | --- | --- |
-| Version | `odc --version` |
-| First-run setup | `odc setup` |
-| Workspace | Root `index.md` with spec `ods: 0.1` and CLI requirement `odc: ">=0.0.1"` |
-| Local clean | `odc ods index && odc ods lint` |
-| CI | `odc ods index --check` + `odc ods lint` |
-| Automation | `odc ods start` (background) or `odc ods watch` (foreground) |
-| AI dump (optional) | `odc ods export` → `graph.md` |
-| Doctor | `odc ods doctor` |
-| Updates | `odc update` |
+| Version | `ods --version` |
+| First-run setup | `ods setup` |
+| Workspace | Root `index.md` with spec `ods: 0.1` and CLI requirement `ods: ">=0.0.1"` |
+| Local clean | `ods index && ods lint` |
+| CI | `ods index --check` + `ods lint` |
+| Automation | `ods start` (background) or `ods watch` (foreground) |
+| AI dump (optional) | `ods export` → `graph.md` |
+| Doctor | `ods doctor` |
+| Updates | `ods update` |
 
 Happy path: [Quickstart Guide](/docs/quickstart).
 
 ---
 
-## Commands (Day-to-Day)
+## Commands Matrix (Novice to Expert)
 
-| Command | Role & Syntax |
-| --- | --- |
-| `odc ods init [path]` | Make folder/repo ODS-compliant (creates root `index.md` + `ods:` spec, generates indexes). `--adopt` drafts frontmatter. |
-| `odc setup [path]` | Set up machine background service for workspace, check updates, and run `odc ods doctor`. |
-| `odc ods new <path>` | Scaffold a new Markdown document with inferred profile (`guide`, `feature`, etc.) and valid frontmatter. |
-| `odc ods rm <path-or-id>` | Atomically delete document and scrub graph references (`depends`/`related`) workspace-wide. Alias: `odc ods remove`. |
-| `odc ods archive <path-or-id>` | Set `status: archived` in frontmatter in place. |
-| `odc ods start [path]` | Register + start **user OS service** (`systemd` / `launchd` / Windows Scheduled Task). `--status` checks status. |
-| `odc ods stop [path]` | Stop running OS service. `--unregister` stops and removes registration completely. |
-| `odc ods watch [path]` | Foreground live rename map + re-lint terminal loop. |
-| `odc ods logs [path] [-f]` | Show background service logs (`~/.odc/logs/odc-serve.log`); `-f` follows. Not a watch alias. |
-| `odc ods serve --root <path>` | Headless daemon loop executed by background service (`--mode auto\|watch\|poll`, `--memory-report`, `--poll-secs`). |
-| `odc lint` / `odc ods lint [path]` | Validate graph & schemas (`--level 1\|3`, `--format text\|json`, `--canonical-refs`). Generates or clears `.odc/odc-errors.md`. |
-| `odc coverage [path]` | Documentation health % (`--write-report` → `.odc/coverage.md`; separate from lint `.odc/odc-errors.md`). |
-| `odc ods index [path]` | Generate `index.md` lockfiles (`--check` exits 1 if stale in CI). |
-| `odc ods mv <from> <to>` | Offline document move + rewrite graph references workspace-wide. |
-| `odc ods sync [path]` | Reconcile git-tracked renames (`git status --porcelain`) and rewrite graph references. |
-| `odc ods fmt [path]` | Reformat YAML frontmatter/body blank-line spacing. `--refs md-paths` converts extensionless IDs to relative `.md` paths. |
-| `odc ods context [path] <id>` | Generate resolved bounded AI reading list (`--include-private` includes `share: private` documents). |
-| `odc ods graph [path]` | Print `depends`/`related` edges as `path -> edge` lines. |
-| `odc ods export [path]` | Export single-file Markdown graph snapshot (`--out PATH`, `--include-private`). |
-| `odc ods share [path]` | Publish share-filtered workspace/subtree directory (`--out DIR`, `--include-org`, `--include-private`). |
-| `odc ods disable [path]` | Opt-out / strip ODS metadata (dry-run; `--write`, `--keep-frontmatter`, `--remove-indexes`, `--remove-root-index`). Alias: `odc ods revert`. |
-| `odc ods adopt [path]` | Draft frontmatter for existing Markdown files (dry-run; `--write`). |
-| `odc ods profiles [path]` | List standard and custom profiles loaded in workspace and report schema conflicts. |
-| `odc ods tags [path]` | List document tags with counts (`--all` includes default unused tags). |
-| `odc ods find [path] --tag <t>` | Find and list documents by tag (repeat `--tag` for OR query). |
-| `odc ods tag rename <old> <new>` | Workspace-wide tag rename (dry-run; `--write`). |
-| `odc workspaces <subcommand>` | Manage globally tracked ODS workspaces in `~/.odc/odcconfig.toml` (`add`, `remove`, `list`, `path`; legacy `~/.ods` is read). |
-| `odc pack <subcommand>` | Manage reusable ODS Packs (`add`, `sync`, `list`, `preview`, `remove`, `init`). |
-| `odc ods bench <subcommand>` | ROI benchmarking & frontmatter snapshot (`stats`, `strip`, `restore`, `run`). |
-| `odc ods doctor [path]` | Workspace health check (version, doc count, index freshness, profile conflicts, service status, pending git renames). |
-| `odc update` | Self-update CLI binary & restart background user service (`--check`, `--force`, `--version <tag>`). |
+| Command | Mastery Tier | Role & Syntax |
+| --- | --- | --- |
+| `ods init [path]` | 🏁 **Tier 1: Novice** | Make folder/repo ODS-compliant (creates root `index.md` + `ods:` spec, generates indexes). `--adopt` drafts frontmatter. |
+| `ods setup [path]` | 🏁 **Tier 1: Novice** | Set up machine background service for workspace, check updates, and run `ods doctor`. `--git-hooks` installs pre-commit hook. `--editor zed\|vscode\|nvim\|cursor` writes `ods lsp` config. |
+| `ods lsp` | 🏁 **Tier 1: Novice** | JSON-RPC Language Server (stdio / `--port`); not the same as `ods serve`. |
+| `ods lint` / `ods lint [path]` | 🏁 **Tier 1: Novice** | Validate graph & schemas (`--level 1\|3`, `--format text\|json\|sarif`, `--canonical-refs`). Generates or clears `.ods/ods-errors.md`. |
+| `ods new <path>` | 🛠️ **Tier 2: Practitioner** | Scaffold a new Markdown document with inferred profile (`guide`, `feature`, etc.) and valid frontmatter. |
+| `ods index [path]` | 🛠️ **Tier 2: Practitioner** | Generate `index.md` lockfiles (`--check` exits 1 if stale in CI). |
+| `ods mv <from> <to>` | 🛠️ **Tier 2: Practitioner** | Offline document move + rewrite graph references workspace-wide. |
+| `ods sync [path]` | 🛠️ **Tier 2: Practitioner** | Reconcile git-tracked renames (`git status --porcelain`) and rewrite graph references. |
+| `ods adopt [path]` | 🛠️ **Tier 2: Practitioner** | Draft frontmatter for existing Markdown files (dry-run; `--write`). |
+| `ods rm <path-or-id>` | 🛠️ **Tier 2: Practitioner** | Atomically delete document and scrub graph references (`depends`/`related`) workspace-wide. Alias: `ods remove`. |
+| `ods archive <path-or-id>` | 🛠️ **Tier 2: Practitioner** | Set `status: archived` in frontmatter in place. |
+| `ods fmt [path]` | 🛠️ **Tier 2: Practitioner** | Reformat YAML frontmatter/body blank-line spacing. `--refs md-paths` converts extensionless IDs to relative `.md` paths. |
+| `ods stats [path]` | 🛠️ **Tier 2: Practitioner** | Display workspace document telemetry, graph density, profile distribution, and health score (`--format text\|json`). |
+| `ods tree [path]` | 🛠️ **Tier 2: Practitioner** | Display visual ASCII/Unicode hierarchy tree of index navigation and dependency graphs (`--format text\|json`). |
+| `ods context [path] <id>` | 📋 **Tier 3: Power User** | Generate resolved bounded AI reading list (`--include-private` includes `share: private` documents). |
+| `ods profiles [path]` | 📋 **Tier 3: Power User** | List standard and custom profiles loaded in workspace and report schema conflicts. |
+| `ods tags [path]` | 📋 **Tier 3: Power User** | List document tags with counts (`--all` includes default unused tags). |
+| `ods find [path] --tag <t>` | 📋 **Tier 3: Power User** | Find and list documents by tag (repeat `--tag` for OR query). |
+| `ods tag rename <old> <new>` | 📋 **Tier 3: Power User** | Workspace-wide tag rename (dry-run; `--write`). |
+| `ods schema [path]` | 📋 **Tier 3: Power User** | Export JSON Schema (`ods.schema.json`) for IDE frontmatter autocomplete and validation (`--write`, `--out PATH`). |
+| `ods diff [target]` | 📋 **Tier 3: Power User** | Compare document graph dependencies and frontmatter changes against git commits or branches (`--format text\|json`). |
+| `ods graph [path]` | 📋 **Tier 3: Power User** | Print `depends`/`related` edges as `path -> edge` lines. |
+| `ods export [path]` | 📋 **Tier 3: Power User** | Export single-file Markdown graph snapshot (`--out PATH`, `--include-private`). |
+| `ods share [path]` | 📋 **Tier 3: Power User** | Publish share-filtered workspace/subtree directory (`--out DIR`, `--include-org`, `--include-private`). |
+| `ods pack <subcommand>` | 📋 **Tier 3: Power User** | Manage reusable ODS Packs (`add`, `sync`, `list`, `preview`, `remove`, `init`). |
+| `ods bench <subcommand>` | 📋 **Tier 3: Power User** | ROI benchmarking & frontmatter snapshot (`stats`, `strip`, `restore`, `run`). |
+| `ods completion <shell>` | 🏢 **Tier 4: Enterprise Architect** | Generate shell autocompletion scripts (`bash`, `zsh`, `fish`, `powershell`). |
+| `ods clean [path]` | 🏢 **Tier 4: Enterprise Architect** | Clean `.ods/ods-errors.md`, `.ods/coverage.md`, and diagnostic cache files. |
+| `ods coverage [path]` | 🏢 **Tier 4: Enterprise Architect** | Documentation health % (`--write-report` → `.ods/coverage.md`; separate from lint `.ods/ods-errors.md`). |
+| `ods start [path]` | 🏢 **Tier 4: Enterprise Architect** | Register + start **user OS service** (`systemd` / `launchd` / Windows Scheduled Task). `--status` checks status. |
+| `ods stop [path]` | 🏢 **Tier 4: Enterprise Architect** | Stop running OS service. `--unregister` stops and removes registration completely. |
+| `ods watch [path]` | 🏢 **Tier 4: Enterprise Architect** | Foreground live rename map + re-lint terminal loop. |
+| `ods logs [path] [-f]` | 🏢 **Tier 4: Enterprise Architect** | Show background service logs (`~/.ods/logs/ods-serve.log`); `-f` follows. |
+| `ods serve --root <path>` | 🏢 **Tier 4: Enterprise Architect** | Headless daemon loop executed by background service (`--mode auto\|watch\|poll`). |
+| `ods workspaces <subcommand>` | 🏢 **Tier 4: Enterprise Architect** | Manage globally tracked ODS workspaces in `~/.ods/odsconfig.toml` (`add`, `remove`, `list`, `path`). |
+| `ods disable [path]` | 🏢 **Tier 4: Enterprise Architect** | Opt-out / strip ODS metadata (dry-run; `--write`, `--keep-frontmatter`, `--remove-indexes`). Alias: `ods revert`. |
+| `ods doctor [path]` | 🏢 **Tier 4: Enterprise Architect** | Workspace health check (version, doc count, index freshness, profile conflicts, service status). |
+| `ods update` | 🏢 **Tier 4: Enterprise Architect** | Self-update CLI binary & restart background user service (`--check`, `--force`, `--version <tag>`). |
 
 ---
 
-### `odc ods serve` vs. `odc ods watch` Comparison
+### `ods serve` vs. `ods watch` Comparison
 
-| Dimension | `odc ods serve` (Background OS Service) | `odc ods watch` (Foreground Terminal Watcher) |
+| Dimension | `ods serve` (Background OS Service) | `ods watch` (Foreground Terminal Watcher) |
 | :--- | :--- | :--- |
-| **Execution Architecture** | Headless OS Daemon (systemd user unit, launchd agent, Windows Scheduled Task). Registered via `odc ods start` / `odc setup`. | Interactive Foreground Process running in an open terminal tab (`odc ods watch .`). |
+| **Execution Architecture** | Headless OS Daemon (systemd user unit, launchd agent, Windows Scheduled Task). Registered via `ods start` / `ods setup`. | Interactive Foreground Process running in an open terminal tab (`ods watch .`). |
 | **User Visibility** | Invisible ("Set and Forget"). Zero terminal output. | Displays live event logs, rename mappings, and lint warnings in stdout. |
-| **Workspace Scope** | Global machine service tracking registered workspace paths (`~/.odc/odcconfig.toml`). | Single workspace directory tree (defaults to `.`). |
+| **Workspace Scope** | Global machine service tracking registered workspace paths (`~/.ods/odsconfig.toml`). | Single workspace directory tree (defaults to `.`). |
 | **Process Lifecycle** | Automatically starts on OS boot/login. Runs persistently in background. | Runs until terminal tab is closed or `Ctrl+C` is pressed. |
-| **Extra Responsibilities** | Background auto-update check (~daily) and remote Git pack auto-sync (`odc pack sync`). | Dedicated filesystem event watching and instant re-linting. |
+| **Extra Responsibilities** | Background auto-update check (~daily) and remote Git pack auto-sync (`ods pack sync`). | Dedicated filesystem event watching and instant re-linting. |
 | **Ideal For** | Everyday background automation for devs and non-tech users. | Active refactoring sessions, debugging graph renames, containerized environments. |
 
 ---
@@ -100,7 +106,7 @@ code:
     role: test
 ```
 
-`path` is required, `role` is required and fixed, and `symbol` is optional. `odc ods lint` validates paths at Level 3.
+`path` is required, `role` is required and fixed, and `symbol` is optional. `ods lint` validates paths at Level 3.
 
 ---
 
@@ -109,8 +115,8 @@ code:
 In CI pipelines:
 
 ```bash
-odc ods index --check
-odc ods lint --level 3
+ods index --check
+ods lint --level 3
 ```
 
 ---
@@ -122,4 +128,4 @@ odc ods lint --level 3
 
 ## Hybrid workspaces (ODS + OKF markers)
 
-Bare `odc lint` / `doctor` / `audit` run **both** engines. Other dual-engine bare commands (`index`, `fmt`, `export`, `context`, `watch`, `serve`, `adopt`) require `odc ods …` or `odc okf …`.
+Bare `ods lint` / `doctor` / `audit` run **ODS only**. Pass `--okf` (and/or `--skills`) to enable extra specs. Pure OKF trees: `ods lint --okf`. Pure skills: `ods lint --skills`. Editors: `ods lsp` (not `ods serve`).

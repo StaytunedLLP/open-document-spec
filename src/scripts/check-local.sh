@@ -2,7 +2,7 @@
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
-SAMPLE="${ROOT}/ods-test/ecommerce"
+SAMPLE="${ROOT}/src/fixtures/ecommerce"
 EXPORT_OUT="${TMPDIR:-/tmp}/ods-graph-local.md"
 
 export CARGO_TERM_COLOR="${CARGO_TERM_COLOR:-always}"
@@ -47,39 +47,34 @@ if [ "${SKIP_RELEASE_BUILD:-}" != "true" ]; then
 fi
 
 cd "${ROOT}"
-ODC=""
+ODS=""
 for candidate in \
   "${ROOT}/.artifacts/target/release/ods" \
   "${ROOT}/target/release/ods" \
   "${ROOT}/.artifacts/target/debug/ods" \
   "${ROOT}/target/debug/ods" \
-  "${ROOT}/.artifacts/target/release/odc" \
-  "${ROOT}/target/release/odc" \
-  "${ROOT}/.artifacts/target/debug/odc" \
-  "${ROOT}/target/debug/odc"; do
+  "${ROOT}/.artifacts/target/release/ods" \
+  "${ROOT}/target/release/ods" \
+  "${ROOT}/.artifacts/target/debug/ods" \
+  "${ROOT}/target/debug/ods"; do
   if [ -x "${candidate}" ]; then
-    ODC="${candidate}"
+    ODS="${candidate}"
     break
   fi
 done
 
-if [ -z "${ODC}" ]; then
-  echo "error: odc/ods binary not found" >&2
-  find "${ROOT}" -name odc -o -name ods -type f 2>/dev/null | head >&2
+if [ -z "${ODS}" ]; then
+  echo "error: ods/ods binary not found" >&2
+  find "${ROOT}" -name ods -o -name ods -type f 2>/dev/null | head >&2
   exit 1
 fi
 
-# Use ODS namespace when binary is odc
-if [[ "$(basename "${ODC}")" == "odc" ]]; then
-  ODS_CMD=("${ODC}" ods)
-else
-  ODS_CMD=("${ODC}")
-fi
+ODS_CMD=("${ODS}")
 
 FIXTURES=(
-  "${ROOT}/ods-test/ecommerce"
-  "${ROOT}/ods-test/policy-handbook"
-  "${ROOT}/ods-test/packs/engineering-pack"
+  "${ROOT}/src/fixtures/ecommerce"
+  "${ROOT}/src/fixtures/policy-handbook"
+  "${ROOT}/src/fixtures/packs/engineering-pack"
 )
 
 for fixture in "${FIXTURES[@]}"; do
@@ -93,11 +88,11 @@ run "${ODS_CMD[@]}" export "${SAMPLE}" --out "${EXPORT_OUT}"
 test -s "${EXPORT_OUT}"
 grep -q "ODS workspace graph" "${EXPORT_OUT}"
 
-# OKF smoke when binary is odc
-if [[ "$(basename "${ODC}")" == "odc" ]]; then
+# OKF smoke when binary is ods
+if [[ "$(basename "${ODS}")" == "ods" ]]; then
   OKF_TMP=$(mktemp -d)
-  run "${ODC}" okf init "${OKF_TMP}"
-  run "${ODC}" okf lint "${OKF_TMP}"
+  run "${ODS}" init --okf "${OKF_TMP}"
+  run "${ODS}" lint --okf "${OKF_TMP}"
   rm -rf "${OKF_TMP}"
 fi
 

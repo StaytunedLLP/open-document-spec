@@ -1,5 +1,5 @@
-name: 'OpenDocify (ODC) CI Action'
-description: 'Install OpenDocify CLI (odc) and validate ODS documentation graph consistency, frontmatter compliance, and index freshness.'
+name: 'Open Document Spec (ODS) CI Action'
+description: 'Install ODS CLI (ods) and validate ODS document graphs, frontmatter compliance, profile schemas, and index freshness.'
 author: 'Staytuned LLP'
 branding:
   icon: 'file-text'
@@ -7,11 +7,11 @@ branding:
 
 inputs:
   version:
-    description: 'OpenDocify (odc) release version tag to install (e.g., "latest", "v0.1.24", "0.1.24").'
+    description: 'Open Document Spec (ods) release version tag to install (e.g., "latest", "v0.0.13", "0.0.13").'
     required: false
     default: 'latest'
   command:
-    description: 'CLI subcommand to execute ("lint", "index-check", "doctor", "fmt-check", "bench", "export", or "" for setup-only). Bare lint auto-detects ODS vs OKF.'
+    description: 'CLI subcommand to execute ("lint", "index-check", "doctor", "fmt-check", "bench", "export", "okf-lint", or "" for setup-only). okf-lint runs `ods lint --okf`.'
     required: false
     default: 'lint'
   path:
@@ -35,23 +35,17 @@ inputs:
     required: false
     default: 'true'
   extra-args:
-    description: 'Additional raw command line arguments to pass to the OpenDocify CLI.'
+    description: 'Additional raw CLI args (e.g. "--okf", "--skills", "--format sarif"). ODS is default; use flags for extra specs.'
     required: false
     default: ''
 
 outputs:
-  odc-version:
-    description: 'Installed OpenDocify CLI version.'
-    value: ${{ steps.setup-unix.outputs.odc-version || steps.setup-win.outputs.odc-version || steps.setup-unix.outputs.ods-version || steps.setup-win.outputs.ods-version }}
-  odc-path:
-    description: 'Absolute path to the installed odc binary.'
-    value: ${{ steps.setup-unix.outputs.odc-path || steps.setup-win.outputs.odc-path || steps.setup-unix.outputs.ods-path || steps.setup-win.outputs.ods-path }}
   ods-version:
-    description: 'Deprecated alias of odc-version.'
-    value: ${{ steps.setup-unix.outputs.ods-version || steps.setup-win.outputs.ods-version || steps.setup-unix.outputs.odc-version || steps.setup-win.outputs.odc-version }}
+    description: 'Installed Open Document Spec (ods) CLI version.'
+    value: ${{ steps.setup-unix.outputs.ods-version || steps.setup-win.outputs.ods-version }}
   ods-path:
-    description: 'Deprecated alias of odc-path.'
-    value: ${{ steps.setup-unix.outputs.ods-path || steps.setup-win.outputs.ods-path || steps.setup-unix.outputs.odc-path || steps.setup-win.outputs.odc-path }}
+    description: 'Absolute path to the installed ods binary.'
+    value: ${{ steps.setup-unix.outputs.ods-path || steps.setup-win.outputs.ods-path }}
 
 runs:
   using: 'composite'
@@ -95,3 +89,4 @@ runs:
           $ScriptPath = Join-Path "${{ github.action_path }}" "scripts\setup.ps1"
         }
         & $ScriptPath
+

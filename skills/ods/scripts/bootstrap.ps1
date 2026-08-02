@@ -1,5 +1,5 @@
-# OpenDocify skill bootstrap for Windows (PowerShell 5.1+)
-# Installs `odc` (+ `ods` argv0), ensures ODS workspace service, runs doctor.
+# Open Document Spec skill bootstrap for Windows (PowerShell 5.1+)
+# Installs `ods` (+ `ods` argv0), ensures ODS workspace service, runs doctor.
 #
 # Usage:
 #   .\bootstrap.ps1                 # default: install -> check . -> ensure . -> doctor
@@ -11,7 +11,7 @@
 #   .\bootstrap.ps1 check [path]
 #
 # Env:
-#   ODC_PREFIX / ODS_PREFIX   install dir (default: %LOCALAPPDATA%\Programs\odc)
+#   ODC_PREFIX / ODS_PREFIX   install dir (default: %LOCALAPPDATA%\Programs\ods)
 #   ODS_VERSION               pin a release tag
 #   GH_TOKEN                  required for private repos
 
@@ -33,7 +33,7 @@ function Write-Warn { Write-Warning $($args -join ' ') }
 function Write-Fatal { Write-Error $($args -join ' '); exit 1 }
 
 function Get-CliCommand {
-    $cmd = Get-Command odc -ErrorAction SilentlyContinue
+    $cmd = Get-Command ods -ErrorAction SilentlyContinue
     if ($cmd) { return $cmd }
     return (Get-Command ods -ErrorAction SilentlyContinue)
 }
@@ -42,8 +42,8 @@ function Have-Cli {
     if (Get-CliCommand) { return $true }
     $prefix = $env:ODC_PREFIX
     if (-not $prefix) { $prefix = $env:ODS_PREFIX }
-    if (-not $prefix) { $prefix = Join-Path $env:LOCALAPPDATA "Programs\odc" }
-    return (Test-Path (Join-Path $prefix "odc.exe")) -or (Test-Path (Join-Path $prefix "ods.exe"))
+    if (-not $prefix) { $prefix = Join-Path $env:LOCALAPPDATA "Programs\ods" }
+    return (Test-Path (Join-Path $prefix "ods.exe")) -or (Test-Path (Join-Path $prefix "ods.exe"))
 }
 
 function Get-CliPath {
@@ -51,8 +51,8 @@ function Get-CliPath {
     if ($cmd) { return $cmd.Source }
     $prefix = $env:ODC_PREFIX
     if (-not $prefix) { $prefix = $env:ODS_PREFIX }
-    if (-not $prefix) { $prefix = Join-Path $env:LOCALAPPDATA "Programs\odc" }
-    foreach ($name in @("odc.exe", "ods.exe")) {
+    if (-not $prefix) { $prefix = Join-Path $env:LOCALAPPDATA "Programs\ods" }
+    foreach ($name in @("ods.exe", "ods.exe")) {
         $candidate = Join-Path $prefix $name
         if (Test-Path $candidate) { return $candidate }
     }
@@ -68,7 +68,7 @@ function Get-CliVersion {
 function Invoke-Cli {
     param([Parameter(ValueFromRemainingArguments = $true)][string[]]$CliArgs)
     $bin = Get-CliPath
-    if (-not $bin) { Write-Fatal "odc/ods not on PATH; run install first" }
+    if (-not $bin) { Write-Fatal "ods/ods not on PATH; run install first" }
     & $bin @CliArgs
     if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 }
@@ -109,9 +109,9 @@ function Find-WorkspaceRoot {
 }
 
 function Invoke-Default {
-    Write-Step "OpenDocify bootstrap (Windows)"
+    Write-Step "Open Document Spec bootstrap (Windows)"
     if (-not (Have-Cli)) {
-        Write-Step "Installing odc..."
+        Write-Step "Installing ods..."
         Invoke-Install
     } else {
         Write-Step "CLI present: $(Get-CliVersion)"
@@ -122,17 +122,17 @@ function Invoke-Default {
         Invoke-Cli ods setup $ws
         Invoke-Cli ods doctor $ws
     } else {
-        Write-Step "No ODS root markers under $Path (ok — use 'odc ods init' to create)"
+        Write-Step "No ODS root markers under $Path (ok — use 'ods init' to create)"
     }
     if (Have-Cli) {
-        Write-Step "Running odc update..."
+        Write-Step "Running ods update..."
         Invoke-Cli update
     }
     Write-Host ""
-    Write-Host "OpenDocify is installed."
+    Write-Host "Open Document Spec is installed."
     Write-Host "  $(Get-CliVersion)"
-    Write-Host "  odc ods lint .     # ODS"
-    Write-Host "  odc okf lint .     # OKF"
+    Write-Host "  ods lint .     # ODS"
+    Write-Host "  ods lint --okf .     # OKF"
 }
 
 switch ($Command.ToLower()) {
@@ -142,7 +142,7 @@ switch ($Command.ToLower()) {
         else { Invoke-Install }
         $ws = Find-WorkspaceRoot -TargetDir $Path
         if ($ws) {
-            Write-Step "Running workspace & machine migration (odc upgrade --write)..."
+            Write-Step "Running workspace & machine migration (ods upgrade --write)..."
             Invoke-Cli upgrade --write $ws
         }
     }

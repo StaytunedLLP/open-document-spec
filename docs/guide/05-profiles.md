@@ -1,5 +1,4 @@
 ---
-title: "Profiles, Catalogs, and ODS Packs"
 description: "Standard profiles, custom profiles, precedence rules, profile mapping matrix, and ODS Packs."
 status: "stable"
 order: 5
@@ -16,7 +15,7 @@ ODS uses a two-tiered **Standard (Built-in) vs. Workspace (Custom)** layering mo
 
 | Layer | Source | Enforcement |
 | :--- | :--- | :--- |
-| **Standard Profiles** | Built into the specification / `odc` (legacy `ods`) binary (12 core profiles) | Always available; section lint for known shapes |
+| **Standard Profiles** | Built into the specification / `ods` (legacy `ods`) binary (12 core profiles) | Always available; section lint for known shapes |
 | **Custom Profiles** | Markdown under `ods-profiles/`, root `profiles:`, or imported **ODS Packs** (`packs:`) | Additive catalogs; unknown name → warning (falls back to **Default Profile (`note`)**) |
 
 Prefer **Standard Profiles** first (`feature`, `guide`, `api`, `architecture`, `decision`, `sop`, `policy`, `meeting`, `faq`, `checklist`, `index`, `note`). Introduce a **Custom Profile** or **ODS Pack** only when a repeated document class is worth standardizing across teams.
@@ -40,7 +39,7 @@ When resolving profile definitions:
 
 ---
 
-## ODS Packs (`odc pack`)
+## ODS Packs (`ods pack`)
 
 A **Profile** defines a single document structural schema (`profile: decision`). A **Pack** is a reusable ODS workspace bundling **Custom Profiles**, **AI Agent Skills**, **SOPs**, **Templates**, and **Governance Rules** across repositories and machines.
 
@@ -50,7 +49,7 @@ Workspaces declare imported ODS Packs in their root `index.md`:
 ---
 profile: index
 ods: 0.1
-odc: ">=0.0.1"
+ods: ">=0.0.1"
 ignore:
   - src
 profiles:
@@ -61,15 +60,15 @@ packs:
 ---
 ```
 
-### Multi-Transport `odc pack add`
+### Multi-Transport `ods pack add`
 
-`odc pack add <source> [--auto-update frequency]` supports Git-native transport across five sources:
+`ods pack add <source> [--auto-update frequency]` supports Git-native transport across five sources:
 
-1. **GitHub Shorthand**: `odc pack add owner/repo` (Git clone into `vendor/repo`).
-2. **HTTPS Git URL**: `odc pack add https://github.com/acme/pack.git` (Remote HTTPS clone).
-3. **SSH Git URL**: `odc pack add git@github.com:acme/pack.git` (Remote SSH clone).
-4. **Local Path / Link**: `odc pack add ../shared-company-pack` (Monorepo & local pack links/symlinks).
-5. **File URL**: `odc pack add file:///opt/packs/security` (Air-gapped enterprise CI volume mounts).
+1. **GitHub Shorthand**: `ods pack add owner/repo` (Git clone into `vendor/repo`).
+2. **HTTPS Git URL**: `ods pack add https://github.com/acme/pack.git` (Remote HTTPS clone).
+3. **SSH Git URL**: `ods pack add git@github.com:acme/pack.git` (Remote SSH clone).
+4. **Local Path / Link**: `ods pack add ../shared-company-pack` (Monorepo & local pack links/symlinks).
+5. **File URL**: `ods pack add file:///opt/packs/security` (Air-gapped enterprise CI volume mounts).
 
 ---
 
@@ -94,7 +93,7 @@ packs:
 ### Profile discovery roots
 
 1. Built-in standard profiles
-2. Workspace `ods-profiles/` and `.odc/profiles/`
+2. Workspace `ods-profiles/` and `.ods/profiles/`
 3. Root `profiles:` list
 4. Pack `ods-profiles/`
-5. Machine `~/.odc/profiles/`
+5. Machine `~/.ods/profiles/`
