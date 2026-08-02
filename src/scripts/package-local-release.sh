@@ -40,8 +40,8 @@ Open Document Spec CLI ${TAG} (${ASSET}) — local package (not a GitHub Release
   ln -sfn ~/.local/bin/ods ~/.local/bin/ods
 
   ods --version
-  ods ods lint .
-  ods okf init /tmp/okf-demo && ods okf lint /tmp/okf-demo
+  ods lint .
+  ods init --okf /tmp/okf-demo && ods lint --okf /tmp/okf-demo
 EOF
 
 (

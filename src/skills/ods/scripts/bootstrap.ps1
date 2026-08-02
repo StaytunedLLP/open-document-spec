@@ -122,7 +122,7 @@ function Invoke-Default {
         Invoke-Cli ods setup $ws
         Invoke-Cli ods doctor $ws
     } else {
-        Write-Step "No ODS root markers under $Path (ok — use 'ods ods init' to create)"
+        Write-Step "No ODS root markers under $Path (ok — use 'ods init' to create)"
     }
     if (Have-Cli) {
         Write-Step "Running ods update..."
@@ -131,8 +131,8 @@ function Invoke-Default {
     Write-Host ""
     Write-Host "Open Document Spec is installed."
     Write-Host "  $(Get-CliVersion)"
-    Write-Host "  ods ods lint .     # ODS"
-    Write-Host "  ods okf lint .     # OKF"
+    Write-Host "  ods lint .     # ODS"
+    Write-Host "  ods lint --okf .     # OKF"
 }
 
 switch ($Command.ToLower()) {

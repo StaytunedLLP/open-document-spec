@@ -53,7 +53,7 @@ Progress from initial setup to enterprise documentation architecture across 4 st
 | **Tier 1: Novice** | Foundations & Validation | `ods init`<br/>`ods lint`<br/>`ods: 0.1` | Install binary, initialize root `index.md`, write basic frontmatter (`profile`, `status`), run Level-3 lint checks. |
 | **Tier 2: Practitioner** | Document Graphs & Code Links | `depends:` / `related:`<br/>`code:`<br/>`ods index`<br/>`ods mv` | Construct document dependency graphs, bind source code symbols, generate navigation lockfiles, and perform atomic file moves. |
 | **Tier 3: Power User** | Custom Schemas & AI Context | `custom-profiles:`<br/>`ods profile`<br/>`ods context`<br/>`ods pack`<br/>`ods bench` | Register domain profile schemas, export reusable ODS Packs, compute sub-5ms bounded AI context reading lists, and measure token ROI savings. |
-| **Tier 4: Architect** | Automation & Enterprise Governance | `ods setup --git-hooks`<br/>`ods serve` / `ods start`<br/>`ods/action` (CI)<br/>`--format sarif`<br/>`ods lint --okf` | Run persistent OS background daemons, enforce CI pull request gates, output SARIF security annotations, and integrate Google OKF v0.2 bundles. |
+| **Tier 4: Architect** | Automation & Enterprise Governance | `ods setup --git-hooks`<br/>`ods serve` / `ods start`<br/>`ods/action` (CI)<br/>`--format sarif`<br/>`ods lint --okf` | Run persistent OS background daemons, enforce CI pull request gates, output SARIF security annotations, and enable Google OKF via `ods lint --okf` (no namespaces; no `--ods` flag). |
 
 ---
 
@@ -73,10 +73,10 @@ Progress from initial setup to enterprise documentation architecture across 4 st
 | 🛡️ **SARIF Security Reporting** | `ods lint --format sarif` | Outputs standard OASIS SARIF v2.1.0 format for GitHub Code Scanning / CI security integration. |
 | ⚓ **Git Pre-Commit Hook Installer** | `ods setup --git-hooks` | Installs `.git/hooks/pre-commit` hook to catch broken links before commits. |
 | 🧹 **Diagnostic & Report Cleaner** | `ods clean` | Cleans `.ods/ods-errors.md`, `.ods/coverage.md`, and diagnostic cache files. |
-| 🌐 **Google OKF v0.2 Interoperability** | `ods lint --okf` | Native validation for Google Open Knowledge Format (OKF) v0.2 knowledge bundles (`okf_version: "0.2"`). |
+| 🌐 **Google OKF v0.2 Interoperability** | `ods lint --okf` / `ods init --okf` | Native OKF v0.2 in the same binary; **flag-only** (`--okf`). Agent Skills via `--skills`. |
 | 🔒 **Secret & Pack Isolation** | `share: private` / `ods share` | Protects private secrets and exports sanitized public workspace packs (`ods pack`). |
-| ⚙️ **Background OS Daemon & Watcher** | `ods setup` / `ods start` | Real-time file system watcher maintaining sub-5ms graph indexes continuously in the background. |
-| 🤖 **Zero-Terminal AI Skill** | `skills/ods/SKILL.md` | Skill-first integration for AI Assistants (Antigravity, Claude, Cursor, ChatGPT). |
+| ⚙️ **Background OS Daemon & Watcher** | `ods setup` / `ods start` | FS watcher (not LSP). Editors use **`ods lsp`** (JSON-RPC). |
+| 🤖 **Zero-Terminal AI Skill** | `skills/ods/SKILL.md` + `ods skill install` | Skill-first integration; `ods agents sync` for AGENTS.md. |
 | 🚀 **GitHub Marketplace Action** | `uses: StaytunedLLP/open-document-spec@v1` | Automated CI linting and GitHub PR inline code annotations. |
 
 ---

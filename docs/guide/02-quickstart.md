@@ -9,7 +9,7 @@ ods:
 
 # Quickstart
 
-Open Document Spec is one native CLI binary: **`ods`** (optional legacy argv0 **`ods`** = ODS engine only). The normal flow is install, run `ods setup`, initialize or adopt Markdown, keep the user service running, then validate with bare **`ods lint`** / **`ods index --check`** (or explicit `ods …` in CI).
+Open Document Spec is one native CLI binary: **`ods`**. ODS is the default engine (no `--ods` flag). Extra specs use **`--okf`** / **`--skills`**. The normal flow is install, run `ods setup`, initialize or adopt Markdown, optionally keep the user service running, then validate with bare **`ods lint`** / **`ods index --check`**.
 
 ---
 
@@ -59,7 +59,7 @@ New documentation folder:
 ```bash
 mkdir my-docs
 cd my-docs
-ods init .          # ODS default (writes ods: + ods:); or: ods init .
+ods init .          # ODS default (writes root ods: marker)
 ```
 
 Existing Markdown tree:
@@ -72,10 +72,10 @@ ods init . --adopt  # or: ods init . --adopt
 OKF knowledge bundle:
 
 ```bash
-ods init --okf .    # or: ods okf init .
+ods init --okf .    # OKF v0.2 knowledge bundle (extra-spec flag)
 ```
 
-`ods init` (ODS) makes the folder ODS-compliant by creating a root `index.md` with `ods: 0.1` and `ods: ">=0.0.1"` metadata and generating child index files.
+`ods init` (ODS default) makes the folder ODS-compliant by creating a root `index.md` with `ods: 0.1` and generating child index files.
 
 ---
 

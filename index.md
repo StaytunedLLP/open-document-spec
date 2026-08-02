@@ -1,4 +1,5 @@
 ---
+packs:
 profile: index
 ods: 0.1
 custom-profiles:
@@ -10,15 +11,20 @@ ignore:
   - ods-test
   - skills
   - specs
+  - docs/plan/archive
+  - app-web
+  - src/ods-cli
+  - src/ods-core
+  - src/ods-test-support
+  - src/scripts
 ---
 
 # Open Document Specs Workspace
 
+- [AGENTS.md](AGENTS.md)
 - [CHANGELOG.md](CHANGELOG.md)
 - [CONTRIBUTING.md](CONTRIBUTING.md)
 - [README.md](README.md)
 - [SECURITY.md](SECURITY.md)
-- [app-web/](app-web/index.md)
 - [docs/](docs/index.md)
 - [src/](src/index.md)
-

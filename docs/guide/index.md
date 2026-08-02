@@ -7,21 +7,16 @@ profile: index
 Canonical human guide for Open Document Spec (`ods`), structured into 4 progressive mastery tiers:
 
 ## 🏁 Tier 1: Novice (Foundations & Validation)
-- [01-introduction.md](01-introduction.md) — 5W1H Framework, core design principles, and overall roadmap
-- [02-quickstart.md](02-quickstart.md) — 3-step installation, workspace initialization (`ods init`), and Level-3 linting (`ods lint`)
-- [03-adoption.md](03-adoption.md) — Auto-drafting frontmatter on legacy Markdown trees (`ods adopt`)
 
-## 🛠️ Tier 2: Practitioner (Day-to-Day Document Graphs)
-- [04-tooling.md](04-tooling.md) — Complete CLI command matrix, flag parameters, and command workflows
-- [features.md](features.md) — Complete feature catalog (graph dependencies, code symbol links, atomic file moves)
-
-## 📋 Tier 3: Power User (Custom Catalogs & AI Context)
-- [05-profiles.md](05-profiles.md) — Custom Profile Schemas (`custom-profiles:`) and ODS Packs (`ods pack`)
-- [06-advanced.md](06-advanced.md) — Deterministic AI bounded context reading lists (`ods context`) and multi-workspace registry
-- [roi-calculator.md](roi-calculator.md) — Measuring AI prompt token savings (~95% cost reduction) and benchmarking (`ods bench`)
-
-## 🏢 Tier 4: Enterprise Architect (Governance & CI/CD)
-- [07-troubleshooting-and-diagnostics.md](07-troubleshooting-and-diagnostics.md) — Workspace diagnostics (`ods doctor`), SARIF output (`--format sarif`), and background OS daemons (`ods serve`)
-- [08-enterprise-deployment.md](08-enterprise-deployment.md) — GitHub Action CI integration (`ods/action`), Git pre-commit hooks (`ods setup --git-hooks`), and enterprise governance
-- [use-cases/](use-cases/index.md) — Secret isolation (`share: private`), cross-repo contracts, and compliance
-- [faq.md](faq.md) — Frequently asked questions and troubleshooting reference
+- [01-introduction.md](01-introduction.md) - Principles, Level 0–3 adoption ladder, learning path, and core benefits of Open Document Spec.
+- [02-quickstart.md](02-quickstart.md) - Installation options, workspace initialization, service background daemon, validation, and AI context commands.
+- [03-adoption.md](03-adoption.md) - Enriching existing Markdown repositories progressively without migration overhead.
+- [04-tooling.md](04-tooling.md) - CLI command matrix, service daemon vs watch comparison, CI integration, and updates.
+- [05-profiles.md](05-profiles.md) - Standard profiles, custom profiles, precedence rules, profile mapping matrix, and ODS Packs.
+- [06-advanced.md](06-advanced.md) - AI agent reading patterns, multi-workspace tracking, daemon execution modes, and large workspaces.
+- [07-troubleshooting-and-diagnostics.md](07-troubleshooting-and-diagnostics.md) - Diagnostic workflow, complete error catalog for .ods/ods-errors.md, git merge conflicts, and daemon troubleshooting.
+- [08-enterprise-deployment.md](08-enterprise-deployment.md) - Enterprise ODS Pack distribution, multi-repo governance, CI/CD pipelines, security controls, and ROI modeling.
+- [faq.md](faq.md) - Frequently asked questions about file extensions, adoption, profiles vs tags, renames, and background services.
+- [features.md](features.md) - Complete reference for frontmatter keys, root index configuration, profiles vs packs, AI context, and CLI commands.
+- [roi-calculator.md](roi-calculator.md) - Quantifying context window optimization, developer productivity gains, and API cost reduction.
+- [use-cases/](use-cases/index.md)

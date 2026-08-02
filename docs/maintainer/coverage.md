@@ -30,6 +30,7 @@ CI (`.github/workflows/pr.yml`) enforces `--fail-under-lines` (ratchet upward on
 | 2026-07-30 (mid) | workspace ~**76%**; engine ~**81%** | CI floor **75** |
 | 2026-07-30 (OKF/audit push) | engine `ods-core` ~**84.2%** | **100% files:** `okf/audit.rs`, `okf/model.rs`, `pipeline/apply.rs` |
 | 2026-07-30 (100% coverage PR) | workspace **82.31%** lines; `ods-core` target files **90%–100%** | **100% files:** `okf/audit`, `okf/model`, `pipeline/apply`, `ods-test-support`, `exit_code_helper`, `alias_printer` |
+| 2026-08-02 (multi-spec flags) | workspace **~74.65%** lines (llvm-cov summary) | CI floor raised **70 → 73**; multi_spec + skills engine added |
 
 Strict goal remains **100% per file** (see plan). Progress scripts:
 

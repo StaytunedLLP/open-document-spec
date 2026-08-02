@@ -17,7 +17,7 @@ Binaries land under `.artifacts/target/release/` (see `.cargo/config.toml`).
 Install locally:
 
 ```bash
-cargo install --path src/crates/ods-cli --bin ods --locked --force
+cargo install --path src/ods-cli --bin ods --locked --force
 ```
 
 ## Layout
@@ -26,18 +26,18 @@ cargo install --path src/crates/ods-cli --bin ods --locked --force
 | --- | --- |
 | `specs/` | Normative specification (ODS keys stay `ods:`) |
 | `docs/guide/` | End-user guide (keep in sync with `app-web/src/content/docs/`) |
-| `docs/plan/` | Cutover & architecture plans (`docs/plan/aug-01/` master plan) |
-| `docs/specs/` | Author key maps (ODS vs OKF) |
+| `docs/plan/` | Historical plans (CLI UX is **flag-only**; see banners) |
+| `docs/other-specs/` | OKF / Agent Skills key maps & notes |
 | `docs/maintainer/` | Coverage, functional style |
 | `CHANGELOG.md` | Optional manual release history |
-| `skills/ods` | AI assistant single skill |
-| `src/crates/ods-core` | Core library (ODS + native OKF engines) |
-| `src/crates/ods-cli` | Primary binary `ods` |
-| `src/crates/ods-test-support` | Test workspace support library |
+| `skills/ods` | AI assistant skill (`ods skill install`) |
+| `src/ods-core` | Core library (ODS + OKF + Skills engines) |
+| `src/ods-cli` | Primary binary `ods` |
+| `src/ods-test-support` | Test workspace support library |
 | `src/scripts/` | install, check-local, coverage, smoke-ods |
 | `src/action/` | GitHub composite action |
 
-### CLI crate layout (`src/crates/ods-cli/src/`)
+### CLI crate layout (`src/ods-cli/src/`)
 
 | Path | Role |
 | --- | --- |
@@ -48,19 +48,25 @@ cargo install --path src/crates/ods-cli --bin ods --locked --force
 | `service/`, `update/` | OS service + self-update implementation |
 | `tests/*.test.rs` | Integration tests (declared in `Cargo.toml`) |
 
-### Core crate layout (`src/crates/ods-core/src/`)
+### Core crate layout (`src/ods-core/src/`)
 
-Semantic domain subfolders (`model/`, `parse/`, `profiles/`, `lint/`, `graph/`, `lifecycle/`, `fs/`, `bench/`, `export/`).
+Semantic domain folders only (no loose domain `.rs` at crate root except `lib.rs`):
+
+`model/`, `parse/`, `graph/`, `lint/`, `index/`, `lifecycle/`, `mutate/`, `mv/`, `observe/`, `fs/`, `pipeline/`, `profiles/`, `tags/`, `share/`, `bench/`, `okf/`, `multi_spec/`, `spec/`.
 
 New engine code should follow [functional style](docs/maintainer/functional-style.md): data + free functions, no `*Manager` types.
 
-**Product naming:** **`ods`** is the tool; bare commands run ODS natively; OKF runs via `--okf` flag.
+**Product naming:** **`ods`** is the tool; bare commands = ODS (no `--ods`); extra specs via **`--okf`** / **`--skills`** only (no namespaces).
 
-Coverage: see [docs/maintainer/coverage.md](docs/maintainer/coverage.md). Run `./src/scripts/coverage.sh`. CI enforces a line floor (currently 75%).
+Coverage: see [docs/maintainer/coverage.md](docs/maintainer/coverage.md). Run `./src/scripts/coverage.sh`. CI enforces a line floor (**73%** as of 2026-08-02).
+
+### Touchpoint rule
+
+CLI surface or multi-spec changes must update: `src/specs/`, `docs/guide/`, `docs/other-specs/`, `src/skills/ods/`, tests, help strings, and `CHANGELOG.md` in the same change set when practical.
 
 ## Tests & coverage
 
-- Prefer unit tests next to pure logic and integration tests under `src/crates/*/tests/`.
+- Prefer unit tests next to pure logic and integration tests under `src/*/tests/`.
 - Production bar: high line coverage on `ods-core` (aim ≥85% workspace over time).
 - CI enforces a coverage floor (`--fail-under-lines`, currently 75%).
 - Always keep `ods index --check .` and `ods lint .` green at repo root.
@@ -87,3 +93,11 @@ Workflows in `.github/workflows/` consist of **two workflows** total:
 2. Prefer [Conventional Commits](https://www.conventionalcommits.org/):
    - `feat(ods): …`, `fix(watch): …`, `docs: …`, `ci: …`, `chore: …`
 3. Update `docs/guide/` if you add a user-visible feature.
+
+## Naming gate
+
+```bash
+./src/scripts/check-naming.sh
+```
+
+Fails if product docs/scripts reintroduce removed namespace CLI forms or the old crates intermediate directory path.

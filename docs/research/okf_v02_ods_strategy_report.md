@@ -1,10 +1,10 @@
 ---
-profile: research
+profile: note
 status: stable
 share: public
 description: Comprehensive strategic and technical research report on integrating Google OKF v0.2 into ODS (Open Document Spec), scaling architecture, zero-Rust distribution, release pipelines, universal agent ecosystem, and 100K GitHub star growth plan.
 owner: team:opendocify
-tags: [okf, ods, research, architecture, scaling, agent-spec]
+tags: [okf, ods, research, scaling, agent-spec]
 ---
 
 # Google OKF v0.2 & ODS Integration Research Report

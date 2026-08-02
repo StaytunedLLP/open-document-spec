@@ -391,7 +391,7 @@ jobs:
             cargo install cargo-llvm-cov --locked
           fi
           # Ratchet threshold (workspace currently ~72.5%).
-          cargo llvm-cov --workspace --locked --fail-under-lines 70
+          cargo llvm-cov --workspace --locked --fail-under-lines 73
 
   # Job 3: Windows native quality gate
   windows-test:

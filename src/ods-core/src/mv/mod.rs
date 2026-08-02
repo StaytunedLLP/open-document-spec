@@ -1,0 +1,9 @@
+include!("remover.rs");
+include!("renamer.rs");
+include!("rewriter.rs");
+include!("classifier.rs");
+include!("applier.rs");
+include!("healer.rs");
+include!("canonicalizer.rs");
+include!("migrator.rs");
+include!("tests.rs");

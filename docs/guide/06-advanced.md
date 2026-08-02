@@ -31,7 +31,7 @@ ods context path/to/doc.md
 
 ## Global Multi-Workspace Tracking (`ods workspaces`)
 
-ODS background daemons (`ods serve` / `ods serve`) monitor multiple repositories registered in the user's global machine configuration file (`~/.ods/odcconfig.toml`):
+ODS background daemons (`ods start` / `ods serve`) monitor multiple repositories registered in the user's global machine configuration file (`~/.ods/odsconfig.toml`):
 
 ```bash
 # Register a workspace for background tracking
@@ -43,7 +43,7 @@ ods workspaces list
 # Remove a workspace from tracking
 ods workspaces remove /path/to/my-project
 
-# Print machine config file path (~/.ods/odcconfig.toml)
+# Print machine config file path (~/.ods/odsconfig.toml)
 ods workspaces path
 ```
 

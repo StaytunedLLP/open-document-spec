@@ -60,7 +60,7 @@ ODS consumers must preserve author content whenever doing so does not break the 
 The expected local and CI validation commands are:
 
 ```bash
-ods ods lint .
+ods lint .
 # legacy: ods lint .
 ods index --check .
 ods context support/refund-guide.md
@@ -89,7 +89,7 @@ For the `ods: 0.1` core field set (`profile`, `status`, `share`, `description`, 
 - A workspace root `ods:` value SHOULD equal the current ODS spec version.
 - A workspace root `ods:` value SHOULD be an exact CLI version or minimum range such as `>=0.0.1`.
 - Workspace discovery SHOULD remain tolerant of older `ods:` values so setup can upgrade them in place.
-- `ods ods lint` and `ods ods doctor` (legacy: `ods lint` / `ods doctor`) MUST report missing or stale root `ods:` values and missing, invalid, or unsatisfied `ods:` values.
-- `ods ods init` and `ods setup` (legacy: `ods init` / `ods setup`) MUST write the current spec version to `ods:` and the current CLI minimum requirement to `ods:`.
+- `ods lint` and `ods doctor`  MUST report missing or stale root `ods:` values and missing, invalid, or unsatisfied `ods:` values.
+- `ods init` and `ods setup`  MUST write the current spec version to `ods:` and the current CLI minimum requirement to `ods:`.
 - Unknown frontmatter keys MUST continue to be ignored by core tools.
 - Breaking changes to core field meaning require a new `ods` version string on the root index.

@@ -1,9 +1,10 @@
 ---
 name: ods
 description: >-
-  Install, run, update, and author with Open Document Spec (`ods`) for ODS workspaces.
-  Use `ods <cmd>` for all document workflows (ods lsp, ods lint, ods stats, ods context, ods export graph, ods mv, ods tree, ods diff, ods schema, ods clean, ods adopt, ods profile, ods pack, ods bench, ods okf).
-  Supports native JSON-RPC 2.0 editor LSP via `ods lsp` (stdio & TCP), OKF bundles via `ods okf`, SARIF reporting via `ods lint --format sarif`, and multi-spec JSON graph export via `ods export graph --format json`.
+  Install, run, update, and author with Open Document Spec (`ods`). ODS is the default
+  engine (no --ods flag). Extra specs: --okf (Google OKF v0.2), --skills (Agent Skills).
+  Use ods lsp for JSON-RPC editor support; ods lint / ods lint --okf / ods lint --skills;
+  never use ods okf or ods ods namespaces.
 ---
 
 # ODS — Open Document Spec
@@ -20,6 +21,18 @@ description: >-
 | **`ods export graph`** | Single canonical graph exporter returning structured JSON (`--format json`), Markdown (`--format md`), or text (`--format text`) for `--spec ods` and `--spec okf` |
 
 ODS is plain Markdown with **permissive** YAML frontmatter (`title:` and `name:` both supported), powered by a native Rust engine binary named **`ods`**. A **workspace** is any directory tree whose **root `index.md` carries an `ods:` key** (e.g. `ods: 0.1`).
+
+---
+
+## Multi-spec flags (locked)
+
+| Flag | Meaning |
+|---|---|
+| *(none)* | **ODS** — default native product of this CLI |
+| `--okf` | Enable **Google OKF v0.2** engine for this command |
+| `--skills` | Enable **Agent Skills** package engine for this command |
+
+There is **no** `--ods` flag and **no** `ods okf` / `ods ods` namespaces (`ods okf` is hard-removed; use flags).
 
 ---
 
@@ -130,8 +143,8 @@ custom-profiles:
 |---|---|---|
 | **`ods lsp [--port N]`** | 🏁 Tier 1 (Novice) | Native JSON-RPC 2.0 Language Server for real-time editor lints, hover, definition, and completion. |
 | **`ods init [path]`** | 🏁 Tier 1 (Novice) | Initialize root `index.md` with `ods: 0.1` spec marker. `--adopt` drafts frontmatter on plain `.md` files. |
-| **`ods setup [path]`** | 🏁 Tier 1 (Novice) | Verify workspace boundary, check updates, register OS daemon. `--git-hooks` installs pre-commit hook. |
-| **`ods lint [path]`** | 🏁 Tier 1 (Novice) | Strict or Standard compliance validation (`--mode strict\|standard`, `--fix`, `--format text\|json\|sarif`). `--okf` validates Google OKF v0.2. |
+| **`ods setup [path]`** | 🏁 Tier 1 (Novice) | Verify workspace boundary, check updates, register OS daemon. `--git-hooks` installs pre-commit hook. `--editor zed\|vscode\|nvim\|cursor` writes `ods lsp` config. |
+| **`ods lint [path]`** | 🏁 Tier 1 (Novice) | ODS validation by default (`--mode strict\|standard`, `--fix`, `--format text\|json\|sarif`). Add `--okf` / `--skills` for other specs. Never `--ods`. |
 | **`ods export graph`** | 🏁 Tier 1 (Novice) | Export workspace knowledge graph in structured JSON (`--format json`), Markdown (`--format md`), or text (`--format text`) for `--spec ods` (default) or `--spec okf`. |
 | **`ods new <path>`** | 🛠️ Tier 2 (Practitioner) | Scaffold new Markdown document from profile template with starter HTML comments. |
 | **`ods index [path]`** | 🛠️ Tier 2 (Practitioner) | Generate navigation `index.md` lockfiles (`--check` verifies freshness). |
@@ -151,7 +164,9 @@ custom-profiles:
 | **`ods diff [target]`** | 📋 Tier 3 (Power User) | Compare document graph dependencies and frontmatter changes against git commits or branches. |
 | **`ods share [path]`** | 📋 Tier 3 (Power User) | Publish share-filtered workspace/subtree directory (`--out DIR`). |
 | **`ods pack`** | 📋 Tier 3 (Power User) | Manage reusable ODS Packs (`add`, `sync`, `list`, `preview`, `remove`, `init`). |
-| **`ods okf`** | 📋 Tier 3 (Power User) | Manage Google OKF v0.2 bundles (`init`, `lint`, `audit`, `export`). |
+| **`ods … --okf`** | 📋 Tier 3 (Power User) | Google OKF v0.2: `init --okf`, `lint --okf`, `audit --okf`, `export --okf` (flag-only; no namespace). |
+| **`ods … --skills`** | 📋 Tier 3 (Power User) | Agent Skills packages: `init --skills`, `lint --skills` (name/description/license/…). |
+| **`ods agents sync`** | 📋 Tier 3 (Power User) | Write AGENTS.md + editor agent snippets. |
 | **`ods bench`** | 📋 Tier 3 (Power User) | ROI benchmarking & frontmatter snapshot (`stats`, `strip`, `restore`, `run`). |
 | **`ods completion <shell>`**| 🏢 Tier 4 (Architect) | Generate shell autocompletion scripts for `bash`, `zsh`, `fish`, `powershell`. |
 | **`ods clean [path]`** | 🏢 Tier 4 (Architect) | Clean `.ods/ods-errors.md`, `.ods/coverage.md`, and diagnostic cache files. |

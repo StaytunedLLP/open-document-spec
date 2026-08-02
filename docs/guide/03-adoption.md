@@ -21,7 +21,7 @@ Empty tree? Use [Quickstart Guide](/docs/quickstart) first.
 
 ## Installing Tools Does Not Rewrite Your Repo
 
-Installing `ods` (legacy `ods`) does **not** change Markdown until you opt in. Plain files stay Level 0.
+Installing `ods`  does **not** change Markdown until you opt in. Plain files stay Level 0.
 
 | Goal | Command |
 | --- | --- |
@@ -35,7 +35,7 @@ Installing `ods` (legacy `ods`) does **not** change Markdown until you opt in. P
 
 | Step | Action |
 | --- | --- |
-| 1 | `ods setup` — check/update path and create or repair root `ods:` / `ods:` |
+| 1 | `ods setup` — check/update path and create or repair root `ods:` |
 | 2 | `ods init .` — explicit opt-in alternative for root `ods:` + indexes |
 | 3 | Optional: `ods init . --adopt` or `ods adopt --write` — draft `profile` + `status: draft` |
 | 4 | Root `ignore:` for code trees if needed, then `ods index` |

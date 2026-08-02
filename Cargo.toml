@@ -1,8 +1,8 @@
 [workspace]
 members = [
-    "src/crates/ods-core",
-    "src/crates/ods-cli",
-    "src/crates/ods-test-support",
+    "src/ods-core",
+    "src/ods-cli",
+    "src/ods-test-support",
 ]
 # Removed from product: ods-lsp, zed-ods-lsp (CLI + service only).
 resolver = "3"

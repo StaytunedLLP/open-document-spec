@@ -1,10 +1,10 @@
 ---
-profile: plan
+profile: note
 status: stable
 share: public
 description: Comparison of ODS vs Google OKF v0.2 frontmatter keys — which keys exist in which spec, purpose of each family, root markers, and seamless ods CLI.
 owner: team:opendocify
-tags: [ods, okf, frontmatter, keys, multi-spec, reference, ods]
+tags: [ods, okf, frontmatter, keys, multi-spec, reference]
 ---
 
 # Frontmatter keys: ODS vs OKF v0.2
@@ -13,16 +13,15 @@ This document is the **author-facing map** of which metadata keys belong to whic
 
 | Spec | CLI | Best for |
 |---|---|---|
-| **ODS** (Open Document Spec) | `ods …` (auto) or `ods ods <cmd>` | Codebase documentation graphs: profiles, depends/related, code refs, indexes |
-| **OKF v0.2** (Open Knowledge Format) | `ods …` (auto) or `ods okf <cmd>` | Knowledge/metric/asset catalogs: trust, provenance, freshness, attested computations |
+| **ODS** (Open Document Spec) | bare `ods …` (**default** — no flag) | Codebase documentation graphs: profiles, depends/related, code refs, indexes |
+| **OKF v0.2** (Open Knowledge Format) | `ods … --okf` | Knowledge/metric/asset catalogs: trust, provenance, freshness, attested computations |
 
-**Tool** = **`ods`**. **Native OKF** means both engines ship in one binary. Frontmatter dialects stay separate.
+**Tool** = **`ods`**. ODS is always the native product identity. **Native OKF** means the OKF engine ships in the same binary and is **activated only with `--okf`**. There is no `--ods` flag and no `ods okf` / `ods ods` namespaces.
 
 ```
-ods lint         # auto-detect ODS / OKF / hybrid from root markers
-ods ods lint     # force ODS rules + ODS keys
-ods okf lint     # force OKF rules + OKF keys
-ods init         # ODS workspace (ods: + ods:)
+ods lint         # ODS only (default)
+ods lint --okf   # OKF only on pure OKF trees; ODS+OKF on hybrid when ODS is present
+ods init         # ODS workspace (root ods: marker)
 ods init --okf   # OKF bundle (okf_version: "0.2")
 ```
 
@@ -47,13 +46,14 @@ ods init --okf   # OKF bundle (okf_version: "0.2")
 
 **Hybrid repos** may carry both root markers.
 
-| Bare command on hybrid | Behavior |
+| Command on hybrid | Behavior |
 |---|---|
-| `lint` / `doctor` / `audit` | Run **both** engines (ODS then OKF) |
-| `index` / `fmt` / `export` / `context` / `watch` / `serve` / `adopt` | **Error** — use `ods ods …` or `ods okf …` (Hybrid R1) |
+| bare `lint` / `doctor` / `audit` | **ODS only** |
+| same with `--okf` | **ODS + OKF** |
+| pure OKF tree without `--okf` | Error with hint to pass `--okf` |
 | ODS-only cmds (`mv`, `tags`, …) | ODS engine |
 
-Use `ods ods` or `ods okf` whenever you mean one engine only.
+There is no namespace form. Extra specs always use flags.
 
 ---
 
@@ -64,7 +64,7 @@ Use `ods ods` or `ods okf` whenever you mean one engine only.
 | `ods: <version>` e.g. `0.1` | ODS | Root `index.md` | Declares ODS workspace boundary and spec version |
 | `ods: ">=x.y.z"` | ODS | Root `index.md` | Minimum CLI version required for this workspace |
 | `okf_version: "0.2"` | OKF | Root `index.md` only | Declares OKF bundle targets v0.2 |
-| Both | Hybrid | Root `index.md` | Both engines may apply; still use `ods ods` vs `ods okf` per command |
+| Both | Hybrid | Root `index.md` | Bare commands = ODS; pass `--okf` to include OKF (no namespaces) |
 
 **Reserved filenames (OKF):** `index.md`, `log.md` are not concepts.  
 **ODS:** root/non-root `index.md` follow ODS index rules (`profile: index`, etc.).
@@ -87,7 +87,7 @@ Legend: **Yes** = first-class in that spec · **No** = not part of that spec’s
 | **Nested `ods.related`** | Yes | No† | Soft relationship edges |
 | **Nested `ods.resources`** | Yes | Related | Non-code resource refs |
 | **Nested `ods.code`** | Yes | No | Code path bindings + roles |
-| **Nested `ods.context`** | Yes | No | Context pack for `ods ods context` |
+| **Nested `ods.context`** | Yes | No | Context pack for `ods context` |
 | **Universal top-level** (`title`, `description`, `owner`, `tags`, …) | Yes (SSG/CMS-friendly) | Partial (`title`, `description`, `tags` recommended) | Human/agent display metadata |
 | **`type`** | No | **Required** | Concept kind (Metric, BigQuery Table, …) |
 | **`resource`** | Via resources/code | Yes optional | Canonical URI of underlying asset |
@@ -123,7 +123,7 @@ Legend: **Yes** = first-class in that spec · **No** = not part of that spec’s
 | **id / share** | Stable identity and publish boundaries |
 | **depends / related** | Build a **queryable graph** for reading order and impact |
 | **code / resources** | Bind docs to real implementation and artifacts |
-| **context** | Define bounded packs for prompt assembly (`ods ods context`) |
+| **context** | Define bounded packs for prompt assembly (`ods context`) |
 | **Root ods / ods** | Mark the tree as an ODS workspace and gate CLI version |
 
 **Goal:** efficient, structured **engineering documentation** for humans and coding agents.
@@ -175,16 +175,15 @@ Frontmatter carries the **contract** (`runtime`, `parameters`, `executor`, `atte
 
 | Goal | Command |
 |---|---|
-| Create ODS workspace | `ods init` or `ods ods init` |
-| Create OKF bundle | `ods init --okf` or `ods okf init` |
-| Validate (auto) | `ods lint` |
-| Validate ODS only | `ods ods lint` |
-| Validate OKF only | `ods okf lint` |
+| Create ODS workspace | `ods init` |
+| Create OKF bundle | `ods init --okf` |
+| Validate ODS | `ods lint` |
+| Validate OKF | `ods lint --okf` |
 | Inventory non-compliant Markdown | `ods audit --write-report` → `.ods/ods-errors.md` |
-| Draft frontmatter on plains | `ods adopt` / `ods ods adopt` / `ods okf adopt` |
-| Resolve reading list | `ods context` / `ods ods context` / `ods okf context` |
+| Draft frontmatter on plains | `ods adopt` / `ods adopt --okf --write` |
+| Resolve reading list | `ods context` / `ods context --okf` |
 | Binary self-update | `ods update` |
-| Machine/workspace forward helpers | `ods upgrade` (`ods-cli:` → `ods:`, `~/.ods` → `~/.ods`) |
+| Machine/workspace forward helpers | `ods upgrade` |
 
 ---
 

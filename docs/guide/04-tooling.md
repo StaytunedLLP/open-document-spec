@@ -9,7 +9,7 @@ ods:
 
 # Tooling
 
-Reference implementation: the **`ods` (legacy `ods`) CLI** only. There is no language server or editor extension in the production install.
+Reference implementation: the single native **`ods` CLI**. ODS is the default engine (no `--ods` flag). Extra specs use flags only: `--okf`, `--skills`. Editor support is built in via **`ods lsp`** (JSON-RPC over stdio; not the same as `ods serve`).
 
 ---
 
@@ -36,7 +36,8 @@ Happy path: [Quickstart Guide](/docs/quickstart).
 | Command | Mastery Tier | Role & Syntax |
 | --- | --- | --- |
 | `ods init [path]` | 🏁 **Tier 1: Novice** | Make folder/repo ODS-compliant (creates root `index.md` + `ods:` spec, generates indexes). `--adopt` drafts frontmatter. |
-| `ods setup [path]` | 🏁 **Tier 1: Novice** | Set up machine background service for workspace, check updates, and run `ods doctor`. `--git-hooks` installs git pre-commit hook. |
+| `ods setup [path]` | 🏁 **Tier 1: Novice** | Set up machine background service for workspace, check updates, and run `ods doctor`. `--git-hooks` installs pre-commit hook. `--editor zed\|vscode\|nvim\|cursor` writes `ods lsp` config. |
+| `ods lsp` | 🏁 **Tier 1: Novice** | JSON-RPC Language Server (stdio / `--port`); not the same as `ods serve`. |
 | `ods lint` / `ods lint [path]` | 🏁 **Tier 1: Novice** | Validate graph & schemas (`--level 1\|3`, `--format text\|json\|sarif`, `--canonical-refs`). Generates or clears `.ods/ods-errors.md`. |
 | `ods new <path>` | 🛠️ **Tier 2: Practitioner** | Scaffold a new Markdown document with inferred profile (`guide`, `feature`, etc.) and valid frontmatter. |
 | `ods index [path]` | 🛠️ **Tier 2: Practitioner** | Generate `index.md` lockfiles (`--check` exits 1 if stale in CI). |
@@ -81,7 +82,7 @@ Happy path: [Quickstart Guide](/docs/quickstart).
 | :--- | :--- | :--- |
 | **Execution Architecture** | Headless OS Daemon (systemd user unit, launchd agent, Windows Scheduled Task). Registered via `ods start` / `ods setup`. | Interactive Foreground Process running in an open terminal tab (`ods watch .`). |
 | **User Visibility** | Invisible ("Set and Forget"). Zero terminal output. | Displays live event logs, rename mappings, and lint warnings in stdout. |
-| **Workspace Scope** | Global machine service tracking registered workspace paths (`~/.ods/odcconfig.toml`). | Single workspace directory tree (defaults to `.`). |
+| **Workspace Scope** | Global machine service tracking registered workspace paths (`~/.ods/odsconfig.toml`). | Single workspace directory tree (defaults to `.`). |
 | **Process Lifecycle** | Automatically starts on OS boot/login. Runs persistently in background. | Runs until terminal tab is closed or `Ctrl+C` is pressed. |
 | **Extra Responsibilities** | Background auto-update check (~daily) and remote Git pack auto-sync (`ods pack sync`). | Dedicated filesystem event watching and instant re-linting. |
 | **Ideal For** | Everyday background automation for devs and non-tech users. | Active refactoring sessions, debugging graph renames, containerized environments. |
@@ -127,4 +128,4 @@ ods lint --level 3
 
 ## Hybrid workspaces (ODS + OKF markers)
 
-Bare `ods lint` / `doctor` / `audit` run **both** engines. Other dual-engine bare commands (`index`, `fmt`, `export`, `context`, `watch`, `serve`, `adopt`) require `ods …` or `ods okf …`.
+Bare `ods lint` / `doctor` / `audit` run **ODS only**. Pass `--okf` (and/or `--skills`) to enable extra specs. Pure OKF trees: `ods lint --okf`. Pure skills: `ods lint --skills`. Editors: `ods lsp` (not `ods serve`).

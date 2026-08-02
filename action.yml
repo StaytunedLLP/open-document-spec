@@ -11,7 +11,7 @@ inputs:
     required: false
     default: 'latest'
   command:
-    description: 'CLI subcommand to execute ("lint", "index-check", "doctor", "fmt-check", "bench", "export", or "" for setup-only).'
+    description: 'CLI subcommand to execute ("lint", "index-check", "doctor", "fmt-check", "bench", "export", "okf-lint", or "" for setup-only). okf-lint runs `ods lint --okf`.'
     required: false
     default: 'lint'
   path:
@@ -35,7 +35,7 @@ inputs:
     required: false
     default: 'true'
   extra-args:
-    description: 'Additional raw command line arguments to pass to the Open Document Spec CLI.'
+    description: 'Additional raw CLI args (e.g. "--okf", "--skills", "--format sarif"). ODS is default; use flags for extra specs.'
     required: false
     default: ''
 

@@ -167,7 +167,7 @@ case "${OS}-${ARCH}" in
     fatal "unsupported platform: ${OS}-${ARCH}
   Supported: Linux x86_64/arm64, macOS arm64/x86_64
   Windows: use src/scripts/install.ps1 (PowerShell)
-  Build from source: cargo install --path src/crates/ods-cli --bin ods"
+  Build from source: cargo install --path src/ods-cli --bin ods"
     ;;
 esac
 

@@ -9,38 +9,45 @@ GitHub Releases use GitHub’s auto-generated notes. Edit this file by hand when
 
 ## [Unreleased]
 
+### Changed
+- **CLI multi-spec UX (flag-only):** ODS is the default native engine (no `--ods` flag). Extra specs use `--okf` and `--skills` only.
+- **Bare hybrid lint** runs **ODS only**; pass `--okf` to also lint OKF. Pure OKF trees require `ods lint --okf`.
+- **Agent Skills:** native parse/lint/init via `ods init --skills` and `ods lint --skills`.
+- **LSP:** ranges, `didClose`, multi-spec hover/completion, `source` tags; `ods setup --editor`.
+- **Pack init** no longer writes legacy `odc:` pin keys.
+- **Docs/skill/agents/specs/fixtures** aligned to flag-only surface; `odc:` stripped from test fixtures.
+- **Single `SpecKind`** shared by schema registry + descriptors; `profiles` module folderized.
+- **`ods-core` layout:** semantic folders for all major domains (`graph/`, `mutate/`, `model/`, `fs/`, `lint/`, `index/`, `lifecycle/`, `mv/`, `parse/`, `tags/`, `share/`, `bench/`, `profiles/`, `multi_spec/`); public API re-exports preserved.
+- **CI coverage floor** raised 70 → **73** lines (measured workspace ~74.65%).
+- **Install / smoke / bootstrap / skill scripts** use bare `ods` + `--okf` / `--skills` only (no namespaces).
+- **Machine config** path: write `~/.ods/odsconfig.toml`; load prefers modern file and still reads legacy `odcconfig.toml` if only that exists.
+- **Crate layout:** packages moved from `src/crates/*` to `src/ods-core`, `src/ods-cli`, `src/ods-test-support`.
+- **Dead code:** removed unused `SpecKeyProcessor` / parallel `SpecDescriptor` key tables; keep `SpecSchemaRegistry` only.
+
 ### Fixed
-- Hybrid workspaces: bare dual-run only for `lint`/`doctor`/`audit`; other dual-engine bare cmds require `ods ods` / `ods okf`.
-- `ods watch` no longer prints a fake log-stream banner; `ods logs` reads `~/.ods/logs/ods-serve.log`.
-- `ods archive` updates nested `ods.status` as well as flat `status`.
-- `ods coverage --write-report` writes `.ods/coverage.md` (not root `ods-report.md`).
-- CLI/help strings teach product binary `ods` (not primary `ods …`).
-
-### Breaking
-
-- Root CLI pin key renamed: `ods-cli:` → **`ods:`** (tool is Open Document Spec). Spec marker remains `ods:`. OKF remains `okf_version:`.
-- Lint health report path: root **`ods-error.md`** → **`.ods/ods-errors.md`** (legacy file is cleared when present).
-- Machine config / logs / backups prefer **`~/.ods/`** (legacy `~/.ods/` still read; `ods upgrade --write` migrates).
-- OS service unit names: `ods-watch-*` / `llp.ods.watch.*` (replaces `ods-watch-*` / `llp.ods.watch.*`).
+- Workspace error messages reference `~/.ods/odsconfig.toml` (not `odcconfig`).
+- JSON Schema status enum aligned to SPEC: `draft|stable|deprecated|archived`.
+- Hybrid workspaces: bare lint/doctor/audit are **ODS-only**; pass `--okf` to include OKF.
+- `ods watch` log banner / `ods logs` path; `ods archive` nested status; coverage report path.
 
 ### Added
+- **`multi_spec` engine selection** — `ExtraSpecs` / `Detected` / `resolve_engines`.
+- **Agent Skills engine** — name/description/license/compatibility/metadata/allowed-tools.
+- **`ods agents sync`** — AGENTS.md + editor snippets.
+- **OKF via flags** — init/lint/index/context/export/fmt/doctor/audit/adopt/watch/serve `--okf`.
+- **`ods setup --editor zed|vscode|nvim|cursor`** — write `ods lsp` config.
 
-- **Crate rename** — workspace packages `ods`, `ods-core`, `ods-test-support` (was `ods` / `ods-core` / `ods-test-support`).
-- **OKF full CLI surface** — `ods okf index|context|export|fmt|watch|serve` plus existing init/lint/doctor/audit/adopt.
-- **Seamless bare CLI** — `ods lint|init|doctor|audit|…` auto-detects ODS vs OKF from root markers; explicit `ods ods` / `ods okf` still available.
-- **Cutover checklist** — `docs/plan/external_repo_cutover_checklist.md` for the ≈3 external ODS workspaces.
-- **Tool/keys plan** — `docs/plan/odc_tool_keys_legacy_cleanup.md` (source of truth for naming + legacy inventory).
-- **`skills/okf`** — agent skill for OKF via `ods okf`; ODS skill updated for Open Document Spec.
-- **`ods agents sync`** — writes `AGENTS.md` plus optional `.claude` / `.cursor` snippets.
-- **Open Document Spec multi-spec CLI (`ods`)** — primary binary `ods`:
-  - Bare document commands auto-detect; namespaces force an engine
-  - `ods ods <cmd>` — ODS document graphs (Markdown keys still `ods:` / nested `ods`)
-  - `ods okf <cmd>` — **native Google OKF v0.2**
-  - `ods agents <cmd>` — agent graph MVP (`sync`)
-  - Platform: `ods update`, `ods upgrade` (`ods-cli:`→`ods:`; `~/.ods`→`~/.ods`), `setup`, `workspaces`, `skill`
+### Removed
+- **`ods okf <cmd>` namespace** — hard-removed; use `ods <cmd> --okf` only.
+
+### Breaking (historical rename notes)
+
+- Root CLI pin key renamed: `ods-cli:` → **`ods:`** (tool is Open Document Spec). Spec marker remains `ods:`. OKF remains `okf_version:`.
+- Lint health report path: root **`ods-error.md`** → **`.ods/ods-errors.md`**.
+- Machine config / logs prefer **`~/.ods/`**.
 - Legacy binary **`ods`** still ships (same code); bare `ods lint` ≡ ODS engine only.
-- `ods audit` / `ods ods audit` / `ods okf audit` — compliance inventory; `--write-report` → `.ods/ods-errors.md`
-- Plans & key map: `docs/plan/odc_tool_keys_legacy_cleanup.md`, migration + OKF plans, `docs/specs/frontmatter-keys-ods-vs-okf.md`
+- `ods audit` (OKF: `ods audit --okf`) — compliance inventory; `--write-report` → `.ods/ods-errors.md`
+- Plans & key map: `docs/plan/archive/odc_tool_keys_legacy_cleanup.md`, migration + OKF plans, `docs/other-specs/frontmatter-keys-ods-vs-okf.md`
 - `ods bench` — benchmarking and frontmatter snapshot/restore system (`stats`, `strip`, `restore`, `run`). Allows teams to take machine-level JSON snapshots (`~/.ods/backups/<repo-hash>/`), temporarily strip frontmatter, index lockfiles, and profiles to test AI task performance without ODS, restore workspace artifacts losslessly (`ods bench restore`), and calculate token & API cost ROI metrics (~94% token savings). Added `--full` flag for complete baseline isolation.
 - `ods workspaces` — manage globally tracked ODS workspace paths (`add`, `remove`, `list`, `path`) stored in human-readable TOML at `~/.ods/odsconfig.toml` (legacy `~/.ods/workspaces.toml` is auto-migrated on read).
 - `ods share [path] --out DIR` — publish a `share`-filtered copy of a workspace or subtree as a real directory (`--include-org`, `--include-private`), ready to `git init`/push yourself. `share:` set on any `index.md` now also acts as a directory-level default that cascades to descendants (a document's own `share` still wins).
@@ -70,7 +77,7 @@ GitHub Releases use GitHub’s auto-generated notes. Edit this file by hand when
   - `ods watch` / `serve` keep a long-lived workspace and reparse **dirty paths only** (full reload only on first tick or large dirty sets). `ODC_JOBS` caps parse threads.
   - Lint report `.ods/ods-errors.md` capped at 500 diagnostics + summary.
 - **Codebase Refactoring & <300 Line File Modularization**:
-  - Restructured and modularized 100% of Rust files in `src/crates/` (`ods-core` & `ods`) to be strictly under 300 lines of code (0 files exceeding 300 lines).
+  - Restructured and modularized 100% of Rust files in `src/` (`ods-core` & `ods`) to be strictly under 300 lines of code (0 files exceeding 300 lines).
   - Extracted sub-modules semantically across test suites, entry dispatchers, configuration helpers, watch handlers, and rename algorithms (`entry_dispatch.rs`, `okf_watch.rs`, `agents_command.rs`, `pack_subcommands.rs`, `rename_pairing.rs`, `classifier_rewriter.rs`, `workspaces_config.rs`, `lint_tests.rs`).
   - Renamed generic test file names to explicit semantic names (`parse_refs_and_links.test.rs`, `cli_service_lifecycle.test.rs`, `cli_frontmatter_commands.test.rs`, `cli_workspaces_command.test.rs`).
   - Resolved all merge conflicts with `origin/main` branch (`v0.0.5`), aligning lockfiles, documentation, and dependencies.

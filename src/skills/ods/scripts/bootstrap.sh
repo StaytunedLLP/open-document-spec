@@ -120,7 +120,7 @@ cmd_check() {
     printf 'compliant=true root=%s\n' "${root}"
   else
     printf 'compliant=false root=\n'
-    printf 'hint: not an ODS workspace (no index.md with `ods:`). Run: ods ods init %s\n' "${path}"
+    printf 'hint: not an ODS workspace (no index.md with `ods:`). Run: ods init %s\n' "${path}"
   fi
   if is_git "${path}"; then
     printf 'git=true\n'
@@ -134,26 +134,26 @@ cmd_ensure() {
   local path="${1:-.}"
   have_cli || die "ods not installed; run: bootstrap.sh install"
   if ! find_workspace_root "${path}" >/dev/null; then
-    warn "not an ODS workspace (no index.md with \`ods:\`). Run: ods ods init ${path}"
+    warn "not an ODS workspace (no index.md with \`ods:\`). Run: ods init ${path}"
     warn "skipping service start on a non-workspace"
     return 0
   fi
   log "starting ods service for ${path}"
-  ods ods start "${path}"
-  ods ods start --status "${path}" 2>/dev/null || ods ods start --status
+  ods start "${path}"
+  ods start --status "${path}" 2>/dev/null || ods start --status
 }
 
 cmd_status() {
   local path="${1:-.}"
   have_cli || die "ods not installed; run: bootstrap.sh install"
   ods --version
-  ods ods start --status "${path}" 2>/dev/null || ods ods start --status
+  ods start --status "${path}" 2>/dev/null || ods start --status
 }
 
 cmd_doctor() {
   local path="${1:-.}"
   have_cli || die "ods not installed; run: bootstrap.sh install"
-  ods ods doctor "${path}"
+  ods doctor "${path}"
 }
 
 main() {
@@ -173,7 +173,7 @@ main() {
         cmd_ensure .
         cmd_doctor .
       else
-        warn "no ODS workspace at '.'; run 'ods ods init .' then 'bootstrap.sh ensure .'"
+        warn "no ODS workspace at '.'; run 'ods init .' then 'bootstrap.sh ensure .'"
       fi
       cmd_update
       log "Open Document Spec (ods) is installed and running on your machine!"
