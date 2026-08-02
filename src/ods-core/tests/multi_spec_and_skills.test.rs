@@ -22,7 +22,7 @@ fn resolve_engines_matrix_and_messages() {
     assert!(msg.contains("--okf") || msg.contains("OKF"), "{msg}");
     assert!(msg.contains("--skills") || msg.contains("Skills"), "{msg}");
 
-    let forbidden = parse_extra_spec_flags(["lint", "--ods"].into_iter()).unwrap_err();
+    let forbidden = parse_extra_spec_flags(["lint", "--ods"]).unwrap_err();
     assert!(forbidden.message().contains("--ods"));
 
     let no_skills = resolve_engines(
@@ -89,9 +89,7 @@ fn skills_init_parse_lint_roundtrip() {
     );
 
     // Force name to match dir for clean lint
-    let body = format!(
-        "---\nname: my-cool-skill\ndescription: A valid skill description for tests.\nlicense: Apache-2.0\n---\n\n# Skill\n"
-    );
+    let body = "---\nname: my-cool-skill\ndescription: A valid skill description for tests.\nlicense: Apache-2.0\n---\n\n# Skill\n";
     fs::write(pkg.join("SKILL.md"), body).unwrap();
     let parsed = parse_skill_package(&pkg).unwrap();
     let diags = lint_skill_package(&parsed);

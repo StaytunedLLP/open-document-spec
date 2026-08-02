@@ -28,7 +28,7 @@ fn run_ods_fmt_body(
 ) -> Result<ExitCode, CliError> {
     let refs_mode = parse_refs_mode(args)?;
     let migrate = wants_migrate(args);
-    let workspace = load_workspace(&root).map_err(|err| failure(err.to_string()))?;
+    let workspace = load_workspace(root).map_err(|err| failure(err.to_string()))?;
 
     let mut actions: Vec<&str> = vec!["frontmatter spacing"];
     let mut changed = normalize_workspace_frontmatter_spacing_with_workspace(&workspace)
@@ -70,7 +70,7 @@ fn run_ods_fmt_body(
                     changed.len()
                 );
                 for path in &changed {
-                    if let Ok(rel) = path.strip_prefix(&root) {
+                    if let Ok(rel) = path.strip_prefix(root) {
                         println!("  {}", rel.display());
                     } else {
                         println!("  {}", path.display());

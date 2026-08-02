@@ -262,7 +262,6 @@ fn share_publish_and_bench_stats() {
         ShareOptions {
             include_org: false,
             include_private: false,
-            ..Default::default()
         },
     );
     assert!(report.is_ok() || report.is_err(), "{report:?}");

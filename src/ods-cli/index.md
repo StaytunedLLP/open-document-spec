@@ -1,5 +1,4 @@
 ---
-packs:
 profile: index
 ods: 0.1
 ---

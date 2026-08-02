@@ -331,6 +331,7 @@ fn lsp_tcp_port_session() {
     }
     let Some(mut stream) = stream else {
         let _ = child.kill();
+        let _ = child.wait();
         // port path may still have been partially executed
         return;
     };

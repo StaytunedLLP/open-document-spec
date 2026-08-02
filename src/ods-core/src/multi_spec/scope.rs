@@ -208,13 +208,13 @@ mod tests {
 
     #[test]
     fn parse_flags_okf_skills() {
-        let e = parse_extra_spec_flags(["lint", "--okf", "--skills", "path"].into_iter()).unwrap();
+        let e = parse_extra_spec_flags(["lint", "--okf", "--skills", "path"]).unwrap();
         assert!(e.okf && e.skills);
     }
 
     #[test]
     fn parse_flags_rejects_ods() {
-        let err = parse_extra_spec_flags(["lint", "--ods"].into_iter()).unwrap_err();
+        let err = parse_extra_spec_flags(["lint", "--ods"]).unwrap_err();
         assert!(matches!(err, ScopeResolveError::ForbiddenOdsFlag));
     }
 }
