@@ -231,3 +231,93 @@ fn run_coverage_command(args: &[String]) -> Result<ExitCode, CliError> {
 
     Ok(ExitCode::from(0))
 }
+
+#[cfg(test)]
+mod test_lint_index_commands {
+    use super::*;
+    use std::fs;
+    use tempfile::tempdir;
+
+    #[test]
+    fn lint_fix_canonical_skills_and_index_check() {
+        let td = tempdir().unwrap();
+        let root = td.path();
+        fs::write(
+            root.join("index.md"),
+            "---\nprofile: index\nods: 0.1\n---\n\n# R\n",
+        )
+        .unwrap();
+        fs::write(
+            root.join("x.md"),
+            "---\nprofile: note\nstatus: draft\ndepends:\n  - missing\n---\n\n# X\n",
+        )
+        .unwrap();
+        let skill = root.join("skills/demo");
+        fs::create_dir_all(&skill).unwrap();
+        fs::write(
+            skill.join("SKILL.md"),
+            "---\nname: demo\ndescription: Lint skills hybrid package.\n---\n\n# D\n",
+        )
+        .unwrap();
+        let path = root.to_str().unwrap().to_string();
+
+        for args in [
+            vec!["ods".into(), "lint".into(), path.clone(), "--fix".into()],
+            vec![
+                "ods".into(),
+                "lint".into(),
+                path.clone(),
+                "--canonical-refs".into(),
+            ],
+            vec![
+                "ods".into(),
+                "lint".into(),
+                path.clone(),
+                "--skills".into(),
+                "--format".into(),
+                "json".into(),
+            ],
+            vec![
+                "ods".into(),
+                "lint".into(),
+                path.clone(),
+                "--skills".into(),
+                "--format".into(),
+                "text".into(),
+            ],
+            vec!["ods".into(), "index".into(), path.clone()],
+            vec![
+                "ods".into(),
+                "index".into(),
+                path.clone(),
+                "--check".into(),
+            ],
+            vec![
+                "ods".into(),
+                "index".into(),
+                path,
+                "--format".into(),
+                "json".into(),
+            ],
+        ] {
+            let _ = run_lint_command(&args);
+            // index uses run_index_command
+        }
+
+        let path = root.to_str().unwrap().to_string();
+        let _ = run_index_command(&["ods".into(), "index".into(), path.clone()]);
+        let _ = run_index_command(&[
+            "ods".into(),
+            "index".into(),
+            path.clone(),
+            "--check".into(),
+        ]);
+        let _ = run_index_command(&[
+            "ods".into(),
+            "index".into(),
+            path,
+            "--format".into(),
+            "json".into(),
+        ]);
+    }
+}

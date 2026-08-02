@@ -330,3 +330,134 @@ fn positional_args(args: &[String], start: usize) -> Vec<String> {
     }
     out
 }
+
+#[cfg(test)]
+mod test_cli_arg_parser {
+    use super::*;
+
+    #[test]
+    fn parse_serve_mode_variants() {
+        assert!(matches!(parse_serve_mode("auto").unwrap(), ServeMode::Auto));
+        assert!(matches!(parse_serve_mode("watch").unwrap(), ServeMode::Watch));
+        assert!(matches!(parse_serve_mode("poll").unwrap(), ServeMode::Poll));
+        assert!(parse_serve_mode("bogus").is_err());
+    }
+
+    #[test]
+    fn resolved_serve_mode_non_auto() {
+        assert!(matches!(
+            resolved_serve_mode(ServeMode::Poll),
+            ServeMode::Poll
+        ));
+        assert!(matches!(
+            resolved_serve_mode(ServeMode::Watch),
+            ServeMode::Watch
+        ));
+        // Auto depends on env; just ensure it returns a concrete mode.
+        let mode = resolved_serve_mode(ServeMode::Auto);
+        assert!(matches!(mode, ServeMode::Watch | ServeMode::Poll));
+    }
+
+    #[test]
+    fn parse_export_args_matrix() {
+        let args = vec![
+            "ods".into(),
+            "export".into(),
+            "graph".into(),
+            ".".into(),
+            "--out".into(),
+            "g.md".into(),
+            "--format".into(),
+            "json".into(),
+            "--spec".into(),
+            "okf".into(),
+        ];
+        assert!(parse_export_args(&args).is_ok());
+
+        let args = vec![
+            "ods".into(),
+            "export".into(),
+            "--out=out.json".into(),
+            "--format".into(),
+            "md".into(),
+            "--okf".into(),
+            "/tmp".into(),
+        ];
+        assert!(parse_export_args(&args).is_ok());
+
+        let args = vec![
+            "ods".into(),
+            "export".into(),
+            "--format".into(),
+            "nope".into(),
+        ];
+        assert!(parse_export_args(&args).is_err());
+
+        let args = vec!["ods".into(), "export".into(), "all".into(), ".".into()];
+        let _ = parse_export_args(&args);
+    }
+
+    #[test]
+    fn parse_serve_args_and_poll() {
+        let args = vec![
+            "ods".into(),
+            "serve".into(),
+            "--mode".into(),
+            "poll".into(),
+            "--poll-secs".into(),
+            "5".into(),
+            "--memory-report".into(),
+            "/tmp".into(),
+        ];
+        let opts = serve_options_from_args(&args).unwrap();
+        assert!(matches!(opts.mode, ServeMode::Poll));
+        assert!(opts.memory_report);
+        assert_eq!(opts.poll_secs, 5);
+
+        assert!(serve_options_from_args(&[
+            "ods".into(),
+            "serve".into(),
+            "--mode".into(),
+            "nope".into(),
+        ])
+        .is_err());
+        assert!(serve_options_from_args(&[
+            "ods".into(),
+            "serve".into(),
+            "--poll-secs".into(),
+            "x".into(),
+        ])
+        .is_err());
+        assert!(serve_options_from_args(&[
+            "ods".into(),
+            "serve".into(),
+            "--root".into(),
+        ])
+        .is_err());
+
+        let opts = serve_options_from_args(&[
+            "ods".into(),
+            "serve".into(),
+            "--root".into(),
+            "/tmp".into(),
+            "--mode".into(),
+            "watch".into(),
+        ])
+        .unwrap();
+        assert!(matches!(opts.mode, ServeMode::Watch));
+    }
+
+    #[test]
+    fn parse_common_flags_level_and_format() {
+        let args = vec![
+            "ods".into(),
+            "lint".into(),
+            ".".into(),
+            "--level".into(),
+            "1".into(),
+            "--format".into(),
+            "json".into(),
+        ];
+        assert!(parse_common_flags(&args, 2).is_ok());
+    }
+}

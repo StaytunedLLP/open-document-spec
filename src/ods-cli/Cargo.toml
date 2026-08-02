@@ -113,3 +113,24 @@ path = "tests/sync.test.rs"
 [[test]]
 name = "lsp_command_test"
 path = "tests/lsp_command.test.rs"
+
+[[test]]
+name = "cli_new_surface_test"
+path = "tests/cli_new_surface.test.rs"
+
+[[test]]
+name = "cli_coverage_wave2_test"
+path = "tests/cli_coverage_wave2.test.rs"
+
+[[test]]
+name = "cli_coverage_wave3_test"
+path = "tests/cli_coverage_wave3.test.rs"
+
+[[test]]
+name = "cli_coverage_wave4_test"
+path = "tests/cli_coverage_wave4.test.rs"
+
+[[test]]
+name = "cli_coverage_wave5_finish_test"
+path = "tests/cli_coverage_wave5_finish.test.rs"
+

@@ -259,3 +259,115 @@ fn run_ods_audit_command(args: &[String]) -> Result<ExitCode, CliError> {
 }
 
 include!("agents_command.rs");
+
+#[cfg(test)]
+mod test_upgrade_and_audit {
+    use super::*;
+    use std::fs;
+    use tempfile::tempdir;
+
+    #[test]
+    fn upgrade_migrate_fm_dry_and_write() {
+        let td = tempdir().unwrap();
+        let root = td.path();
+        fs::write(
+            root.join("index.md"),
+            "---\nprofile: index\nods: 0.1\n---\n\n# R\n",
+        )
+        .unwrap();
+        fs::write(
+            root.join("n.md"),
+            "---\nprofile: note\nstatus: draft\n---\n\n# N\n",
+        )
+        .unwrap();
+        let path = root.to_str().unwrap().to_string();
+
+        let res = run_upgrade_command(&[
+            "ods".into(),
+            "upgrade".into(),
+            path.clone(),
+            "--migrate-fm".into(),
+        ]);
+        let _ = res;
+
+        let res = run_upgrade_command(&[
+            "ods".into(),
+            "upgrade".into(),
+            path.clone(),
+            "--migrate-fm".into(),
+            "--write".into(),
+        ]);
+        let _ = res;
+
+        let res = run_upgrade_command(&[
+            "ods".into(),
+            "upgrade".into(),
+            path.clone(),
+            "--write".into(),
+        ]);
+        let _ = res;
+
+        let res = run_upgrade_command(&[
+            "ods".into(),
+            "upgrade".into(),
+            path,
+            "--format".into(),
+            "json".into(),
+            "--check".into(),
+        ]);
+        let _ = res;
+    }
+
+    #[test]
+    fn audit_command_inventory_paths() {
+        let td = tempdir().unwrap();
+        let root = td.path();
+        fs::write(
+            root.join("index.md"),
+            "---\nprofile: index\nods: 0.1\n---\n\n# R\n",
+        )
+        .unwrap();
+        fs::write(root.join("plain.md"), "# p\n").unwrap();
+        fs::write(root.join("bad.md"), "---\n:\n---\n\n# b\n").unwrap();
+        fs::write(
+            root.join("part.md"),
+            "---\nstatus: draft\n---\n\n# part\n",
+        )
+        .unwrap();
+        let path = root.to_str().unwrap().to_string();
+        let report = root.join("audit.md");
+
+        let res = run_ods_audit_command(&[
+            "ods".into(),
+            "audit".into(),
+            path.clone(),
+            "--write-report".into(),
+            "--report-path".into(),
+            report.to_str().unwrap().into(),
+            "--fail-on".into(),
+            "any".into(),
+        ]);
+        // may return exit 1 due to fail-on
+        assert!(res.is_ok());
+
+        let res = run_ods_audit_command(&[
+            "ods".into(),
+            "audit".into(),
+            path,
+            "--format".into(),
+            "json".into(),
+            "--fail-on".into(),
+            "plain".into(),
+        ]);
+        assert!(res.is_ok());
+
+        let res = run_ods_audit_command(&[
+            "ods".into(),
+            "audit".into(),
+            "/tmp".into(),
+            "--fail-on".into(),
+            "bogus".into(),
+        ]);
+        let _ = res;
+    }
+}

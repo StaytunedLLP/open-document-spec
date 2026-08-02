@@ -274,3 +274,60 @@ fn run_logs_command(args: &[String]) -> Result<ExitCode, CliError> {
         std::thread::sleep(std::time::Duration::from_millis(500));
     }
 }
+
+#[cfg(test)]
+mod test_lifecycle_helpers {
+    use super::*;
+
+    #[test]
+    fn archive_status_flat_nested_and_insert() {
+        let flat = "profile: note\nstatus: draft\n";
+        let out = set_frontmatter_status_archived(flat);
+        assert!(out.iter().any(|l| l.trim() == "status: archived"), "{out:?}");
+
+        let nested = "ods:\n  profile: note\n  status: draft\n";
+        let out = set_frontmatter_status_archived(nested);
+        assert!(
+            out.iter().any(|l| l.contains("status: archived")),
+            "{out:?}"
+        );
+
+        let ods_map_no_status = "ods:\n  profile: note\nprofile: note\n";
+        let out = set_frontmatter_status_archived(ods_map_no_status);
+        assert!(
+            out.iter().any(|l| l.contains("status: archived")),
+            "{out:?}"
+        );
+
+        let scalar_ods = "ods: 0.1\nprofile: note\n";
+        let out = set_frontmatter_status_archived(scalar_ods);
+        assert!(
+            out.iter().any(|l| l.contains("status: archived")),
+            "{out:?}"
+        );
+
+        let empty = "profile: note\n";
+        let out = set_frontmatter_status_archived(empty);
+        assert!(
+            out.iter().any(|l| l.contains("status: archived")),
+            "{out:?}"
+        );
+
+        // comments / blanks
+        let with_comments = "# c\n\nprofile: note\nstatus: draft\n";
+        let out = set_frontmatter_status_archived(with_comments);
+        assert!(out.iter().any(|l| l.contains("archived")));
+    }
+
+    #[test]
+    fn new_rm_archive_command_usage_errors() {
+        let err = run_new_command(&["ods".into(), "new".into()]).unwrap_err();
+        assert!(err.message().contains("new") || err.message().contains("path"));
+
+        let err = run_rm_command(&["ods".into(), "rm".into()]).unwrap_err();
+        assert!(err.message().contains("rm") || err.message().contains("path"));
+
+        let err = run_archive_command(&["ods".into(), "archive".into()]).unwrap_err();
+        assert!(err.message().contains("archive") || err.message().contains("path"));
+    }
+}

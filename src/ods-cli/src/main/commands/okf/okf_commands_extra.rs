@@ -221,3 +221,115 @@ fn parse_fail_on(args: &[String]) -> Option<&'static str> {
     }
     None
 }
+
+#[cfg(test)]
+mod test_okf_extra {
+    use super::*;
+    use std::fs;
+    use tempfile::tempdir;
+
+    fn okf_root() -> (tempfile::TempDir, String) {
+        let td = tempdir().unwrap();
+        let root = td.path();
+        fs::write(
+            root.join("index.md"),
+            "---\nokf_version: \"0.2\"\n---\n\n# OKF\n",
+        )
+        .unwrap();
+        fs::write(root.join("plain.md"), "# plain concept\n").unwrap();
+        fs::write(
+            root.join("metric.md"),
+            "---\ntype: Metric\ntitle: M\nstatus: draft\n---\n\n# Metric\n",
+        )
+        .unwrap();
+        let path = root.to_str().unwrap().to_string();
+        (td, path)
+    }
+
+    #[test]
+    fn adopt_index_context_export_fmt_json_branches() {
+        let (td, path) = okf_root();
+        let out = td.path().join("okf-graph.md");
+        let _ = run_okf_adopt_command(&[
+            "ods".into(),
+            "adopt".into(),
+            path.clone(),
+            "--okf".into(),
+        ]);
+        let _ = run_okf_adopt_command(&[
+            "ods".into(),
+            "adopt".into(),
+            path.clone(),
+            "--okf".into(),
+            "--write".into(),
+            "--format".into(),
+            "json".into(),
+        ]);
+        let _ = run_okf_index_command(&[
+            "ods".into(),
+            "index".into(),
+            path.clone(),
+            "--okf".into(),
+            "--format".into(),
+            "json".into(),
+        ]);
+        let _ = run_okf_index_command(&[
+            "ods".into(),
+            "index".into(),
+            path.clone(),
+            "--okf".into(),
+            "--check".into(),
+            "--format".into(),
+            "json".into(),
+        ]);
+        let _ = run_okf_index_command(&[
+            "ods".into(),
+            "index".into(),
+            path.clone(),
+            "--okf".into(),
+            "--check".into(),
+        ]);
+        let _ = run_okf_context_command(&[
+            "ods".into(),
+            "context".into(),
+            path.clone(),
+            "metric".into(),
+            "--okf".into(),
+            "--format".into(),
+            "json".into(),
+        ]);
+        let _ = run_okf_context_command(&[
+            "ods".into(),
+            "context".into(),
+            path.clone(),
+            "metric".into(),
+            "--okf".into(),
+        ]);
+        let _ = run_okf_context_command(&[
+            "ods".into(),
+            "context".into(),
+            path.clone(),
+            "missing-id".into(),
+            "--okf".into(),
+        ]);
+        let _ = run_okf_export_command(&[
+            "ods".into(),
+            "export".into(),
+            path.clone(),
+            "--okf".into(),
+            "--out".into(),
+            out.to_str().unwrap().into(),
+            "--format".into(),
+            "json".into(),
+        ]);
+        let _ = run_okf_fmt_command(&[
+            "ods".into(),
+            "fmt".into(),
+            path.clone(),
+            "--okf".into(),
+            "--format".into(),
+            "json".into(),
+        ]);
+        let _ = run_okf_fmt_command(&["ods".into(), "fmt".into(), path, "--okf".into()]);
+    }
+}

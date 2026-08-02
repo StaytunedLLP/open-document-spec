@@ -109,3 +109,20 @@ path = "tests/okf_full_coverage.test.rs"
 [[test]]
 name = "model_and_pipeline_extra_test"
 path = "tests/model_and_pipeline_extra.test.rs"
+
+[[test]]
+name = "multi_spec_and_skills_test"
+path = "tests/multi_spec_and_skills.test.rs"
+
+[[test]]
+name = "coverage_wave_core_test"
+path = "tests/coverage_wave_core.test.rs"
+
+[[test]]
+name = "coverage_wave3_unit_test"
+path = "tests/coverage_wave3_unit.test.rs"
+
+[[test]]
+name = "coverage_wave5_finish_test"
+path = "tests/coverage_wave5_finish.test.rs"
+

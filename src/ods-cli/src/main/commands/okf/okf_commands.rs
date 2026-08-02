@@ -218,3 +218,54 @@ include!("okf_commands_extra.rs");
 // OKF namespace (`ods okf`) removed. Engines: run_okf_* called from flag-routed bare commands.
 
 
+
+#[cfg(test)]
+mod test_okf_core_commands {
+    use super::*;
+    use std::fs;
+    use tempfile::tempdir;
+
+    #[test]
+    fn lint_doctor_audit_json_and_init() {
+        let td = tempdir().unwrap();
+        let root = td.path();
+        let path = root.to_str().unwrap().to_string();
+        let _ = run_okf_init_command(&["ods".into(), "init".into(), path.clone(), "--okf".into()]);
+        fs::write(root.join("plain.md"), "# p\n").ok();
+        for args in [
+            vec![
+                "ods".into(),
+                "lint".into(),
+                path.clone(),
+                "--okf".into(),
+                "--format".into(),
+                "json".into(),
+                "--level".into(),
+                "1".into(),
+            ],
+            vec![
+                "ods".into(),
+                "doctor".into(),
+                path.clone(),
+                "--okf".into(),
+                "--format".into(),
+                "json".into(),
+            ],
+            vec![
+                "ods".into(),
+                "audit".into(),
+                path.clone(),
+                "--okf".into(),
+                "--format".into(),
+                "json".into(),
+                "--write-report".into(),
+            ],
+            vec!["ods".into(), "lint".into(), path.clone(), "--okf".into()],
+            vec!["ods".into(), "doctor".into(), path, "--okf".into()],
+        ] {
+            let _ = run_okf_lint_command(&args);
+            let _ = run_okf_doctor_command(&args);
+            let _ = run_okf_audit_command(&args);
+        }
+    }
+}

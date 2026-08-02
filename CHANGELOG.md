@@ -10,6 +10,7 @@ GitHub Releases use GitHub’s auto-generated notes. Edit this file by hand when
 ## [Unreleased]
 
 ### Changed
+- **Test coverage elevation (production readiness):** workspace line coverage raised from ~**76.8%** raw / ~**77%** with T3 excludes to ~**88.9%** lines (T3-excluded), with **`ods-core` ~92%** and CLI ~**84%**. CI floor **73 → 88** using shared T3 `--ignore-filename-regex` (network download, OS service install, long-running watch, GitHub release client). New tests: multi-spec/skills engine, graph JSON export, LSP protocol surface, CLI agents/schema/stats/tree/clean/completion/audit/pack/upgrade/bench, and high-ROI core unit tests. Reports via `./src/scripts/coverage.sh` → `.artifacts/coverage/`. Remaining gap to the **90%** workspace bar is mostly CLI orchestration (`lsp`, `lifecycle`, `pack`, `upgrade`, OKF flag runners). See `docs/maintainer/coverage.md`.
 - **CLI multi-spec UX (flag-only):** ODS is the default native engine (no `--ods` flag). Extra specs use `--okf` and `--skills` only.
 - **Bare hybrid lint** runs **ODS only**; pass `--okf` to also lint OKF. Pure OKF trees require `ods lint --okf`.
 - **Agent Skills:** native parse/lint/init via `ods init --skills` and `ods lint --skills`.

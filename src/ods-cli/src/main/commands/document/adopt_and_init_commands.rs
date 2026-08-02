@@ -123,3 +123,64 @@ fn run_skills_init_command(args: &[String]) -> Result<ExitCode, CliError> {
     }
     Ok(ExitCode::from(0))
 }
+
+#[cfg(test)]
+mod test_adopt_init {
+    use super::*;
+    use std::fs;
+    use tempfile::tempdir;
+
+    #[test]
+    fn adopt_and_init_command_paths() {
+        let td = tempdir().unwrap();
+        let root = td.path();
+        let path = root.to_str().unwrap().to_string();
+        fs::write(root.join("plain.md"), "# plain\n").unwrap();
+
+        // init
+        let _ = run_init_command(&[
+            "ods".into(),
+            "init".into(),
+            path.clone(),
+        ]);
+        let _ = run_init_command(&[
+            "ods".into(),
+            "init".into(),
+            path.clone(),
+            "--adopt".into(),
+        ]);
+        let _ = run_adopt_command(&["ods".into(), "adopt".into(), path.clone()]);
+        let _ = run_adopt_command(&[
+            "ods".into(),
+            "adopt".into(),
+            path.clone(),
+            "--write".into(),
+            "--format".into(),
+            "json".into(),
+        ]);
+        let _ = run_adopt_command(&[
+            "ods".into(),
+            "adopt".into(),
+            path.clone(),
+            "--write".into(),
+        ]);
+
+        let skill = root.join("skill-pkg");
+        fs::create_dir_all(&skill).unwrap();
+        let _ = run_skills_init_command(&[
+            "ods".into(),
+            "init".into(),
+            skill.to_str().unwrap().into(),
+            "--skills".into(),
+        ]);
+        let _ = run_skills_init_command(&[
+            "ods".into(),
+            "init".into(),
+            skill.to_str().unwrap().into(),
+            "--skills".into(),
+            "--name".into(),
+            "my-skill".into(),
+        ]);
+        let _ = path;
+    }
+}

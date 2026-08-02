@@ -58,7 +58,7 @@ New engine code should follow [functional style](docs/maintainer/functional-styl
 
 **Product naming:** **`ods`** is the tool; bare commands = ODS (no `--ods`); extra specs via **`--okf`** / **`--skills`** only (no namespaces).
 
-Coverage: see [docs/maintainer/coverage.md](docs/maintainer/coverage.md). Run `./src/scripts/coverage.sh`. CI enforces a line floor (**73%** as of 2026-08-02).
+Coverage: see [docs/maintainer/coverage.md](docs/maintainer/coverage.md). Run `./src/scripts/coverage.sh`. CI enforces a line floor (**88%** as of 2026-08-02, with T3 excludes).
 
 ### Touchpoint rule
 
@@ -67,13 +67,16 @@ CLI surface or multi-spec changes must update: `src/specs/`, `docs/guide/`, `doc
 ## Tests & coverage
 
 - Prefer unit tests next to pure logic and integration tests under `src/*/tests/`.
-- Production bar: high line coverage on `ods-core` (aim ≥85% workspace over time).
-- CI enforces a coverage floor (`--fail-under-lines`, currently 75%).
+- Production bar: **workspace ≥90% lines** (T3 network/OS/watch excluded); **`ods-core` ≥90%**; CLI orchestration ≥80%.
+- CI enforces a coverage floor (`--fail-under-lines`, currently **88%**) with the same T3 ignore list as `./src/scripts/coverage.sh`.
 - Always keep `ods index --check .` and `ods lint .` green at repo root.
 
 ```bash
 cargo install cargo-llvm-cov --locked
-cargo llvm-cov --workspace --locked --fail-under-lines 75
+./src/scripts/coverage.sh
+# or:
+IGNORE_T3='(asset_downloader\.rs|update/installer\.rs|service/launchers\.rs|watch_and_serve_runner\.rs|okf_watch\.rs|github_release\.rs)'
+cargo llvm-cov --workspace --locked --ignore-filename-regex "$IGNORE_T3" --fail-under-lines 88
 ```
 
 ## CI

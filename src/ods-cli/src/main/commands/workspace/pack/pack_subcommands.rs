@@ -128,4 +128,52 @@ mod test_pack_command {
         ]);
         assert!(res_rm.is_ok());
     }
+
+    #[test]
+    fn insert_pack_into_root_index_variants() {
+        let with_packs = "---\nprofile: index\npacks:\n  - existing\n---\n\n# R\n";
+        let out = insert_pack_into_root_index(with_packs, "new-pack");
+        assert!(out.contains("new-pack"), "{out}");
+
+        let no_packs = "---\nprofile: index\nods: 0.1\n---\n\n# R\n";
+        let out = insert_pack_into_root_index(no_packs, "p2");
+        assert!(out.contains("packs:"), "{out}");
+        assert!(out.contains("p2"), "{out}");
+
+        let plain = "# No frontmatter\n";
+        let out = insert_pack_into_root_index(plain, "p3");
+        assert!(out.starts_with("---"), "{out}");
+        assert!(out.contains("p3"), "{out}");
+    }
+
+    #[test]
+    fn pack_list_and_sync_smoke() {
+        let td = tempfile::tempdir().unwrap();
+        let ws = td.path().join("ws");
+        std::fs::create_dir_all(&ws).unwrap();
+        std::fs::write(
+            ws.join("index.md"),
+            "---\nprofile: index\nods: 0.1\npacks:\n  - local-pack\n---\n\n# R\n",
+        )
+        .unwrap();
+        std::fs::create_dir_all(ws.join("local-pack")).unwrap();
+        std::fs::write(
+            ws.join("local-pack/index.md"),
+            "---\nprofile: index\n---\n\n# Pack\n",
+        )
+        .unwrap();
+
+        let prev = std::env::current_dir().ok();
+        let _ = std::env::set_current_dir(&ws);
+        let _ = run_pack_list(&["ods".into(), "pack".into(), "list".into()]);
+        let _ = run_pack_sync(&[
+            "ods".into(),
+            "pack".into(),
+            "sync".into(),
+            "--force".into(),
+        ]);
+        if let Some(p) = prev {
+            let _ = std::env::set_current_dir(p);
+        }
+    }
 }
