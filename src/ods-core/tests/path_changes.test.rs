@@ -93,7 +93,7 @@ fn rewrite_refs_after_moves_test() {
     let dir = temp_workspace();
     fs::write(
         dir.join("index.md"),
-        "---\nprofile: index\nods: 0.1\nodc: \">=0.0.1\"\n---\n\n# R\n- [new.md](new.md)\n",
+        "---\nprofile: index\nods: 0.1\n---\n\n# R\n- [new.md](new.md)\n",
     )
     .unwrap();
     fs::write(
@@ -112,7 +112,7 @@ fn mv_rewriter_traversal_and_error_tests() {
     let dir = temp_workspace();
     fs::write(
         dir.join("index.md"),
-        "---\nprofile: index\nods: 0.1\nodc: \">=0.0.1\"\n---\n\n# R\n",
+        "---\nprofile: index\nods: 0.1\n---\n\n# R\n",
     )
     .unwrap();
 
@@ -145,7 +145,7 @@ fn apply_disk_already_moved_file() {
     let dir = temp_workspace();
     fs::write(
         dir.join("index.md"),
-        "---\nprofile: index\nods: 0.1\nodc: \">=0.0.1\"\n---\n\n# R\n\n- [a.md](a.md)\n",
+        "---\nprofile: index\nods: 0.1\n---\n\n# R\n\n- [a.md](a.md)\n",
     )
     .unwrap();
     fs::write(
@@ -180,7 +180,7 @@ fn reindex_workspace_writes_indexes() {
     let dir = temp_workspace();
     fs::write(
         dir.join("index.md"),
-        "---\nprofile: index\nods: 0.1\nodc: \">=0.0.1\"\n---\n\n# R\n\n",
+        "---\nprofile: index\nods: 0.1\n---\n\n# R\n\n",
     )
     .unwrap();
     fs::write(
@@ -200,7 +200,7 @@ fn move_document_cli_path() {
     let dir = temp_workspace();
     fs::write(
         dir.join("index.md"),
-        "---\nprofile: index\nods: 0.1\nodc: \">=0.0.1\"\n---\n\n# R\n\n- [x.md](x.md)\n",
+        "---\nprofile: index\nods: 0.1\n---\n\n# R\n\n- [x.md](x.md)\n",
     )
     .unwrap();
     fs::write(
@@ -218,7 +218,7 @@ fn moving_markdown_preserves_md_frontmatter_ref_style() {
     let dir = temp_workspace();
     fs::write(
         dir.join("index.md"),
-        "---\nprofile: index\nods: 0.1\nodc: \">=0.0.1\"\n---\n\n# Root\n",
+        "---\nprofile: index\nods: 0.1\n---\n\n# Root\n",
     )
     .unwrap();
     fs::create_dir_all(dir.join("docs")).unwrap();

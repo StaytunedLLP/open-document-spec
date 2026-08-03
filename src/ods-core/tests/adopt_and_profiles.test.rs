@@ -33,7 +33,7 @@ fn adopt_infers_feature_from_headings() {
     let dir = temp_workspace();
     fs::write(
         dir.join("index.md"),
-        "---\nprofile: index\nods: 0.1\nodc: \">=0.0.1\"\n---\n\n# R\n\n- [f.md](f.md)\n",
+        "---\nprofile: index\nods: 0.1\n---\n\n# R\n\n- [f.md](f.md)\n",
     )
     .unwrap();
     fs::write(
@@ -54,7 +54,7 @@ fn adopt_infers_guide_and_policy() {
     let dir = temp_workspace();
     fs::write(
         dir.join("index.md"),
-        "---\nprofile: index\nods: 0.1\nodc: \">=0.0.1\"\n---\n\n# R\n\n- [g.md](g.md)\n- [p.md](p.md)\n",
+        "---\nprofile: index\nods: 0.1\n---\n\n# R\n\n- [g.md](g.md)\n- [p.md](p.md)\n",
     )
     .unwrap();
     fs::write(
@@ -86,7 +86,7 @@ fn known_profiles_lists_standards() {
     let dir = temp_workspace();
     fs::write(
         dir.join("index.md"),
-        "---\nprofile: index\nods: 0.1\nodc: \">=0.0.1\"\n---\n\n# R\n",
+        "---\nprofile: index\nods: 0.1\n---\n\n# R\n",
     )
     .unwrap();
     let ws = load_workspace(&dir).unwrap();
@@ -100,7 +100,7 @@ fn adopt_all_remaining_profiles_and_invalid_frontmatter() {
     let dir = temp_workspace();
     fs::write(
         dir.join("index.md"),
-        "---\nprofile: index\nods: 0.1\nodc: \">=0.0.1\"\n---\n\n# R\n",
+        "---\nprofile: index\nods: 0.1\n---\n\n# R\n",
     )
     .unwrap();
     // Invalid frontmatter file

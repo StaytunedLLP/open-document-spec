@@ -6,8 +6,8 @@ name: release
 # Manual git tags do NOT trigger this workflow.
 #
 # End users install from release archives (manual first install, then odc update).
-# Ships one archive per OS/arch: odc-<tag>-<os-arch>.{tar.gz|zip}
-# Each archive contains both `odc` and `ods` binaries (argv0 alias), not separate assets.
+# Ships one archive per OS/arch: ods-<tag>-<os-arch>.{tar.gz|zip}
+# Each archive contains the `ods` binary.
 
 on:
   workflow_run:
@@ -474,31 +474,27 @@ jobs:
           set -euo pipefail
           VERSION="${{ steps.version.outputs.tag }}"
           ASSET="${{ matrix.asset }}"
-          OUT="odc-${VERSION}-${ASSET}"
+          OUT="ods-${VERSION}-${ASSET}"
           mkdir -p "dist/${OUT}"
 
-          cp "${{ steps.bins.outputs.odc }}" "dist/${OUT}/odc"
           cp "${{ steps.bins.outputs.ods }}" "dist/${OUT}/ods" 2>/dev/null || cp "${{ steps.bins.outputs.odc }}" "dist/${OUT}/ods"
 
           cat > "dist/${OUT}/INSTALL.txt" << 'INSTALLEOF'
-          OpenDocify CLI (odc) @VERSION@ (@ASSET@)
-          Copyright (c) Staytuned LLP. Proprietary — see repository LICENSE.
+          Open Document Spec CLI (ods) @VERSION@ (@ASSET@)
+          Copyright (c) Staytuned LLP. See repository LICENSE.
 
-          First install (private repo — use gh or a logged-in browser):
-            gh auth login
-            gh release download @VERSION@ -R StaytunedLLP/open-document-spec \
-              -p @OUT@.tar.gz -p SHA256SUMS
+          First install:
+            curl -fsSL https://opendocify.com/install.sh | bash
+            # or manual unpack:
             tar xzf @OUT@.tar.gz && cd @OUT@
             mkdir -p ~/.local/bin
-            install -m 755 odc ~/.local/bin/
-            ln -sfn ~/.local/bin/odc ~/.local/bin/ods
+            install -m 755 ods ~/.local/bin/
             export PATH="$HOME/.local/bin:$PATH"
-            export GH_TOKEN="$(gh auth token)"
 
           After first install:
-            odc update
-            odc ods init . && odc setup
-            # OKF: odc okf init .
+            ods update
+            ods init . && ods setup
+            # OKF: ods init --okf
 
           Guide: README.md · Changelog: CHANGELOG.md
           INSTALLEOF
@@ -523,26 +519,24 @@ jobs:
         run: |
           $Version = "${{ steps.version.outputs.tag }}"
           $Asset   = "${{ matrix.asset }}"
-          $Out     = "odc-$Version-$Asset"
+          $Out     = "ods-$Version-$Asset"
           New-Item -ItemType Directory -Force -Path "dist\$Out" | Out-Null
 
           # One zip per OS/arch. Include both binaries inside the same archive (ods = argv0 alias).
-          Copy-Item "${{ steps.bins.outputs.odc }}" "dist\$Out\odc.exe"
           try { Copy-Item "${{ steps.bins.outputs.ods }}" "dist\$Out\ods.exe" } catch { Copy-Item "${{ steps.bins.outputs.odc }}" "dist\$Out\ods.exe" }
 
           $InstallText = @"
-          OpenDocify CLI (odc) $Version ($Asset)
-          Copyright (c) Staytuned LLP. Proprietary -- see repository LICENSE.
+          Open Document Spec CLI (ods) $Version ($Asset)
+          Copyright (c) Staytuned LLP. See repository LICENSE.
 
-          First install (private repo -- use gh or a logged-in browser):
-            gh release download $Version -R StaytunedLLP/open-document-spec -p $Out.zip -p SHA256SUMS
-            Expand the zip; copy odc.exe (and optional ods.exe alias) to a folder on PATH
-            Set user env GH_TOKEN for odc update / auto-update
+          First install:
+            irm https://opendocify.com/install.ps1 | iex
+            # or manual unpack: Expand the zip; copy ods.exe to a folder on PATH
 
           After first install:
-            odc update
-            odc init .
-            odc okf init .   # optional OKF bundle
+            ods update
+            ods init .
+            ods init --okf   # optional OKF bundle
 
           Guide: README.md · Changelog: CHANGELOG.md
           "@
@@ -561,7 +555,7 @@ jobs:
       - name: Upload workflow artifact
         uses: actions/upload-artifact@v7
         with:
-          name: odc-release-${{ matrix.asset }}
+          name: ods-release-${{ matrix.asset }}
           path: |
             dist/*.tar.gz
             dist/*.zip
@@ -583,7 +577,7 @@ jobs:
         uses: actions/download-artifact@v8
         with:
           path: dist
-          pattern: odc-release-*
+          pattern: ods-release-*
           merge-multiple: true
 
       - name: Merge and deduplicate checksums
@@ -604,7 +598,7 @@ jobs:
       - name: Upload merged SHA256SUMS
         uses: actions/upload-artifact@v7
         with:
-          name: odc-release-checksums
+          name: ods-release-checksums
           path: dist/SHA256SUMS
           if-no-files-found: error
 
@@ -626,7 +620,7 @@ jobs:
         uses: actions/download-artifact@v8
         with:
           path: dist
-          pattern: odc-release-*
+          pattern: ods-release-*
           merge-multiple: true
 
       - name: List assets
@@ -678,12 +672,12 @@ jobs:
 
           # Primary product archives (must always exist on every release).
           required=(
-            "odc-${TAG}-linux-x86_64.tar.gz"
-            "odc-${TAG}-linux-arm64.tar.gz"
-            "odc-${TAG}-macos-x86_64.tar.gz"
-            "odc-${TAG}-macos-arm64.tar.gz"
-            "odc-${TAG}-windows-x86_64.zip"
-            "odc-${TAG}-windows-arm64.zip"
+            "ods-${TAG}-linux-x86_64.tar.gz"
+            "ods-${TAG}-linux-arm64.tar.gz"
+            "ods-${TAG}-macos-x86_64.tar.gz"
+            "ods-${TAG}-macos-arm64.tar.gz"
+            "ods-${TAG}-windows-x86_64.zip"
+            "ods-${TAG}-windows-arm64.zip"
             "SHA256SUMS"
           )
 

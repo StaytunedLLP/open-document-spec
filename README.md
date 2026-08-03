@@ -113,17 +113,13 @@ Tell your AI Assistant: _"Install Open Document Spec skill"_. The skill detects 
 **macOS / Linux**:
 
 ```bash
-export GH_TOKEN="$(gh auth token)"
-curl -fsSL -H "Authorization: Bearer ${GH_TOKEN}" \
-  https://raw.githubusercontent.com/StaytunedLLP/open-document-spec/main/src/scripts/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/StaytunedLLP/open-document-spec/main/src/scripts/install.sh | bash
 ```
 
 **Windows (PowerShell)**:
 
 ```powershell
-$env:GH_TOKEN = (gh auth token)
-irm -Headers @{ Authorization = "Bearer $env:GH_TOKEN" } `
-  https://raw.githubusercontent.com/StaytunedLLP/open-document-spec/main/src/scripts/install.ps1 | iex
+irm https://raw.githubusercontent.com/StaytunedLLP/open-document-spec/main/src/scripts/install.ps1 | iex
 ```
 
 </details>

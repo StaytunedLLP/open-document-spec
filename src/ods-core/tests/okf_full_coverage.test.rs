@@ -286,7 +286,7 @@ fn scaffold_and_remove_profile_templates_and_errors() {
 
     std::fs::write(
         root.join("index.md"),
-        "---\nprofile: index\nods: 0.1\nodc: \">=0.0.1\"\n---\n\n# R\n",
+        "---\nprofile: index\nods: 0.1\n---\n\n# R\n",
     )
     .unwrap();
 

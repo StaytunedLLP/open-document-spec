@@ -21,7 +21,7 @@ pub fn get_backup_dir(root: &Path) -> io::Result<PathBuf> {
     } else if let Ok(userprofile) = std::env::var("USERPROFILE") {
         PathBuf::from(userprofile)
     } else {
-        let dir = std::env::temp_dir().join("odc_backups").join(&repo_hash);
+        let dir = std::env::temp_dir().join("ods_backups").join(&repo_hash);
         fs::create_dir_all(&dir)?;
         return Ok(dir);
     };

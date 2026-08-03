@@ -8,15 +8,13 @@
 # Windows: use install.ps1 instead.
 #
 # Usage:
-#   export GH_TOKEN="$(gh auth token)"   # or GITHUB_TOKEN with repo scope if private
-#   curl -fsSL -H "Authorization: Bearer ${GH_TOKEN}" \
-#     https://raw.githubusercontent.com/StaytunedLLP/open-document-spec/main/src/scripts/install.sh | bash
+#   curl -fsSL https://raw.githubusercontent.com/StaytunedLLP/open-document-spec/main/src/scripts/install.sh | bash
 #
 # Options via environment variables:
 #   ODS_VERSION   — pin a release tag, e.g. "v0.0.13"  (default: latest stable)
 #   ODS_PREFIX    — directory to install binaries into  (default: ~/.local/bin)
 #   ODS_NO_VERIFY — set to "1" to skip SHA256 checksum verification
-#   GH_TOKEN / GITHUB_TOKEN — required while the repo is private
+#   GH_TOKEN / GITHUB_TOKEN — optional token (e.g. for higher API rate limits)
 #
 set -euo pipefail
 
@@ -67,18 +65,6 @@ github_token() {
   fi
 }
 
-private_repo_hint() {
-  cat >&2 <<'EOF'
-This repository is private. Unauthenticated downloads return HTTP 404.
-
-  export GH_TOKEN="$(gh auth token)"   # or a PAT with repo scope
-  curl -fsSL -H "Authorization: Bearer ${GH_TOKEN}" \
-    https://raw.githubusercontent.com/StaytunedLLP/open-document-spec/main/src/scripts/install.sh | bash
-
-GH_TOKEN must be exported in the environment that runs this script (not only on curl).
-EOF
-}
-
 # curl wrapper. Args: extra curl flags… then URL.
 # Always sets User-Agent + Accept + optional Authorization.
 api_curl() {
@@ -96,13 +82,18 @@ api_curl() {
   curl "${args[@]}" "$@"
 }
 
-# Download a release asset by name via the GitHub API (required for private repos).
-# Browser-style /releases/download/ URLs return 404 for private assets even with Bearer.
+# Download a release asset by name.
+# Tries direct GitHub Release URL first, falling back to API asset endpoint.
 # Usage: download_asset <tag|latest> <filename> <output-path>
 download_asset() {
   local tag="$1" filename="$2" out="$3"
-  local release_json asset_id
+  local direct_url="https://github.com/${REPO}/releases/download/${tag}/${filename}"
 
+  if api_curl -o "${out}" "${direct_url}" 2>/dev/null; then
+    return 0
+  fi
+
+  local release_json asset_id
   if [ "${tag}" = "latest" ]; then
     release_json=$(api_curl -H "Accept: application/vnd.github+json" \
       "${API}/releases/latest") \
@@ -176,11 +167,6 @@ done
 need_cmd curl
 need_cmd tar
 
-TOKEN="$(github_token)"
-if [ -z "${TOKEN}" ]; then
-  warn "GH_TOKEN / GITHUB_TOKEN not set — downloads will fail if the repo is private"
-fi
-
 # ── Platform detection → short asset id (os-arch) ─────────────────────────────
 OS=$(uname -s)
 ARCH=$(uname -m)
@@ -204,15 +190,12 @@ if [ -z "${VERSION}" ]; then
   info "Resolving latest ODS release..."
   if ! API_RESPONSE=$(api_curl -H "Accept: application/vnd.github+json" \
       "${API}/releases/latest" 2>/dev/null); then
-    if [ -z "${TOKEN}" ]; then
-      private_repo_hint
-    fi
-    fatal "could not reach GitHub API — check network and token"
+    fatal "could not reach GitHub API — check network connection"
   fi
   VERSION=$(printf '%s' "${API_RESPONSE}" \
     | grep '"tag_name"' | head -1 \
     | sed 's/.*"tag_name": *"\([^"]*\)".*/\1/')
-  [ -n "${VERSION}" ] || fatal "could not resolve latest release tag — is the token valid for ${REPO}?"
+  [ -n "${VERSION}" ] || fatal "could not resolve latest release tag for ${REPO}"
 fi
 info "Installing ODS ${VERSION} for ${ASSET}"
 
@@ -234,24 +217,14 @@ trap 'rm -rf "${TMPDIR_ODS}"' EXIT
 # ── Download archive ──────────────────────────────────────────────────────────
 info "Downloading ${FILENAME}..."
 if ! download_asset "${VERSION}" "${FILENAME}" "${TMPDIR_ODS}/${FILENAME}"; then
-  FILENAME="odc-${VERSION}-${ASSET}.tar.gz"
-  info "Asset ods-${VERSION}-${ASSET}.tar.gz not found; trying fallback ${FILENAME}..."
-  if ! download_asset "${VERSION}" "${FILENAME}" "${TMPDIR_ODS}/${FILENAME}"; then
-    if [ -z "${TOKEN}" ]; then
-      private_repo_hint
-    fi
-    fatal "download failed for archive on ${VERSION}
+  fatal "download failed for archive on ${VERSION}
 Check that version exists at: https://github.com/${REPO}/releases"
-  fi
 fi
 
 # ── Checksum verification ─────────────────────────────────────────────────────
 if [ "${ODS_NO_VERIFY:-0}" != "1" ]; then
   info "Verifying checksum..."
   if ! download_asset "${VERSION}" "SHA256SUMS" "${TMPDIR_ODS}/SHA256SUMS"; then
-    if [ -z "${TOKEN}" ]; then
-      private_repo_hint
-    fi
     fatal "could not download SHA256SUMS for ${VERSION}"
   fi
 
@@ -279,15 +252,15 @@ fi
 info "Extracting..."
 tar xzf "${TMPDIR_ODS}/${FILENAME}" -C "${TMPDIR_ODS}"
 BIN_SRC=""
-for try in "${TMPDIR_ODS}/ods-${VERSION}-${ASSET}" "${TMPDIR_ODS}/odc-${VERSION}-${ASSET}"; do
+for try in "${TMPDIR_ODS}/ods-${VERSION}-${ASSET}"; do
   if [ -f "${try}/ods" ]; then BIN_SRC="${try}/ods"; break; fi
   if [ -f "${try}/odc" ]; then BIN_SRC="${try}/odc"; break; fi
 done
 if [ -z "${BIN_SRC}" ]; then
-  FOUND=$(find "${TMPDIR_ODS}" -type f \( -name ods -o -name odc \) 2>/dev/null | head -1 || true)
+  FOUND=$(find "${TMPDIR_ODS}" -type f -name ods 2>/dev/null | head -1 || true)
   [ -n "${FOUND}" ] && BIN_SRC="${FOUND}"
 fi
-[ -n "${BIN_SRC}" ] && [ -f "${BIN_SRC}" ] || fatal "binary 'ods' or 'odc' not found in archive"
+[ -n "${BIN_SRC}" ] && [ -f "${BIN_SRC}" ] || fatal "binary 'ods' not found in archive"
 
 # ── Install ───────────────────────────────────────────────────────────────────
 PREFIX="${ODS_PREFIX:-${HOME}/.local/bin}"
@@ -342,7 +315,6 @@ echo "    ods lint"
 echo "    ods export"
 echo ""
 echo "  Keep tools current (opt-out: ODS_AUTO_UPDATE=0):"
-echo "    export GH_TOKEN=\"\$(gh auth token)\"   # needed for private releases"
 echo "    ods update              # update binary & restart background service"
 echo ""
 echo "  Guide: https://github.com/${REPO}/blob/main/README.md"

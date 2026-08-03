@@ -77,14 +77,7 @@ function Invoke-Install {
     if (Test-Path $SrcInstallScript) {
         & $SrcInstallScript
     } else {
-        $token = $env:GH_TOKEN
-        if (-not $token -and $env:GITHUB_TOKEN) { $token = $env:GITHUB_TOKEN }
-        if (-not $token) {
-            try { $token = (gh auth token 2>$null) } catch {}
-        }
-        if ($token) { $env:GH_TOKEN = $token }
-        irm -Headers @{ Authorization = "Bearer $env:GH_TOKEN" } `
-            https://raw.githubusercontent.com/StaytunedLLP/open-document-spec/main/src/scripts/install.ps1 | iex
+        irm https://raw.githubusercontent.com/StaytunedLLP/open-document-spec/main/src/scripts/install.ps1 | iex
     }
 }
 

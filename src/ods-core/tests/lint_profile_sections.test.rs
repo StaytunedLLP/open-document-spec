@@ -10,7 +10,7 @@ fn write_root(dir: impl AsRef<Path>, extra: &str) {
     let dir = dir.as_ref();
     fs::write(
         dir.join("index.md"),
-        format!("---\nprofile: index\nods: 0.1\nodc: \">=0.0.1\"\n---\n\n# Root\n\n{extra}"),
+        format!("---\nprofile: index\nods: 0.1\n---\n\n# Root\n\n{extra}"),
     )
     .unwrap();
 }

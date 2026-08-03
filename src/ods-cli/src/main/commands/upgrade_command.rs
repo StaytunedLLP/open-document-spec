@@ -237,7 +237,7 @@ fn run_ods_audit_command(args: &[String]) -> Result<ExitCode, CliError> {
                 md.push('\n');
             }
         }
-        md.push_str("\n## Suggested next commands\n\n```bash\nodc ods adopt --write\nodc ods fmt --migrate\nodc ods lint\n```\n");
+        md.push_str("\n## Suggested next commands\n\n```bash\nods adopt --write\nods fmt --migrate\nods lint\n```\n");
         fs::write(&report_path, md).map_err(|e| failure(e.to_string()))?;
         if matches!(format, OutputFormat::Text) {
             println!("wrote {}", report_path.display());

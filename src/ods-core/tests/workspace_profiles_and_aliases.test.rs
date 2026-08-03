@@ -28,7 +28,7 @@ fn lint_document_in_workspace_unparsed_frontmatter() {
     let dir = ods_test_support::temp_workspace();
     std::fs::write(
         dir.join("index.md"),
-        "---\nprofile: index\nods: 0.1\nodc: \">=0.0.1\"\n---\n\n# Root\n",
+        "---\nprofile: index\nods: 0.1\n---\n\n# Root\n",
     )
     .unwrap();
     std::fs::write(dir.join("plain.md"), "# Plain\n").unwrap();
@@ -47,7 +47,7 @@ fn context_resolution_follows_depends_chain_deterministically() {
     let temp = temp_workspace();
     fs::write(
         temp.join("index.md"),
-        "---\nprofile: index\nods: 0.1\nodc: \">=0.0.1\"\n---\n\n# Root\n\n- [checkout.md](checkout.md)\n- [pricing.md](pricing.md)\n",
+        "---\nprofile: index\nods: 0.1\n---\n\n# Root\n\n- [checkout.md](checkout.md)\n- [pricing.md](pricing.md)\n",
     )
     .expect("root index");
     fs::write(
@@ -80,7 +80,7 @@ fn index_generation_matches_workspace_children() {
     let temp = temp_workspace();
     fs::write(
         temp.join("index.md"),
-        "---\nprofile: index\nods: 0.1\nodc: \">=0.0.1\"\n---\n\n# Root\n",
+        "---\nprofile: index\nods: 0.1\n---\n\n# Root\n",
     )
     .expect("root index");
     for folder in ["alpha", "beta", "gamma"] {
@@ -148,7 +148,7 @@ fn root_aliases_allow_workspace_vocab_variants() {
     let temp = temp_workspace();
     fs::write(
         temp.join("index.md"),
-        "---\nprofile: index\nods: 0.1\nodc: \">=0.0.1\"\naliases:\n  Goal:\n    - Mission\n---\n\n# Root\n\n- [feature.md](feature.md)\n",
+        "---\nprofile: index\nods: 0.1\naliases:\n  Goal:\n    - Mission\n---\n\n# Root\n\n- [feature.md](feature.md)\n",
     )
     .expect("root index");
     fs::write(
@@ -174,7 +174,7 @@ fn custom_profiles_are_loaded_from_workspace_catalogs() {
     fs::create_dir_all(temp.join("ods-profiles")).expect("catalog dir");
     fs::write(
         temp.join("index.md"),
-        "---\nprofile: index\nods: 0.1\nodc: \">=0.0.1\"\ncustom-profiles:\n  - ods-profiles/custom.md\n---\n\n# Root\n\n- [doc.md](doc.md)\n",
+        "---\nprofile: index\nods: 0.1\ncustom-profiles:\n  - ods-profiles/custom.md\n---\n\n# Root\n\n- [doc.md](doc.md)\n",
     )
     .expect("root index");
     fs::write(
@@ -219,7 +219,7 @@ fn duplicate_profile_names_are_reported() {
     fs::create_dir_all(temp.join("more-profiles")).expect("extra catalog dir");
     fs::write(
         temp.join("index.md"),
-        "---\nprofile: index\nods: 0.1\nodc: \">=0.0.1\"\ncustom-profiles:\n  - ods-profiles/custom.md\n  - more-profiles/custom.md\n---\n\n# Root\n",
+        "---\nprofile: index\nods: 0.1\ncustom-profiles:\n  - ods-profiles/custom.md\n  - more-profiles/custom.md\n---\n\n# Root\n",
     )
     .expect("root index");
     fs::write(
@@ -260,7 +260,7 @@ fn adopt_suggests_workspace_aliases_from_unmatched_headings() {
     let temp = temp_workspace();
     fs::write(
         temp.join("index.md"),
-        "---\nprofile: index\nods: 0.1\nodc: \">=0.0.1\"\n---\n\n# Root\n\n- [feature.md](feature.md)\n",
+        "---\nprofile: index\nods: 0.1\n---\n\n# Root\n\n- [feature.md](feature.md)\n",
     )
     .expect("root index");
     fs::write(

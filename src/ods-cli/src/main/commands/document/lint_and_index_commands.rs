@@ -219,9 +219,9 @@ fn run_coverage_command(args: &[String]) -> Result<ExitCode, CliError> {
             "# Documentation Health & Coverage Report\n\n- Score: {:.1}% Compliant\n- Compliant Documents: {}\n- Non-Compliant Documents: {}\n- Total Documents: {}\n\nNote: this is separate from lint/audit diagnostics (`.ods/ods-errors.md`).\n",
             pct, compliant, non_compliant, total
         );
-        let odc_dir = root.join(".ods");
-        let _ = std::fs::create_dir_all(&odc_dir);
-        let report_path = odc_dir.join("coverage.md");
+        let ods_dir = root.join(".ods");
+        let _ = std::fs::create_dir_all(&ods_dir);
+        let report_path = ods_dir.join("coverage.md");
         std::fs::write(&report_path, report_content)
             .map_err(|e| failure(format!("write {}: {e}", report_path.display())))?;
         if matches!(format, OutputFormat::Text) {

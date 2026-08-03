@@ -91,7 +91,7 @@ Environment:
   ODS_LOW_MEMORY=1         serve --mode auto → poll
   ODS_SERVE_MODE           Default serve mode
   ODS_POLL_SECS             Default poll interval
-  GH_TOKEN / GITHUB_TOKEN  Required for private release download
+  GH_TOKEN / GITHUB_TOKEN  Optional token for rate limits
 "
     );
 }

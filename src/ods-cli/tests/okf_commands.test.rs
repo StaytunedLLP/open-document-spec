@@ -239,7 +239,7 @@ fn hybrid_bare_index_requires_explicit_namespace() {
 }
 
 #[test]
-fn coverage_write_report_goes_under_dot_odc() {
+fn coverage_write_report_goes_under_dot_ods() {
     let dir = tempdir().unwrap();
     let path = dir.path().to_str().unwrap();
     assert!(

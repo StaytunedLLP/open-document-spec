@@ -213,14 +213,6 @@ fn fetch_latest_tag() -> Result<String, String> {
     Ok(normalize_tag(tag))
 }
 
-fn auth_hint() -> &'static str {
-    if github_token().is_none() {
-        " (set GH_TOKEN or GITHUB_TOKEN for private repo access)"
-    } else {
-        ""
-    }
-}
-
 fn apply_auth(req: ureq::Request, accept: &str) -> ureq::Request {
     let req = req.set("User-Agent", USER_AGENT).set("Accept", accept);
     match github_token() {

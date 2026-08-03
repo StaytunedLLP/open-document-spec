@@ -13,7 +13,7 @@ fn apply_upserts_and_removes_rebuild_indexes() {
     let root = dir.path();
     fs::write(
         root.join("index.md"),
-        "---\nprofile: index\nods: 0.1\nodc: \">=0.0.1\"\n---\n\n# Root\n",
+        "---\nprofile: index\nods: 0.1\n---\n\n# Root\n",
     )
     .unwrap();
     let mut ws = load_workspace(root).unwrap();
@@ -58,7 +58,7 @@ fn parse_paths_parallel_and_discover() {
     let root = dir.path();
     fs::write(
         root.join("index.md"),
-        "---\nprofile: index\nods: 0.1\nodc: \">=0.0.1\"\n---\n\n# R\n",
+        "---\nprofile: index\nods: 0.1\n---\n\n# R\n",
     )
     .unwrap();
     fs::create_dir_all(root.join("sub")).unwrap();

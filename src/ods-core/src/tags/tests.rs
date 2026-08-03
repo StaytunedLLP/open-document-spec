@@ -57,7 +57,7 @@ mod tests {
     #[test]
     fn tags_catalog_all_helpers_and_warnings_test() {
         let dir = ods_test_support::temp_workspace();
-        std::fs::write(dir.join("index.md"), "---\nprofile: index\nods: 0.1\nodc: \">=0.0.1\"\n---\n\n# R\n").unwrap();
+        std::fs::write(dir.join("index.md"), "---\nprofile: index\nods: 0.1\n---\n\n# R\n").unwrap();
         std::fs::write(
             dir.join("a.md"),
             "---\nprofile: note\ntags:\n  - \"tag with spaces\"\n  - draft\n  - feature\n---\n\n# A\n",

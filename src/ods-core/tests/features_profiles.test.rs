@@ -8,7 +8,7 @@ fn profile_paths_and_conflicts_are_loaded() {
     fs::create_dir_all(dir.path().join("more-profiles")).unwrap();
     fs::write(
         dir.path().join("index.md"),
-        "---\nprofile: index\nods: 0.1\nodc: \">=0.0.1\"\nprofiles:\n  - ods-profiles\n  - more-profiles\n---\n\n# Root\n",
+        "---\nprofile: index\nods: 0.1\nprofiles:\n  - ods-profiles\n  - more-profiles\n---\n\n# Root\n",
     )
     .unwrap();
     fs::write(
