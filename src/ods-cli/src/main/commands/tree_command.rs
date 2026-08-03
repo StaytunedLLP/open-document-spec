@@ -8,8 +8,8 @@ fn run_tree_command(args: &[String]) -> Result<ExitCode, CliError> {
     match format {
         OutputFormat::Text => {
             println!("ODS Workspace Tree: {}", root.display());
-            println!("└── index.md (root index)");
-            let root_index_path = root.join("index.md");
+            println!("└── index.ods.md (root index)");
+            let root_index_path = root.join("index.ods.md");
 
             let docs_by_dir = workspace
                 .documents

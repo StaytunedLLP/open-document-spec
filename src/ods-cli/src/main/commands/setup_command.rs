@@ -260,7 +260,7 @@ fn find_marked_ods_workspace_root(path: &Path) -> Option<PathBuf> {
     };
 
     loop {
-        let index = current.join("index.md");
+        let index = current.join("index.ods.md");
         if index.is_file() && ods_core::index_has_ods_field(&index) {
             return Some(current);
         }

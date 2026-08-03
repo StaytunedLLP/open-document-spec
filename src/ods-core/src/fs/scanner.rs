@@ -162,7 +162,7 @@ fn directory_children_for(workspace: &Workspace, directory: &Path) -> Vec<String
         .into_iter()
         .filter_map(|entry| {
             let name = entry.file_name().to_string_lossy().to_string();
-            if name == "index.md" || should_ignore_name(entry.file_name().as_os_str()) {
+            if name == "index.md" || name == "index.ods.md" || should_ignore_name(entry.file_name().as_os_str()) {
                 return None;
             }
 
@@ -178,7 +178,7 @@ fn directory_children_for(workspace: &Workspace, directory: &Path) -> Vec<String
             if file_type.is_dir() {
                 let is_doc_dir = workspace.doc_dirs.contains(&path);
                 if is_doc_dir {
-                    Some(format!("{name}/index.md"))
+                    Some(format!("{name}/index.ods.md"))
                 } else {
                     None
                 }

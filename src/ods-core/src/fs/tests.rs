@@ -47,12 +47,12 @@ mod tests {
         let nested = root.join("nested");
         fs::create_dir_all(nested.join("products")).expect("dirs");
         fs::write(
-            root.join("index.md"),
+            root.join("index.ods.md"),
             "---\nprofile: index\nods: 0.1\nodc: \">=0.0.1\"\n---\n\n# Root\n",
         )
         .expect("root index");
         fs::write(
-            nested.join("index.md"),
+            nested.join("index.ods.md"),
             "---\nprofile: index\nods: 0.1\nodc: \">=0.0.1\"\n---\n\n# Nested\n",
         )
         .expect("nested index");
@@ -76,7 +76,7 @@ mod tests {
         let file = dir.join("sub/note.md");
         fs::write(&file, "# Note\n").expect("file");
 
-        // No index.md anywhere — should return None (not the parent dir).
+        // No index.ods.md anywhere — should return None (not the parent dir).
         let found = find_workspace_root(&file);
         assert!(
             found.is_none(),
@@ -95,17 +95,17 @@ mod tests {
             .as_nanos();
         let dir = std::env::temp_dir().join(format!("ods-nokey-{nonce}"));
         fs::create_dir_all(dir.join("docs")).expect("dirs");
-        // index.md exists but has no ods: key — just a plain markdown file.
-        fs::write(dir.join("index.md"), "# My Notes\n\nJust a readme.\n")
+        // index.ods.md exists but has no ods: key — just a plain markdown file.
+        fs::write(dir.join("index.ods.md"), "# My Notes\n\nJust a readme.\n")
             .expect("index");
         let file = dir.join("docs/thing.md");
         fs::write(&file, "# Thing\n").expect("file");
 
-        // index.md without ods: key is still found as nearest_index fallback.
+        // index.ods.md without ods: key is still found as nearest_index fallback.
         // But it should NOT act as a workspace root for plain directories
         // that lack the ods: marker.
         let found = find_workspace_root(&file);
-        // nearest_index is found (index.md exists), so it returns Some.
+        // nearest_index is found (index.ods.md exists), so it returns Some.
         // This is expected — the strict guard (require_ods_workspace) in CLI
         // catches this case by checking ods_enabled().
         assert!(found.is_some());

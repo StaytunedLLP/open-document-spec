@@ -12,7 +12,7 @@ fn tempdir() -> tempfile::TempDir {
 fn graph_keys_and_context_work_end_to_end() {
     let dir = tempdir();
     fs::write(
-        dir.path().join("index.md"),
+        dir.path().join("index.ods.md"),
         "---\nprofile: index\nods: 0.1\nodc: \">=0.0.1\"\n---\n\n# Root\n",
     )
     .unwrap();
@@ -61,7 +61,7 @@ fn graph_keys_and_context_work_end_to_end() {
 fn code_refs_are_in_context_and_export() {
     let dir = tempdir();
     fs::write(
-        dir.path().join("index.md"),
+        dir.path().join("index.ods.md"),
         "---\nprofile: index\nods: 0.1\nodc: \">=0.0.1\"\n---\n\n# Root\n",
     )
     .unwrap();
@@ -97,7 +97,7 @@ fn code_refs_are_in_context_and_export() {
 fn code_files_are_not_indexed_as_document_children() {
     let dir = tempdir();
     fs::write(
-        dir.path().join("index.md"),
+        dir.path().join("index.ods.md"),
         "---\nprofile: index\nods: 0.1\nodc: \">=0.0.1\"\n---\n\n# Root\n",
     )
     .unwrap();
@@ -114,7 +114,7 @@ fn code_files_are_not_indexed_as_document_children() {
     .unwrap();
 
     generate_indexes(&load_workspace(dir.path()).unwrap()).unwrap();
-    let root_index = fs::read_to_string(dir.path().join("index.md")).unwrap();
+    let root_index = fs::read_to_string(dir.path().join("index.ods.md")).unwrap();
     assert!(root_index.contains("feature.md"), "{root_index}");
     assert!(!root_index.contains("src/"), "{root_index}");
     assert!(!dir.path().join("src/index.md").exists());
@@ -124,7 +124,7 @@ fn code_files_are_not_indexed_as_document_children() {
 fn duplicate_ids_and_missing_refs_are_reported() {
     let dir = tempdir();
     fs::write(
-        dir.path().join("index.md"),
+        dir.path().join("index.ods.md"),
         "---\nods: 0.1\nodc: \">=0.0.1\"\n---\n\n# R\n",
     )
     .unwrap();
@@ -157,7 +157,7 @@ fn duplicate_ids_and_missing_refs_are_reported() {
 fn markdown_document_refs_resolve_and_canonical_lint_warns_on_legacy_ids() {
     let dir = tempdir();
     fs::write(
-        dir.path().join("index.md"),
+        dir.path().join("index.ods.md"),
         "---\nprofile: index\nods: 0.1\nodc: \">=0.0.1\"\n---\n\n# Root\n",
     )
     .unwrap();
@@ -197,7 +197,7 @@ fn markdown_document_refs_resolve_and_canonical_lint_warns_on_legacy_ids() {
 fn fmt_md_paths_rewrites_document_refs_only() {
     let dir = tempdir();
     fs::write(
-        dir.path().join("index.md"),
+        dir.path().join("index.ods.md"),
         "---\nprofile: index\nods: 0.1\nodc: \">=0.0.1\"\n---\n\n# Root\n",
     )
     .unwrap();

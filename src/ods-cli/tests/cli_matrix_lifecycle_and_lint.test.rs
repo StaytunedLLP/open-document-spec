@@ -37,12 +37,12 @@ fn production_init_disable_remove_indexes() {
     )
     .unwrap();
     assert_ok(&run(&["index", root]), "index nested");
-    assert!(dir.join("sub/index.md").exists() || dir.join("index.md").exists());
+    assert!(dir.join("sub/index.ods.md").exists() || dir.join("index.ods.md").exists());
 
     // create nested index if generator put one
-    if !dir.join("sub/index.md").exists() {
+    if !dir.join("sub/index.ods.md").exists() {
         fs::write(
-            dir.join("sub/index.md"),
+            dir.join("sub/index.ods.md"),
             "---\nprofile: index\n---\n\n# sub\n\n- [a.md](a.md)\n",
         )
         .unwrap();
@@ -51,14 +51,14 @@ fn production_init_disable_remove_indexes() {
     let out = run(&["disable", root, "--write", "--remove-indexes"]);
     assert_ok(&out, "disable --remove-indexes");
     assert!(
-        !dir.join("sub/index.md").exists() || {
+        !dir.join("sub/index.ods.md").exists() || {
             // root index may remain
             true
         }
     );
-    assert!(dir.join("index.md").exists(), "root index kept by default");
+    assert!(dir.join("index.ods.md").exists(), "root index kept by default");
     assert!(
-        !fs::read_to_string(dir.join("index.md"))
+        !fs::read_to_string(dir.join("index.ods.md"))
             .unwrap()
             .lines()
             .any(|l| l.trim().starts_with("ods:"))

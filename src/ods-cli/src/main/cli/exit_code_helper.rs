@@ -36,7 +36,7 @@ mod test_exit_code_helper {
         let td = tempfile::tempdir().unwrap();
         let root = td.path();
         std::fs::write(
-            root.join("index.md"),
+            root.join("index.ods.md"),
             "---\nprofile: index\nods: 0.1\n---\n\n# Root\n",
         ).unwrap();
         std::fs::write(

@@ -201,7 +201,7 @@ fn detect_hybrid_workspace_and_skill_roots() {
     let td = tempdir();
     let root = td.path();
     fs::write(
-        root.join("index.md"),
+        root.join("index.ods.md"),
         "---\nprofile: index\nods: 0.1\n---\n\n# R\n",
     )
     .unwrap();

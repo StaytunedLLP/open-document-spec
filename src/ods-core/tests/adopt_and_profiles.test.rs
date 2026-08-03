@@ -32,7 +32,7 @@ fn standard_catalog_includes_core_profiles() {
 fn adopt_infers_feature_from_headings() {
     let dir = temp_workspace();
     fs::write(
-        dir.join("index.md"),
+        dir.join("index.ods.md"),
         "---\nprofile: index\nods: 0.1\nodc: \">=0.0.1\"\n---\n\n# R\n\n- [f.md](f.md)\n",
     )
     .unwrap();
@@ -53,7 +53,7 @@ fn adopt_infers_feature_from_headings() {
 fn adopt_infers_guide_and_policy() {
     let dir = temp_workspace();
     fs::write(
-        dir.join("index.md"),
+        dir.join("index.ods.md"),
         "---\nprofile: index\nods: 0.1\nodc: \">=0.0.1\"\n---\n\n# R\n\n- [g.md](g.md)\n- [p.md](p.md)\n",
     )
     .unwrap();
@@ -85,7 +85,7 @@ fn adopt_infers_guide_and_policy() {
 fn known_profiles_lists_standards() {
     let dir = temp_workspace();
     fs::write(
-        dir.join("index.md"),
+        dir.join("index.ods.md"),
         "---\nprofile: index\nods: 0.1\nodc: \">=0.0.1\"\n---\n\n# R\n",
     )
     .unwrap();
@@ -99,7 +99,7 @@ fn known_profiles_lists_standards() {
 fn adopt_all_remaining_profiles_and_invalid_frontmatter() {
     let dir = temp_workspace();
     fs::write(
-        dir.join("index.md"),
+        dir.join("index.ods.md"),
         "---\nprofile: index\nods: 0.1\nodc: \">=0.0.1\"\n---\n\n# R\n",
     )
     .unwrap();
@@ -147,4 +147,31 @@ fn adopt_all_remaining_profiles_and_invalid_frontmatter() {
             .unwrap()
             .contains("profile: faq")
     );
+}
+
+#[test]
+fn adopt_preserves_existing_frontmatter_keys() {
+    let dir = temp_workspace();
+    fs::write(
+        dir.join("index.ods.md"),
+        "---\nprofile: index\nods: 0.1\n---\n\n# Root\n",
+    )
+    .unwrap();
+
+    let doc_path = dir.join("existing.md");
+    fs::write(
+        &doc_path,
+        "---\ntitle: Cache Strategy\nauthor: Alice\nsidebar_position: 2\n---\n# Overview\n\n## Prerequisites\n",
+    )
+    .unwrap();
+
+    let ws = load_workspace(&dir).unwrap();
+    let report = adopt_workspace(&ws, AdoptOptions { write: true }).unwrap();
+    assert!(report.written.contains(&doc_path));
+
+    let content = fs::read_to_string(&doc_path).unwrap();
+    assert!(content.contains("title: Cache Strategy"));
+    assert!(content.contains("author: Alice"));
+    assert!(content.contains("sidebar_position: 2"));
+    assert!(content.contains("ods:\n  profile: guide\n  status: draft"));
 }

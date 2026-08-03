@@ -1,4 +1,4 @@
-use crate::model::{FrontmatterState, Workspace};
+use crate::model::Workspace;
 use crate::parse::{extract_headings, split_frontmatter};
 use std::fs;
 use std::io;
@@ -36,19 +36,37 @@ pub fn adopt_workspace(workspace: &Workspace, options: AdoptOptions) -> io::Resu
             continue;
         }
 
-        match &document.frontmatter {
-            FrontmatterState::Parsed(_) => {
+        if matches!(document.frontmatter, crate::model::FrontmatterState::Invalid(_)) {
+            report.skipped.push(document.path.clone());
+            continue;
+        }
+
+        let text = match fs::read_to_string(&document.path) {
+            Ok(t) => t,
+            Err(_) => {
                 report.skipped.push(document.path.clone());
+                continue;
             }
-            FrontmatterState::Invalid(_) => {
-                report.skipped.push(document.path.clone());
-            }
-            FrontmatterState::Absent => {
-                report.would_write.push(document.path.clone());
-                if options.write {
-                    write_minimal_frontmatter(&document.path)?;
-                    report.written.push(document.path.clone());
-                }
+        };
+
+        let (existing_fm, _) = split_frontmatter(&text);
+        let has_ods_key = existing_fm.map_or(false, |fm| {
+            fm.lines().any(|line| {
+                let trimmed = line.trim();
+                trimmed.starts_with("ods:")
+                    || trimmed
+                        .split_once(':')
+                        .is_some_and(|(k, _)| k.trim() == "ods")
+            })
+        });
+
+        if has_ods_key {
+            report.skipped.push(document.path.clone());
+        } else {
+            report.would_write.push(document.path.clone());
+            if options.write {
+                write_minimal_frontmatter(&document.path)?;
+                report.written.push(document.path.clone());
             }
         }
     }
@@ -59,15 +77,21 @@ pub fn adopt_workspace(workspace: &Workspace, options: AdoptOptions) -> io::Resu
 fn write_minimal_frontmatter(path: &Path) -> io::Result<()> {
     let text = fs::read_to_string(path)?;
     let (existing_fm, body) = split_frontmatter(&text);
-    if existing_fm.is_some() {
-        return Ok(());
-    }
 
     let profile = infer_profile(body);
-    let drafted = format!(
-        "---\nods:\n  profile: {profile}\n  status: draft\n---\n\n{}",
-        body.trim_start()
-    );
+    let drafted = if let Some(fm) = existing_fm {
+        format!(
+            "---\n{}\nods:\n  profile: {profile}\n  status: draft\n---\n\n{}",
+            fm.trim(),
+            body.trim_start()
+        )
+    } else {
+        format!(
+            "---\nods:\n  profile: {profile}\n  status: draft\n---\n\n{}",
+            body.trim_start()
+        )
+    };
+
     fs::write(path, drafted)
 }
 

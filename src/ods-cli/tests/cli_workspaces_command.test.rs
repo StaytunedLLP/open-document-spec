@@ -219,7 +219,7 @@ fn git_detect_renames_in_git_repo() {
         .output();
 
     fs::write(
-        root.join("index.md"),
+        root.join("index.ods.md"),
         "---\nprofile: index\nods: 0.1\n---\n\n# R\n\n- [old.md](old.md)\n",
     )
     .unwrap();

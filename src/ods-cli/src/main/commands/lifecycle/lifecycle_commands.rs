@@ -222,18 +222,12 @@ fn run_logs_command(args: &[String]) -> Result<ExitCode, CliError> {
         .or_else(|_| std::env::var("USERPROFILE"))
         .unwrap_or_else(|_| ".".into());
     let log_dir = std::path::PathBuf::from(&home).join(".ods").join("logs");
-    // Prefer modern name; dual-read legacy filename from older installs.
-    let modern = log_dir.join("ods-serve.log");
-    let legacy = log_dir.join("ods-serve.log");
-    let log_path = if modern.exists() {
-        modern
-    } else if legacy.exists() {
-        legacy
-    } else {
+    let log_path = log_dir.join("ods-serve.log");
+    if !log_path.exists() {
         println!("no service logs found under {}", log_dir.display());
         println!("hint: start the background service with `ods start` (OS service writes ods-serve.log)");
         return Ok(ExitCode::from(0));
-    };
+    }
 
     let print_once = || -> Result<(), CliError> {
         match std::fs::read_to_string(&log_path) {

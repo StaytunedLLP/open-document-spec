@@ -18,7 +18,7 @@ fn doctor_workspace(root: &Path) -> Result<DoctorReport, CliError> {
             lines.push(format!("documents: {}", workspace.documents.len()));
             json_fields.push(format!(r#""documents":{}"#, workspace.documents.len()));
             let root_ods = workspace
-                .document_by_path(&workspace.root.join("index.md"))
+                .document_by_path(&workspace.root.join("index.ods.md"))
                 .and_then(|doc| match &doc.frontmatter {
                     ods_core::FrontmatterState::Parsed(fm) => fm.ods.as_deref(),
                     _ => None,

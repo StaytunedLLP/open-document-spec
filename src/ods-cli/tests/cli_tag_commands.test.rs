@@ -170,7 +170,7 @@ fn fmt_migrate_skips_root_index() {
             .status
             .success()
     );
-    let root_index_before = fs::read_to_string(dir.join("index.md")).unwrap();
+    let root_index_before = fs::read_to_string(dir.join("index.ods.md")).unwrap();
     assert!(root_index_before.contains("ods: "));
 
     assert!(
@@ -182,6 +182,6 @@ fn fmt_migrate_skips_root_index() {
             .success()
     );
 
-    let root_index_after = fs::read_to_string(dir.join("index.md")).unwrap();
+    let root_index_after = fs::read_to_string(dir.join("index.ods.md")).unwrap();
     assert_eq!(root_index_before, root_index_after);
 }

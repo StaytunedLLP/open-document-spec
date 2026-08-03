@@ -9,7 +9,7 @@ fn test_bench_strip_and_restore_roundtrip() {
     let root = temp_workspace();
 
     fs::write(
-        root.join("index.md"),
+        root.join("index.ods.md"),
         "---\nprofile: index\nods: 0.1\n---\n# Root Index\n\nWelcome.",
     )
     .unwrap();
@@ -61,17 +61,17 @@ fn test_bench_strip_full_and_restore_roundtrip() {
 
     // Create root index
     fs::write(
-        root.join("index.md"),
-        "---\nprofile: index\nods: 0.1\n---\n# Root Index",
+        root.join("index.ods.md"),
+        "---\nprofile: index\nods: 0.1\ncustom-profiles:\n  - ods-profiles/custom.md\n---\n# Root Index",
     )
     .unwrap();
 
-    // Create sub directory with child index.md and doc.md
+    // Create sub directory with child index.ods.md and doc.md
     let sub_dir = root.join("sub");
     fs::create_dir_all(&sub_dir).unwrap();
 
     let sub_index_content = "---\nprofile: index\n---\n# Sub Index\n- [doc.md](doc.md)";
-    fs::write(sub_dir.join("index.md"), sub_index_content).unwrap();
+    fs::write(sub_dir.join("index.ods.md"), sub_index_content).unwrap();
 
     let doc_content = "---\nprofile: note\nstatus: draft\n---\n# Note Body";
     fs::write(sub_dir.join("doc.md"), doc_content).unwrap();
@@ -103,8 +103,8 @@ fn test_bench_strip_full_and_restore_roundtrip() {
     assert_eq!(strip_report.total_indexes_deleted, 2);
     assert_eq!(strip_report.total_profiles_removed, 1);
 
-    // Verify non-root index.md was deleted
-    assert!(!sub_dir.join("index.md").exists());
+    // Verify non-root index.ods.md was deleted
+    assert!(!sub_dir.join("index.ods.md").exists());
 
     // Verify custom profile was deleted
     assert!(!profiles_dir.join("custom.md").exists());
@@ -124,10 +124,10 @@ fn test_bench_strip_full_and_restore_roundtrip() {
     assert_eq!(restore_report.total_indexes_restored, 2);
     assert_eq!(restore_report.total_profiles_restored, 1);
 
-    // Verify sub/index.md was restored
-    assert!(sub_dir.join("index.md").exists());
+    // Verify sub/index.ods.md was restored
+    assert!(sub_dir.join("index.ods.md").exists());
     assert_eq!(
-        fs::read_to_string(sub_dir.join("index.md")).unwrap(),
+        fs::read_to_string(sub_dir.join("index.ods.md")).unwrap(),
         "# Sub Index\n- [doc.md](doc.md)"
     );
 
@@ -160,7 +160,7 @@ fn test_bench_strip_and_restore_roundtrip_with_json_special_characters() {
     let root = temp_workspace();
 
     fs::write(
-        root.join("index.md"),
+        root.join("index.ods.md"),
         "---\nprofile: index\nods: 0.1\ndescription: \"nested {braces} and [brackets]\"\n---\n# Root\n\nSee `{ \"key\": [1, 2] }` for details.",
     )
     .unwrap();

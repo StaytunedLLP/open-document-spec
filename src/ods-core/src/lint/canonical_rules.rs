@@ -20,7 +20,7 @@ pub(super) fn lint_root_spec(
             path: root_index.path.clone(),
             severity: Severity::Error,
             message: format!(
-                "root index.md missing ods: {}",
+                "root index.ods.md missing ods: {}",
                 crate::model::current_ods_spec_version()
             ),
         }),
@@ -35,7 +35,7 @@ pub(super) fn lint_packs(
     frontmatter: &crate::model::Frontmatter,
 ) -> Vec<Diagnostic> {
     let mut diagnostics = Vec::new();
-    if document.path == workspace.root.join("index.md") {
+    if document.path == workspace.root.join("index.ods.md") {
         for pack in &frontmatter.packs {
             let path = normalize_join(&workspace.root, Path::new(pack));
             if !path.exists() {
@@ -140,18 +140,18 @@ pub(super) fn lint_ods_scope(
     frontmatter: &crate::model::Frontmatter,
 ) -> Vec<Diagnostic> {
     if (frontmatter.ods.is_none() && frontmatter.ods.is_none())
-        || document.path == workspace.root.join("index.md")
+        || document.path == workspace.root.join("index.ods.md")
     {
         return Vec::new();
     }
-    if document.path.file_name().is_some_and(|name| name == "index.md") {
+    if document.path.file_name().is_some_and(|name| name == "index.ods.md") {
         return Vec::new();
     }
 
     vec![Diagnostic {
         path: document.path.clone(),
         severity: Severity::Error,
-        message: "ods and ods should be declared only in root index.md".to_string(),
+        message: "ods and ods should be declared only in root index.ods.md".to_string(),
     }]
 }
 
@@ -164,13 +164,13 @@ pub(super) fn lint_alias_scope(
         return Vec::new();
     }
 
-    if document.path == workspace.root.join("index.md") {
+    if document.path == workspace.root.join("index.ods.md") {
         return Vec::new();
     }
 
     vec![Diagnostic {
         path: document.path.clone(),
         severity: Severity::Warning,
-        message: "workspace aliases should be declared in the root index.md".to_string(),
+        message: "workspace aliases should be declared in the root index.ods.md".to_string(),
     }]
 }

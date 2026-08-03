@@ -31,7 +31,7 @@ pub fn render_index(workspace: &Workspace, directory: &Path, existing: Option<&s
     }
     let profiles = if is_root && profiles.is_empty() {
         workspace
-            .document_by_path(&workspace.root.join("index.md"))
+            .document_by_path(&workspace.root.join("index.ods.md"))
             .and_then(|doc| match &doc.frontmatter {
                 crate::model::FrontmatterState::Parsed(fm) => Some(fm.profiles.clone()),
                 _ => None,
@@ -48,7 +48,7 @@ pub fn render_index(workspace: &Workspace, directory: &Path, existing: Option<&s
     }
     let packs = if is_root && packs.is_empty() {
         workspace
-            .document_by_path(&workspace.root.join("index.md"))
+            .document_by_path(&workspace.root.join("index.ods.md"))
             .and_then(|doc| match &doc.frontmatter {
                 crate::model::FrontmatterState::Parsed(fm) => Some(fm.packs.clone()),
                 _ => None,
@@ -139,7 +139,7 @@ fn directory_children(workspace: &Workspace, directory: &Path) -> Vec<IndexEntry
         .into_iter()
         .filter_map(|entry| {
             let name = entry.file_name().to_string_lossy().to_string();
-            if name == "index.md" || should_ignore_name(entry.file_name().as_os_str()) {
+            if name == "index.md" || name == "index.ods.md" || should_ignore_name(entry.file_name().as_os_str()) {
                 return None;
             }
 
@@ -157,7 +157,7 @@ fn directory_children(workspace: &Workspace, directory: &Path) -> Vec<IndexEntry
                 if is_doc_dir {
                     Some(IndexEntry {
                         label: format!("{name}/"),
-                        target: format!("{name}/index.md"),
+                        target: format!("{name}/index.ods.md"),
                     })
                 } else {
                     None
@@ -179,7 +179,7 @@ fn directory_children(workspace: &Workspace, directory: &Path) -> Vec<IndexEntry
 }
 
 fn index_label(target: &str) -> String {
-    if let Some(dir) = target.strip_suffix("/index.md") {
+    if let Some(dir) = target.strip_suffix("/index.md").or_else(|| target.strip_suffix("/index.ods.md")) {
         format!("{dir}/")
     } else {
         target.to_string()

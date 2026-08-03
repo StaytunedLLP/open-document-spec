@@ -188,7 +188,7 @@ fn run_ods_audit_command(args: &[String]) -> Result<ExitCode, CliError> {
             FrontmatterState::Parsed(fm) => {
                 // root index with ods: counts as compliant shape for audit inventory
                 let has_profile = fm.profile.as_deref().map(|p| !p.is_empty()).unwrap_or(false);
-                if doc.path == root.join("index.md") {
+                if doc.path == root.join("index.ods.md") {
                     compliant += 1;
                 } else if !has_profile {
                     partial += 1;
@@ -271,7 +271,7 @@ mod test_upgrade_and_audit {
         let td = tempdir().unwrap();
         let root = td.path();
         fs::write(
-            root.join("index.md"),
+            root.join("index.ods.md"),
             "---\nprofile: index\nods: 0.1\n---\n\n# R\n",
         )
         .unwrap();
@@ -323,7 +323,7 @@ mod test_upgrade_and_audit {
         let td = tempdir().unwrap();
         let root = td.path();
         fs::write(
-            root.join("index.md"),
+            root.join("index.ods.md"),
             "---\nprofile: index\nods: 0.1\n---\n\n# R\n",
         )
         .unwrap();

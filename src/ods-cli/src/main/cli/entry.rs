@@ -132,6 +132,7 @@ fn is_ods_document_command(cmd: &str) -> bool {
             | "diff"
             | "clean"
             | "lsp"
+            | "undo"
     )
 }
 

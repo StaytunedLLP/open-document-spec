@@ -50,13 +50,13 @@ fn parsed_fm(document: &Document) -> Option<&Frontmatter> {
 fn is_index_md(path: &Path) -> bool {
     path.file_name()
         .and_then(|n| n.to_str())
-        .is_some_and(|n| n.eq_ignore_ascii_case("index.md"))
+        .is_some_and(|n| n.eq_ignore_ascii_case("index.md") || n.eq_ignore_ascii_case("index.ods.md"))
 }
 
 /// Resolve the effective share visibility for a document.
 ///
 /// Precedence: the document's own `share` frontmatter wins if set; otherwise
-/// the nearest ancestor directory's `index.md` `share` value is used as a
+/// the nearest ancestor directory's `index.ods.md` (or `index.md`) `share` value is used as a
 /// directory-level default (walking up to, and including, `workspace.root`);
 /// otherwise `ShareLevel::Public`.
 pub fn effective_share(doc_path: &Path, workspace: &Workspace) -> ShareLevel {
@@ -72,7 +72,9 @@ pub fn effective_share(doc_path: &Path, workspace: &Workspace) -> ShareLevel {
     };
 
     loop {
-        let index_path = current.join("index.md");
+        let index_ods = current.join("index.ods.md");
+        let index_md = current.join("index.md");
+        let index_path = if index_ods.exists() { index_ods } else { index_md };
         if index_path != doc_path
             && let Some(doc) = workspace.document_by_path(&index_path)
             && let Some(fm) = parsed_fm(doc)

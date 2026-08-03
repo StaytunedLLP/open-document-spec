@@ -40,14 +40,7 @@ pub(crate) fn get_config_path() -> Result<PathBuf, CliError> {
         .or_else(|_| env::var("USERPROFILE"))
         .map_err(|_| failure("could not determine home directory"))?;
 
-    let modern = PathBuf::from(&home).join(".ods/odsconfig.toml");
-    let legacy = PathBuf::from(&home).join(".ods/odcconfig.toml");
-    // Prefer modern path; fall back to legacy file if only that exists (upgrade migration).
-    if modern.exists() || !legacy.exists() {
-        Ok(modern)
-    } else {
-        Ok(legacy)
-    }
+    Ok(PathBuf::from(&home).join(".ods/odsconfig.toml"))
 }
 
 

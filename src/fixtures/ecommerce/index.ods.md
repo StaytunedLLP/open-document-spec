@@ -10,8 +10,8 @@ packs:
 
 # Aura Glow Ecommerce Workspace
 
-- [marketing/](marketing/index.md)
-- [products/](products/index.md)
-- [sales/](sales/index.md)
-- [support/](support/index.md)
-- [website/](website/index.md)
+- [marketing/](marketing/index.ods.md)
+- [products/](products/index.ods.md)
+- [sales/](sales/index.ods.md)
+- [support/](support/index.ods.md)
+- [website/](website/index.ods.md)

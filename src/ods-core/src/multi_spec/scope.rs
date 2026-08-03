@@ -42,7 +42,7 @@ impl ScopeResolveError {
                 hint_skills,
             } => {
                 let mut msg = String::from(
-                    "not an ODS workspace (no root index.md with 'ods:' marker).\n\n\
+                    "not an ODS workspace (no root index.ods.md with 'ods:' marker).\n\n\
                      To fix:\n\
                      • Run `ods init` here to make this folder ODS-compliant",
                 );

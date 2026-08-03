@@ -243,7 +243,7 @@ mod test_lint_index_commands {
         let td = tempdir().unwrap();
         let root = td.path();
         fs::write(
-            root.join("index.md"),
+            root.join("index.ods.md"),
             "---\nprofile: index\nods: 0.1\n---\n\n# R\n",
         )
         .unwrap();

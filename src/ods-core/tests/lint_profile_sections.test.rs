@@ -84,7 +84,7 @@ fn invalid_status_errors() {
 fn stale_root_ods_version_errors() {
     let dir = temp_workspace();
     fs::write(
-        dir.join("index.md"),
+        dir.join("index.ods.md"),
         "---\nprofile: index\nods: draft-1\n---\n\n# Root\n\n",
     )
     .unwrap();

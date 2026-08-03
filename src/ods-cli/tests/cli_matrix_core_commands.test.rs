@@ -51,7 +51,7 @@ fn production_cli_matrix_core_commands() {
     )
     .unwrap();
     fs::write(
-        dir.join("index.md"),
+        dir.join("index.ods.md"),
         "---\nprofile: index\nods: 0.1\ncustom-profiles:\n  - ods-profiles/widget.md\n---\n\n# Root\n\n- [Release gate](gate.md) — Release gate\n- [Impl](impl.md)\n- [Spec](spec.md) — Spec\n- [Plain note without frontmatter](plain.md)\n",
     )
     .unwrap();
@@ -200,7 +200,7 @@ fn production_cli_matrix_core_commands() {
     );
     // still enabled after dry-run
     assert!(
-        fs::read_to_string(dir.join("index.md"))
+        fs::read_to_string(dir.join("index.ods.md"))
             .unwrap()
             .contains("ods:"),
         "dry-run must not remove ods:"
@@ -209,7 +209,7 @@ fn production_cli_matrix_core_commands() {
     let out = run(&["disable", root, "--write"]);
     assert_ok(&out, "disable --write");
     assert!(
-        !fs::read_to_string(dir.join("index.md"))
+        !fs::read_to_string(dir.join("index.ods.md"))
             .unwrap()
             .lines()
             .any(|l| l.trim().starts_with("ods:")),
@@ -227,7 +227,7 @@ fn production_cli_matrix_core_commands() {
     // re-init for later commands not required
     assert_ok(&run(&["init", root, "--adopt"]), "re-init after disable");
     assert!(
-        fs::read_to_string(dir.join("index.md"))
+        fs::read_to_string(dir.join("index.ods.md"))
             .unwrap()
             .contains("ods:"),
         "init must restore ods:"

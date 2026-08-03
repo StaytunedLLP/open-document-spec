@@ -209,7 +209,7 @@ fn lint_document(
 }
 
 fn lint_root_ods_metadata(workspace: &Workspace) -> Vec<Diagnostic> {
-    let root_index_path = workspace.root.join("index.md");
+    let root_index_path = workspace.root.join("index.ods.md");
     let Some(root_index) = workspace
         .documents
         .iter()
@@ -219,7 +219,7 @@ fn lint_root_ods_metadata(workspace: &Workspace) -> Vec<Diagnostic> {
             path: root_index_path,
             severity: Severity::Error,
             message: format!(
-                "missing root index.md with ods: {}",
+                "missing root index.ods.md with ods: {}",
                 crate::model::current_ods_spec_version()
             ),
         }];

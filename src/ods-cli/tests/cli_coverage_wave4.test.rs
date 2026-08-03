@@ -28,7 +28,7 @@ fn hybrid_ods_okf_skills_lint_and_fix() {
     );
 
     // also plant OKF marker alongside (hybrid)
-    let index = fs::read_to_string(dir.join("index.md")).unwrap();
+    let index = fs::read_to_string(dir.join("index.ods.md")).unwrap();
     // keep ODS; add a concept file with okf-looking content under okf/
     fs::create_dir_all(dir.join("okf")).unwrap();
     fs::write(

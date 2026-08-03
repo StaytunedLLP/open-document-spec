@@ -50,7 +50,7 @@ Progress from initial setup to enterprise documentation architecture across 4 st
 
 | Tier | Focus Area | Essential Commands & Keys | Learning Goal |
 |---|---|---|---|
-| **Tier 1: Novice** | Foundations & Validation | `ods init`<br/>`ods lint`<br/>`ods: 0.1` | Install binary, initialize root `index.md`, write basic frontmatter (`profile`, `status`), run Level-3 lint checks. |
+| **Tier 1: Novice** | Foundations & Validation | `ods init`<br/>`ods lint`<br/>`ods: 0.1` | Install binary, initialize root `index.ods.md`, write basic frontmatter (`profile`, `status`), run Level-3 lint checks. |
 | **Tier 2: Practitioner** | Document Graphs & Code Links | `depends:` / `related:`<br/>`code:`<br/>`ods index`<br/>`ods mv` | Construct document dependency graphs, bind source code symbols, generate navigation lockfiles, and perform atomic file moves. |
 | **Tier 3: Power User** | Custom Schemas & AI Context | `custom-profiles:`<br/>`ods profile`<br/>`ods context`<br/>`ods pack`<br/>`ods bench` | Register domain profile schemas, export reusable ODS Packs, compute sub-5ms bounded AI context reading lists, and measure token ROI savings. |
 | **Tier 4: Architect** | Automation & Enterprise Governance | `ods setup --git-hooks`<br/>`ods serve` / `ods start`<br/>`ods/action` (CI)<br/>`--format sarif`<br/>`ods lint --okf` | Run persistent OS background daemons, enforce CI pull request gates, output SARIF security annotations, and enable Google OKF via `ods lint --okf` (no namespaces; no `--ods` flag). |
@@ -62,7 +62,7 @@ Progress from initial setup to enterprise documentation architecture across 4 st
 | Feature | Command / Key | Role & Description |
 |---|---|---|
 | ⚡ **Deterministic Bounded Context Graph** | `ods context <doc-id>` | Bounded AI reading scope (<5ms) following `depends:` and `related:` chains for AI Coding Assistants. |
-| 📋 **Custom Profile Schema Engine** | `ods profile` / `custom-profiles:` | Single-source profile schema registration in `index.md`, enforcing `expected_keys` and `H2`/`H3` section hierarchies. |
+| 📋 **Custom Profile Schema Engine** | `ods profile` / `custom-profiles:` | Single-source profile schema registration in `index.ods.md`, enforcing `expected_keys` and `H2`/`H3` section hierarchies. |
 | 📊 **Workspace Document Telemetry** | `ods stats` | Reports document health score %, graph dependency density, profile distribution, and top taxonomy tags. |
 | 🌳 **Visual Tree Representation** | `ods tree` | Displays visual ASCII/Unicode hierarchy tree of index navigation and dependency graphs. |
 | 🔄 **Smart Rename & Dependency Healing** | `ods mv <src> <dst>` | Renames files while automatically rewriting graph dependencies, relative body links, and code references. |
@@ -132,7 +132,7 @@ irm -Headers @{ Authorization = "Bearer $env:GH_TOKEN" } `
 
 ```bash
 mkdir my-docs && cd my-docs
-ods init .      # Writes root index.md with ods: 0.1 spec marker
+ods init .      # Writes root index.ods.md with ods: 0.1 spec marker
 ods setup       # Verify workspace, check updates, and register background OS service
 ```
 
@@ -156,9 +156,9 @@ ods adopt docs/                    # Auto-draft frontmatter on legacy Markdown
 
 Custom profiles define domain document schemas, expected frontmatter keys, and starter templates.
 
-### Single-Source Registration in Root `index.md`
+### Single-Source Registration in Root `index.ods.md`
 
-Custom profiles are registered explicitly in root `index.md` under `custom-profiles:`:
+Custom profiles are registered explicitly in root `index.ods.md` under `custom-profiles:`:
 
 ```yaml
 ---
@@ -207,7 +207,7 @@ ods:
 
 | Command | Syntax | Role & Description |
 |---|---|---|
-| `ods init` | `ods init [path]` | Initialize root `index.md` with `ods: 0.1` spec marker. |
+| `ods init` | `ods init [path]` | Initialize root `index.ods.md` with `ods: 0.1` spec marker. |
 | `ods setup` | `ods setup [path] [--git-hooks]` | Verify workspace health, check updates, and register background OS service. `--git-hooks` installs `.git/hooks/pre-commit`. |
 | `ods lint` | `ods lint [path] [--mode strict\|standard] [--fix] [--format text\|json\|sarif]` | Run Strict or Standard document graph and profile section validation. `--fix` auto-repairs frontmatter/indexes. `--format sarif` exports OASIS SARIF v2.1.0 format. |
 | `ods lint --okf` | `ods lint --okf [path]` | Validate Google OKF v0.2 knowledge bundles (`okf_version: "0.2"`). |

@@ -56,7 +56,7 @@ pub fn bench_strip_workspace(
     let mut total_indexes_deleted = 0;
     if options.strip_indexes || options.full {
         for path in collect_files_recursive(&root) {
-            if path.file_name().is_some_and(|n| n.to_string_lossy().eq_ignore_ascii_case("index.md")) {
+            if path.file_name().is_some_and(|n| n.to_string_lossy().eq_ignore_ascii_case("index.md") || n.to_string_lossy().eq_ignore_ascii_case("index.ods.md")) {
                 let rel = path
                     .strip_prefix(&root)
                     .unwrap_or(&path)
@@ -75,7 +75,13 @@ pub fn bench_strip_workspace(
 
     let mut total_profiles_removed = 0;
     if options.strip_profiles || options.full {
-        for dir_name in &[root.join(".ods").join("profiles"), root.join("ods-profiles")] {
+        let root_doc = workspace.documents.iter().find(|d| {
+            d.path.parent() == Some(&root)
+                && (d.path.file_name().and_then(|n| n.to_str()) == Some("index.ods.md")
+                    || d.path.file_name().and_then(|n| n.to_str()) == Some("index.md"))
+        });
+        let prof_roots = crate::profiles::profile_catalog_roots(&root, root_doc);
+        for dir_name in &prof_roots {
             if dir_name.exists() {
                 for path in collect_files_recursive(dir_name) {
                     let rel = path
@@ -224,6 +230,10 @@ pub fn bench_restore_workspace(
 
 fn collect_files_recursive(dir: &Path) -> Vec<PathBuf> {
     let mut files = Vec::new();
+    if dir.is_file() {
+        files.push(dir.to_path_buf());
+        return files;
+    }
     if let Ok(entries) = fs::read_dir(dir) {
         for entry in entries.flatten() {
             let path = entry.path();
@@ -235,6 +245,25 @@ fn collect_files_recursive(dir: &Path) -> Vec<PathBuf> {
         }
     }
     files
+}
+
+/// Create a snapshot backup of current workspace frontmatter and files before write operations.
+pub fn create_workspace_snapshot(root: &Path) -> io::Result<BenchStripReport> {
+    bench_strip_workspace(
+        root,
+        BenchStripOptions {
+            write: false,
+            path_filter: None,
+            strip_indexes: false,
+            strip_profiles: false,
+            full: false,
+        },
+    )
+}
+
+/// Undo the latest write operation by restoring the most recent snapshot.
+pub fn undo_latest_snapshot(root: &Path) -> io::Result<BenchRestoreReport> {
+    bench_restore_workspace(root, None)
 }
 
 

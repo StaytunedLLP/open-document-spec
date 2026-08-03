@@ -1,7 +1,7 @@
 # ODS workspace graph
 
 - **Root:** `/home/beingminimal/Downloads/gh-beingminimal/StaytunedLLP/open-document-spec/src/ods-cli`
-- **Documents:** 2
+- **Documents:** 3
 
 ## Documents
 
@@ -14,6 +14,12 @@
 ### `index`
 
 - **path:** `index.md`
+- **profile:** `index`
+- **status:** `(none)`
+
+### `index.ods`
+
+- **path:** `index.ods.md`
 - **profile:** `index`
 - **status:** `(none)`
 

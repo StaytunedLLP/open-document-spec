@@ -27,7 +27,7 @@ fn sample_workspace_lints_cleanly() {
 fn lint_document_in_workspace_unparsed_frontmatter() {
     let dir = ods_test_support::temp_workspace();
     std::fs::write(
-        dir.join("index.md"),
+        dir.join("index.ods.md"),
         "---\nprofile: index\nods: 0.1\nodc: \">=0.0.1\"\n---\n\n# Root\n",
     )
     .unwrap();
@@ -46,7 +46,7 @@ fn lint_document_in_workspace_unparsed_frontmatter() {
 fn context_resolution_follows_depends_chain_deterministically() {
     let temp = temp_workspace();
     fs::write(
-        temp.join("index.md"),
+        temp.join("index.ods.md"),
         "---\nprofile: index\nods: 0.1\nodc: \">=0.0.1\"\n---\n\n# Root\n\n- [checkout.md](checkout.md)\n- [pricing.md](pricing.md)\n",
     )
     .expect("root index");
@@ -79,18 +79,18 @@ fn context_resolution_follows_depends_chain_deterministically() {
 fn index_generation_matches_workspace_children() {
     let temp = temp_workspace();
     fs::write(
-        temp.join("index.md"),
+        temp.join("index.ods.md"),
         "---\nprofile: index\nods: 0.1\nodc: \">=0.0.1\"\n---\n\n# Root\n",
     )
     .expect("root index");
     for folder in ["alpha", "beta", "gamma"] {
         fs::create_dir_all(temp.join(folder)).expect("child dir");
         fs::write(
-            temp.join(folder).join("index.md"),
+            temp.join(folder).join("index.ods.md"),
             "---\nprofile: index\n---\n\n# child\n",
         )
         .expect("child index");
-        // A folder containing only an index.md (no real content) is an
+        // A folder containing only an index.ods.md (no real content) is an
         // orphan and gets pruned rather than listed as a child.
         fs::write(
             temp.join(folder).join("doc.md"),
@@ -106,7 +106,7 @@ fn index_generation_matches_workspace_children() {
         ods_core::indexes_are_current(&load_workspace(&temp).expect("reload")).expect("check"),
         "indexes should be current after generate"
     );
-    let rendered = fs::read_to_string(temp.join("index.md")).expect("read index");
+    let rendered = fs::read_to_string(temp.join("index.ods.md")).expect("read index");
     let mut children = rendered
         .lines()
         .filter_map(ods_core::split_markdown_link_target)
@@ -115,9 +115,9 @@ fn index_generation_matches_workspace_children() {
     assert_eq!(
         children,
         vec![
-            "alpha/index.md".to_string(),
-            "beta/index.md".to_string(),
-            "gamma/index.md".to_string(),
+            "alpha/index.ods.md".to_string(),
+            "beta/index.ods.md".to_string(),
+            "gamma/index.ods.md".to_string(),
         ]
     );
 }
@@ -147,7 +147,7 @@ fn mv_rewrites_references() {
 fn root_aliases_allow_workspace_vocab_variants() {
     let temp = temp_workspace();
     fs::write(
-        temp.join("index.md"),
+        temp.join("index.ods.md"),
         "---\nprofile: index\nods: 0.1\nodc: \">=0.0.1\"\naliases:\n  Goal:\n    - Mission\n---\n\n# Root\n\n- [feature.md](feature.md)\n",
     )
     .expect("root index");
@@ -173,7 +173,7 @@ fn custom_profiles_are_loaded_from_workspace_catalogs() {
     let temp = temp_workspace();
     fs::create_dir_all(temp.join("ods-profiles")).expect("catalog dir");
     fs::write(
-        temp.join("index.md"),
+        temp.join("index.ods.md"),
         "---\nprofile: index\nods: 0.1\nodc: \">=0.0.1\"\ncustom-profiles:\n  - ods-profiles/custom.md\n---\n\n# Root\n\n- [doc.md](doc.md)\n",
     )
     .expect("root index");
@@ -201,7 +201,7 @@ fn custom_profiles_are_loaded_from_workspace_catalogs() {
     assert!(diagnostics.is_empty(), "{diagnostics:#?}");
 
     let _generated = generate_indexes(&workspace).expect("generate");
-    let rendered = fs::read_to_string(temp.join("index.md")).expect("read index");
+    let rendered = fs::read_to_string(temp.join("index.ods.md")).expect("read index");
     assert!(rendered.contains("[doc.md](doc.md)"), "{rendered}");
     assert!(rendered.contains("custom-profiles:"), "{rendered}");
     assert!(rendered.contains("- ods-profiles/custom.md"), "{rendered}");
@@ -218,7 +218,7 @@ fn duplicate_profile_names_are_reported() {
     fs::create_dir_all(temp.join("ods-profiles")).expect("catalog dir");
     fs::create_dir_all(temp.join("more-profiles")).expect("extra catalog dir");
     fs::write(
-        temp.join("index.md"),
+        temp.join("index.ods.md"),
         "---\nprofile: index\nods: 0.1\nodc: \">=0.0.1\"\ncustom-profiles:\n  - ods-profiles/custom.md\n  - more-profiles/custom.md\n---\n\n# Root\n",
     )
     .expect("root index");

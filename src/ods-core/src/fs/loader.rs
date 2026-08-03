@@ -51,7 +51,7 @@ pub fn load_workspace_with_options(
         Vec::new()
     };
 
-    let root_index_path = root.join("index.md");
+    let root_index_path = root.join("index.ods.md");
     let root_index = if root_index_path.exists() {
         Some(parse_path(
             &root,
@@ -64,7 +64,8 @@ pub fn load_workspace_with_options(
 
     let profile_roots = profile_catalog_roots(&root, root_index.as_ref());
     let profile_catalog = load_profile_catalog(&root, &profile_roots)?;
-    let workspace_ignore = workspace_ignore_from_root(root_index.as_ref());
+    let mut workspace_ignore = workspace_ignore_from_root(root_index.as_ref());
+    workspace_ignore.extend(load_odsignore_patterns(&root));
 
     let mut paths = discover_markdown_paths(
         &root,
@@ -101,10 +102,23 @@ pub fn load_workspace_with_options(
     Ok(workspace)
 }
 
+/// Load ignore patterns from a `.odsignore` file if present at `root`.
+pub fn load_odsignore_patterns(root: &Path) -> Vec<String> {
+    let odsignore_path = root.join(".odsignore");
+    let Ok(content) = fs::read_to_string(odsignore_path) else {
+        return Vec::new();
+    };
+    content
+        .lines()
+        .map(|line| line.trim())
+        .filter(|line| !line.is_empty() && !line.starts_with('#'))
+        .map(String::from)
+        .collect()
+}
+
 /// Locate the ODS workspace root for a file path.
 ///
-/// Prefers the **nearest** ancestor whose `index.md` declares `ods:` (workspace marker).
-/// Falls back to the nearest `index.md`, then the file's parent directory.
+/// Prefers the **nearest** ancestor whose `index.ods.md` declares `ods:` (workspace marker).
 pub fn find_workspace_root(path: impl AsRef<Path>) -> Option<PathBuf> {
     let path = path.as_ref();
     let start = if path.is_dir() {
@@ -118,14 +132,14 @@ pub fn find_workspace_root(path: impl AsRef<Path>) -> Option<PathBuf> {
     let mut nearest_ods = None::<PathBuf>;
 
     loop {
-        let index_path = current.join("index.md");
-        if index_path.is_file() {
+        let index_ods_path = current.join("index.ods.md");
+
+        if index_ods_path.is_file() {
             if nearest_index.is_none() {
                 nearest_index = Some(current.clone());
             }
-            if nearest_ods.is_none() && index_has_ods_field(&index_path) {
+            if nearest_ods.is_none() && index_has_ods_field(&index_ods_path) {
                 nearest_ods = Some(current.clone());
-                // Nearest ods: wins — stop climbing for a closer match already found.
                 break;
             }
         }
@@ -142,7 +156,7 @@ pub fn find_workspace_root(path: impl AsRef<Path>) -> Option<PathBuf> {
     nearest_ods.or(nearest_index)
 }
 
-/// True if the given `index.md` path declares an `ods:` frontmatter field.
+/// True if the given `index.md` or `index.ods.md` path declares an `ods:` frontmatter field.
 pub fn index_has_ods_field(index_path: &Path) -> bool {
     let Ok(text) = fs::read_to_string(index_path) else {
         return false;

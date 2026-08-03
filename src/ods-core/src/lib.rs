@@ -39,7 +39,7 @@ pub mod refs {
 pub use bench::{
     BenchRestoreReport, BenchRunReport, BenchStatsReport, BenchStripOptions, BenchStripReport,
     bench_calculate_stats, bench_restore_workspace, bench_run_simulation, bench_strip_workspace,
-    compute_repo_hash, get_backup_dir,
+    compute_repo_hash, create_workspace_snapshot, get_backup_dir, undo_latest_snapshot,
 };
 
 pub use fs::{

@@ -1,5 +1,4 @@
 ---
-packs:
 profile: index
 ods: 0.1
 custom-profiles:
@@ -25,5 +24,5 @@ ignore:
 - [CONTRIBUTING.md](CONTRIBUTING.md)
 - [README.md](README.md)
 - [SECURITY.md](SECURITY.md)
-- [docs/](docs/index.md)
-- [src/](src/index.md)
+- [docs/](docs/index.ods.md)
+- [src/](src/index.ods.md)

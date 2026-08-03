@@ -179,7 +179,7 @@ fn apply_disk_already_moved_file() {
 fn reindex_workspace_writes_indexes() {
     let dir = temp_workspace();
     fs::write(
-        dir.join("index.md"),
+        dir.join("index.ods.md"),
         "---\nprofile: index\nods: 0.1\nodc: \">=0.0.1\"\n---\n\n# R\n\n",
     )
     .unwrap();
@@ -189,8 +189,8 @@ fn reindex_workspace_writes_indexes() {
     )
     .unwrap();
     let paths = reindex_workspace(&dir).unwrap();
-    assert!(paths.iter().any(|p| p.ends_with("index.md")));
-    let index = fs::read_to_string(dir.join("index.md")).unwrap();
+    assert!(paths.iter().any(|p| p.ends_with("index.ods.md")));
+    let index = fs::read_to_string(dir.join("index.ods.md")).unwrap();
     assert!(index.contains("doc.md"));
     assert!(index.contains("Hello"));
 }
