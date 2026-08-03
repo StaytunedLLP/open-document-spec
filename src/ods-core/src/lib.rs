@@ -79,7 +79,8 @@ pub use lint::{
 pub use model::{
     CodeRef, CodeRole, ComplianceMode, Diagnostic, Document, Frontmatter, FrontmatterState,
     LintLevel, LoadOptions, ProfileCatalog, ProfileConflict, ProfileDefinition, ResourceRef,
-    Severity, Workspace, current_ods_spec_version, current_ods_version,
+    Severity, SpecLintConfig, Workspace, WorkspaceSpecsConfig, current_ods_spec_version,
+    current_ods_version,
 };
 pub use mv::{
     PathChange, PathChangeReport, apply_path_changes, canonicalize_workspace_document_refs,
@@ -112,9 +113,9 @@ pub use okf::{
     OkfFrontmatterState, OkfInitOptions, OkfInitReport, OkfLintLevel, OkfParameter, OkfSource,
     OkfStatus, OkfTrustTier, ResourceRefFields, audit_okf_bundle, concept_id_for_path,
     current_okf_version, derive_trust_tier, export_okf_graph, fmt_okf_bundle, generate_okf_indexes,
-    init_okf_bundle, lint_okf_bundle, lint_okf_bundle_with_level, load_okf_bundle, okf_context,
-    okf_enabled, okf_indexes_are_current, okf_version_from_root, parse_okf_frontmatter_block,
-    render_okf_audit_markdown,
+    init_okf_bundle, lint_okf_bundle, lint_okf_bundle_with_config, lint_okf_bundle_with_level,
+    load_okf_bundle, okf_context, okf_enabled, okf_indexes_are_current, okf_version_from_root,
+    parse_okf_frontmatter_block, render_okf_audit_markdown,
 };
 
 pub use multi_spec::{

@@ -13,5 +13,5 @@ pub use scope::{
 };
 pub use skills::{
     SkillFrontmatter, SkillPackage, SkillsInitOptions, SkillsInitReport, init_skill_package,
-    lint_skill_package, parse_skill_package,
+    lint_skill_package, lint_skill_package_with_config, parse_skill_package,
 };

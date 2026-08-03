@@ -9,6 +9,14 @@ pub fn lint_okf_bundle(bundle: &OkfBundle) -> Vec<Diagnostic> {
 }
 
 pub fn lint_okf_bundle_with_level(bundle: &OkfBundle, level: OkfLintLevel) -> Vec<Diagnostic> {
+    lint_okf_bundle_with_config(bundle, level, &crate::model::SpecLintConfig::default())
+}
+
+pub fn lint_okf_bundle_with_config(
+    bundle: &OkfBundle,
+    level: OkfLintLevel,
+    config: &crate::model::SpecLintConfig,
+) -> Vec<Diagnostic> {
     let mut out = Vec::new();
     match bundle.okf_version.as_deref() {
         Some("0.2") => {}
@@ -28,12 +36,16 @@ pub fn lint_okf_bundle_with_level(bundle: &OkfBundle, level: OkfLintLevel) -> Ve
         if doc.is_reserved {
             continue;
         }
-        out.extend(lint_concept(doc, level));
+        out.extend(lint_concept(doc, level, config));
     }
     out
 }
 
-fn lint_concept(doc: &OkfDocument, level: OkfLintLevel) -> Vec<Diagnostic> {
+fn lint_concept(
+    doc: &OkfDocument,
+    level: OkfLintLevel,
+    config: &crate::model::SpecLintConfig,
+) -> Vec<Diagnostic> {
     let mut out = Vec::new();
     match &doc.frontmatter {
         OkfFrontmatterState::Absent => {
@@ -51,31 +63,40 @@ fn lint_concept(doc: &OkfDocument, level: OkfLintLevel) -> Vec<Diagnostic> {
             ));
         }
         OkfFrontmatterState::Parsed(fm) => {
-            out.extend(lint_parsed(doc, fm, level));
+            out.extend(lint_parsed(doc, fm, level, config));
         }
     }
     out
 }
 
-fn lint_parsed(doc: &OkfDocument, fm: &OkfFrontmatter, level: OkfLintLevel) -> Vec<Diagnostic> {
+fn lint_parsed(
+    doc: &OkfDocument,
+    fm: &OkfFrontmatter,
+    level: OkfLintLevel,
+    config: &crate::model::SpecLintConfig,
+) -> Vec<Diagnostic> {
     let mut out = Vec::new();
-    let type_name = fm.type_name.as_deref().unwrap_or("").trim();
-    if type_name.is_empty() {
-        out.push(diag(
-            doc.path.clone(),
-            Severity::Error,
-            "missing required frontmatter field: type",
-        ));
-    }
 
-    if type_name.eq_ignore_ascii_case("Attested Computation")
-        && fm.runtime.as_deref().unwrap_or("").trim().is_empty()
-    {
-        out.push(diag(
-            doc.path.clone(),
-            Severity::Error,
-            "Attested Computation requires runtime",
-        ));
+    if config.check_keys {
+        let type_name = fm.type_name.as_deref().unwrap_or("").trim();
+        if type_name.is_empty() && !config.ignore_keys.contains("type") {
+            out.push(diag(
+                doc.path.clone(),
+                Severity::Error,
+                "missing required frontmatter field: type",
+            ));
+        }
+
+        if type_name.eq_ignore_ascii_case("Attested Computation")
+            && fm.runtime.as_deref().unwrap_or("").trim().is_empty()
+            && !config.ignore_keys.contains("runtime")
+        {
+            out.push(diag(
+                doc.path.clone(),
+                Severity::Error,
+                "Attested Computation requires runtime",
+            ));
+        }
     }
 
     if matches!(level, OkfLintLevel::Level1) {
@@ -83,33 +104,45 @@ fn lint_parsed(doc: &OkfDocument, fm: &OkfFrontmatter, level: OkfLintLevel) -> V
     }
 
     // Level 3 shape checks when families present
-    if let Some(generated) = &fm.generated {
-        if generated.by.trim().is_empty() {
-            out.push(diag(
-                doc.path.clone(),
-                Severity::Error,
-                "generated.by is required when generated is present",
-            ));
+    if config.check_keys {
+        if let Some(generated) = &fm.generated {
+            if generated.by.trim().is_empty()
+                && !config.ignore_keys.contains("generated")
+                && !config.ignore_keys.contains("generated.by")
+            {
+                out.push(diag(
+                    doc.path.clone(),
+                    Severity::Error,
+                    "generated.by is required when generated is present",
+                ));
+            }
+        }
+        for (idx, v) in fm.verified.iter().enumerate() {
+            if v.by.trim().is_empty()
+                && !config.ignore_keys.contains("verified")
+                && !config.ignore_keys.contains("verified.by")
+            {
+                out.push(diag(
+                    doc.path.clone(),
+                    Severity::Error,
+                    format!("verified[{idx}].by is required"),
+                ));
+            }
+        }
+        for (idx, src) in fm.sources.iter().enumerate() {
+            if src.resource.as_deref().unwrap_or("").trim().is_empty()
+                && !config.ignore_keys.contains("sources")
+                && !config.ignore_keys.contains("sources.resource")
+            {
+                out.push(diag(
+                    doc.path.clone(),
+                    Severity::Error,
+                    format!("sources[{idx}].resource is required within a sources entry"),
+                ));
+            }
         }
     }
-    for (idx, v) in fm.verified.iter().enumerate() {
-        if v.by.trim().is_empty() {
-            out.push(diag(
-                doc.path.clone(),
-                Severity::Error,
-                format!("verified[{idx}].by is required"),
-            ));
-        }
-    }
-    for (idx, src) in fm.sources.iter().enumerate() {
-        if src.resource.as_deref().unwrap_or("").trim().is_empty() {
-            out.push(diag(
-                doc.path.clone(),
-                Severity::Error,
-                format!("sources[{idx}].resource is required within a sources entry"),
-            ));
-        }
-    }
+
     if let Some(date) = &fm.stale_after {
         if !is_yyyy_mm_dd(date) {
             out.push(diag(
