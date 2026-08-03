@@ -4,59 +4,76 @@ use std::path::PathBuf;
 
 /// Lint an Agent Skills package against agentskills.md constraints.
 pub fn lint_skill_package(pkg: &SkillPackage) -> Vec<Diagnostic> {
+    lint_skill_package_with_config(pkg, &crate::model::SpecLintConfig::default())
+}
+
+pub fn lint_skill_package_with_config(
+    pkg: &SkillPackage,
+    config: &crate::model::SpecLintConfig,
+) -> Vec<Diagnostic> {
     let mut out = Vec::new();
     let path = pkg.skill_md.clone();
     let fm = &pkg.frontmatter;
 
-    match fm.name.as_deref().map(str::trim).filter(|s| !s.is_empty()) {
-        None => out.push(err(
-            path.clone(),
-            "missing required frontmatter field: name",
-        )),
-        Some(name) => {
-            if name.len() > 64 {
-                out.push(err(
-                    path.clone(),
-                    format!("name must be at most 64 characters (got {})", name.len()),
-                ));
+    if config.check_keys {
+        match fm.name.as_deref().map(str::trim).filter(|s| !s.is_empty()) {
+            None => {
+                if !config.ignore_keys.contains("name") {
+                    out.push(err(
+                        path.clone(),
+                        "missing required frontmatter field: name",
+                    ));
+                }
             }
-            if !is_valid_skill_name(name) {
-                out.push(err(
-                    path.clone(),
-                    "name must be lowercase alphanumeric and hyphens only, must not start/end with hyphen, and must not contain consecutive hyphens",
-                ));
-            }
-            if !pkg.dir_name.is_empty() && name != pkg.dir_name {
-                out.push(err(
-                    path.clone(),
-                    format!(
-                        "name `{name}` must match parent directory name `{}`",
-                        pkg.dir_name
-                    ),
-                ));
+            Some(name) => {
+                if name.len() > 64 {
+                    out.push(err(
+                        path.clone(),
+                        format!("name must be at most 64 characters (got {})", name.len()),
+                    ));
+                }
+                if !is_valid_skill_name(name) {
+                    out.push(err(
+                        path.clone(),
+                        "name must be lowercase alphanumeric and hyphens only, must not start/end with hyphen, and must not contain consecutive hyphens",
+                    ));
+                }
+                if !pkg.dir_name.is_empty() && name != pkg.dir_name {
+                    out.push(err(
+                        path.clone(),
+                        format!(
+                            "name `{name}` must match parent directory name `{}`",
+                            pkg.dir_name
+                        ),
+                    ));
+                }
             }
         }
-    }
 
-    match fm
-        .description
-        .as_deref()
-        .map(str::trim)
-        .filter(|s| !s.is_empty())
-    {
-        None => out.push(err(
-            path.clone(),
-            "missing required frontmatter field: description",
-        )),
-        Some(desc) => {
-            if desc.len() > 1024 {
-                out.push(err(
-                    path.clone(),
-                    format!(
-                        "description must be at most 1024 characters (got {})",
-                        desc.len()
-                    ),
-                ));
+        match fm
+            .description
+            .as_deref()
+            .map(str::trim)
+            .filter(|s| !s.is_empty())
+        {
+            None => {
+                if !config.ignore_keys.contains("description") {
+                    out.push(err(
+                        path.clone(),
+                        "missing required frontmatter field: description",
+                    ));
+                }
+            }
+            Some(desc) => {
+                if desc.len() > 1024 {
+                    out.push(err(
+                        path.clone(),
+                        format!(
+                            "description must be at most 1024 characters (got {})",
+                            desc.len()
+                        ),
+                    ));
+                }
             }
         }
     }

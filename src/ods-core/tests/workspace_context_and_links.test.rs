@@ -22,8 +22,8 @@ fn large_workspace_with_10k_documents_lints() {
         }
     }
 
-    let root_index = "---\nprofile: index\nods: 0.1\n---\n\n# Large Workspace\n";
-    fs::write(temp.join("index.md"), root_index).expect("root index");
+    let root_index = "---\nprofile: index\nods: 0.1\nodc: \">=0.0.1\"\n---\n\n# Large Workspace\n";
+    fs::write(temp.join("index.ods.md"), root_index).expect("root index");
 
     // Generate indexes first (root + every group directory) so the hand-written
     // root marker above doesn't leave dangling links to ungenerated children.
@@ -47,14 +47,14 @@ fn large_workspace_with_10k_documents_lints() {
 fn test_case_insensitive_ids() {
     let temp = temp_workspace();
     fs::write(
-        temp.join("index.md"),
-        "---\nprofile: index\nods: 0.1\n---\n\n# Root\n\n- [Auth/](Auth/index.md)\n- [login.md](login.md)\n",
+        temp.join("index.ods.md"),
+        "---\nprofile: index\nods: 0.1\nodc: \">=0.0.1\"\n---\n\n# Root\n\n- [Auth/](Auth/index.ods.md)\n- [login.md](login.md)\n",
     )
     .expect("root index");
 
     fs::create_dir_all(temp.join("Auth")).expect("auth dir");
     fs::write(
-        temp.join("Auth").join("index.md"),
+        temp.join("Auth").join("index.ods.md"),
         "---\nprofile: index\n---\n\n# Auth\n\n- [Sessions.md](Sessions.md)\n",
     )
     .expect("auth index");
@@ -80,8 +80,8 @@ fn test_case_insensitive_ids() {
 fn test_index_generation_with_description() {
     let temp = temp_workspace();
     fs::write(
-        temp.join("index.md"),
-        "---\nprofile: index\nods: 0.1\n---\n\n# Root\n\n- [doc.md](doc.md)\n",
+        temp.join("index.ods.md"),
+        "---\nprofile: index\nods: 0.1\nodc: \">=0.0.1\"\n---\n\n# Root\n\n- [doc.md](doc.md)\n",
     )
     .expect("root index");
 
@@ -93,9 +93,9 @@ fn test_index_generation_with_description() {
 
     let workspace = load_workspace(&temp).expect("workspace");
     let generated = generate_indexes(&workspace).expect("generate");
-    assert!(generated.iter().any(|path| path.ends_with("index.md")));
+    assert!(generated.iter().any(|path| path.ends_with("index.ods.md")));
 
-    let rendered = fs::read_to_string(temp.join("index.md")).expect("read index");
+    let rendered = fs::read_to_string(temp.join("index.ods.md")).expect("read index");
     assert!(rendered.contains("- [doc.md](doc.md) - A simple feature description."));
 }
 
@@ -103,8 +103,8 @@ fn test_index_generation_with_description() {
 fn test_case_insensitive_relative_reference() {
     let temp = temp_workspace();
     fs::write(
-        temp.join("index.md"),
-        "---\nprofile: index\nods: 0.1\n---\n\n# Root\n\n- [README.md](README.md)\n- [child.md](child.md)\n",
+        temp.join("index.ods.md"),
+        "---\nprofile: index\nods: 0.1\nodc: \">=0.0.1\"\n---\n\n# Root\n\n- [README.md](README.md)\n- [child.md](child.md)\n",
     )
     .expect("root index");
 
@@ -129,7 +129,7 @@ fn test_case_insensitive_relative_reference() {
 fn test_index_generation_preserves_prose() {
     let temp = temp_workspace();
     fs::write(
-        temp.join("index.md"),
+        temp.join("index.ods.md"),
         r#"---
 profile: index
 ods: 0.1
@@ -159,9 +159,9 @@ It explains where to report issues.
 
     let workspace = load_workspace(&temp).expect("workspace");
     let generated = generate_indexes(&workspace).expect("generate");
-    assert!(generated.iter().any(|path| path.ends_with("index.md")));
+    assert!(generated.iter().any(|path| path.ends_with("index.ods.md")));
 
-    let rendered = fs::read_to_string(temp.join("index.md")).expect("read index");
+    let rendered = fs::read_to_string(temp.join("index.ods.md")).expect("read index");
 
     assert!(rendered.contains("profile: index"));
     assert!(rendered.contains("# Root Index"));

@@ -10,3 +10,6 @@ Rust crates (`ods-core`, `ods-cli`, `ods-test-support`) and `scripts/` live here
 - [specs/](specs/index.md)
 
 See [CLI multi-spec](../docs/other-specs/cli-multi-spec.md) for product rules.
+
+- [action/](action/index.ods.md)
+- [specs/](specs/index.ods.md)

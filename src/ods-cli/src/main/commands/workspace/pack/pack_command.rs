@@ -32,7 +32,7 @@ fn run_pack_list(args: &[String]) -> Result<ExitCode, CliError> {
     let root_index_doc = workspace
         .documents
         .iter()
-        .find(|d| d.path == root.join("index.md"));
+        .find(|d| d.path == root.join("index.ods.md"));
 
     let mut packs = Vec::new();
     if let Some(doc) = root_index_doc
@@ -79,7 +79,11 @@ fn run_pack_add(args: &[String]) -> Result<ExitCode, CliError> {
         .unwrap_or_else(|| String::from("daily"));
 
     let root = resolve_root_path(root_path);
-    let root_index_path = root.join("index.md");
+    let root_index_path = if root.join("index.ods.md").exists() {
+        root.join("index.ods.md")
+    } else {
+        root.join("index.md")
+    };
 
     if !root_index_path.exists() {
         return Err(failure(
@@ -172,7 +176,7 @@ fn run_pack_sync(args: &[String]) -> Result<ExitCode, CliError> {
     let root_index_doc = workspace
         .documents
         .iter()
-        .find(|d| d.path == root.join("index.md"));
+        .find(|d| d.path == root.join("index.ods.md"));
 
     let mut packs = Vec::new();
     if let Some(doc) = root_index_doc

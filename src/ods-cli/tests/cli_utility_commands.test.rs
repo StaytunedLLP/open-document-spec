@@ -91,7 +91,7 @@ fn init_and_disable_cli() {
         .unwrap();
     assert!(out.status.success(), "{:?}", out);
     assert!(
-        fs::read_to_string(dir.join("index.md"))
+        fs::read_to_string(dir.join("index.ods.md"))
             .unwrap()
             .contains("ods:"),
         "root should be initialized"
@@ -121,7 +121,7 @@ fn init_and_disable_cli() {
     assert!(!plain.contains("profile:"));
     assert!(plain.contains("Body stays."));
     assert!(
-        !fs::read_to_string(dir.join("index.md"))
+        !fs::read_to_string(dir.join("index.ods.md"))
             .unwrap()
             .lines()
             .any(|l| l.trim().starts_with("ods:"))

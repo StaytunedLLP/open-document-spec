@@ -17,7 +17,7 @@ pub use index::{
     export_okf_graph, fmt_okf_bundle, generate_okf_indexes, okf_context, okf_indexes_are_current,
 };
 pub use init::{OkfInitOptions, OkfInitReport, init_okf_bundle};
-pub use lint::{lint_okf_bundle, lint_okf_bundle_with_level};
+pub use lint::{lint_okf_bundle, lint_okf_bundle_with_config, lint_okf_bundle_with_level};
 pub use model::{
     ActorEvent, DateRange, OkfBundle, OkfDocument, OkfFrontmatter, OkfFrontmatterState,
     OkfLintLevel, OkfParameter, OkfSource, OkfStatus, OkfTrustTier, ResourceRefFields,

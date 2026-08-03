@@ -168,7 +168,7 @@ mod tests {
             "---\nprofile: index\nshare: private\n---\n\n# Sub\n",
         );
         let ws = load_workspace(&dir).unwrap();
-        let level = effective_share(&dir.join("sub/index.md"), &ws);
+        let level = effective_share(&dir.join("sub/index.ods.md"), &ws);
         assert_eq!(level, ShareLevel::Private);
         let _ = fs::remove_dir_all(&dir);
     }
@@ -178,8 +178,8 @@ mod tests {
         let dir = temp_dir("publish-public");
         write(
             dir.as_path(),
-            "index.md",
-            "---\nprofile: index\nods: 0.1\n---\n\n# R\n",
+            "index.ods.md",
+            "---\nprofile: index\nods: 0.1\nodc: \">=0.0.1\"\n---\n\n# R\n",
         );
         write(
             dir.as_path(),
@@ -210,14 +210,14 @@ mod tests {
         .unwrap();
 
         assert_eq!(report.written.len(), 1);
-        assert!(out.join("index.md").exists());
+        assert!(out.join("index.ods.md").exists());
         assert!(out.join("pub.md").exists());
         assert!(!out.join("internal.md").exists());
         assert!(!out.join("secret.md").exists());
         assert_eq!(report.excluded.len(), 2);
 
         let out_ws = load_workspace(&out).unwrap();
-        let out_idx = fs::read_to_string(out.join("index.md")).unwrap();
+        let out_idx = fs::read_to_string(out.join("index.ods.md")).unwrap();
         assert!(out_idx.contains("pub.md"));
         assert!(!out_idx.contains("internal.md"));
         assert!(!out_idx.contains("secret.md"));

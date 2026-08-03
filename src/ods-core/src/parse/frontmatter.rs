@@ -288,6 +288,21 @@ fn parse_frontmatter(block: &str) -> Result<Frontmatter, String> {
                 frontmatter.aliases.extend(aliases);
                 index = next;
             }
+            "specs" => {
+                let (specs, next) = parse_specs_config(&lines, index, 2);
+                frontmatter.specs = specs;
+                index = next;
+            }
+            "okf_lint" | "okf-lint" => {
+                let (cfg, next) = parse_spec_lint_config(&lines, index, 2);
+                frontmatter.specs.okf = cfg;
+                index = next;
+            }
+            "skills_lint" | "skills-lint" => {
+                let (cfg, next) = parse_spec_lint_config(&lines, index, 2);
+                frontmatter.specs.skills = cfg;
+                index = next;
+            }
             _ => {
                 let (_, next) = parse_passthrough_block(&lines, index, 2);
                 index = next;

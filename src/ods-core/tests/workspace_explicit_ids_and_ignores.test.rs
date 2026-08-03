@@ -8,8 +8,8 @@ fn root_ignore_excludes_code_tree_from_scan_and_index() {
     fs::create_dir_all(temp.join("src/pkg")).expect("src");
     fs::create_dir_all(temp.join("docs")).expect("docs");
     fs::write(
-        temp.join("index.md"),
-        "---\nprofile: index\nods: 0.1\nignore:\n  - src\n---\n\n# Root\n\n- [docs/](docs/index.md)\n",
+        temp.join("index.ods.md"),
+        "---\nprofile: index\nods: 0.1\nodc: \">=0.0.1\"\nignore:\n  - src\n---\n\n# Root\n\n- [docs/](docs/index.ods.md)\n",
     )
     .expect("root");
     fs::write(
@@ -34,13 +34,13 @@ fn root_ignore_excludes_code_tree_from_scan_and_index() {
     );
     let root = temp.path().canonicalize().unwrap();
     assert!(workspace.children.get(root.as_path()).is_some_and(|c| {
-        c.iter().any(|e| e == "docs/index.md") && !c.iter().any(|e| e.contains("src"))
+        c.iter().any(|e| e == "docs/index.ods.md") && !c.iter().any(|e| e.contains("src"))
     }));
 
     let diagnostics = lint_workspace(&workspace);
     let index_errors: Vec<_> = diagnostics
         .iter()
-        .filter(|d| d.path.ends_with("index.md") && d.message.contains("src"))
+        .filter(|d| d.path.ends_with("index.ods.md") && d.message.contains("src"))
         .collect();
     assert!(
         index_errors.is_empty(),
@@ -48,18 +48,18 @@ fn root_ignore_excludes_code_tree_from_scan_and_index() {
     );
 
     generate_indexes(&workspace).expect("index");
-    let root_index = fs::read_to_string(temp.join("index.md")).expect("read root");
+    let root_index = fs::read_to_string(temp.join("index.ods.md")).expect("read root");
     assert!(root_index.contains("ignore:\n  - src\n"));
-    assert!(!root_index.contains("src/index.md"));
-    assert!(!temp.join("src/index.md").exists());
+    assert!(!root_index.contains("src/index.ods.md"));
+    assert!(!temp.join("src/index.ods.md").exists());
 }
 
 #[test]
 fn index_lint_ignores_prose_links_outside_list() {
     let temp = temp_workspace();
     fs::write(
-        temp.join("index.md"),
-        "---\nprofile: index\nods: 0.1\n---\n\n# Root\n\nSee [elsewhere](../outside.md) for notes.\n\n- [doc.md](doc.md)\n",
+        temp.join("index.ods.md"),
+        "---\nprofile: index\nods: 0.1\nodc: \">=0.0.1\"\n---\n\n# Root\n\nSee [elsewhere](../outside.md) for notes.\n\n- [doc.md](doc.md)\n",
     )
     .expect("root");
     fs::write(
@@ -84,8 +84,8 @@ fn index_lint_ignores_prose_links_outside_list() {
 fn workspace_load_reports_explicit_ids() {
     let temp = temp_workspace();
     fs::write(
-        temp.join("index.md"),
-        "---\nprofile: index\nods: 0.1\n---\n\n# Root\n\n- [a.md](a.md)\n- [b.md](b.md)\n- [c.md](c.md)\n",
+        temp.join("index.ods.md"),
+        "---\nprofile: index\nods: 0.1\nodc: \">=0.0.1\"\n---\n\n# Root\n\n- [a.md](a.md)\n- [b.md](b.md)\n- [c.md](c.md)\n",
     )
     .expect("root index");
     fs::write(
@@ -114,8 +114,8 @@ fn workspace_load_reports_explicit_ids() {
 fn explicit_id_resolves_for_depends_context_and_lint() {
     let temp = temp_workspace();
     fs::write(
-        temp.join("index.md"),
-        "---\nprofile: index\nods: 0.1\n---\n\n# Root\n\n- [impl.md](impl.md)\n- [spec.md](spec.md)\n",
+        temp.join("index.ods.md"),
+        "---\nprofile: index\nods: 0.1\nodc: \">=0.0.1\"\n---\n\n# Root\n\n- [impl.md](impl.md)\n- [spec.md](spec.md)\n",
     )
     .expect("root");
     fs::write(

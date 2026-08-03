@@ -201,7 +201,7 @@ fn detect_hybrid_workspace_and_skill_roots() {
     let td = tempdir();
     let root = td.path();
     fs::write(
-        root.join("index.md"),
+        root.join("index.ods.md"),
         "---\nprofile: index\nods: 0.1\n---\n\n# R\n",
     )
     .unwrap();
@@ -240,4 +240,30 @@ fn init_skill_default_name_from_dirname() {
     assert!(report.created.iter().any(|p| p.ends_with("SKILL.md")));
     let text = fs::read_to_string(pkg.join("SKILL.md")).unwrap();
     assert!(text.contains("name: pdf-extract"), "{text}");
+}
+
+#[test]
+fn resolve_engines_auto_activation_from_root_config() {
+    let td = tempdir();
+    let root = td.path();
+    fs::write(
+        root.join("index.ods.md"),
+        "---\nods: 0.1\nspecs:\n  okf:\n    enabled: true\n  skills:\n    enabled: true\n---\n\n# R\n",
+    )
+    .unwrap();
+
+    let cfg = ods_core::load_root_specs_config(root);
+    assert!(cfg.okf.enabled);
+    assert!(cfg.skills.enabled);
+
+    let det = Detected {
+        ods: true,
+        okf: true,
+        skills: true,
+    };
+    let e = ods_core::resolve_engines_with_config(ExtraSpecs::default(), det, Some(&cfg), true)
+        .unwrap();
+    assert!(e.ods);
+    assert!(e.okf);
+    assert!(e.skills);
 }

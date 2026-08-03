@@ -89,7 +89,7 @@ fn test_lsp_jsonrpc_handshake_and_completion() {
     );
 
     let comp_req = format!(
-        r#"{{"jsonrpc":"2.0","id":2,"method":"textDocument/completion","params":{{"textDocument":{{"uri":"file://{root}/index.md"}},"position":{{"line":0,"character":0}}}}}}"#
+        r#"{{"jsonrpc":"2.0","id":2,"method":"textDocument/completion","params":{{"textDocument":{{"uri":"file://{root}/index.ods.md"}},"position":{{"line":0,"character":0}}}}}}"#
     );
     write_jsonrpc_msg(stdin, &comp_req);
 
@@ -113,7 +113,7 @@ fn test_lsp_document_lifecycle_hover_definition_and_diagnostics() {
 
     // Minimal ODS workspace
     fs::write(
-        root.join("index.md"),
+        root.join("index.ods.md"),
         "---\nprofile: index\nods: 0.1\n---\n\n# Root\n\nSee [note](note.md).\n",
     )
     .unwrap();
@@ -182,7 +182,7 @@ fn test_lsp_document_lifecycle_hover_definition_and_diagnostics() {
     let _ = read_until_id_or_method(&mut reader, 0, Some("textDocument/publishDiagnostics"));
 
     // Open index for hover/definition
-    let index_text = fs::read_to_string(root.join("index.md")).unwrap();
+    let index_text = fs::read_to_string(root.join("index.ods.md")).unwrap();
     let index_esc = index_text
         .replace('\\', "\\\\")
         .replace('"', "\\\"")
@@ -190,7 +190,7 @@ fn test_lsp_document_lifecycle_hover_definition_and_diagnostics() {
     write_jsonrpc_msg(
         stdin,
         &format!(
-            r#"{{"jsonrpc":"2.0","method":"textDocument/didOpen","params":{{"textDocument":{{"uri":"file://{root_s}/index.md","languageId":"markdown","version":1,"text":"{index_esc}"}}}}}}"#
+            r#"{{"jsonrpc":"2.0","method":"textDocument/didOpen","params":{{"textDocument":{{"uri":"file://{root_s}/index.ods.md","languageId":"markdown","version":1,"text":"{index_esc}"}}}}}}"#
         ),
     );
     let _ = read_until_id_or_method(&mut reader, 0, Some("textDocument/publishDiagnostics"));
@@ -199,7 +199,7 @@ fn test_lsp_document_lifecycle_hover_definition_and_diagnostics() {
     write_jsonrpc_msg(
         stdin,
         &format!(
-            r#"{{"jsonrpc":"2.0","id":10,"method":"textDocument/hover","params":{{"textDocument":{{"uri":"file://{root_s}/index.md"}},"position":{{"line":1,"character":0}}}}}}"#
+            r#"{{"jsonrpc":"2.0","id":10,"method":"textDocument/hover","params":{{"textDocument":{{"uri":"file://{root_s}/index.ods.md"}},"position":{{"line":1,"character":0}}}}}}"#
         ),
     );
     let hover = read_until_id_or_method(&mut reader, 10, None);
@@ -212,7 +212,7 @@ fn test_lsp_document_lifecycle_hover_definition_and_diagnostics() {
     write_jsonrpc_msg(
         stdin,
         &format!(
-            r#"{{"jsonrpc":"2.0","id":11,"method":"textDocument/hover","params":{{"textDocument":{{"uri":"file://{root_s}/index.md"}},"position":{{"line":2,"character":0}}}}}}"#
+            r#"{{"jsonrpc":"2.0","id":11,"method":"textDocument/hover","params":{{"textDocument":{{"uri":"file://{root_s}/index.ods.md"}},"position":{{"line":2,"character":0}}}}}}"#
         ),
     );
     let _ = read_until_id_or_method(&mut reader, 11, None);
@@ -221,7 +221,7 @@ fn test_lsp_document_lifecycle_hover_definition_and_diagnostics() {
     write_jsonrpc_msg(
         stdin,
         &format!(
-            r#"{{"jsonrpc":"2.0","id":12,"method":"textDocument/definition","params":{{"textDocument":{{"uri":"file://{root_s}/index.md"}},"position":{{"line":6,"character":10}}}}}}"#
+            r#"{{"jsonrpc":"2.0","id":12,"method":"textDocument/definition","params":{{"textDocument":{{"uri":"file://{root_s}/index.ods.md"}},"position":{{"line":6,"character":10}}}}}}"#
         ),
     );
     let def = read_until_id_or_method(&mut reader, 12, None);
@@ -234,7 +234,7 @@ fn test_lsp_document_lifecycle_hover_definition_and_diagnostics() {
     write_jsonrpc_msg(
         stdin,
         &format!(
-            r#"{{"jsonrpc":"2.0","method":"textDocument/didSave","params":{{"textDocument":{{"uri":"file://{root_s}/index.md"}}}}}}"#
+            r#"{{"jsonrpc":"2.0","method":"textDocument/didSave","params":{{"textDocument":{{"uri":"file://{root_s}/index.ods.md"}}}}}}"#
         ),
     );
     let _ = read_until_id_or_method(&mut reader, 0, Some("textDocument/publishDiagnostics"));
@@ -242,7 +242,7 @@ fn test_lsp_document_lifecycle_hover_definition_and_diagnostics() {
     write_jsonrpc_msg(
         stdin,
         &format!(
-            r#"{{"jsonrpc":"2.0","method":"textDocument/didClose","params":{{"textDocument":{{"uri":"file://{root_s}/index.md"}}}}}}"#
+            r#"{{"jsonrpc":"2.0","method":"textDocument/didClose","params":{{"textDocument":{{"uri":"file://{root_s}/index.ods.md"}}}}}}"#
         ),
     );
     let _ = read_until_id_or_method(&mut reader, 0, Some("textDocument/publishDiagnostics"));
@@ -388,7 +388,7 @@ fn test_lsp_okf_hover_and_diagnostics() {
     let root_s = root.to_str().unwrap().replace('\\', "/");
 
     fs::write(
-        root.join("index.md"),
+        root.join("index.ods.md"),
         "---\nokf_version: \"0.2\"\ntype: Metric\nstale_after: \"2099-01-01\"\n---\n\n# OKF Root\n",
     )
     .unwrap();
@@ -412,7 +412,7 @@ fn test_lsp_okf_hover_and_diagnostics() {
     );
     let _ = read_jsonrpc_msg(&mut reader);
 
-    let text = fs::read_to_string(root.join("index.md")).unwrap();
+    let text = fs::read_to_string(root.join("index.ods.md")).unwrap();
     let esc = text
         .replace('\\', "\\\\")
         .replace('"', "\\\"")
@@ -420,7 +420,7 @@ fn test_lsp_okf_hover_and_diagnostics() {
     write_jsonrpc_msg(
         stdin,
         &format!(
-            r#"{{"jsonrpc":"2.0","method":"textDocument/didOpen","params":{{"textDocument":{{"uri":"file://{root_s}/index.md","languageId":"markdown","version":1,"text":"{esc}"}}}}}}"#
+            r#"{{"jsonrpc":"2.0","method":"textDocument/didOpen","params":{{"textDocument":{{"uri":"file://{root_s}/index.ods.md","languageId":"markdown","version":1,"text":"{esc}"}}}}}}"#
         ),
     );
     let _ = read_until_id_or_method(&mut reader, 0, Some("textDocument/publishDiagnostics"));
@@ -429,7 +429,7 @@ fn test_lsp_okf_hover_and_diagnostics() {
         write_jsonrpc_msg(
             stdin,
             &format!(
-                r#"{{"jsonrpc":"2.0","id":{id},"method":"textDocument/hover","params":{{"textDocument":{{"uri":"file://{root_s}/index.md"}},"position":{{"line":{line},"character":0}}}}}}"#
+                r#"{{"jsonrpc":"2.0","id":{id},"method":"textDocument/hover","params":{{"textDocument":{{"uri":"file://{root_s}/index.ods.md"}},"position":{{"line":{line},"character":0}}}}}}"#
             ),
         );
         let h = read_until_id_or_method(&mut reader, id, None);

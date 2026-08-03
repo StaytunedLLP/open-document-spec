@@ -193,7 +193,7 @@ fn lint_canonical_edge_cases() {
     assert!(
         diags_no_root
             .iter()
-            .any(|d| d.message.contains("missing root index.md"))
+            .any(|d| d.message.contains("missing root index.ods.md"))
     );
 
     write_root(&dir, "- [a.md](a.md)\n");
@@ -206,7 +206,7 @@ fn lint_canonical_edge_cases() {
     let diags = lint_workspace(&ws);
     assert!(diags.iter().any(|d| {
         d.message
-            .contains("ods and ods should be declared only in root index.md")
+            .contains("ods and ods should be declared only in root index.ods.md")
     }));
     assert!(
         diags

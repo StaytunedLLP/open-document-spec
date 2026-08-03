@@ -39,7 +39,7 @@ pub mod refs {
 pub use bench::{
     BenchRestoreReport, BenchRunReport, BenchStatsReport, BenchStripOptions, BenchStripReport,
     bench_calculate_stats, bench_restore_workspace, bench_run_simulation, bench_strip_workspace,
-    compute_repo_hash, get_backup_dir,
+    compute_repo_hash, create_workspace_snapshot, get_backup_dir, undo_latest_snapshot,
 };
 
 pub use fs::{
@@ -79,7 +79,8 @@ pub use lint::{
 pub use model::{
     CodeRef, CodeRole, ComplianceMode, Diagnostic, Document, Frontmatter, FrontmatterState,
     LintLevel, LoadOptions, ProfileCatalog, ProfileConflict, ProfileDefinition, ResourceRef,
-    Severity, Workspace, current_ods_spec_version, current_ods_version,
+    Severity, SpecLintConfig, Workspace, WorkspaceSpecsConfig, current_ods_spec_version,
+    current_ods_version,
 };
 pub use mv::{
     PathChange, PathChangeReport, apply_path_changes, canonicalize_workspace_document_refs,
@@ -112,14 +113,15 @@ pub use okf::{
     OkfFrontmatterState, OkfInitOptions, OkfInitReport, OkfLintLevel, OkfParameter, OkfSource,
     OkfStatus, OkfTrustTier, ResourceRefFields, audit_okf_bundle, concept_id_for_path,
     current_okf_version, derive_trust_tier, export_okf_graph, fmt_okf_bundle, generate_okf_indexes,
-    init_okf_bundle, lint_okf_bundle, lint_okf_bundle_with_level, load_okf_bundle, okf_context,
-    okf_enabled, okf_indexes_are_current, okf_version_from_root, parse_okf_frontmatter_block,
-    render_okf_audit_markdown,
+    init_okf_bundle, lint_okf_bundle, lint_okf_bundle_with_config, lint_okf_bundle_with_level,
+    load_okf_bundle, okf_context, okf_enabled, okf_indexes_are_current, okf_version_from_root,
+    parse_okf_frontmatter_block, render_okf_audit_markdown,
 };
 
 pub use multi_spec::{
     ActiveEngines, Detected, ExtraSpecs, ScopeResolveError, SkillFrontmatter, SkillPackage,
     SkillsInitOptions, SkillsInitReport, detect_workspace, init_skill_package, lint_skill_package,
-    parse_extra_spec_flags, parse_skill_package, resolve_engines, skill_package_roots,
+    lint_skill_package_with_config, load_root_specs_config, parse_extra_spec_flags,
+    parse_skill_package, resolve_engines, resolve_engines_with_config, skill_package_roots,
     skills_enabled,
 };

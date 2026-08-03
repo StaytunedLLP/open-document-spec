@@ -2,9 +2,7 @@
 profile: index
 ---
 
-# Open Document Specification (ODS)
-
-This directory contains the normative specifications for Open Document Spec.
+# specs/
 
 - [SPEC.md](SPEC.md) - Open Document Spec Working Draft 1 - Core format model, conformance levels, frontmatter canonical sequence, and lifecycle operations.
 - [context.md](context.md) - AI agent context scope loading configurations and visibility filtering rules.

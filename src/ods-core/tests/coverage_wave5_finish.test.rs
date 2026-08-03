@@ -13,7 +13,7 @@ fn tempdir() -> tempfile::TempDir {
 
 fn seed(root: &std::path::Path) {
     fs::write(
-        root.join("index.md"),
+        root.join("index.ods.md"),
         "---\nprofile: index\nods: 0.1\nignore:\n  - vendor\npacks:\n  - my-pack\nprofiles:\n  - ods-profiles\n---\n\n# Root\n\nIntro prose stays.\n",
     )
     .unwrap();
@@ -197,7 +197,7 @@ fn root_index_preserves_packs_profiles_ignore_on_render() {
     .unwrap();
 
     let ws = load_workspace(root).unwrap();
-    let existing = fs::read_to_string(root.join("index.md")).unwrap();
+    let existing = fs::read_to_string(root.join("index.ods.md")).unwrap();
     let out = render_index(&ws, root, Some(&existing));
     assert!(
         out.contains("packs:") || out.contains("my-pack") || out.contains("ignore:"),
@@ -215,7 +215,7 @@ fn lint_canonical_root_and_nested_forbidden_keys() {
     let td = tempdir();
     let root = td.path();
     fs::write(
-        root.join("index.md"),
+        root.join("index.ods.md"),
         "---\nprofile: index\nods: 0.1\nignore:\n  - build\n---\n\n# Root\n",
     )
     .unwrap();

@@ -79,7 +79,7 @@ fn test_cli_tree_command() {
         .unwrap();
     assert!(tree.status.success());
     let stdout = String::from_utf8_lossy(&tree.stdout);
-    assert!(stdout.contains("index.md"), "{stdout}");
+    assert!(stdout.contains("index.ods.md"), "{stdout}");
 }
 
 #[test]

@@ -125,7 +125,7 @@ fn publish_document_override_overrides_parent_directory_share() {
     let report = publish_workspace(&ws, &dir, &out, ShareOptions::default()).unwrap();
 
     assert_eq!(report.written.len(), 1);
-    assert!(out.join("sub/index.md").exists());
+    assert!(out.join("sub/index.ods.md").exists());
     assert!(out.join("sub/public_doc.md").exists());
 
     let _ = fs::remove_dir_all(&dir);
@@ -137,12 +137,12 @@ fn publish_subtree_path_relative_to_root() {
     let dir = temp_dir("publish-subtree");
     write(
         dir.as_path(),
-        "index.md",
-        "---\nprofile: index\nods: 0.1\n---\n\n# R\n",
+        "index.ods.md",
+        "---\nprofile: index\nods: 0.1\nodc: \">=0.0.1\"\n---\n\n# R\n",
     );
     write(
         dir.as_path(),
-        "sub/index.md",
+        "sub/index.ods.md",
         "---\nprofile: index\n---\n\n# Sub\n",
     );
     write(
@@ -161,7 +161,7 @@ fn publish_subtree_path_relative_to_root() {
     let report = publish_workspace(&ws, dir.join("sub"), &out, ShareOptions::default()).unwrap();
 
     assert_eq!(report.written.len(), 1);
-    assert!(out.join("index.md").exists());
+    assert!(out.join("index.ods.md").exists());
     assert!(out.join("doc.md").exists());
     assert!(!out.join("other.md").exists());
 

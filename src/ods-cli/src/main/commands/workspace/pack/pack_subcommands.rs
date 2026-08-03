@@ -7,10 +7,14 @@ fn run_pack_remove(args: &[String]) -> Result<ExitCode, CliError> {
     };
 
     let root = resolve_root_path(root_path);
-    let root_index_path = root.join("index.md");
+    let root_index_path = if root.join("index.ods.md").exists() {
+        root.join("index.ods.md")
+    } else {
+        root.join("index.md")
+    };
 
     if !root_index_path.exists() {
-        return Err(failure("root index.md not found"));
+        return Err(failure("root index.ods.md not found"));
     }
 
     let text = fs::read_to_string(&root_index_path).map_err(|e| failure(e.to_string()))?;
@@ -18,7 +22,7 @@ fn run_pack_remove(args: &[String]) -> Result<ExitCode, CliError> {
     let updated = text.lines().filter(|line| *line != target_line).collect::<Vec<_>>().join("\n");
 
     fs::write(&root_index_path, updated).map_err(|e| failure(e.to_string()))?;
-    println!("Removed ODS Pack reference '{}' from root index.md.", name);
+    println!("Removed ODS Pack reference '{}' from root index.ods.md.", name);
     Ok(ExitCode::from(0))
 }
 
@@ -57,18 +61,18 @@ fn run_pack_init(args: &[String]) -> Result<ExitCode, CliError> {
     fs::create_dir_all(&skills_dir).map_err(|e| failure(e.to_string()))?;
 
     let root_index = format!(
-        "---\nprofile: index\nods: 0.1\ndescription: Reusable ODS Pack for {name}.\n---\n\n# {name}\n\n- [ods-profiles/](ods-profiles/index.md) - Custom Profile schemas\n- [skills/](skills/index.md) - AI Agent skills\n"
+        "---\nprofile: index\nods: 0.1\ndescription: Reusable ODS Pack for {name}.\n---\n\n# {name}\n\n- [ods-profiles/](ods-profiles/index.ods.md) - Custom Profile schemas\n- [skills/](skills/index.ods.md) - AI Agent skills\n"
     );
-    fs::write(root.join("index.md"), root_index).map_err(|e| failure(e.to_string()))?;
+    fs::write(root.join("index.ods.md"), root_index).map_err(|e| failure(e.to_string()))?;
 
     let profile_index = "---\nprofile: index\n---\n\n# Profile Schemas\n";
-    fs::write(ods_profiles_dir.join("index.md"), profile_index).map_err(|e| failure(e.to_string()))?;
+    fs::write(ods_profiles_dir.join("index.ods.md"), profile_index).map_err(|e| failure(e.to_string()))?;
 
     let skills_index = "---\nprofile: index\n---\n\n# AI Agent Skills\n";
-    fs::write(skills_dir.join("index.md"), skills_index).map_err(|e| failure(e.to_string()))?;
+    fs::write(skills_dir.join("index.ods.md"), skills_index).map_err(|e| failure(e.to_string()))?;
 
     println!("Scaffolding new ODS Pack at {}:", root.display());
-    println!("  ✓ Created index.md (root marker)");
+    println!("  ✓ Created index.ods.md (root marker)");
     println!("  ✓ Created ods-profiles/ (profile schema directory)");
     println!("  ✓ Created skills/ (AI agent skills directory)");
 
@@ -98,8 +102,8 @@ mod test_pack_command {
         ]);
         assert!(res_init.is_ok());
 
-        assert!(pack_path.join("index.md").exists());
-        assert!(pack_path.join("ods-profiles/index.md").exists());
+        assert!(pack_path.join("index.ods.md").exists());
+        assert!(pack_path.join("ods-profiles/index.ods.md").exists());
 
         let res_prev = run_pack_preview(&[
             "ods".into(),
@@ -111,13 +115,14 @@ mod test_pack_command {
 
         let ws = td.path().join("ws");
         std::fs::create_dir_all(&ws).unwrap();
-        std::fs::write(ws.join("index.md"), "---\nprofile: index\nods: 0.1\n---\n\n# Root\n").unwrap();
+        std::fs::write(ws.join("index.ods.md"), "---\nprofile: index\nods: 0.1\n---\n\n# Root\n").unwrap();
 
+        let prev = std::env::current_dir().ok();
+        let _ = std::env::set_current_dir(&ws);
         let res_add = run_pack_add(&[
             "ods".into(),
             "pack".into(),
             "add".into(),
-            ws.to_string_lossy().to_string(),
             pack_path.to_string_lossy().to_string(),
         ]);
         assert!(res_add.is_ok());
@@ -126,10 +131,12 @@ mod test_pack_command {
             "ods".into(),
             "pack".into(),
             "rm".into(),
-            ws.to_string_lossy().to_string(),
             pack_path.to_string_lossy().to_string(),
         ]);
         assert!(res_rm.is_ok());
+        if let Some(p) = prev {
+            let _ = std::env::set_current_dir(p);
+        }
     }
 
     #[test]
@@ -155,13 +162,13 @@ mod test_pack_command {
         let ws = td.path().join("ws");
         std::fs::create_dir_all(&ws).unwrap();
         std::fs::write(
-            ws.join("index.md"),
+            ws.join("index.ods.md"),
             "---\nprofile: index\nods: 0.1\npacks:\n  - local-pack\n---\n\n# R\n",
         )
         .unwrap();
         std::fs::create_dir_all(ws.join("local-pack")).unwrap();
         std::fs::write(
-            ws.join("local-pack/index.md"),
+            ws.join("local-pack/index.ods.md"),
             "---\nprofile: index\n---\n\n# Pack\n",
         )
         .unwrap();

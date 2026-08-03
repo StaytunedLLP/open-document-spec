@@ -38,7 +38,7 @@ Open Document Specs (ODS) is a lightweight, graph-native Markdown convention lay
 | :--- | :--- | :--- | :--- |
 | **`ods`** | string | Root `index.md` | **Workspace Spec Marker**: Declares ODS workspace boundary and version (`ods: 0.1`). Not the CLI binary name. |
 | **`ods`** | string | Root `index.md` | **CLI Requirement**: Minimum Open Document Spec CLI version (`ods: ">=0.0.1"`). Replaces legacy `ods-cli:`. |
-| **`profiles`** | list of paths | Root `index.md` | **Custom Profile Catalogs**: Workspace paths to custom profile schemas (`[".ods-profiles"]`). |
+| **`custom-profiles`** | list of paths | Root `index.md` | **Custom Profile Catalogs**: Workspace paths to custom profile schemas (`[".ods/profiles/rfc.md"]`). |
 | **`packs`** | list of paths | Root `index.md` | **Imported ODS Packs**: Reusable workspace bundles containing profiles, skills, and SOPs (`["vendor/engineering-pack"]`). |
 | **`ignore`** | list of paths | Root `index.md` | **Workspace Excludes**: Workspace-relative path prefixes excluded from scan (`["src/", "dist/"]`). |
 | **`aliases`** | map | Root `index.md` | **Section Heading Aliases**: Workspace-wide H2 section aliases (`Goal: [Objective, Purpose]`). |

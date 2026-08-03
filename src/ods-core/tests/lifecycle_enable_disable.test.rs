@@ -74,7 +74,7 @@ fn disable_keep_frontmatter_only_drops_ods_marker() {
     assert!(!ods_enabled(&dir));
     let doc = fs::read_to_string(dir.join("doc.md")).unwrap();
     assert!(doc.contains("profile: note"));
-    let root = fs::read_to_string(dir.join("index.md")).unwrap();
+    let root = fs::read_to_string(dir.join("index.ods.md")).unwrap();
     assert!(!root.lines().any(|l| l.trim().starts_with("ods:")));
 }
 
@@ -89,7 +89,7 @@ fn disable_remove_indexes_deletes_non_root_index() {
     )
     .unwrap();
     fs::write(
-        dir.join("nested/index.md"),
+        dir.join("nested/index.ods.md"),
         "---\nprofile: index\n---\n\n# nested\n\n- [doc.md](doc.md)\n",
     )
     .unwrap();
@@ -107,8 +107,8 @@ fn disable_remove_indexes_deletes_non_root_index() {
     .unwrap();
 
     assert!(!ods_enabled(&dir));
-    assert!(dir.join("index.md").exists());
-    assert!(!dir.join("nested/index.md").exists());
+    assert!(dir.join("index.ods.md").exists());
+    assert!(!dir.join("nested/index.ods.md").exists());
     assert!(dir.join("nested/doc.md").exists());
     assert!(
         fs::read_to_string(dir.join("nested/doc.md"))
@@ -129,14 +129,14 @@ fn ods_enabled_false_without_marker() {
 fn init_on_existing_index_injects_ods() {
     let dir = temp_workspace();
     fs::write(
-        dir.join("index.md"),
+        dir.join("index.ods.md"),
         "---\nprofile: index\n---\n\n# Docs\n\n",
     )
     .unwrap();
     assert!(!ods_enabled(&dir));
     init_workspace(&dir, InitOptions::default()).unwrap();
     assert!(ods_enabled(&dir));
-    let root = fs::read_to_string(dir.join("index.md")).unwrap();
+    let root = fs::read_to_string(dir.join("index.ods.md")).unwrap();
     assert!(
         root.contains(&format!("ods: {}", current_ods_spec_version())),
         "{root}"
@@ -148,14 +148,14 @@ fn init_on_existing_index_injects_ods() {
 fn init_on_existing_index_updates_stale_ods_version() {
     let dir = temp_workspace();
     fs::write(
-        dir.join("index.md"),
+        dir.join("index.ods.md"),
         "---\nprofile: index\nods: draft-1\n---\n\n# Docs\n\n",
     )
     .unwrap();
 
     init_workspace(&dir, InitOptions::default()).unwrap();
 
-    let root = fs::read_to_string(dir.join("index.md")).unwrap();
+    let root = fs::read_to_string(dir.join("index.ods.md")).unwrap();
     assert!(
         root.contains(&format!("ods: {}", current_ods_spec_version())),
         "{root}"

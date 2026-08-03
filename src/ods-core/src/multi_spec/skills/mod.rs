@@ -7,6 +7,6 @@ mod model;
 mod parse;
 
 pub use init::{SkillsInitOptions, SkillsInitReport, init_skill_package};
-pub use lint::lint_skill_package;
+pub use lint::{lint_skill_package, lint_skill_package_with_config};
 pub use model::{SkillFrontmatter, SkillPackage};
 pub use parse::parse_skill_package;

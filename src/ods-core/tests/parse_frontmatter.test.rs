@@ -218,3 +218,36 @@ last_updated: 2026-07-31T17:00:00Z
     assert_eq!(fm.created.as_deref(), Some("2026-07-31"));
     assert_eq!(fm.updated.as_deref(), Some("2026-07-31T17:00:00Z"));
 }
+
+#[test]
+fn parse_specs_frontmatter_block() {
+    let root = PathBuf::from("/ws");
+    let text = r#"---
+ods: 0.1
+specs:
+  okf:
+    enabled: true
+    lint:
+      check_keys: false
+      ignore_keys:
+        - runtime
+        - sources
+  skills:
+    enabled: true
+    lint:
+      check_keys: true
+---
+
+# Root Index
+"#;
+    let doc = parse_document_text(&root, root.join("index.ods.md"), text, true);
+    let FrontmatterState::Parsed(fm) = doc.frontmatter else {
+        panic!("parse failed");
+    };
+    assert!(fm.specs.okf.enabled);
+    assert!(!fm.specs.okf.check_keys);
+    assert!(fm.specs.okf.ignore_keys.contains("runtime"));
+    assert!(fm.specs.okf.ignore_keys.contains("sources"));
+    assert!(fm.specs.skills.enabled);
+    assert!(fm.specs.skills.check_keys);
+}

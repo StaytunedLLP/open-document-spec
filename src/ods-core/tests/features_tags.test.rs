@@ -7,7 +7,11 @@ use std::fs;
 #[test]
 fn tags_normalize_find_and_rename() {
     let dir = tempfile::tempdir().unwrap();
-    fs::write(dir.path().join("index.md"), "---\nods: 0.1\n---\n\n# R\n").unwrap();
+    fs::write(
+        dir.path().join("index.ods.md"),
+        "---\nods: 0.1\nodc: \">=0.0.1\"\n---\n\n# R\n",
+    )
+    .unwrap();
     fs::write(
         dir.path().join("a.md"),
         "---\nprofile: note\nstatus: draft\ntags:\n  - Billing\n  - Old-CX\n---\n\n# A\n",
@@ -42,7 +46,11 @@ fn tags_normalize_find_and_rename() {
 #[test]
 fn rename_tag_edge_cases() {
     let dir = tempfile::tempdir().unwrap();
-    fs::write(dir.path().join("index.md"), "---\nods: 0.1\n---\n\n# R\n").unwrap();
+    fs::write(
+        dir.path().join("index.ods.md"),
+        "---\nods: 0.1\nodc: \">=0.0.1\"\n---\n\n# R\n",
+    )
+    .unwrap();
     fs::write(dir.path().join("plain.md"), "# Plain Doc No FM\n").unwrap();
 
     let workspace = load_workspace(dir.path()).unwrap();

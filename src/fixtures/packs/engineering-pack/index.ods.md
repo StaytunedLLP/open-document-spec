@@ -9,4 +9,4 @@ custom-profiles:
 
 # Engineering ODS Pack
 
-- [skills/](skills/index.md)
+- [skills/](skills/index.ods.md)

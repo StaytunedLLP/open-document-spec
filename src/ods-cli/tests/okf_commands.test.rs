@@ -192,7 +192,7 @@ fn hybrid_bare_lint_runs_both_engines() {
             .success()
     );
     // Add OKF root marker alongside ODS
-    let index = dir.path().join("index.md");
+    let index = dir.path().join("index.ods.md");
     let mut text = std::fs::read_to_string(&index).unwrap();
     if !text.contains("okf_version:") {
         text = text.replacen("---\n", "---\nokf_version: \"0.2\"\n", 1);
@@ -225,7 +225,7 @@ fn hybrid_bare_index_requires_explicit_namespace() {
             .unwrap()
             .success()
     );
-    let index = dir.path().join("index.md");
+    let index = dir.path().join("index.ods.md");
     let mut text = std::fs::read_to_string(&index).unwrap();
     text = text.replacen("---\n", "---\nokf_version: \"0.2\"\n", 1);
     std::fs::write(&index, text).unwrap();

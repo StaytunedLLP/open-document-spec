@@ -15,7 +15,7 @@ fn tempdir() -> tempfile::TempDir {
 
 fn seed(root: &std::path::Path) {
     fs::write(
-        root.join("index.md"),
+        root.join("index.ods.md"),
         "---\nprofile: index\nods: 0.1\n---\n\n# Root\n",
     )
     .unwrap();

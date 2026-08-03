@@ -126,6 +126,34 @@ ods lint --level 3
 - [Profiles & Catalogs](/docs/profiles) · [Advanced Workspaces](/docs/advanced) · [FAQ](/docs/faq)
 
 
-## Hybrid workspaces (ODS + OKF markers)
+## Hybrid Workspaces & Declarative Multi-Spec Configuration
 
-Bare `ods lint` / `doctor` / `audit` run **ODS only**. Pass `--okf` (and/or `--skills`) to enable extra specs. Pure OKF trees: `ods lint --okf`. Pure skills: `ods lint --skills`. Editors: `ods lsp` (not `ods serve`).
+Bare `ods lint` runs **ODS only** by default. However, workspaces can declaratively enable extra specs (`okf`, `skills`) directly in the root `index.ods.md` (or `index.md`) frontmatter:
+
+```yaml
+---
+ods: 0.1
+title: Documentation Root
+specs:
+  okf:
+    enabled: true
+    lint:
+      check_keys: false                  # Suppress required OKF frontmatter key enforcement
+      ignore_keys: ["runtime", "sources"] # Or ignore specific frontmatter keys
+  skills:
+    enabled: true
+    lint:
+      check_keys: true
+---
+```
+
+When extra specs are set to `enabled: true` in root `index.ods.md`, bare `ods lint` automatically validates those declared specs without requiring extra CLI flags.
+
+### Imperative CLI Flags & Key Suppression
+
+You can also enable extra specs or suppress frontmatter key requirements via CLI flags:
+- Pass `--okf` or `--skills` to enable extra spec linting on the command line.
+- Pass `--skip-frontmatter-keys` (or `--skip-keys`) to disable required frontmatter key validation during a lint run.
+- Pass `--ignore-keys <key1,key2>` to ignore specific frontmatter keys.
+
+Pure OKF trees can be linted with `ods lint --okf`; pure Agent Skills packages can be linted with `ods lint --skills`. Editors communicate via `ods lsp` (not `ods serve`).

@@ -82,7 +82,7 @@ fn setup_outside_workspace_prompts_to_run_init() {
             || stdout.contains("ods init"),
         "{stdout}"
     );
-    assert!(!dir.path().join("index.md").exists());
+    assert!(!dir.path().join("index.ods.md").exists());
 }
 
 #[test]
@@ -118,7 +118,7 @@ fn setup_inside_workspace_runs_doctor_without_test_service_start() {
 fn setup_updates_stale_root_ods_version() {
     let dir = temp_workspace();
     fs::write(
-        dir.join("index.md"),
+        dir.join("index.ods.md"),
         "---\nprofile: index\nods: draft-1\n---\n\n# Root\n\n",
     )
     .unwrap();
@@ -131,7 +131,7 @@ fn setup_updates_stale_root_ods_version() {
         .unwrap();
     assert!(out.status.success(), "{:?}", out);
 
-    let root = fs::read_to_string(dir.join("index.md")).unwrap();
+    let root = fs::read_to_string(dir.join("index.ods.md")).unwrap();
     assert!(root.contains("ods: 0.1"), "{root}");
     assert!(!root.contains("ods: draft-1"), "{root}");
 }
@@ -140,7 +140,7 @@ fn setup_updates_stale_root_ods_version() {
 fn doctor_reports_stale_root_ods_version() {
     let dir = temp_workspace();
     fs::write(
-        dir.join("index.md"),
+        dir.join("index.ods.md"),
         "---\nprofile: index\nods: draft-1\n---\n\n# Root\n\n",
     )
     .unwrap();

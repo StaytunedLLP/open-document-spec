@@ -15,8 +15,8 @@ ODS uses a two-tiered **Standard (Built-in) vs. Workspace (Custom)** layering mo
 
 | Layer | Source | Enforcement |
 | :--- | :--- | :--- |
-| **Standard Profiles** | Built into the specification / `ods` (legacy `ods`) binary (12 core profiles) | Always available; section lint for known shapes |
-| **Custom Profiles** | Markdown under `ods-profiles/`, root `profiles:`, or imported **ODS Packs** (`packs:`) | Additive catalogs; unknown name → warning (falls back to **Default Profile (`note`)**) |
+| **Standard Profiles** | Built into the specification / `ods` binary (12 core profiles) | Always available; section lint for known shapes |
+| **Custom Profiles** | Explicitly declared under `custom-profiles:` in root `index.ods.md`, or imported **ODS Packs** (`packs:`) | Additive catalogs; unknown name → warning (falls back to **Default Profile (`note`)**) |
 
 Prefer **Standard Profiles** first (`feature`, `guide`, `api`, `architecture`, `decision`, `sop`, `policy`, `meeting`, `faq`, `checklist`, `index`, `note`). Introduce a **Custom Profile** or **ODS Pack** only when a repeated document class is worth standardizing across teams.
 
@@ -24,18 +24,18 @@ Prefer **Standard Profiles** first (`feature`, `guide`, `api`, `architecture`, `
 
 ## Resolution Precedence
 
-When resolving profile definitions:
+When resolving profile definitions (Zero Folder Auto-Discovery):
 
 ```text
 1. Standard Profiles (built-in 12 core profiles)           // always loaded first
-2. Catalog roots from root profiles:                       // workspace-local
-3. Imported ODS Packs from root packs:                      // vendor / linked packs
-4. Fallback ods-profiles/ if present                       // workspace-local fallback
+2. Explicit custom profile catalog paths listed in custom-profiles: // workspace-local
+3. Custom profiles in imported ODS Packs listed in packs:   // vendor / linked packs
 ```
 
 - First definition of a name wins.
 - Later duplicate definitions trigger a conflict warning (Level 3 CI should fail).
 - Custom profiles are **additive**; they cannot overwrite or replace a Standard Profile name.
+- Custom profiles are recognized **strictly** when explicitly declared in `custom-profiles:` or imported `packs:`. Unlisted directories are not auto-discovered.
 
 ---
 
@@ -43,17 +43,16 @@ When resolving profile definitions:
 
 A **Profile** defines a single document structural schema (`profile: decision`). A **Pack** is a reusable ODS workspace bundling **Custom Profiles**, **AI Agent Skills**, **SOPs**, **Templates**, and **Governance Rules** across repositories and machines.
 
-Workspaces declare imported ODS Packs in their root `index.md`:
+Workspaces declare custom profiles and imported ODS Packs in their root `index.md` / `index.ods.md`:
 
 ```yaml
 ---
 profile: index
 ods: 0.1
-ods: ">=0.0.1"
 ignore:
   - src
-profiles:
-  - ods-profiles
+custom-profiles:
+  - .ods/profiles/rfc.md
 packs:
   - vendor/engineering-pack
   - ../shared-company-pack
@@ -90,10 +89,8 @@ packs:
 | **General Prose / Formal Spec / Note** | `note` | — |
 
 
-### Profile discovery roots
+### Profile resolution order
 
 1. Built-in standard profiles
-2. Workspace `ods-profiles/` and `.ods/profiles/`
-3. Root `profiles:` list
-4. Pack `ods-profiles/`
-5. Machine `~/.ods/profiles/`
+2. Explicit custom profiles listed in root `custom-profiles:`
+3. Custom profiles in imported `packs:`

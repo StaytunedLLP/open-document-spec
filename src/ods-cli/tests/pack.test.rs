@@ -25,8 +25,8 @@ fn test_pack_subcommands_end_to_end() {
         .status()
         .unwrap();
     assert!(status.success());
-    assert!(pack_dir.join("index.md").exists());
-    assert!(pack_dir.join("ods-profiles/index.md").exists());
+    assert!(pack_dir.join("index.ods.md").exists());
+    assert!(pack_dir.join("ods-profiles/index.ods.md").exists());
 
     // 3. Run `ods pack add ./my-custom-pack` from workspace root
     let status = ods_bin()
@@ -36,8 +36,8 @@ fn test_pack_subcommands_end_to_end() {
         .unwrap();
     assert!(status.success());
 
-    // Verify packs: is written to root index.md
-    let root_index_content = fs::read_to_string(root.join("index.md")).unwrap();
+    // Verify packs: is written to root index.ods.md
+    let root_index_content = fs::read_to_string(root.join("index.ods.md")).unwrap();
     assert!(root_index_content.contains("packs:"));
     assert!(root_index_content.contains("my-custom-pack"));
 

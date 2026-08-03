@@ -67,7 +67,7 @@ An ODS-compliant workspace is identified by this root `ods` field or by entry in
      "/home/user/projects/ecommerce"
    ]
    ```
-2. **Project / Repository Level (Root `index.md` Frontmatter)**: All project-level policy, spec compatibility (`ods:`), CLI requirements (`ods:`), profile catalogs (`profiles:`), pack imports (`packs:`), scan excludes (`ignore:`), and heading aliases (`aliases:`) are declared directly on the root `index.md` frontmatter. ODS strictly enforces a **Zero Config-File Guarantee** inside repositories—no proprietary `.odsconfig`, `workspace.toml`, or `.odsignore` files are created inside project trees.
+2. **Project / Repository Level (Root `index.md` Frontmatter)**: All project-level policy, spec compatibility (`ods:`), CLI requirements (`ods:`), multi-spec auto-activation & key suppression (`specs:` / `okf_lint:`), profile catalogs (`profiles:`), pack imports (`packs:`), scan excludes (`ignore:`), and heading aliases (`aliases:`) are declared directly on the root `index.md` frontmatter. ODS strictly enforces a **Zero Config-File Guarantee** inside repositories—no proprietary `.odsconfig`, `workspace.toml`, or `.odsignore` files are created inside project trees.
 
 Ordinary documents MUST NOT carry `ods:` or `ods:`. Nested navigation indexes SHOULD omit both when they are part of the same workspace. Child directories inside imported ODS Packs (`ods-profiles/`, `skills/`, `templates/`) maintain nested `index.md` files (`profile: index`) without requiring an `ods:` key, inheriting their workspace boundary from the pack root.
 
