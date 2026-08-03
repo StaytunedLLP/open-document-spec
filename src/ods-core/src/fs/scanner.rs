@@ -50,7 +50,7 @@ pub fn rebuild_indexes(workspace: &mut Workspace) {
                 .path
                 .file_name()
                 .and_then(|n| n.to_str())
-                .is_some_and(|n| n.eq_ignore_ascii_case("index.md"))
+                .is_some_and(|n| n.eq_ignore_ascii_case("index.md") || n.eq_ignore_ascii_case("index.ods.md"))
             {
                 for catalog in &fm.profiles {
                     workspace
