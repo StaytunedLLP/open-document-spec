@@ -7,9 +7,10 @@ use std::fs;
 use std::io;
 use std::path::{Path, PathBuf};
 
-/// Resolve parallel job count from `ODC_JOBS` (positive integer) or rayon default.
+/// Resolve parallel job count from `ODS_JOBS` (or legacy `ODC_JOBS`, positive integer) or rayon default.
 pub fn parse_pool_jobs() -> Option<usize> {
-    std::env::var("ODC_JOBS")
+    std::env::var("ODS_JOBS")
+        .or_else(|_| std::env::var("ODC_JOBS"))
         .ok()
         .and_then(|s| s.parse().ok())
         .filter(|&n| n > 0)

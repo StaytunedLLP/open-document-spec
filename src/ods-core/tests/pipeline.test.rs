@@ -79,15 +79,21 @@ fn parse_paths_parallel_and_discover() {
     let index_doc = docs.iter().find(|d| d.path.ends_with("index.md")).unwrap();
     assert!(!index_doc.body.is_empty());
 
-    // ODC_JOBS path (edition 2024: env mutation is unsafe)
+    // ODS_JOBS & ODC_JOBS path (edition 2024: env mutation is unsafe)
     unsafe {
-        std::env::set_var("ODC_JOBS", "1");
+        std::env::set_var("ODS_JOBS", "1");
     }
     let docs2 = parse_paths_parallel(root, &paths, true).unwrap();
+    unsafe {
+        std::env::remove_var("ODS_JOBS");
+        std::env::set_var("ODC_JOBS", "1");
+    }
+    let docs3 = parse_paths_parallel(root, &paths, true).unwrap();
     unsafe {
         std::env::remove_var("ODC_JOBS");
     }
     assert_eq!(docs2.len(), paths.len());
+    assert_eq!(docs3.len(), paths.len());
 }
 
 #[test]

@@ -5,7 +5,7 @@
 set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
 cd "$ROOT"
-OUT="${ODC_COVERAGE_DIR:-$ROOT/.artifacts/coverage}"
+OUT="${ODS_COVERAGE_DIR:-${ODC_COVERAGE_DIR:-$ROOT/.artifacts/coverage}}"
 mkdir -p "$OUT"
 
 echo "==> llvm-cov summary"

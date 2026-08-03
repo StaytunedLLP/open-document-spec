@@ -281,13 +281,14 @@ fn parse_common_flags(
             | "--strip-indexes"
             | "--profiles"
             | "--strip-profiles"
+            | "--dry-run"
             | "--migrate" => {
                 i += 1;
             }
             "--refs" => {
                 i += 2;
             }
-            "--tag" | "--prompt" | "--llm" | "--snapshot" | "--path" | "--name" => {
+            "--tag" | "--prompt" | "--llm" | "--agent" | "--snapshot" | "--path" | "--name" => {
                 // value consumed by find/bench/skills init; skip so path parsing still works
                 i += 2;
             }

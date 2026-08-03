@@ -116,7 +116,7 @@ fn maybe_auto_update_inner(force_check: bool) {
 }
 
 fn auto_update_enabled() -> bool {
-    for key in ["ODC_AUTO_UPDATE", "ODS_AUTO_UPDATE"] {
+    for key in ["ODS_AUTO_UPDATE", "ODC_AUTO_UPDATE"] {
         if let Ok(v) = env::var(key) {
             let v = v.trim().to_ascii_lowercase();
             return !(v == "0" || v == "false" || v == "no" || v == "off");

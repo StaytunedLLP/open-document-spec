@@ -177,20 +177,43 @@ fn run_coverage_command(args: &[String]) -> Result<ExitCode, CliError> {
     let (root, level, format) = parse_common_flags(args, 2)?;
     require_ods_workspace(&root)?;
     let write_report = args.iter().any(|a| a == "--write-report");
+    let summary_only = args.iter().any(|a| a == "--summary");
     let workspace = load_workspace_with_options(&root, load_options_graph())
         .map_err(|err| failure(err.to_string()))?;
 
     let total = workspace.documents.len();
     let mut compliant = 0usize;
     let mut non_compliant = 0usize;
+    struct NonCompliantFile {
+        rel_path: String,
+        reason: String,
+    }
+    let mut non_compliant_items: Vec<NonCompliantFile> = Vec::new();
 
     for doc in &workspace.documents {
         let is_parsed = matches!(doc.frontmatter, ods_core::FrontmatterState::Parsed(_));
         let diags = ods_core::lint_document_in_workspace(&workspace, &doc.path, level);
+        let rel_path = doc
+            .path
+            .strip_prefix(&root)
+            .unwrap_or(&doc.path)
+            .display()
+            .to_string();
+
         if is_parsed && diags.is_empty() {
             compliant += 1;
         } else {
             non_compliant += 1;
+            let reason = if !is_parsed {
+                "unparsed frontmatter or YAML syntax error".to_string()
+            } else {
+                diags
+                    .iter()
+                    .map(|d| d.message.as_str())
+                    .collect::<Vec<_>>()
+                    .join("; ")
+            };
+            non_compliant_items.push(NonCompliantFile { rel_path, reason });
         }
     }
 
@@ -205,20 +228,49 @@ fn run_coverage_command(args: &[String]) -> Result<ExitCode, CliError> {
             println!("Documentation Health: {:.1}% Compliant ({}/{} files)", pct, compliant, total);
             println!("  ✔ Compliant:     {} documents", compliant);
             println!("  ✖ Non-Compliant:  {} documents", non_compliant);
+            if !non_compliant_items.is_empty() && !summary_only {
+                println!("\nNon-Compliant Documents:");
+                for item in &non_compliant_items {
+                    println!("  • {} ({})", item.rel_path, item.reason);
+                }
+            }
         }
         OutputFormat::Json | OutputFormat::Sarif => {
+            let json_files: Vec<_> = non_compliant_items
+                .iter()
+                .map(|item| {
+                    format!(
+                        r#"{{"path":{},"reason":{}}}"#,
+                        json_escape(&item.rel_path),
+                        json_escape(&item.reason)
+                    )
+                })
+                .collect();
             println!(
-                r#"{{"health_pct":{:.1},"compliant":{},"non_compliant":{},"total":{}}}"#,
-                pct, compliant, non_compliant, total
+                r#"{{"health_pct":{:.1},"compliant":{},"non_compliant":{},"total":{},"non_compliant_files":[{}]}}"#,
+                pct,
+                compliant,
+                non_compliant,
+                total,
+                json_files.join(",")
             );
         }
     }
 
     if write_report {
-        let report_content = format!(
-            "# Documentation Health & Coverage Report\n\n- Score: {:.1}% Compliant\n- Compliant Documents: {}\n- Non-Compliant Documents: {}\n- Total Documents: {}\n\nNote: this is separate from lint/audit diagnostics (`.ods/ods-errors.md`).\n",
+        let mut report_content = format!(
+            "# Documentation Health & Coverage Report\n\n- Score: {:.1}% Compliant\n- Compliant Documents: {}\n- Non-Compliant Documents: {}\n- Total Documents: {}\n\n",
             pct, compliant, non_compliant, total
         );
+        if !non_compliant_items.is_empty() {
+            report_content.push_str("## Non-Compliant Documents\n\n| File | Issue / Reason |\n| --- | --- |\n");
+            for item in &non_compliant_items {
+                report_content.push_str(&format!("| `{}` | {} |\n", item.rel_path, item.reason));
+            }
+            report_content.push('\n');
+        }
+        report_content.push_str("Note: this is separate from lint/audit diagnostics (`.ods/ods-errors.md`).\n");
+
         let ods_dir = root.join(".ods");
         let _ = std::fs::create_dir_all(&ods_dir);
         let report_path = ods_dir.join("coverage.md");

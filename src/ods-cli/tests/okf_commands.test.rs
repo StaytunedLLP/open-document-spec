@@ -3,8 +3,7 @@ use tempfile::tempdir;
 
 fn ods_bin() -> std::path::PathBuf {
     eprintln!(
-        "odc_bin: {}, ods_bin: {}",
-        env!("CARGO_BIN_EXE_ods"),
+        "ods_bin: {}",
         env!("CARGO_BIN_EXE_ods")
     );
     std::path::PathBuf::from(env!("CARGO_BIN_EXE_ods"))
