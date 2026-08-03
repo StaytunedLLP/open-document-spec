@@ -209,8 +209,8 @@ ods:
 |---|---|---|
 | `ods init` | `ods init [path]` | Initialize root `index.ods.md` with `ods: 0.1` spec marker. |
 | `ods setup` | `ods setup [path] [--git-hooks]` | Verify workspace health, check updates, and register background OS service. `--git-hooks` installs `.git/hooks/pre-commit`. |
-| `ods lint` | `ods lint [path] [--mode strict\|standard] [--fix] [--format text\|json\|sarif]` | Run Strict or Standard document graph and profile section validation. `--fix` auto-repairs frontmatter/indexes. `--format sarif` exports OASIS SARIF v2.1.0 format. |
-| `ods lint --okf` | `ods lint --okf [path]` | Validate Google OKF v0.2 knowledge bundles (`okf_version: "0.2"`). |
+| `ods lint` | `ods lint [path] [--mode strict\|standard] [--fix] [--skip-frontmatter-keys] [--ignore-keys k1,k2] [--format text\|json\|sarif]` | Run Strict or Standard document graph validation across active specs (`ods`, `okf`, `skills`). Auto-enables declared specs from root `index.ods.md` `specs:`. `--fix` auto-repairs frontmatter/indexes. `--skip-frontmatter-keys` and `--ignore-keys` suppress frontmatter key requirements. `--format sarif` exports OASIS SARIF v2.1.0 format. |
+| `ods lint --okf` | `ods lint --okf [path] [--skip-frontmatter-keys] [--ignore-keys k1,k2]` | Validate Google OKF v0.2 knowledge bundles (`okf_version: "0.2"`). Supports key suppression flags and root `okf_lint` frontmatter policies. |
 | `ods export graph` | `ods export graph [path] [--format text\|json\|md] [--spec ods\|okf]` | Export workspace knowledge graph in structured JSON for AI agents, Markdown snapshot, or text edge list (`--spec okf` exports Google OKF v0.2 bundle JSON). |
 | `ods stats` | `ods stats [path]` | Display workspace document telemetry, graph density, profile distribution, and health score %. |
 | `ods completion` | `ods completion <bash\|zsh\|fish\|powershell>` | Generate shell autocompletion scripts for popular shells. |

@@ -145,7 +145,7 @@ custom-profiles:
 | **`ods lsp [--port N]`** | 🏁 Tier 1 (Novice) | Native JSON-RPC 2.0 Language Server for real-time editor lints, hover, definition, and completion. |
 | **`ods init [path]`** | 🏁 Tier 1 (Novice) | Initialize root `index.ods.md` with `ods: 0.1` spec marker. `--adopt` drafts frontmatter on plain `.md` files. |
 | **`ods setup [path]`** | 🏁 Tier 1 (Novice) | Verify workspace boundary, check updates, register OS daemon. `--git-hooks` installs pre-commit hook. `--editor zed\|vscode\|nvim\|cursor` writes `ods lsp` config. |
-| **`ods lint [path]`** | 🏁 Tier 1 (Novice) | ODS validation by default (`--mode strict\|standard`, `--fix`, `--format text\|json\|sarif`). Add `--okf` / `--skills` for other specs. Never `--ods`. |
+| **`ods lint [path]`** | 🏁 Tier 1 (Novice) | ODS validation by default (`--mode strict\|standard`, `--fix`, `--skip-frontmatter-keys`, `--ignore-keys k1,k2`, `--format text\|json\|sarif`). Auto-enables declared specs from root `index.ods.md` `specs:`. Add `--okf` / `--skills` for other specs. Never `--ods`. |
 | **`ods export graph`** | 🏁 Tier 1 (Novice) | Export workspace knowledge graph in structured JSON (`--format json`), Markdown (`--format md`), or text (`--format text`) for `--spec ods` (default) or `--spec okf`. |
 | **`ods new <path>`** | 🛠️ Tier 2 (Practitioner) | Scaffold new Markdown document from profile template with starter HTML comments. |
 | **`ods index [path]`** | 🛠️ Tier 2 (Practitioner) | Generate navigation `index.ods.md` lockfiles (`--check` verifies freshness). |
