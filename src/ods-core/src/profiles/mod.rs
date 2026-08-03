@@ -17,7 +17,6 @@ pub fn standard_profile_catalog() -> ProfileCatalog {
 pub fn profile_catalog_roots(root: &Path, root_index: Option<&Document>) -> Vec<PathBuf> {
     let mut roots = Vec::new();
 
-
     if let Some(root_index) = root_index
         && let FrontmatterState::Parsed(frontmatter) = &root_index.frontmatter
     {

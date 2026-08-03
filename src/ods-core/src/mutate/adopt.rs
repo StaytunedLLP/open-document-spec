@@ -36,7 +36,10 @@ pub fn adopt_workspace(workspace: &Workspace, options: AdoptOptions) -> io::Resu
             continue;
         }
 
-        if matches!(document.frontmatter, crate::model::FrontmatterState::Invalid(_)) {
+        if matches!(
+            document.frontmatter,
+            crate::model::FrontmatterState::Invalid(_)
+        ) {
             report.skipped.push(document.path.clone());
             continue;
         }
@@ -50,7 +53,7 @@ pub fn adopt_workspace(workspace: &Workspace, options: AdoptOptions) -> io::Resu
         };
 
         let (existing_fm, _) = split_frontmatter(&text);
-        let has_ods_key = existing_fm.map_or(false, |fm| {
+        let has_ods_key = existing_fm.is_some_and(|fm| {
             fm.lines().any(|line| {
                 let trimmed = line.trim();
                 trimmed.starts_with("ods:")

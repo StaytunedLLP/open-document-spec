@@ -56,7 +56,10 @@ fn production_init_disable_remove_indexes() {
             true
         }
     );
-    assert!(dir.join("index.ods.md").exists(), "root index kept by default");
+    assert!(
+        dir.join("index.ods.md").exists(),
+        "root index kept by default"
+    );
     assert!(
         !fs::read_to_string(dir.join("index.ods.md"))
             .unwrap()

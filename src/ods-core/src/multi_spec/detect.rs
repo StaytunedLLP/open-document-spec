@@ -48,8 +48,12 @@ pub fn skill_package_roots(workspace: impl AsRef<Path>) -> Vec<PathBuf> {
                 if let Some(fm) = fm {
                     for line in fm.lines() {
                         let trimmed = line.trim();
-                        if trimmed.starts_with("- ") && (trimmed.ends_with(".md") || trimmed.contains("SKILL")) {
-                            let rel = trimmed.trim_start_matches("- ").trim_matches(|c| c == '\'' || c == '"');
+                        if trimmed.starts_with("- ")
+                            && (trimmed.ends_with(".md") || trimmed.contains("SKILL"))
+                        {
+                            let rel = trimmed
+                                .trim_start_matches("- ")
+                                .trim_matches(|c| c == '\'' || c == '"');
                             let p = workspace.join(rel);
                             let pkg_dir = if p.is_file() {
                                 p.parent().unwrap_or(workspace).to_path_buf()
@@ -67,16 +71,19 @@ pub fn skill_package_roots(workspace: impl AsRef<Path>) -> Vec<PathBuf> {
     }
 
     // 2. Recursive zero-config auto-discovery
-    fn walk_dir(
-        dir: &Path,
-        out: &mut Vec<PathBuf>,
-        seen: &mut std::collections::HashSet<PathBuf>,
-    ) {
-        let Ok(entries) = std::fs::read_dir(dir) else { return; };
+    fn walk_dir(dir: &Path, out: &mut Vec<PathBuf>, seen: &mut std::collections::HashSet<PathBuf>) {
+        let Ok(entries) = std::fs::read_dir(dir) else {
+            return;
+        };
         for entry in entries.flatten() {
             let path = entry.path();
             let name = entry.file_name().to_string_lossy().to_string();
-            if name.starts_with('.') || name == "node_modules" || name == "target" || name == "vendor" || name == "tmp" {
+            if name.starts_with('.')
+                || name == "node_modules"
+                || name == "target"
+                || name == "vendor"
+                || name == "tmp"
+            {
                 continue;
             }
             if path.is_dir() {
