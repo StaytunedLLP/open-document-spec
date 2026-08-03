@@ -121,6 +121,6 @@ pub use okf::{
 pub use multi_spec::{
     ActiveEngines, Detected, ExtraSpecs, ScopeResolveError, SkillFrontmatter, SkillPackage,
     SkillsInitOptions, SkillsInitReport, detect_workspace, init_skill_package, lint_skill_package,
-    parse_extra_spec_flags, parse_skill_package, resolve_engines, skill_package_roots,
-    skills_enabled,
+    lint_skill_package_with_config, parse_extra_spec_flags, parse_skill_package, resolve_engines,
+    skill_package_roots, skills_enabled,
 };

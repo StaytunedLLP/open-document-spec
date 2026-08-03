@@ -50,6 +50,16 @@ fn run_okf_init_command(args: &[String]) -> Result<ExitCode, CliError> {
 }
 
 fn run_okf_lint_command(args: &[String]) -> Result<ExitCode, CliError> {
+    let (root, _level, _format) = parse_common_flags(args, 2)?;
+    let mut root_specs = ods_core::load_root_specs_config(&root);
+    parse_key_suppression_flags(args, &mut root_specs);
+    run_okf_lint_command_with_config(args, &root_specs.okf)
+}
+
+fn run_okf_lint_command_with_config(
+    args: &[String],
+    config: &ods_core::SpecLintConfig,
+) -> Result<ExitCode, CliError> {
     let (root, level, format) = parse_common_flags(args, 2)?;
     require_okf_bundle(&root)?;
     let bundle = ods_core::load_okf_bundle(&root).map_err(|e| failure(e.to_string()))?;
@@ -57,7 +67,7 @@ fn run_okf_lint_command(args: &[String]) -> Result<ExitCode, CliError> {
         LintLevel::Level1 => ods_core::OkfLintLevel::Level1,
         LintLevel::Level3 => ods_core::OkfLintLevel::Level3,
     };
-    let diagnostics = ods_core::lint_okf_bundle_with_level(&bundle, okf_level);
+    let diagnostics = ods_core::lint_okf_bundle_with_config(&bundle, okf_level, config);
     print_diagnostics(&diagnostics, format);
     if diagnostics.is_empty() && matches!(format, OutputFormat::Text) {
         println!("Everything is fine — OKF bundle is consistent.");
