@@ -2,10 +2,7 @@ use std::process::Command;
 use tempfile::tempdir;
 
 fn ods_bin() -> std::path::PathBuf {
-    eprintln!(
-        "ods_bin: {}",
-        env!("CARGO_BIN_EXE_ods")
-    );
+    eprintln!("ods_bin: {}", env!("CARGO_BIN_EXE_ods"));
     std::path::PathBuf::from(env!("CARGO_BIN_EXE_ods"))
 }
 

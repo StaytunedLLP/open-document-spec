@@ -61,7 +61,7 @@ fn run_rm_command(args: &[String]) -> Result<ExitCode, CliError> {
 
     let root_flag = parse_flag_val(args, "--root").map(PathBuf::from);
     let (root_dir, target_str) = if let Some(rf) = root_flag {
-        let t = positionals.get(0).ok_or_else(|| usage("ods rm --root <dir> <path-or-id>"))?;
+        let t = positionals.first().ok_or_else(|| usage("ods rm --root <dir> <path-or-id>"))?;
         (rf, t.clone())
     } else if positionals.len() >= 2 && PathBuf::from(&positionals[0]).is_dir() {
         (PathBuf::from(&positionals[0]), positionals[1].clone())

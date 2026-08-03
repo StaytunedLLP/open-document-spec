@@ -100,7 +100,10 @@ fn test_bench_agent_subcommand() {
 
     let stdout = String::from_utf8_lossy(&out.stdout);
     let stderr = String::from_utf8_lossy(&out.stderr);
-    assert!(out.status.success(), "bench agent failed:\nstdout: {stdout}\nstderr: {stderr}");
+    assert!(
+        out.status.success(),
+        "bench agent failed:\nstdout: {stdout}\nstderr: {stderr}"
+    );
     assert!(stdout.contains("ODS AI / Agent Benchmark Report"));
     assert!(stdout.contains("Agent Profile Target: antigravity"));
     assert!(stdout.contains("Agent Prompt Fitness:"));
@@ -121,7 +124,10 @@ fn test_bench_agent_subcommand() {
 
     let stdout_json = String::from_utf8_lossy(&out_json.stdout);
     let stderr_json = String::from_utf8_lossy(&out_json.stderr);
-    assert!(out_json.status.success(), "bench run json failed:\nstdout: {stdout_json}\nstderr: {stderr_json}");
+    assert!(
+        out_json.status.success(),
+        "bench run json failed:\nstdout: {stdout_json}\nstderr: {stderr_json}"
+    );
     assert!(stdout_json.contains("agent_profile"));
     assert!(stdout_json.contains("agent_fitness_score"));
 }
@@ -157,7 +163,10 @@ fn test_friction_free_ods_mv_and_rm_dry_run() {
 
     let stdout_mv = String::from_utf8_lossy(&out_mv.stdout);
     let stderr_mv = String::from_utf8_lossy(&out_mv.stderr);
-    assert!(out_mv.status.success(), "ods mv dry run failed:\nstdout: {stdout_mv}\nstderr: {stderr_mv}");
+    assert!(
+        out_mv.status.success(),
+        "ods mv dry run failed:\nstdout: {stdout_mv}\nstderr: {stderr_mv}"
+    );
     assert!(stdout_mv.contains("(dry-run) would move document"));
     assert!(root.join("doc_a.md").exists());
 
@@ -176,7 +185,10 @@ fn test_friction_free_ods_mv_and_rm_dry_run() {
 
     let stdout_rm = String::from_utf8_lossy(&out_rm.stdout);
     let stderr_rm = String::from_utf8_lossy(&out_rm.stderr);
-    assert!(out_rm.status.success(), "ods rm dry run failed:\nstdout: {stdout_rm}\nstderr: {stderr_rm}");
+    assert!(
+        out_rm.status.success(),
+        "ods rm dry run failed:\nstdout: {stdout_rm}\nstderr: {stderr_rm}"
+    );
     assert!(stdout_rm.contains("\"dry_run\":true"));
     assert!(root.join("doc_a.md").exists());
 }
