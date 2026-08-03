@@ -102,6 +102,29 @@ pub struct ContextSpec {
     pub ignore: Vec<String>,
     pub max_depth: Option<usize>,
 }
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct SpecLintConfig {
+    pub enabled: bool,
+    pub check_keys: bool,
+    pub ignore_keys: HashSet<String>,
+}
+
+impl Default for SpecLintConfig {
+    fn default() -> Self {
+        Self {
+            enabled: false,
+            check_keys: true,
+            ignore_keys: HashSet::new(),
+        }
+    }
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Default)]
+pub struct WorkspaceSpecsConfig {
+    pub okf: SpecLintConfig,
+    pub skills: SpecLintConfig,
+}
+
 #[derive(Debug, Clone, PartialEq, Eq, Default)]
 pub struct Frontmatter {
     pub profile: Option<String>,
@@ -127,6 +150,7 @@ pub struct Frontmatter {
     pub name: Option<String>,
     pub title: Option<String>,
     pub expected_keys: Vec<String>,
+    pub specs: WorkspaceSpecsConfig,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]

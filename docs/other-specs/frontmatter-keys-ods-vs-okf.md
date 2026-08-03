@@ -44,14 +44,32 @@ ods init --okf   # OKF bundle (okf_version: "0.2")
 | Progressive disclosure via **ODS indexes** + profiles | Progressive disclosure via OKF **index.md** / **log.md** conventions |
 | Workspace root is an engineering repo | Bundle is a knowledge pack (often agent-maintained) |
 
-**Hybrid repos** may carry both root markers.
-
 | Command on hybrid | Behavior |
 |---|---|
-| bare `lint` / `doctor` / `audit` | **ODS only** |
+| bare `lint` / `doctor` / `audit` | **ODS only** (or **ODS + OKF** if `specs.okf.enabled: true` in `index.ods.md`) |
 | same with `--okf` | **ODS + OKF** |
 | pure OKF tree without `--okf` | Error with hint to pass `--okf` |
 | ODS-only cmds (`mv`, `tags`, …) | ODS engine |
+
+### Frontmatter Key Linting & Opt-Out Management
+
+By default, OKF validation enforces required keys such as `type` and `runtime` (for `Attested Computation`). If your team or workflow does not require frontmatter key enforcement for OKF concepts, you can suppress key linting via:
+
+1. **Declarative Root `index.ods.md` Frontmatter**:
+   ```yaml
+   ---
+   ods: 0.1
+   specs:
+     okf:
+       enabled: true
+       lint:
+         check_keys: false                  # Disable required key presence checks
+         ignore_keys: ["runtime", "sources"] # Or suppress specific keys
+   ---
+   ```
+2. **CLI Flags**:
+   - `ods lint --okf --skip-frontmatter-keys` (disables key requirement checks)
+   - `ods lint --okf --ignore-keys runtime,sources` (ignores specific keys)
 
 There is no namespace form. Extra specs always use flags.
 

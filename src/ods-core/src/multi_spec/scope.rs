@@ -42,7 +42,7 @@ impl ScopeResolveError {
                 hint_skills,
             } => {
                 let mut msg = String::from(
-                    "not an ODS workspace (no root index.md with 'ods:' marker).\n\n\
+                    "not an ODS workspace (no root index.ods.md with 'ods:' marker).\n\n\
                      To fix:\n\
                      • Run `ods init` here to make this folder ODS-compliant",
                 );
@@ -99,7 +99,7 @@ pub fn parse_extra_spec_flags<'a>(
 ///
 /// Policy (locked):
 /// - ODS runs when `detected.ods` (default product — no flag).
-/// - OKF / Skills run only when their flags are set.
+/// - OKF / Skills run when their flags are set OR when declared enabled in root `index.ods.md` `specs:`.
 /// - Pure other-spec trees: flags alone enable that engine.
 /// - If nothing to run: `NotOdsWorkspace` (with hints when markers suggest other specs).
 ///
@@ -109,10 +109,22 @@ pub fn resolve_engines(
     detected: Detected,
     require_present: bool,
 ) -> Result<ActiveEngines, ScopeResolveError> {
+    resolve_engines_with_config(extra, detected, None, require_present)
+}
+
+pub fn resolve_engines_with_config(
+    extra: ExtraSpecs,
+    detected: Detected,
+    config: Option<&crate::model::WorkspaceSpecsConfig>,
+    require_present: bool,
+) -> Result<ActiveEngines, ScopeResolveError> {
+    let okf_enabled = extra.okf || config.is_some_and(|c| c.okf.enabled);
+    let skills_enabled = extra.skills || config.is_some_and(|c| c.skills.enabled);
+
     let engines = ActiveEngines {
         ods: detected.ods,
-        okf: extra.okf,
-        skills: extra.skills,
+        okf: okf_enabled,
+        skills: skills_enabled,
     };
 
     if require_present {
@@ -132,6 +144,21 @@ pub fn resolve_engines(
     }
 
     Ok(engines)
+}
+
+pub fn load_root_specs_config(root: &std::path::Path) -> crate::model::WorkspaceSpecsConfig {
+    let index_paths = [root.join("index.ods.md"), root.join("index.md")];
+    for idx_path in &index_paths {
+        if idx_path.is_file() {
+            if let Ok(text) = std::fs::read_to_string(idx_path) {
+                let doc = crate::parse::parse_document_text(root, idx_path.clone(), &text, false);
+                if let crate::model::FrontmatterState::Parsed(fm) = doc.frontmatter {
+                    return fm.specs;
+                }
+            }
+        }
+    }
+    crate::model::WorkspaceSpecsConfig::default()
 }
 
 #[cfg(test)]

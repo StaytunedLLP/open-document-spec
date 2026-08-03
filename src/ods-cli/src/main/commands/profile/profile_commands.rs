@@ -3,7 +3,7 @@ fn run_profile_list_command(args: &[String]) -> Result<ExitCode, CliError> {
     let workspace = load_workspace(&root).ok();
     let roots = workspace
         .as_ref()
-        .map(|ws| profile_catalog_roots(&root, ws.document_by_path(&root.join("index.md"))))
+        .map(|ws| profile_catalog_roots(&root, ws.document_by_path(&root.join("index.ods.md"))))
         .unwrap_or_else(|| profile_catalog_roots(&root, None));
     let catalog = load_profile_catalog(&root, &roots).map_err(|err| failure(err.to_string()))?;
 
@@ -89,7 +89,7 @@ ods:
 
     fs::write(&file_path, template).map_err(|err| failure(err.to_string()))?;
     println!("scaffolded custom profile definition at {}", file_path.display());
-    println!("remember to register it in root index.md under custom-profiles:\n  - .ods/profiles/{profile_name}.md");
+    println!("remember to register it in root index.ods.md under custom-profiles:\n  - .ods/profiles/{profile_name}.md");
 
     Ok(ExitCode::from(0))
 }

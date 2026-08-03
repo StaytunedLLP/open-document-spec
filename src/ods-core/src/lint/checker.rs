@@ -26,10 +26,10 @@ pub fn profile_sections(workspace: &Workspace, profile: &str) -> Vec<Vec<String>
 pub fn workspace_aliases(workspace: &Workspace) -> BTreeMap<String, BTreeSet<String>> {
     let mut aliases = BTreeMap::new();
     let root_index = workspace
-        .document_by_path(&workspace.root.join("index.md"))
+        .document_by_path(&workspace.root.join("index.ods.md"))
         .or_else(|| {
             workspace.documents.iter().find(|document| {
-                document.path.file_name().is_some_and(|name| name == "index.md")
+                document.path.file_name().is_some_and(|name| name == "index.ods.md")
             })
         });
 

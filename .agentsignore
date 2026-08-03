@@ -1,0 +1,37 @@
+# ─── AI Agent Ignore ───────────────────────────────────────────
+# Prevents AI coding tools from scanning large generated/binary
+# directories, saving tokens and API limits.
+# Supported by: Antigravity, Gemini Code Assist, Cursor, Copilot, etc.
+
+# Rust build artifacts (24 GB+)
+.artifacts/
+target/
+src/target/
+src/zed-ods-lsp/target/
+
+# Node dependencies (196 MB, ~14k files)
+node_modules/
+
+# Git internals
+.git/
+
+# Lock files (large, not useful for AI context)
+Cargo.lock
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+
+# Binary / compiled outputs
+*.wasm
+*.bin
+*.dat
+*.exe
+*.dll
+*.so
+*.dylib
+
+# Archive plan docs (historical, rarely needed)
+docs/plan/archive/
+
+# OKF full spec (37 KB — agent should read only when explicitly needed)
+# docs/other-specs/okf-0.2.md

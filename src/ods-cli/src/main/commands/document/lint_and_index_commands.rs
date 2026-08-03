@@ -3,12 +3,16 @@ fn run_lint_command(args: &[String]) -> Result<ExitCode, CliError> {
     let extra = ods_core::parse_extra_spec_flags(args.iter().map(String::as_str))
         .map_err(|e| usage(e.message()))?;
     let detected = ods_core::detect_workspace(&root);
-    let engines = ods_core::resolve_engines(extra, detected, true)
+
+    let mut root_specs = ods_core::load_root_specs_config(&root);
+    parse_key_suppression_flags(args, &mut root_specs);
+
+    let engines = ods_core::resolve_engines_with_config(extra, detected, Some(&root_specs), true)
         .map_err(|e| failure(e.message()))?;
 
     // Pure OKF: dedicated runner (keeps formatting parity with OKF-only messages).
     if engines.okf && !engines.ods && !engines.skills {
-        return run_okf_lint_command(args);
+        return run_okf_lint_command_with_config(args, &root_specs.okf);
     }
 
     let mut diagnostics = Vec::new();
@@ -38,7 +42,8 @@ fn run_lint_command(args: &[String]) -> Result<ExitCode, CliError> {
             LintLevel::Level1 => ods_core::OkfLintLevel::Level1,
             LintLevel::Level3 => ods_core::OkfLintLevel::Level3,
         };
-        let mut okf_diags = ods_core::lint_okf_bundle_with_level(&bundle, okf_level);
+        let mut okf_diags =
+            ods_core::lint_okf_bundle_with_config(&bundle, okf_level, &root_specs.okf);
         for d in &mut okf_diags {
             if !d.message.starts_with("[okf]") {
                 d.message = format!("[okf] {}", d.message);
@@ -58,7 +63,8 @@ fn run_lint_command(args: &[String]) -> Result<ExitCode, CliError> {
         }
         for pkg_root in packages {
             match ods_core::parse_skill_package(&pkg_root) {
-                Ok(pkg) => diagnostics.extend(ods_core::lint_skill_package(&pkg)),
+                Ok(pkg) => diagnostics
+                    .extend(ods_core::lint_skill_package_with_config(&pkg, &root_specs.skills)),
                 Err(e) => diagnostics.push(ods_core::Diagnostic {
                     path: pkg_root.join("SKILL.md"),
                     severity: ods_core::Severity::Error,
@@ -243,7 +249,7 @@ mod test_lint_index_commands {
         let td = tempdir().unwrap();
         let root = td.path();
         fs::write(
-            root.join("index.md"),
+            root.join("index.ods.md"),
             "---\nprofile: index\nods: 0.1\n---\n\n# R\n",
         )
         .unwrap();

@@ -123,6 +123,8 @@ When scaffolded (`ods new`), adopted (`ods adopt`), or formatted (`ods fmt --wri
 | `packs` | list of paths | Imported ODS Packs list up to $N$ items. |
 | `ignore` | list of paths | Workspace scan exclusion path masks up to $N$ items. |
 | `aliases` | map | Section heading aliases mapping. |
+| `specs` | map | Multi-spec configuration (`okf`, `skills`) including auto-activation (`enabled`) and linting key suppression (`check_keys`, `ignore_keys`). |
+| `okf_lint` | map | Shorthand OKF spec linting configuration (`check_keys`, `ignore_keys`). |
 
 > [!IMPORTANT]
 > **Frontmatter `title` Prohibition Rule**: Frontmatter MUST NOT contain a `title:` key. The document title exists exclusively as the first `# H1` heading in the Markdown body prose (Single Source of Truth / Token Efficiency).

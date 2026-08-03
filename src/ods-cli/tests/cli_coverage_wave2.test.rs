@@ -197,13 +197,13 @@ fn profiles_list_and_init_profile_doc() {
     )
     .unwrap();
     // point root at custom profiles
-    let index = fs::read_to_string(dir.join("index.md")).unwrap();
+    let index = fs::read_to_string(dir.join("index.ods.md")).unwrap();
     let index = if index.contains("profiles:") {
         index
     } else {
         index.replacen("---\n", "---\nprofiles:\n  - ods-profiles\n", 1)
     };
-    fs::write(dir.join("index.md"), index).unwrap();
+    fs::write(dir.join("index.ods.md"), index).unwrap();
 
     let out = ods().args(["profiles", root]).output().unwrap();
     assert!(out.status.success(), "{:?}", out);

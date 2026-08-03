@@ -411,6 +411,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
 
       - name: Rust Cache
         uses: swatinem/rust-cache@v2

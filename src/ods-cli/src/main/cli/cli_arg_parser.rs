@@ -261,12 +261,11 @@ fn parse_common_flags(
                      Use `--okf` or `--skills` only for other specs.",
                 ));
             }
-            "--okf" | "--skills" => {
-                // Extra-spec enable flags; handled by command runners via parse_extra_spec_flags.
-                i += 1;
-            }
-            "--check"
+            "--okf"
+            | "--skills"
+            | "--check"
             | "--write"
+            | "--fix"
             | "--write-report"
             | "--all"
             | "--adopt"
@@ -281,10 +280,14 @@ fn parse_common_flags(
             | "--strip-indexes"
             | "--profiles"
             | "--strip-profiles"
+            | "--skip-frontmatter-keys"
+            | "--skip-keys"
+            | "--no-key-lint"
+            | "--no-keys"
             | "--migrate" => {
                 i += 1;
             }
-            "--refs" => {
+            "--refs" | "--ignore-keys" | "--ignore-key" => {
                 i += 2;
             }
             "--tag" | "--prompt" | "--llm" | "--snapshot" | "--path" | "--name" => {
@@ -310,6 +313,34 @@ fn parse_common_flags(
         level,
         format,
     ))
+}
+
+fn parse_key_suppression_flags(args: &[String], config: &mut ods_core::WorkspaceSpecsConfig) {
+    let skip_keys = args.iter().any(|a| {
+        a == "--skip-frontmatter-keys"
+            || a == "--skip-keys"
+            || a == "--no-key-lint"
+            || a == "--no-keys"
+    });
+    if skip_keys {
+        config.okf.check_keys = false;
+        config.skills.check_keys = false;
+    }
+
+    if let Some(pos) = args
+        .iter()
+        .position(|a| a == "--ignore-keys" || a == "--ignore-key")
+    {
+        if let Some(val) = args.get(pos + 1) {
+            for k in val.split(',') {
+                let trimmed = k.trim();
+                if !trimmed.is_empty() {
+                    config.okf.ignore_keys.insert(trimmed.to_string());
+                    config.skills.ignore_keys.insert(trimmed.to_string());
+                }
+            }
+        }
+    }
 }
 
 /// Positional args after `start`, skipping flags and their values.

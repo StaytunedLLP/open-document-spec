@@ -11,10 +11,10 @@ use std::fs;
 use std::io;
 use std::path::{Path, PathBuf};
 
-/// True when `root` has `index.md` declaring `ods:`.
+/// True when `root` has `index.ods.md` declaring `ods:`.
 pub fn ods_enabled(root: impl AsRef<Path>) -> bool {
     let root = root.as_ref();
-    let index = root.join("index.md");
+    let index = root.join("index.ods.md");
     index.is_file() && index_has_ods_field(&index)
 }
 
@@ -110,7 +110,7 @@ pub fn init_workspace(root: impl AsRef<Path>, options: InitOptions) -> io::Resul
         ..Default::default()
     };
 
-    let index = root.join("index.md");
+    let index = root.join("index.ods.md");
     if ods_enabled(&root) {
         let text = fs::read_to_string(&index)?;
         let next = ensure_ods_in_index_text(&text);
@@ -178,7 +178,7 @@ pub fn disable_workspace(
     }
 
     let workspace = load_workspace(&root)?;
-    let root_index = root.join("index.md");
+    let root_index = root.join("index.ods.md");
 
     for document in &workspace.documents {
         let path = &document.path;
@@ -186,7 +186,7 @@ pub fn disable_workspace(
         let is_index = path
             .file_name()
             .and_then(|n| n.to_str())
-            .is_some_and(|n| n == "index.md");
+            .is_some_and(|n| n == "index.md" || n == "index.ods.md");
 
         if options.remove_indexes && is_index && !is_root_index {
             report.would_delete.push(path.clone());

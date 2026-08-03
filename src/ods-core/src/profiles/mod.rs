@@ -20,7 +20,10 @@ pub fn profile_catalog_roots(root: &Path, root_index: Option<&Document>) -> Vec<
     if let Some(root_index) = root_index
         && let FrontmatterState::Parsed(frontmatter) = &root_index.frontmatter
     {
-        roots.extend(frontmatter.profiles.iter().map(|path| root.join(path)));
+        roots.extend(frontmatter.profiles.iter().map(|path| {
+            let p = root.join(path);
+            p.canonicalize().unwrap_or(p)
+        }));
 
         // Also check imported ODS Packs listed under packs:
         for pack_ref in &frontmatter.packs {

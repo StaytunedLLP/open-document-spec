@@ -18,7 +18,7 @@ fn upgrade_rewrites_ods_cli_pin() {
             .unwrap()
             .success()
     );
-    let index = dir.path().join("index.md");
+    let index = dir.path().join("index.ods.md");
     let out = Command::new(ods_bin())
         .args(["upgrade", path, "--write"])
         .output()

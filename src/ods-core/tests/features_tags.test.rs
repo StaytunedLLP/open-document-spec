@@ -8,7 +8,7 @@ use std::fs;
 fn tags_normalize_find_and_rename() {
     let dir = tempfile::tempdir().unwrap();
     fs::write(
-        dir.path().join("index.md"),
+        dir.path().join("index.ods.md"),
         "---\nods: 0.1\nodc: \">=0.0.1\"\n---\n\n# R\n",
     )
     .unwrap();
@@ -47,7 +47,7 @@ fn tags_normalize_find_and_rename() {
 fn rename_tag_edge_cases() {
     let dir = tempfile::tempdir().unwrap();
     fs::write(
-        dir.path().join("index.md"),
+        dir.path().join("index.ods.md"),
         "---\nods: 0.1\nodc: \">=0.0.1\"\n---\n\n# R\n",
     )
     .unwrap();

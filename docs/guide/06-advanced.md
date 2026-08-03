@@ -68,7 +68,7 @@ ODS_LOW_MEMORY=1 ODS_POLL_SECS=30 ods serve --mode poll --memory-report --root .
 
 Guidance for tens of thousands of Markdown files:
 
-- Keep profiles small; put custom catalogs in `ods-profiles/` or listed `profiles:` roots.
+- Keep profiles small; register custom catalogs under `custom-profiles:` in root `index.ods.md`.
 - Prefer path-derived IDs; pin explicit `id:` only when renames must not break external refs.
 - Run `ods index --check` and `ods lint` in CI rather than trusting hand-edited maps.
 - Use `--level 1` while onboarding noisy trees; enable body-link and graph checks at Level 3 when ready.

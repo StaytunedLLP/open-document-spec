@@ -103,7 +103,7 @@ fn invalid_share_value_error() {
 fn dangling_pack_path_error() {
     let dir = temp_workspace();
     fs::write(
-        dir.join("index.md"),
+        dir.join("index.ods.md"),
         "---\nprofile: index\nods: 0.1\nodc: \">=0.0.1\"\npacks:\n  - vendor/non-existent-pack\n---\n\n# Root\n",
     )
     .unwrap();

@@ -19,4 +19,4 @@ Canonical human guide for Open Document Spec (`ods`), structured into 4 progress
 - [faq.md](faq.md) - Frequently asked questions about file extensions, adoption, profiles vs tags, renames, and background services.
 - [features.md](features.md) - Complete reference for frontmatter keys, root index configuration, profiles vs packs, AI context, and CLI commands.
 - [roi-calculator.md](roi-calculator.md) - Quantifying context window optimization, developer productivity gains, and API cost reduction.
-- [use-cases/](use-cases/index.md)
+- [use-cases/](use-cases/index.ods.md)
