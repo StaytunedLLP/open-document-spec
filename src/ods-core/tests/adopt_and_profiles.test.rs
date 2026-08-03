@@ -167,7 +167,11 @@ fn adopt_preserves_existing_frontmatter_keys() {
 
     let ws = load_workspace(&dir).unwrap();
     let report = adopt_workspace(&ws, AdoptOptions { write: true }).unwrap();
-    assert!(report.written.contains(&doc_path));
+    let doc_canon = doc_path.canonicalize().unwrap_or_else(|_| doc_path.clone());
+    assert!(
+        report.written.contains(&doc_path) || report.written.contains(&doc_canon),
+        "expected report.written to contain {doc_path:?} or {doc_canon:?}, got {report:?}"
+    );
 
     let content = fs::read_to_string(&doc_path).unwrap();
     assert!(content.contains("title: Cache Strategy"));
