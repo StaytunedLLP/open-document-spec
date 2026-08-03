@@ -14,8 +14,12 @@ use std::path::{Path, PathBuf};
 /// True when `root` has `index.ods.md` declaring `ods:`.
 pub fn ods_enabled(root: impl AsRef<Path>) -> bool {
     let root = root.as_ref();
-    let index = root.join("index.ods.md");
-    index.is_file() && index_has_ods_field(&index)
+    let index_ods = root.join("index.ods.md");
+    if index_ods.is_file() && index_has_ods_field(&index_ods) {
+        return true;
+    }
+    let index_md = root.join("index.md");
+    index_md.is_file() && index_has_ods_field(&index_md)
 }
 
 /// Resolve whether ODS is enabled for a path (file or directory).
