@@ -8,7 +8,7 @@ mod tests {
         let dir = temp_workspace();
         fs::write(
             dir.join("index.md"),
-            "---\nprofile: index\nods: 0.1\nodc: \">=0.0.1\"\n---\n\n# Root\n- [doc.md](doc.md)\n",
+            "---\nprofile: index\nods: 0.1\n---\n\n# Root\n- [doc.md](doc.md)\n",
         )
         .unwrap();
         fs::write(
@@ -38,7 +38,7 @@ mod tests {
         let dir = temp_workspace();
         fs::write(
             dir.join("index.md"),
-            "---\nprofile: index\nods: 0.1\nodc: \">=0.0.1\"\n---\n\n# Root\n",
+            "---\nprofile: index\nods: 0.1\n---\n\n# Root\n",
         )
         .unwrap();
         fs::write(dir.join("a.md"), "---\nprofile: note\n---\n\n# A\n").unwrap();

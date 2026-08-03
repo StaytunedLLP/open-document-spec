@@ -60,7 +60,7 @@ fn sales_like_folder_rename_end_to_end() {
     fs::create_dir_all(dir.join("products")).unwrap();
     fs::write(
         dir.join("index.md"),
-        "---\nprofile: index\nods: 0.1\nodc: \">=0.0.1\"\n---\n\n# Shop\n\n- [sales/](sales/index.md)\n",
+        "---\nprofile: index\nods: 0.1\n---\n\n# Shop\n\n- [sales/](sales/index.md)\n",
     )
     .unwrap();
     fs::write(
@@ -112,7 +112,7 @@ fn code_file_move_rewrites_code_path() {
     fs::create_dir_all(dir.join("src/new")).unwrap();
     fs::write(
         dir.join("index.md"),
-        "---\nprofile: index\nods: 0.1\nodc: \">=0.0.1\"\n---\n\n# R\n",
+        "---\nprofile: index\nods: 0.1\n---\n\n# R\n",
     )
     .unwrap();
     fs::write(dir.join("src/old/login.ts"), "export function login() {}\n").unwrap();
@@ -134,7 +134,7 @@ fn code_folder_move_rewrites_descendant_code_paths() {
     fs::create_dir_all(dir.join("apps/web/src/features/checkout")).unwrap();
     fs::write(
         dir.join("index.md"),
-        "---\nprofile: index\nods: 0.1\nodc: \">=0.0.1\"\n---\n\n# R\n",
+        "---\nprofile: index\nods: 0.1\n---\n\n# R\n",
     )
     .unwrap();
     fs::write(
@@ -164,7 +164,7 @@ fn moving_markdown_document_recalculates_relative_code_paths() {
     fs::create_dir_all(dir.join("src")).unwrap();
     fs::write(
         dir.join("index.md"),
-        "---\nprofile: index\nods: 0.1\nodc: \">=0.0.1\"\n---\n\n# R\n",
+        "---\nprofile: index\nods: 0.1\n---\n\n# R\n",
     )
     .unwrap();
     fs::write(dir.join("src/login.ts"), "export function login() {}\n").unwrap();
@@ -211,7 +211,7 @@ fn test_path_traversal_move_blocked() {
     let dir = temp_workspace();
     fs::write(
         dir.join("index.md"),
-        "---\nprofile: index\nods: 0.1\nodc: \">=0.0.1\"\n---\n\n# Root\n- [a.md](a.md)\n",
+        "---\nprofile: index\nods: 0.1\n---\n\n# Root\n- [a.md](a.md)\n",
     )
     .unwrap();
     fs::write(

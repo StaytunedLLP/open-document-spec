@@ -37,18 +37,8 @@ cli_bin() {
   fi
 }
 
-require_gh() {
-  command -v gh >/dev/null 2>&1 \
-    || die "GitHub CLI (gh) not found. Install gh, then run: gh auth login"
-  if [[ -z "${GH_TOKEN:-}" && -z "${GITHUB_TOKEN:-}" ]]; then
-    gh auth status >/dev/null 2>&1 \
-      || die "not authenticated to GitHub. Run: gh auth login   (or export GH_TOKEN=...)"
-  fi
-}
-
 # Install the binary from the latest (or pinned) GitHub Release.
 cmd_install() {
-  require_gh
   if have_cli && [[ "${1:-}" != "--force" ]]; then
     log "checking installed ods against latest release: $(command -v ods) ($(ods --version 2>/dev/null || echo '?'))"
   else
@@ -66,7 +56,6 @@ cmd_update() {
     log "ods not installed; installing instead"
     cmd_install
   else
-    require_gh
     if ods update --check >/dev/null 2>&1; then
       log "ods binary is up to date"
     else

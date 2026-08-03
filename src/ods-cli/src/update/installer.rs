@@ -69,30 +69,37 @@ fn install_release(tag: &str, target: &str, prefix: &Path) -> Result<(), String>
     } else {
         "tar.gz"
     };
-    // Prefer ods- archives; fall back to legacy ods- asset names during transition.
-    let candidates = [
-        format!("ods-{tag}-{target}.{ext}"),
-        format!("ods-{tag}-{target}.{ext}"),
-    ];
-
-    // Private repos require the Releases API asset endpoint (browser download URLs 404).
-    let release_url = format!("{API_BASE}/releases/tags/{tag}");
-    let release_json = http_get_string(&release_url)?;
-    let (filename, archive_id) = candidates
-        .iter()
-        .find_map(|name| find_asset_id(&release_json, name).map(|id| (name.clone(), id)))
-        .ok_or_else(|| {
-            format!(
-                "asset ods-{tag}-{target}.{ext} (or legacy ods-*) not found on release {tag} (check GH_TOKEN for private repo)"
-            )
-        })?;
-    let sums_id = find_asset_id(&release_json, "SHA256SUMS").ok_or_else(|| {
-        format!("SHA256SUMS not found on release {tag} (check GH_TOKEN for private repo)")
-    })?;
+    let filename = format!("ods-{tag}-{target}.{ext}");
 
     eprintln!("ods: downloading {filename}…");
-    let archive = http_get_asset(archive_id)?;
-    let sums_bytes = http_get_asset(sums_id)?;
+
+    let direct_archive_url = format!(
+        "https://github.com/StaytunedLLP/open-document-spec/releases/download/{tag}/{filename}"
+    );
+    let direct_sums_url = format!(
+        "https://github.com/StaytunedLLP/open-document-spec/releases/download/{tag}/SHA256SUMS"
+    );
+
+    let (archive, sums_bytes) = match (
+        http_get_bytes(&direct_archive_url),
+        http_get_bytes(&direct_sums_url),
+    ) {
+        (Ok(a), Ok(s)) => (a, s),
+        _ => {
+            let release_url = format!("{API_BASE}/releases/tags/{tag}");
+            let release_json = http_get_string(&release_url)?;
+            let archive_id = find_asset_id(&release_json, &filename).ok_or_else(|| {
+                format!("asset {filename} not found on release {tag}")
+            })?;
+            let sums_id = find_asset_id(&release_json, "SHA256SUMS").ok_or_else(|| {
+                format!("SHA256SUMS not found on release {tag}")
+            })?;
+            let a = http_get_asset(archive_id)?;
+            let s = http_get_asset(sums_id)?;
+            (a, s)
+        }
+    };
+
     let sums = String::from_utf8_lossy(&sums_bytes);
     let expected = find_checksum(&sums, &filename)
         .ok_or_else(|| format!("no SHA256 entry for {filename} in release checksums"))?;

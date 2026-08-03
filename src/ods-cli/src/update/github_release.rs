@@ -116,7 +116,7 @@ fn maybe_auto_update_inner(force_check: bool) {
 }
 
 fn auto_update_enabled() -> bool {
-    for key in ["ODC_AUTO_UPDATE", "ODS_AUTO_UPDATE"] {
+    for key in ["ODS_AUTO_UPDATE", "ODC_AUTO_UPDATE"] {
         if let Ok(v) = env::var(key) {
             let v = v.trim().to_ascii_lowercase();
             return !(v == "0" || v == "false" || v == "no" || v == "off");
@@ -211,14 +211,6 @@ fn fetch_latest_tag() -> Result<String, String> {
         return Err("empty tag_name from GitHub API".into());
     }
     Ok(normalize_tag(tag))
-}
-
-fn auth_hint() -> &'static str {
-    if github_token().is_none() {
-        " (set GH_TOKEN or GITHUB_TOKEN for private repo access)"
-    } else {
-        ""
-    }
 }
 
 fn apply_auth(req: ureq::Request, accept: &str) -> ureq::Request {

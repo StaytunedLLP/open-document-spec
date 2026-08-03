@@ -65,9 +65,12 @@ fn run_pack_list(args: &[String]) -> Result<ExitCode, CliError> {
 }
 
 fn run_pack_add(args: &[String]) -> Result<ExitCode, CliError> {
-    let source = args
-        .get(3)
-        .ok_or_else(|| usage("ods pack add requires a pack source (Git URL or local path)"))?;
+    let positionals = positional_args(args, 3);
+    let (root_path, source) = match positionals.as_slice() {
+        [ws, src] => (PathBuf::from(ws), src.clone()),
+        [src] => (env::current_dir().unwrap_or_else(|_| PathBuf::from(".")), src.clone()),
+        _ => return Err(usage("ods pack add [root] <source>")),
+    };
 
     let auto_update = args
         .windows(2)
@@ -75,8 +78,12 @@ fn run_pack_add(args: &[String]) -> Result<ExitCode, CliError> {
         .map(|w| w[1].clone())
         .unwrap_or_else(|| String::from("daily"));
 
-    let root = resolve_root_path(env::current_dir().unwrap_or_else(|_| PathBuf::from(".")));
-    let root_index_path = root.join("index.ods.md");
+    let root = resolve_root_path(root_path);
+    let root_index_path = if root.join("index.ods.md").exists() {
+        root.join("index.ods.md")
+    } else {
+        root.join("index.md")
+    };
 
     if !root_index_path.exists() {
         return Err(failure(
@@ -88,7 +95,7 @@ fn run_pack_add(args: &[String]) -> Result<ExitCode, CliError> {
     let pack_name = source.split('/').next_back().unwrap_or("pack").trim_end_matches(".git").to_string();
 
     // Check if source is a local directory or relative path
-    let local_path = Path::new(source);
+    let local_path = Path::new(&source);
     if local_path.exists() {
         if let Ok(rel) = local_path.canonicalize() {
             if let Ok(workspace_rel) = rel.strip_prefix(&root) {
@@ -119,8 +126,8 @@ fn run_pack_add(args: &[String]) -> Result<ExitCode, CliError> {
         // Remote Git URL
         let vendor_dir = root.join("vendor").join(&pack_name);
         println!("Cloning Git URL pack into {}...", vendor_dir.display());
-        let _ = Command::new("git")
-            .args(["clone", source, &vendor_dir.to_string_lossy()])
+        let _status = Command::new("git")
+            .args(["clone", &source, &vendor_dir.to_string_lossy()])
             .status();
         pack_entry = format!("vendor/{pack_name}");
     }

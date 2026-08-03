@@ -63,9 +63,8 @@ fn main() {
             written += 1;
         }
     }
-    let root_index = format!(
-        "---\nprofile: index\nods: 0.1\nodc: \">=0.0.1\"\n---\n\n# Scale Bench ({doc_count} docs)\n"
-    );
+    let root_index =
+        format!("---\nprofile: index\nods: 0.1\n---\n\n# Scale Bench ({doc_count} docs)\n");
     fs::write(root.join("index.md"), root_index).expect("root index");
     println!("  file generation: {:?}", gen_start.elapsed());
 

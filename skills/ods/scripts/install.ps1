@@ -4,19 +4,14 @@
 #   Windows x64   — windows-x86_64
 #   Windows ARM64 — windows-arm64
 #
-# This repository is private. Set a GitHub token before running:
-#   $env:GH_TOKEN = (gh auth token)   # or GITHUB_TOKEN with repo scope
-#   irm -Headers @{ Authorization = "Bearer $env:GH_TOKEN" } `
-#     https://raw.githubusercontent.com/StaytunedLLP/open-document-spec/main/src/scripts/install.ps1 | iex
-#
-# Note: the Authorization header on irm only fetches this script. The script
-# itself also needs GH_TOKEN/GITHUB_TOKEN in the environment to download assets.
+# Usage:
+#   irm https://raw.githubusercontent.com/StaytunedLLP/open-document-spec/main/src/scripts/install.ps1 | iex
 #
 # Options via environment variables:
 #   ODS_VERSION / ODC_VERSION — pin a release tag, e.g. "v0.1.0"  (default: latest)
 #   ODS_PREFIX / ODC_PREFIX   — install dir (default: %LOCALAPPDATA%\Programs\ods)
 #   ODS_NO_VERIFY — set to "1" to skip SHA256 checksum verification
-#   GH_TOKEN / GITHUB_TOKEN — required while the repo is private
+#   GH_TOKEN / GITHUB_TOKEN — optional token (e.g. for higher API rate limits)
 #
 [CmdletBinding()]
 param(
@@ -89,18 +84,6 @@ function Get-InstalledOdsVersion {
     return $null
 }
 
-function Show-PrivateRepoHint {
-    Write-Host @"
-This repository is private. Unauthenticated downloads return HTTP 404.
-
-  `$env:GH_TOKEN = (gh auth token)   # or a PAT with repo scope
-  irm -Headers @{ Authorization = "Bearer `$env:GH_TOKEN" } ``
-    https://raw.githubusercontent.com/StaytunedLLP/open-document-spec/main/src/scripts/install.ps1 | iex
-
-GH_TOKEN must be set in the environment that runs this script (not only on irm).
-"@ -ForegroundColor Yellow
-}
-
 function Get-Release {
     param([string]$Tag)
     if ($Tag) {
@@ -111,15 +94,26 @@ function Get-Release {
 
 function Download-ReleaseAsset {
     param(
-        [Parameter(Mandatory)] $Release,
+        [Parameter(Mandatory)] [string] $Tag,
         [Parameter(Mandatory)] [string] $Name,
-        [Parameter(Mandatory)] [string] $OutFile
+        [Parameter(Mandatory)] [string] $OutFile,
+        $Release
     )
+    $directUrl = "https://github.com/$Repo/releases/download/$Tag/$Name"
+    try {
+        Invoke-WebRequest -Uri $directUrl -OutFile $OutFile -UserAgent "ods-install" -UseBasicParsing
+        return
+    } catch {
+        # Fallback to API asset download
+    }
+
+    if (-not $Release) {
+        $Release = Get-Release -Tag $Tag
+    }
     $asset = $Release.assets | Where-Object { $_.name -eq $Name } | Select-Object -First 1
     if (-not $asset) {
         throw "Asset '$Name' not found on release $($Release.tag_name)"
     }
-    # Private repos require the API asset endpoint + Accept: application/octet-stream
     Invoke-WebRequest -Uri "$Api/releases/assets/$($asset.id)" `
         -OutFile $OutFile `
         -Headers (Get-AuthHeaders -Accept "application/octet-stream") `
@@ -134,11 +128,6 @@ $Asset = switch ($ProcArch.ToString()) {
     default { throw "Unsupported architecture: $ProcArch. Only x64 and ARM64 are supported." }
 }
 
-$Token = Get-GitHubToken
-if (-not $Token) {
-    Write-Warn "GH_TOKEN / GITHUB_TOKEN not set — downloads will fail if the repo is private"
-}
-
 # ── Version resolution ────────────────────────────────────────────────────────
 $Version = $env:ODS_VERSION
 try {
@@ -151,8 +140,7 @@ try {
         $Version = $Release.tag_name
     }
 } catch {
-    if (-not $Token) { Show-PrivateRepoHint }
-    throw "Could not reach GitHub API. Check network and token. Error: $_"
+    throw "Could not reach GitHub API. Error: $_"
 }
 if (-not $Version) { throw "Could not resolve latest release tag." }
 Write-Step "Installing ODS $Version for $Asset"
@@ -183,25 +171,17 @@ try {
 # ── Download ──────────────────────────────────────────────────────────────────
 Write-Step "Downloading $Filename..."
 try {
-    Download-ReleaseAsset -Release $Release -Name $Filename -OutFile "$TmpDir\$Filename"
+    Download-ReleaseAsset -Tag $Version -Release $Release -Name $Filename -OutFile "$TmpDir\$Filename"
 } catch {
-    $Filename = "odc-$Version-$Asset.zip"
-    Write-Host "    Trying fallback $Filename..."
-    try {
-        Download-ReleaseAsset -Release $Release -Name $Filename -OutFile "$TmpDir\$Filename"
-    } catch {
-        if (-not $Token) { Show-PrivateRepoHint }
-        throw "Download failed for archive on $Version`nhttps://github.com/$Repo/releases`nError: $_"
-    }
+    throw "Download failed for archive on $Version`nhttps://github.com/$Repo/releases`nError: $_"
 }
 
 # ── Checksum verification ─────────────────────────────────────────────────────
 if ($env:ODS_NO_VERIFY -ne "1") {
     Write-Step "Verifying checksum..."
     try {
-        Download-ReleaseAsset -Release $Release -Name "SHA256SUMS" -OutFile "$TmpDir\SHA256SUMS"
+        Download-ReleaseAsset -Tag $Version -Release $Release -Name "SHA256SUMS" -OutFile "$TmpDir\SHA256SUMS"
     } catch {
-        if (-not $Token) { Show-PrivateRepoHint }
         throw "Could not download SHA256SUMS for $Version"
     }
     $SumsContent = Get-Content "$TmpDir\SHA256SUMS"
@@ -237,12 +217,10 @@ if (-not $Prefix) { $Prefix = $env:ODS_PREFIX }
 if (-not $Prefix) { $Prefix = Join-Path $env:LOCALAPPDATA "Programs\ods" }
 New-Item -ItemType Directory -Force -Path $Prefix | Out-Null
 Copy-Item $BinSrc (Join-Path $Prefix "ods.exe") -Force
-Copy-Item $BinSrc (Join-Path $Prefix "ods.exe") -Force
 
 Write-Host ""
 Write-Host "==> Installed successfully:"
-Write-Host "    $Prefix\ods.exe  (primary)"
-Write-Host "    $Prefix\ods.exe  (legacy argv0)"
+Write-Host "    $Prefix\ods.exe"
 
 # ── PATH update ───────────────────────────────────────────────────────────────
 $UserPath = [Environment]::GetEnvironmentVariable("PATH", "User")
@@ -271,7 +249,6 @@ Write-Host "    ods lint"
 Write-Host "    ods export              # optional graph.md for AI"
 Write-Host ""
 Write-Host "  Keep tools current:"
-Write-Host "    `$env:GH_TOKEN = (gh auth token)   # needed for private releases"
 Write-Host "    ods update              # update binary & restart background service"
 Write-Host "    (auto-check ~daily; disable with ODS_AUTO_UPDATE=0)"
 Write-Host ""

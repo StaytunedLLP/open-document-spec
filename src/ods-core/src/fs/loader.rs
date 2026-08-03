@@ -133,12 +133,21 @@ pub fn find_workspace_root(path: impl AsRef<Path>) -> Option<PathBuf> {
 
     loop {
         let index_ods_path = current.join("index.ods.md");
+        let index_md_path = current.join("index.md");
 
-        if index_ods_path.is_file() {
+        let index_path = if index_ods_path.is_file() {
+            Some(index_ods_path)
+        } else if index_md_path.is_file() {
+            Some(index_md_path)
+        } else {
+            None
+        };
+
+        if let Some(idx_path) = index_path {
             if nearest_index.is_none() {
                 nearest_index = Some(current.clone());
             }
-            if nearest_ods.is_none() && index_has_ods_field(&index_ods_path) {
+            if nearest_ods.is_none() && index_has_ods_field(&idx_path) {
                 nearest_ods = Some(current.clone());
                 break;
             }

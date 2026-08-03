@@ -55,23 +55,65 @@ fn run_new_command(args: &[String]) -> Result<ExitCode, CliError> {
 }
 
 fn run_rm_command(args: &[String]) -> Result<ExitCode, CliError> {
-    if args.len() < 3 {
-        return Err(usage("ods rm <path-or-id>"));
-    }
+    let (_, _level, format) = parse_common_flags(args, 2)?;
+    let positionals = positional_args(args, 2);
+    let dry_run = args.iter().any(|a| a == "--dry-run");
 
-    let target = PathBuf::from(&args[2]);
-    let root = env::current_dir().unwrap_or_else(|_| PathBuf::from("."));
+    let root_flag = parse_flag_val(args, "--root").map(PathBuf::from);
+    let (root_dir, target_str) = if let Some(rf) = root_flag {
+        let t = positionals.first().ok_or_else(|| usage("ods rm --root <dir> <path-or-id>"))?;
+        (rf, t.clone())
+    } else if positionals.len() >= 2 && PathBuf::from(&positionals[0]).is_dir() {
+        (PathBuf::from(&positionals[0]), positionals[1].clone())
+    } else if !positionals.is_empty() {
+        (env::current_dir().unwrap_or_else(|_| PathBuf::from(".")), positionals[0].clone())
+    } else {
+        return Err(usage("ods rm [root] <path-or-id> [--dry-run]"));
+    };
+
+    let root = resolve_root_path(root_dir);
+    require_ods_workspace(&root)?;
+    let target = PathBuf::from(&target_str);
+
+    if dry_run {
+        match format {
+            OutputFormat::Text => {
+                println!("(dry-run) would delete document {} and scrub references across workspace {}", target.display(), root.display());
+            }
+            OutputFormat::Json | OutputFormat::Sarif => {
+                println!(
+                    r#"{{"dry_run":true,"target":{},"root":{}}}"#,
+                    json_escape(&target.display().to_string()),
+                    json_escape(&root.display().to_string())
+                );
+            }
+        }
+        return Ok(ExitCode::from(0));
+    }
 
     let report = atomic_delete_document(&root, &target, RemoveDocumentOptions { scrub_dependencies: true })
         .map_err(|e| failure(format!("failed to delete document: {e}")))?;
 
-    println!(
-        "deleted document {}\n  id: {}\n  cleaned graph references: {}\n  indexes updated: {}",
-        report.deleted_file.display(),
-        report.doc_id,
-        report.cleaned_references_count,
-        report.updated_indexes.len()
-    );
+    match format {
+        OutputFormat::Text => {
+            println!(
+                "deleted document {}\n  id: {}\n  cleaned graph references: {}\n  indexes updated: {}",
+                report.deleted_file.display(),
+                report.doc_id,
+                report.cleaned_references_count,
+                report.updated_indexes.len()
+            );
+        }
+        OutputFormat::Json | OutputFormat::Sarif => {
+            println!(
+                r#"{{"deleted_file":{},"doc_id":{},"cleaned_references_count":{},"updated_indexes_count":{}}}"#,
+                json_escape(&report.deleted_file.display().to_string()),
+                json_escape(&report.doc_id),
+                report.cleaned_references_count,
+                report.updated_indexes.len()
+            );
+        }
+    }
 
     Ok(ExitCode::from(0))
 }

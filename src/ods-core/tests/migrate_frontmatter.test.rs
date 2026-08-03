@@ -9,7 +9,7 @@ fn migrate_flat_legacy_document_to_nested_ods_block() {
     let dir = temp_workspace();
     fs::write(
         dir.join("index.md"),
-        "---\nprofile: index\nods: 0.1\nodc: \">=0.0.1\"\n---\n\n# R\n\n- [doc.md](doc.md)\n",
+        "---\nprofile: index\nods: 0.1\n---\n\n# R\n\n- [doc.md](doc.md)\n",
     )
     .unwrap();
     fs::write(
@@ -50,7 +50,7 @@ fn migrate_is_idempotent() {
 #[test]
 fn migrate_skips_root_index_md() {
     let dir = temp_workspace();
-    let root_text = "---\nprofile: index\nods: 0.1\nodc: \">=0.0.1\"\nprofile: index\n---\n\n# R\n";
+    let root_text = "---\nprofile: index\nods: 0.1\nprofile: index\n---\n\n# R\n";
     fs::write(dir.join("index.md"), root_text).unwrap();
 
     let workspace = load_workspace(&dir).unwrap();
@@ -108,7 +108,7 @@ fn migrate_workspace_frontmatter_helper_and_edge_cases() {
     let dir = temp_workspace();
     fs::write(
         dir.join("index.md"),
-        "---\nprofile: index\nods: 0.1\nodc: \">=0.0.1\"\n---\n\n# R\n",
+        "---\nprofile: index\nods: 0.1\n---\n\n# R\n",
     )
     .unwrap();
     // Empty body document needing migration

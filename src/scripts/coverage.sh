@@ -7,7 +7,7 @@
 set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
 cd "$ROOT"
-OUT="${ODC_COVERAGE_DIR:-$ROOT/.artifacts/coverage}"
+OUT="${ODS_COVERAGE_DIR:-${ODC_COVERAGE_DIR:-$ROOT/.artifacts/coverage}}"
 mkdir -p "$OUT"
 
 # Shared T3 ignore list (keep in sync with CI and coverage-excludes.md)

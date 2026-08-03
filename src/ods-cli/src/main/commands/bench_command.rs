@@ -126,28 +126,46 @@ fn run_bench_command(args: &[String]) -> Result<ExitCode, CliError> {
                 }
             }
         }
-        "run" => {
+        "run" | "agent" => {
             let prompt = parse_flag_val(args, "--prompt")
                 .unwrap_or_else(|| "Refactor API endpoints".to_string());
-            let provider = parse_flag_val(args, "--llm");
+            let agent_flag = parse_flag_val(args, "--agent");
+            let is_agent_mode = sub == "agent" || agent_flag.is_some();
+            let agent = agent_flag
+                .or_else(|| parse_flag_val(args, "--llm"))
+                .unwrap_or_else(|| "antigravity".to_string());
             let (root, _level, format) = parse_common_flags(args, 3)?;
             let root = resolve_root_path(root);
 
-            let report = ods_core::bench_run_simulation(&root, &prompt, provider.as_deref().unwrap_or(""))
+            let report = ods_core::bench_run_simulation(&root, &prompt, &agent)
                 .map_err(|err| failure(err.to_string()))?;
+
+            let fitness_score = (report.token_savings_pct * 0.9 + 10.0).min(99.9);
 
             match format {
                 OutputFormat::Text => {
-                    println!("{}", report.simulated_output);
+                    if is_agent_mode {
+                        println!("=== ODS AI / Agent Benchmark Report ===");
+                        println!("Agent Profile Target: {}", agent);
+                        println!("Benchmark Prompt:     \"{}\"", prompt);
+                        println!("Raw Repository Context: ~{} tokens", report.raw_context_tokens);
+                        println!("ODS Bounded Context:    ~{} tokens", report.ods_context_tokens);
+                        println!("Context Reduction:      {:.1}%", report.token_savings_pct);
+                        println!("Agent Prompt Fitness:   {:.1}/100", fitness_score);
+                        println!("Simulated USD Savings:  ${:.4} per query", report.est_raw_cost_usd - report.est_ods_cost_usd);
+                    } else {
+                        println!("{}", report.simulated_output);
+                    }
                 }
                 OutputFormat::Json | OutputFormat::Sarif => {
                     println!(
-                        r#"{{"prompt":{},"provider":{},"raw_context_tokens":{},"ods_context_tokens":{},"token_savings_pct":{:.2},"est_raw_cost_usd":{:.4},"est_ods_cost_usd":{:.4}}}"#,
+                        r#"{{"agent_profile":{},"prompt":{},"raw_context_tokens":{},"ods_context_tokens":{},"token_savings_pct":{:.2},"agent_fitness_score":{:.1},"est_raw_cost_usd":{:.4},"est_ods_cost_usd":{:.4}}}"#,
+                        json_escape(&agent),
                         json_escape(&report.prompt),
-                        json_escape(&report.provider),
                         report.raw_context_tokens,
                         report.ods_context_tokens,
                         report.token_savings_pct,
+                        fitness_score,
                         report.est_raw_cost_usd,
                         report.est_ods_cost_usd
                     );
@@ -156,7 +174,7 @@ fn run_bench_command(args: &[String]) -> Result<ExitCode, CliError> {
         }
         other => {
             return Err(usage(format!(
-                "unknown bench subcommand: {other} (use strip, restore, stats, or run)"
+                "unknown bench subcommand: {other} (use strip, restore, stats, run, or agent)"
             )));
         }
     }

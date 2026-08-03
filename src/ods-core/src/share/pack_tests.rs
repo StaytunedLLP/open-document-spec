@@ -4,7 +4,7 @@ fn publish_include_org_flag() {
     write(
         dir.as_path(),
         "index.md",
-        "---\nprofile: index\nods: 0.1\nodc: \">=0.0.1\"\n---\n\n# R\n",
+        "---\nprofile: index\nods: 0.1\n---\n\n# R\n",
     );
     write(
         dir.as_path(),
@@ -44,7 +44,7 @@ fn publish_include_private_flag_includes_everything() {
     write(
         dir.as_path(),
         "index.md",
-        "---\nprofile: index\nods: 0.1\nodc: \">=0.0.1\"\n---\n\n# R\n",
+        "---\nprofile: index\nods: 0.1\n---\n\n# R\n",
     );
     write(
         dir.as_path(),
@@ -78,7 +78,7 @@ fn publish_directory_share_cascade_filters_entire_subtree() {
     write(
         dir.as_path(),
         "index.md",
-        "---\nprofile: index\nods: 0.1\nodc: \">=0.0.1\"\n---\n\n# R\n",
+        "---\nprofile: index\nods: 0.1\n---\n\n# R\n",
     );
     write(
         dir.as_path(),
@@ -108,7 +108,7 @@ fn publish_document_override_overrides_parent_directory_share() {
     write(
         dir.as_path(),
         "index.md",
-        "---\nprofile: index\nods: 0.1\nodc: \">=0.0.1\"\n---\n\n# R\n",
+        "---\nprofile: index\nods: 0.1\n---\n\n# R\n",
     );
     write(
         dir.as_path(),

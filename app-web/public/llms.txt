@@ -1,8 +1,8 @@
-# Open Document Spec (ODS) / OpenDocify (odc) — https://opendocify.com
+# Open Document Spec (ODS) — https://opendocify.com
 > Built to make your documentation extraordinarily productive and AI-ready.
 
 ## Overview
-Open Document Spec (ODS) is an open-source, local-first specification. The reference tool is **OpenDocify (`odc`)**: it enriches plain Markdown repositories with machine-readable YAML frontmatter, explicit dependency graphs, and deterministic AI context loading. Google OKF v0.2 knowledge bundles are supported natively via the same binary (`odc okf` / bare auto-detect).
+Open Document Spec (ODS) is an open-source, local-first specification. The CLI tool is **`ods`**: it enriches plain Markdown repositories with machine-readable YAML frontmatter, explicit dependency graphs, and deterministic AI context loading. Google OKF v0.2 knowledge bundles are supported natively via flags (`ods --okf` / bare auto-detect).
 
 - Website: https://opendocify.com
 - Documentation: https://opendocify.com/docs
@@ -14,13 +14,13 @@ Open Document Spec (ODS) is an open-source, local-first specification. The refer
 - **Local-First Processing**: 100% local indexing, link repair, schema validation, and graph operations. No external server dependencies or cloud lock-in.
 - **Zero Telemetry**: Completely private with zero analytics, tracking beacons, or phone-home logging.
 - **Share-Aware Visibility**: Granular document scoping via `share: public | org | private` to isolate internal designs, credentials, and secrets.
-- **Deterministic AI Context (`odc context`)**: Reduces LLM context token consumption by 90%+ by serving precise connected reading lists for AI coding assistants (Claude, Cursor, VS Code, Zed, Windsurf, Antigravity).
-- **Multi-spec CLI**: Bare `odc lint` auto-detects ODS vs OKF from root markers (`ods:` / `odc:` / `okf_version:`); force with `odc ods` or `odc okf`.
+- **Deterministic AI Context (`ods context`)**: Reduces LLM context token consumption by 90%+ by serving precise connected reading lists for AI coding assistants (Claude, Cursor, VS Code, Zed, Windsurf, Antigravity).
+- **Multi-spec CLI**: Bare `ods lint` auto-detects ODS vs OKF from root markers (`ods:` / `okf_version:`); force with `--okf`.
 
 ## Installation & Quickstart
 - 1-Line Installer (macOS/Linux): `curl -fsSL https://opendocify.com/install.sh | bash`
 - PowerShell Installer (Windows): `iwr -useb https://opendocify.com/install.ps1 | iex`
-- Verify: `odc --version` (optional legacy alias: `ods --version`)
+- Verify: `ods --version`
 
 ## Core Routes & Documentation Map
 - Quickstart Guide: https://opendocify.com/docs/quickstart

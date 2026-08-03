@@ -2,11 +2,7 @@ use std::process::Command;
 use tempfile::tempdir;
 
 fn ods_bin() -> std::path::PathBuf {
-    eprintln!(
-        "odc_bin: {}, ods_bin: {}",
-        env!("CARGO_BIN_EXE_ods"),
-        env!("CARGO_BIN_EXE_ods")
-    );
+    eprintln!("ods_bin: {}", env!("CARGO_BIN_EXE_ods"));
     std::path::PathBuf::from(env!("CARGO_BIN_EXE_ods"))
 }
 
@@ -239,7 +235,7 @@ fn hybrid_bare_index_requires_explicit_namespace() {
 }
 
 #[test]
-fn coverage_write_report_goes_under_dot_odc() {
+fn coverage_write_report_goes_under_dot_ods() {
     let dir = tempdir().unwrap();
     let path = dir.path().to_str().unwrap();
     assert!(

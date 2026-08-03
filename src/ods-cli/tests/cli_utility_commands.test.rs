@@ -41,7 +41,7 @@ fn lint_clean_prints_ok_message() {
 }
 
 #[test]
-fn lint_broken_writes_odc_error_report() {
+fn lint_broken_writes_ods_error_report() {
     let dir = temp_workspace();
     let root = dir.to_str().unwrap();
     assert!(

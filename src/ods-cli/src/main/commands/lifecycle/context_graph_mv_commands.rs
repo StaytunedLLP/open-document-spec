@@ -70,17 +70,45 @@ fn run_graph_command(args: &[String]) -> Result<ExitCode, CliError> {
 }
 
 fn run_mv_command(args: &[String]) -> Result<ExitCode, CliError> {
-    let (root, _level, format) = parse_common_flags(args, 2)?;
-    require_ods_workspace(&root)?;
+    let (_, _level, format) = parse_common_flags(args, 2)?;
     let positionals = positional_args(args, 2);
-    // root may be first positional if provided
-    let (from, to) = if positionals.len() >= 3 {
-        (positionals[1].clone(), positionals[2].clone())
+    let dry_run = args.iter().any(|a| a == "--dry-run");
+
+    let root_flag = parse_flag_val(args, "--root").map(PathBuf::from);
+    let (root_dir, from, to) = if let Some(rf) = root_flag {
+        if positionals.len() >= 2 {
+            (rf, positionals[0].clone(), positionals[1].clone())
+        } else {
+            return Err(usage("usage: ods mv --root <dir> <from> <to>"));
+        }
+    } else if positionals.len() >= 3 && PathBuf::from(&positionals[0]).is_dir() {
+        (PathBuf::from(&positionals[0]), positionals[1].clone(), positionals[2].clone())
     } else if positionals.len() == 2 {
-        (positionals[0].clone(), positionals[1].clone())
+        (env::current_dir().unwrap_or_else(|_| PathBuf::from(".")), positionals[0].clone(), positionals[1].clone())
     } else {
-        return Err(usage("usage: ods mv [root] <from> <to>"));
+        return Err(usage("usage: ods mv [root] <from> <to> [--dry-run]"));
     };
+
+    let root = resolve_root_path(root_dir);
+    require_ods_workspace(&root)?;
+
+    if dry_run {
+        match format {
+            OutputFormat::Text => {
+                println!("(dry-run) would move document {} to {} and rewrite references across workspace {}", from, to, root.display());
+            }
+            OutputFormat::Json | OutputFormat::Sarif => {
+                println!(
+                    r#"{{"dry_run":true,"from":{},"to":{},"root":{}}}"#,
+                    json_escape(&from),
+                    json_escape(&to),
+                    json_escape(&root.display().to_string())
+                );
+            }
+        }
+        return Ok(ExitCode::from(0));
+    }
+
     let report = move_document_and_rewrite_refs_report(&root, &from, &to)
         .map_err(|err| failure(err.to_string()))?;
     print_path_change_report(&root, &from, &to, &report, format, "moved");

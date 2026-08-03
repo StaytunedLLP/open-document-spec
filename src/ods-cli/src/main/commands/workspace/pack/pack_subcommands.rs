@@ -1,10 +1,17 @@
 fn run_pack_remove(args: &[String]) -> Result<ExitCode, CliError> {
-    let name = args
-        .get(3)
-        .ok_or_else(|| usage("ods pack remove requires a pack name or path"))?;
+    let positionals = positional_args(args, 3);
+    let (root_path, name) = match positionals.as_slice() {
+        [ws, n] => (PathBuf::from(ws), n.clone()),
+        [n] => (env::current_dir().unwrap_or_else(|_| PathBuf::from(".")), n.clone()),
+        _ => return Err(usage("ods pack remove [root] <pack-name-or-path>")),
+    };
 
-    let root = resolve_root_path(env::current_dir().unwrap_or_else(|_| PathBuf::from(".")));
-    let root_index_path = root.join("index.ods.md");
+    let root = resolve_root_path(root_path);
+    let root_index_path = if root.join("index.ods.md").exists() {
+        root.join("index.ods.md")
+    } else {
+        root.join("index.md")
+    };
 
     if !root_index_path.exists() {
         return Err(failure("root index.ods.md not found"));

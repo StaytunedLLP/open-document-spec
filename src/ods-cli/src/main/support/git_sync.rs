@@ -9,7 +9,7 @@ fn doctor_workspace(root: &Path) -> Result<DoctorReport, CliError> {
     ));
     lines.push(format!("ods version: {}", env!("CARGO_PKG_VERSION")));
     json_fields.push(format!(
-        r#""odc_version":{}"#,
+        r#""ods_version":{}"#,
         json_escape(env!("CARGO_PKG_VERSION"))
     ));
 

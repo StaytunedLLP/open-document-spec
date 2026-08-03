@@ -143,15 +143,22 @@ fn test_cli_lint_sarif_format() {
 fn test_cli_setup_git_hooks() {
     let dir = tempdir().unwrap();
     let path = dir.path().to_str().unwrap();
+    fs::write(
+        dir.path().join("index.md"),
+        "---\nprofile: index\nods: 0.1\n---\n\n# Root\n",
+    )
+    .unwrap();
 
     let git_dir = dir.path().join(".git/hooks");
     fs::create_dir_all(&git_dir).unwrap();
 
     let setup = Command::new(ods_bin())
+        .env("ODS_AUTO_UPDATE", "0")
+        .env("ODS_SETUP_NO_START", "1")
         .args(["setup", path, "--git-hooks"])
         .output()
         .unwrap();
-    assert!(setup.status.success());
+    assert!(setup.status.success(), "{:?}", setup);
     let hook_file = git_dir.join("pre-commit");
     assert!(hook_file.exists());
     let content = fs::read_to_string(&hook_file).unwrap();

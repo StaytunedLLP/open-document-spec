@@ -7,7 +7,7 @@ fn test_body_link_validation() {
     let temp = temp_workspace();
     fs::write(
         temp.join("index.md"),
-        "---\nprofile: index\nods: 0.1\nodc: \">=0.0.1\"\n---\n\n# Root\n\n- [doc.md](doc.md)\n",
+        "---\nprofile: index\nods: 0.1\n---\n\n# Root\n\n- [doc.md](doc.md)\n",
     )
     .expect("root index");
 
@@ -34,7 +34,7 @@ fn context_ignore_skips_matching_paths() {
     let temp = temp_workspace();
     fs::write(
         temp.join("index.md"),
-        "---\nprofile: index\nods: 0.1\nodc: \">=0.0.1\"\n---\n\n# Root\n\n- [main.md](main.md)\n- [archive/](archive/index.md)\n",
+        "---\nprofile: index\nods: 0.1\n---\n\n# Root\n\n- [main.md](main.md)\n- [archive/](archive/index.md)\n",
     )
     .expect("root");
     fs::create_dir_all(temp.join("archive")).expect("archive");
@@ -69,7 +69,7 @@ fn context_query_fallback_and_code_ref_tests() {
     let dir = temp_workspace();
     fs::write(
         dir.join("index.md"),
-        "---\nprofile: index\nods: 0.1\nodc: \">=0.0.1\"\n---\n\n# R\n",
+        "---\nprofile: index\nods: 0.1\n---\n\n# R\n",
     )
     .unwrap();
     fs::create_dir_all(dir.join("src")).unwrap();
@@ -99,7 +99,7 @@ fn depends_and_related_references_resolve_without_dangling() {
     let temp = temp_workspace();
     fs::write(
         temp.join("index.md"),
-        "---\nprofile: index\nods: 0.1\nodc: \">=0.0.1\"\n---\n\n# Root\n\n- [product.md](product.md)\n- [pricing.md](pricing.md)\n- [service.md](service.md)\n",
+        "---\nprofile: index\nods: 0.1\n---\n\n# Root\n\n- [product.md](product.md)\n- [pricing.md](pricing.md)\n- [service.md](service.md)\n",
     )
     .expect("root index");
     fs::write(
@@ -137,7 +137,7 @@ fn adopt_write_adds_minimal_frontmatter() {
     let temp = temp_workspace();
     fs::write(
         temp.join("index.md"),
-        "---\nprofile: index\nods: 0.1\nodc: \">=0.0.1\"\n---\n\n# Root\n\n- [plain.md](plain.md)\n",
+        "---\nprofile: index\nods: 0.1\n---\n\n# Root\n\n- [plain.md](plain.md)\n",
     )
     .expect("root");
     fs::write(temp.join("plain.md"), "# Plain\n\nJust prose.\n").expect("plain");
@@ -155,7 +155,7 @@ fn test_context_share_private_filtering() {
     let temp = temp_workspace();
     fs::write(
         temp.join("index.md"),
-        "---\nprofile: index\nods: 0.1\nodc: \">=0.0.1\"\n---\n\n# Root\n",
+        "---\nprofile: index\nods: 0.1\n---\n\n# Root\n",
     )
     .expect("root");
     fs::write(
