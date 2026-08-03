@@ -261,13 +261,8 @@ fn resolve_engines_auto_activation_from_root_config() {
         okf: true,
         skills: true,
     };
-    let e = ods_core::resolve_engines_with_config(
-        ExtraSpecs::default(),
-        det,
-        Some(&cfg),
-        true,
-    )
-    .unwrap();
+    let e = ods_core::resolve_engines_with_config(ExtraSpecs::default(), det, Some(&cfg), true)
+        .unwrap();
     assert!(e.ods);
     assert!(e.okf);
     assert!(e.skills);

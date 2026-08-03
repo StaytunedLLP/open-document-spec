@@ -261,17 +261,11 @@ fn parse_common_flags(
                      Use `--okf` or `--skills` only for other specs.",
                 ));
             }
-            "--okf" | "--skills" => {
-                // Extra-spec enable flags; handled by command runners via parse_extra_spec_flags.
-                i += 1;
-            }
-            "--check"
-            | "--write"
-            | "--okf"
+            "--okf"
             | "--skills"
-            | "--fix"
             | "--check"
             | "--write"
+            | "--fix"
             | "--write-report"
             | "--all"
             | "--adopt"

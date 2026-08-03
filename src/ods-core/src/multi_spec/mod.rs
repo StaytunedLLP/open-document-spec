@@ -9,7 +9,8 @@ pub mod skills;
 
 pub use detect::{Detected, detect_workspace, skill_package_roots, skills_enabled};
 pub use scope::{
-    ActiveEngines, ExtraSpecs, ScopeResolveError, parse_extra_spec_flags, resolve_engines,
+    ActiveEngines, ExtraSpecs, ScopeResolveError, load_root_specs_config, parse_extra_spec_flags,
+    resolve_engines, resolve_engines_with_config,
 };
 pub use skills::{
     SkillFrontmatter, SkillPackage, SkillsInitOptions, SkillsInitReport, init_skill_package,
