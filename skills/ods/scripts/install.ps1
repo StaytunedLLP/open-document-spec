@@ -19,8 +19,12 @@
 #   GH_TOKEN / GITHUB_TOKEN — required while the repo is private
 #
 [CmdletBinding()]
-param()
+param(
+    [switch]$Force
+)
 $ErrorActionPreference = "Stop"
+
+$isForce = $Force -or ($env:ODS_FORCE -eq "1")
 
 $Repo = "StaytunedLLP/open-document-spec"
 $Api  = "https://api.github.com/repos/$Repo"
@@ -154,8 +158,9 @@ if (-not $Version) { throw "Could not resolve latest release tag." }
 Write-Step "Installing ODS $Version for $Asset"
 
 $InstalledVersion = Get-InstalledOdsVersion
-if ($InstalledVersion -and ((Compare-OdsVersion $InstalledVersion $Version) -ge 0)) {
+if (-not $isForce -and $InstalledVersion -and ((Compare-OdsVersion $InstalledVersion $Version) -ge 0)) {
     Write-Step "ods $InstalledVersion is up to date (latest $(Normalize-OdsVersion $Version))"
+    Write-Step "Use -Force (or set `$env:ODS_FORCE = '1') to force re-installation."
     $cmd = Get-Command ods -ErrorAction SilentlyContinue
     if ($cmd) {
         & $cmd.Source --version
@@ -180,8 +185,14 @@ Write-Step "Downloading $Filename..."
 try {
     Download-ReleaseAsset -Release $Release -Name $Filename -OutFile "$TmpDir\$Filename"
 } catch {
-    if (-not $Token) { Show-PrivateRepoHint }
-    throw "Download failed for $Filename on $Version`nhttps://github.com/$Repo/releases`nError: $_"
+    $Filename = "odc-$Version-$Asset.zip"
+    Write-Host "    Trying fallback $Filename..."
+    try {
+        Download-ReleaseAsset -Release $Release -Name $Filename -OutFile "$TmpDir\$Filename"
+    } catch {
+        if (-not $Token) { Show-PrivateRepoHint }
+        throw "Download failed for archive on $Version`nhttps://github.com/$Repo/releases`nError: $_"
+    }
 }
 
 # ── Checksum verification ─────────────────────────────────────────────────────
@@ -210,15 +221,15 @@ if ($env:ODS_NO_VERIFY -ne "1") {
 Write-Step "Extracting..."
 Expand-Archive -Path "$TmpDir\$Filename" -DestinationPath $TmpDir -Force
 $Extracted = "$TmpDir\ods-$Version-$Asset"
-if (-not (Test-Path "$Extracted")) { $Extracted = "$TmpDir\ods-$Version-$Asset" }
+if (-not (Test-Path "$Extracted")) { $Extracted = "$TmpDir\odc-$Version-$Asset" }
 $BinSrc = $null
 if (Test-Path "$Extracted\ods.exe") { $BinSrc = "$Extracted\ods.exe" }
-elseif (Test-Path "$Extracted\ods.exe") { $BinSrc = "$Extracted\ods.exe" }
+elseif (Test-Path "$Extracted\odc.exe") { $BinSrc = "$Extracted\odc.exe" }
 else {
-    $found = Get-ChildItem -Path $TmpDir -Recurse -Include "ods.exe","ods.exe" -ErrorAction SilentlyContinue | Select-Object -First 1
+    $found = Get-ChildItem -Path $TmpDir -Recurse -Include "ods.exe","odc.exe" -ErrorAction SilentlyContinue | Select-Object -First 1
     if ($found) { $BinSrc = $found.FullName }
 }
-if (-not $BinSrc) { throw "ods.exe/ods.exe not found in archive" }
+if (-not $BinSrc) { throw "ods.exe/odc.exe not found in archive" }
 
 # ── Install ───────────────────────────────────────────────────────────────────
 $Prefix = $env:ODC_PREFIX
