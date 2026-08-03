@@ -145,6 +145,33 @@ raise SystemExit(1)
     "${API}/releases/assets/${asset_id}"
 }
 
+# ── Arguments & Options ────────────────────────────────────────────────────────
+FORCE="${ODS_FORCE:-0}"
+VERSION_ARG=""
+
+while [ $# -gt 0 ]; do
+  case "$1" in
+    -f|--force)
+      FORCE=1
+      shift
+      ;;
+    -v|--version)
+      VERSION_ARG="$2"
+      shift 2
+      ;;
+    -*)
+      warn "unknown option: $1"
+      shift
+      ;;
+    *)
+      if [ -z "${VERSION_ARG}" ]; then
+        VERSION_ARG="$1"
+      fi
+      shift
+      ;;
+  esac
+done
+
 # ── Dependency check ──────────────────────────────────────────────────────────
 need_cmd curl
 need_cmd tar
@@ -172,7 +199,7 @@ case "${OS}-${ARCH}" in
 esac
 
 # ── Version resolution ────────────────────────────────────────────────────────
-VERSION="${1:-${ODS_VERSION:-}}"
+VERSION="${VERSION_ARG:-${ODS_VERSION:-}}"
 if [ -z "${VERSION}" ]; then
   info "Resolving latest ODS release..."
   if ! API_RESPONSE=$(api_curl -H "Accept: application/vnd.github+json" \
@@ -190,8 +217,9 @@ fi
 info "Installing ODS ${VERSION} for ${ASSET}"
 
 INSTALLED_VERSION="$(installed_ods_version)"
-if [ -n "${INSTALLED_VERSION}" ] && version_ge "${INSTALLED_VERSION}" "${VERSION}"; then
+if [ "${FORCE}" != "1" ] && [ -n "${INSTALLED_VERSION}" ] && version_ge "${INSTALLED_VERSION}" "${VERSION}"; then
   info "ods ${INSTALLED_VERSION} is up to date (latest $(strip_v "${VERSION}"))"
+  info "Use --force (or export ODS_FORCE=1) to force re-installation."
   command -v ods >/dev/null 2>&1 && ods --version || "${ODS_PREFIX:-${HOME}/.local/bin}/ods" --version
   exit 0
 fi
@@ -206,11 +234,15 @@ trap 'rm -rf "${TMPDIR_ODS}"' EXIT
 # ── Download archive ──────────────────────────────────────────────────────────
 info "Downloading ${FILENAME}..."
 if ! download_asset "${VERSION}" "${FILENAME}" "${TMPDIR_ODS}/${FILENAME}"; then
-  if [ -z "${TOKEN}" ]; then
-    private_repo_hint
-  fi
-  fatal "download failed for ods- archive on ${VERSION}
+  FILENAME="odc-${VERSION}-${ASSET}.tar.gz"
+  info "Asset ods-${VERSION}-${ASSET}.tar.gz not found; trying fallback ${FILENAME}..."
+  if ! download_asset "${VERSION}" "${FILENAME}" "${TMPDIR_ODS}/${FILENAME}"; then
+    if [ -z "${TOKEN}" ]; then
+      private_repo_hint
+    fi
+    fatal "download failed for archive on ${VERSION}
 Check that version exists at: https://github.com/${REPO}/releases"
+  fi
 fi
 
 # ── Checksum verification ─────────────────────────────────────────────────────
@@ -247,14 +279,15 @@ fi
 info "Extracting..."
 tar xzf "${TMPDIR_ODS}/${FILENAME}" -C "${TMPDIR_ODS}"
 BIN_SRC=""
-for try in "${TMPDIR_ODS}/ods-${VERSION}-${ASSET}"; do
+for try in "${TMPDIR_ODS}/ods-${VERSION}-${ASSET}" "${TMPDIR_ODS}/odc-${VERSION}-${ASSET}"; do
   if [ -f "${try}/ods" ]; then BIN_SRC="${try}/ods"; break; fi
+  if [ -f "${try}/odc" ]; then BIN_SRC="${try}/odc"; break; fi
 done
 if [ -z "${BIN_SRC}" ]; then
-  FOUND=$(find "${TMPDIR_ODS}" -type f -name ods 2>/dev/null | head -1 || true)
+  FOUND=$(find "${TMPDIR_ODS}" -type f \( -name ods -o -name odc \) 2>/dev/null | head -1 || true)
   [ -n "${FOUND}" ] && BIN_SRC="${FOUND}"
 fi
-[ -n "${BIN_SRC}" ] && [ -f "${BIN_SRC}" ] || fatal "binary 'ods' not found in archive"
+[ -n "${BIN_SRC}" ] && [ -f "${BIN_SRC}" ] || fatal "binary 'ods' or 'odc' not found in archive"
 
 # ── Install ───────────────────────────────────────────────────────────────────
 PREFIX="${ODS_PREFIX:-${HOME}/.local/bin}"
@@ -265,19 +298,39 @@ echo ""
 info "Installed successfully:"
 echo "    ${PREFIX}/ods  (primary)"
 
-# ── PATH hint ─────────────────────────────────────────────────────────────────
+# ── PATH Auto-Configuration ───────────────────────────────────────────────────
 case ":${PATH}:" in
   *":${PREFIX}:"*) ;;
   *)
-    echo ""
-    echo "  NOTE: '${PREFIX}' is not yet in your PATH."
-    echo "  Add this to your shell profile (~/.bashrc, ~/.zshrc, etc.):"
-    echo ""
-    echo "    export PATH=\"${PREFIX}:\$PATH\""
-    echo ""
-    echo "  Then run: source ~/.bashrc  (or open a new terminal)"
+    export PATH="${PREFIX}:${PATH}"
+    SHELL_PROFILE=""
+    if [ -n "${ZSH_VERSION:-}" ] || [ -f "${HOME}/.zshrc" ]; then
+      SHELL_PROFILE="${HOME}/.zshrc"
+    elif [ -f "${HOME}/.bashrc" ]; then
+      SHELL_PROFILE="${HOME}/.bashrc"
+    elif [ -f "${HOME}/.profile" ]; then
+      SHELL_PROFILE="${HOME}/.profile"
+    fi
+
+    if [ -n "${SHELL_PROFILE}" ]; then
+      if ! grep -q "PATH=.*${PREFIX}" "${SHELL_PROFILE}" 2>/dev/null; then
+        echo "" >> "${SHELL_PROFILE}"
+        echo "# Open Document Spec (ods) CLI PATH" >> "${SHELL_PROFILE}"
+        echo "export PATH=\"${PREFIX}:\$PATH\"" >> "${SHELL_PROFILE}"
+        info "Added '${PREFIX}' to PATH in ${SHELL_PROFILE}"
+      fi
+    fi
     ;;
 esac
+
+# ── Instant Verification ──────────────────────────────────────────────────────
+info "Verifying installation..."
+if "${PREFIX}/ods" --version >/dev/null 2>&1; then
+  VER_OUT="$("${PREFIX}/ods" --version)"
+  info "ODS installed and verified: ${VER_OUT}"
+else
+  fatal "installed binary at ${PREFIX}/ods failed execution check"
+fi
 
 # ── Next steps ────────────────────────────────────────────────────────────────
 echo ""
