@@ -742,9 +742,9 @@ jobs:
           fi
           for asset in "${sums_files[@]}"; do
             case "${asset}" in
-              odc-*) ;;
+              odc-*|ods-*) ;;
               *)
-                echo "error: unexpected non-odc asset in SHA256SUMS: ${asset}" >&2
+                echo "error: unexpected non-ods/odc asset in SHA256SUMS: ${asset}" >&2
                 exit 1
                 ;;
             esac
