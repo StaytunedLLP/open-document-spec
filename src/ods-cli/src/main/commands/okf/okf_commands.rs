@@ -49,6 +49,7 @@ fn run_okf_init_command(args: &[String]) -> Result<ExitCode, CliError> {
     Ok(ExitCode::from(0))
 }
 
+#[allow(dead_code)]
 fn run_okf_lint_command(args: &[String]) -> Result<ExitCode, CliError> {
     let (root, _level, _format) = parse_common_flags(args, 2)?;
     let mut root_specs = ods_core::load_root_specs_config(&root);

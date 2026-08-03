@@ -118,8 +118,8 @@ pub fn resolve_engines_with_config(
     config: Option<&crate::model::WorkspaceSpecsConfig>,
     require_present: bool,
 ) -> Result<ActiveEngines, ScopeResolveError> {
-    let okf_enabled = extra.okf || config.map_or(false, |c| c.okf.enabled);
-    let skills_enabled = extra.skills || config.map_or(false, |c| c.skills.enabled);
+    let okf_enabled = extra.okf || config.is_some_and(|c| c.okf.enabled);
+    let skills_enabled = extra.skills || config.is_some_and(|c| c.skills.enabled);
 
     let engines = ActiveEngines {
         ods: detected.ods,
