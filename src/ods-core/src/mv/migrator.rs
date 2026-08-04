@@ -178,7 +178,7 @@ fn merge_tag_blocks(
     // Collect all tag values from root + nested (list items or inline).
     let mut values: Vec<String> = Vec::new();
     let mut seen = std::collections::BTreeSet::new();
-    for lines in std::iter::once(root_tags_lines).chain(nested_tag_lines.into_iter()) {
+    for lines in std::iter::once(root_tags_lines).chain(nested_tag_lines) {
         for v in extract_tag_values_from_block(lines) {
             if let Some(n) = crate::tags::normalize_tag(&v)
                 && seen.insert(n.clone())

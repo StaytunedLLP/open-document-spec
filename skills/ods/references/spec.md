@@ -1,5 +1,4 @@
 ---
-title: "ODS Specification"
 description: "Open Document Spec Working Draft 1 - Core format model, conformance levels, frontmatter canonical sequence, and lifecycle operations."
 status: "stable"
 order: 0
@@ -59,18 +58,21 @@ Any `.md` file, with or without frontmatter, is a valid ODS document. Tools MUST
 
 ### Level 1 - typed
 
-A Level-1 document introduces identity frontmatter (such as `profile` and `status`):
+A Level-1 document introduces identity frontmatter (`ods.profile` and `ods.status` under the nested `ods:` map):
 
 ```markdown
 ---
-profile: guide
-status: draft
+ods:
+  profile: guide
+  status: draft
 ---
 
 # Checkout Setup
 
 Steps for configuring checkout in a local development environment.
 ```
+
+Parsers MUST still accept legacy top-level flat `profile` / `status` keys for migration; canonical emit form is nested under `ods:` (see §3 and `ods fmt --migrate`).
 
 ### Level 2 - linked
 
@@ -86,21 +88,79 @@ A Level-3 workspace enforces structural integrity and lint rules both locally an
 
 Frontmatter is a single YAML block delimited by `---` at the very beginning of the document. **All fields are optional.** To allow for custom extensions and static site generator (SSG) interoperability, tools MUST ignore unknown fields.
 
-Frontmatter is segregated into **Universal Top-Level Metadata** (read by SSGs, Obsidian, OpenGraph, CMSs) and **ODS Engine Metadata** (nested under an `ods:` map):
+Frontmatter is segregated into **Universal Top-Level Metadata** (common level — any tool can read it) and **ODS Engine Metadata** (nested under an `ods:` map — ODS-only).
+
+### Key placement rule (normative)
+
+| Layer | Placement | Purpose |
+| :--- | :--- | :--- |
+| **Universal (common) metadata** | **Top-level** frontmatter only | Readable by any YAML-frontmatter consumer (SSGs, Obsidian, Hugo, Docusaurus, Astro, CMS, agents) without knowing ODS |
+| **ODS engine metadata** | Nested under **`ods:`** only | Profile, lifecycle, graph edges, share, code/resource bindings, context — ODS-specific; kept out of the global key namespace |
+
+Tools MUST treat the following as **universal top-level** keys and MUST NOT require them under `ods:`:
+
+- `description`, `tags`, `owner`, `created`, `updated` (and aliases already defined, e.g. `last_updated`)
+
+Tools MUST treat the following as **engine keys** and, when emitting canonical documents, MUST place them under `ods:`:
+
+- `profile`, `status`, `id`, `share`, `depends`, `related`, `resources`, `code`, `context`
+
+**`tags` placement (normative):**
+
+- Documents MUST declare `tags` at the **top level** of frontmatter when present.
+- Documents MUST NOT nest `tags` under `ods:`. Nested placement makes tags invisible to non-ODS tools and is invalid for multi-tool interop.
+- Tools SHOULD warn when `tags` appears under `ods:`, and migrate tooling SHOULD hoist nested `tags` to top-level without dropping values (`ods fmt --migrate`). Nested `tags` is not a second supported authoring API.
+
+### Why this split
+
+1. **Interop:** Top-level `tags` and `description` match conventions already used by Obsidian, Logseq, Hugo, Docusaurus, Astro, OpenGraph, and CMSs.
+2. **Any technology:** A consumer that only parses YAML frontmatter can use `tags` without implementing the ODS engine.
+3. **Namespace safety:** Nesting engine keys under `ods:` avoids collisions with SSG reserved keys and author-defined custom keys.
+4. **Single responsibility:** Universal keys are for discovery and display; `ods:` keys are for the graph and validation engine.
+5. **Repair, not dual API:** Misplaced nested universal keys are a lint + migrate concern, not a permanent alternate layout.
+
+### Quick reference — where does this key go?
+
+| Keys | Level |
+| :--- | :--- |
+| `description`, `tags`, `owner`, `created`, `updated` | **Top-level (common)** |
+| `profile`, `status`, `id`, `share`, `depends`, `related`, `resources`, `code`, `context` | **Under `ods:`** |
+| Scalar `ods` (version / CLI constraint), `profiles` / `custom-profiles`, `packs`, `ignore`, `aliases`, `specs` | **Root index only** (top-level on root index) |
+
+Wrong vs right for tags:
+
+```yaml
+# WRONG — tags privatized under the engine map (non-ODS tools cannot see them)
+ods:
+  profile: note
+  tags:
+    - billing
+
+# RIGHT — tags at common/top level; engine keys under ods:
+tags:
+  - billing
+ods:
+  profile: note
+  status: draft
+```
 
 ### Universal Top-Level Metadata Keys
+
+**Placement: top-level only** (never under `ods:`).
 
 | Field | Type | Meaning |
 | :--- | :--- | :--- |
 | `description` | string | Single-line summary of the document. Used by ODS index listings AND extracted by SSGs for HTML `<meta name="description">` and social preview cards. |
-| `tags` | list of strings | Free-form search facets up to $N$ items. Normalizes to lowercase. Natively parsed by Obsidian, Logseq, Hugo, Docusaurus, and Rspress. |
+| `tags` | list of strings | Free-form search facets up to $N$ items. Normalizes to lowercase. Natively parsed by Obsidian, Logseq, Hugo, Docusaurus, and Rspress. **MUST be top-level.** |
 | `owner` | string \| list | Responsible individual/team or list of teams up to $N$ owners. |
 | `created` | string | Document creation timestamp (`YYYY-MM-DD` or ISO-8601). Optional; for non-Git authors. |
 | `updated` | string | Document last update timestamp (`YYYY-MM-DD` or ISO-8601). Optional; accepts `last_updated` alias. |
 
 ### ODS Engine Metadata Keys (Nested inside `ods:`)
 
-When scaffolded (`ods new`), adopted (`ods adopt`), or formatted (`ods fmt --write`), keys inside the `ods:` map MUST be emitted in this exact **Canonical Key Sequence**:
+**Placement: nested under `ods:` only.** This map MUST NOT include universal keys such as `tags`, `description`, or `owner`.
+
+When scaffolded (`ods new`), adopted (`ods adopt`), or migrated to canonical layout (`ods fmt --migrate`), keys inside the `ods:` map MUST be emitted in this exact **Canonical Key Sequence**:
 
 | Order | Field | Type | Meaning |
 | :-: | :--- | :--- | :--- |
@@ -114,12 +174,14 @@ When scaffolded (`ods new`), adopted (`ods adopt`), or formatted (`ods fmt --wri
 | 5+ | `code` | list of maps | Multi-value list up to $N$ implementation mappings (`path`, `role`, `symbol`). `symbol` accepts single string or multi-line array up to $N$ symbols. Line numbers are prohibited in `path`. |
 | 5+ | `context` | map | AI context scope directives (`max-depth` graph hops, `load` file paths up to $N$, `ignore` directory path masks up to $N$). |
 
-### Root `index.md` Workspace Configuration Keys
+### Root `index.md` / `index.ods.md` Workspace Configuration Keys
+
+These keys appear at the **top level of the root index** only (not under a nested engine map of document keys). Scalar `ods:` on the root marks the workspace boundary.
 
 | Field | Type | Meaning |
 | :--- | :--- | :--- |
-| `ods` | string | Root `index.md` only: ODS spec version string marker (e.g. `ods: 0.1`). Defines workspace boundary. |
-| `ods` | string | Root `index.md` only: minimum compatible ODS CLI version constraint (e.g. `>=0.0.1`). |
+| `ods` | string | Root index only: ODS spec version string marker (e.g. `ods: 0.1`). Defines workspace boundary. |
+| `ods` | string | Root index only: minimum compatible ODS CLI version constraint (e.g. `>=0.0.1`). |
 | `profiles` | list of paths | Custom profile catalog paths under workspace root up to $N$ items. |
 | `packs` | list of paths | Imported ODS Packs list up to $N$ items. |
 | `ignore` | list of paths | Workspace scan exclusion path masks up to $N$ items. |
@@ -130,7 +192,7 @@ When scaffolded (`ods new`), adopted (`ods adopt`), or formatted (`ods fmt --wri
 > [!IMPORTANT]
 > **Frontmatter `title` Prohibition Rule**: Frontmatter MUST NOT contain a `title:` key. The document title exists exclusively as the first `# H1` heading in the Markdown body prose (Single Source of Truth / Token Efficiency).
 > 
-> **Tooling Tolerance Contract**: The ODS parser MUST NOT error if frontmatter keys inside `ods:` appear out of sequence. However, formatting and scaffolding commands (`ods fmt --write`, `ods new`, `ods adopt`) MUST enforce canonical key sequence (`profile` $\rightarrow$ `status` $\rightarrow$ `id` $\rightarrow$ `share` $\rightarrow$ `depends`, `related`, `resources`, `code`, `context`).
+> **Tooling Tolerance Contract**: The ODS parser MUST NOT error if frontmatter keys inside `ods:` appear out of sequence. However, scaffolding (`ods new`, `ods adopt`) and layout migration (`ods fmt --migrate`) MUST enforce canonical key sequence (`profile` $\rightarrow$ `status` $\rightarrow$ `id` $\rightarrow$ `share` $\rightarrow$ `depends`, `related`, `resources`, `code`, `context`) and MUST keep universal keys (`tags`, `description`, `owner`, …) at the top level.
 
 ### Minimal and Complete Examples
 

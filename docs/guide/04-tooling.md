@@ -46,14 +46,14 @@ Happy path: [Quickstart Guide](/docs/quickstart).
 | `ods adopt [path]` | 🛠️ **Tier 2: Practitioner** | Draft frontmatter for existing Markdown files (dry-run; `--write`). |
 | `ods rm <path-or-id>` | 🛠️ **Tier 2: Practitioner** | Atomically delete document and scrub graph references (`depends`/`related`) workspace-wide. Alias: `ods remove`. |
 | `ods archive <path-or-id>` | 🛠️ **Tier 2: Practitioner** | Set `status: archived` in frontmatter in place. |
-| `ods fmt [path]` | 🛠️ **Tier 2: Practitioner** | Reformat YAML frontmatter/body blank-line spacing. `--refs md-paths` converts extensionless IDs to relative `.md` paths. |
+| `ods fmt [path]` | 🛠️ **Tier 2: Practitioner** | Reformat YAML frontmatter/body blank-line spacing. `--refs md-paths` converts extensionless IDs to relative `.md` paths. **`--migrate`** rewrites engine keys under `ods:` and hoists misplaced nested `tags` to top-level. |
 | `ods stats [path]` | 🛠️ **Tier 2: Practitioner** | Display workspace document telemetry, graph density, profile distribution, and health score (`--format text\|json`). |
 | `ods tree [path]` | 🛠️ **Tier 2: Practitioner** | Display visual ASCII/Unicode hierarchy tree of index navigation and dependency graphs (`--format text\|json`). |
 | `ods context [path] <id>` | 📋 **Tier 3: Power User** | Generate resolved bounded AI reading list (`--include-private` includes `share: private` documents). |
 | `ods profiles [path]` | 📋 **Tier 3: Power User** | List standard and custom profiles loaded in workspace and report schema conflicts. |
-| `ods tags [path]` | 📋 **Tier 3: Power User** | List document tags with counts (`--all` includes default unused tags). |
-| `ods find [path] --tag <t>` | 📋 **Tier 3: Power User** | Find and list documents by tag (repeat `--tag` for OR query). |
-| `ods tag rename <old> <new>` | 📋 **Tier 3: Power User** | Workspace-wide tag rename (dry-run; `--write`). |
+| `ods tags [path]` | 📋 **Tier 3: Power User** | List **top-level** document tags with counts (`--all` includes default unused tags). Tags must not live under `ods:`. |
+| `ods find [path] --tag <t>` | 📋 **Tier 3: Power User** | Find and list documents by top-level tag (repeat `--tag` for OR query). |
+| `ods tag rename <old> <new>` | 📋 **Tier 3: Power User** | Workspace-wide top-level tag rename (dry-run; `--write`). |
 | `ods schema [path]` | 📋 **Tier 3: Power User** | Export JSON Schema (`ods.schema.json`) for IDE frontmatter autocomplete and validation (`--write`, `--out PATH`). |
 | `ods diff [target]` | 📋 **Tier 3: Power User** | Compare document graph dependencies and frontmatter changes against git commits or branches (`--format text\|json`). |
 | `ods graph [path]` | 📋 **Tier 3: Power User** | Print `depends`/`related` edges as `path -> edge` lines. |
