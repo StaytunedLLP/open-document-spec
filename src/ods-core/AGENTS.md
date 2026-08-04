@@ -1,8 +1,9 @@
 # AGENTS.md — `src/ods-core`
 
-- Domain folders: `graph/`, `lint/`, `parse/`, `index/`, `okf/`, `multi_spec/`, `spec/`, …
+- Domain folders: `graph/`, `lint/`, `parse/`, `index/`, `okf/`, `multi_spec/`, `spec/`, `error/`, …
 - Functional style: pure data + free functions; IO at edges
-- Multi-spec: `multi_spec/` + flags only (no namespaces)
+- **User-facing messages SoT:** `error/messages.rs` (CLI lifecycle + high-volume lint diagnostics)
+- Multi-spec: `multi_spec/` + flags only (no namespaces); `ScopeResolveError::message()` delegates to the catalog
 - Frontmatter model: universal top-level tags; engine under nested `ods:`
 - Index canonical name: prefer `index.ods.md` (also accept `index.md`)
 - Root marker: scalar `ods` version on root index; custom profiles key `custom-profiles`

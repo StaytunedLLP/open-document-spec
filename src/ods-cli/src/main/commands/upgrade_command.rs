@@ -78,9 +78,9 @@ fn run_upgrade_command(args: &[String]) -> Result<ExitCode, CliError> {
     if migrate_fm && ods {
         if write {
             let workspace =
-                load_workspace(&root).map_err(|err| failure(err.to_string()))?;
+                load_workspace(&root).map_err(|err| fail_load(&root, err))?;
             let changed = migrate_workspace_frontmatter_with_workspace(&workspace)
-                .map_err(|err| failure(err.to_string()))?;
+                .map_err(|err| fail_io("upgrade/audit", err))?;
             actions.push(format!(
                 "migrated canonical ods: layout in {} file(s)",
                 changed.len()
@@ -156,13 +156,18 @@ fn run_ods_audit_command(args: &[String]) -> Result<ExitCode, CliError> {
         return run_okf_audit_command(args);
     }
     if !engines.ods {
-        return Err(failure(
-            "audit requires an ODS workspace (or pass `--okf` for OKF-only audit)",
+        return Err(fail_msg(
+            ods_core::UserMsg::new(
+                "audit_requires_ods",
+                ods_core::ErrorStage::Scope,
+                "audit requires an ODS workspace",
+            )
+            .next("run `ods init`, or pass `--okf` for OKF-only audit"),
         ));
     }
     let report_path = report_path_opt.unwrap_or_else(|| root.join(".ods/ods-errors.md"));
 
-    let workspace = load_workspace(&root).map_err(|err| failure(err.to_string()))?;
+    let workspace = load_workspace(&root).map_err(|err| fail_load(&root, err))?;
     let mut plain = 0usize;
     let mut invalid = 0usize;
     let mut partial = 0usize;
@@ -220,7 +225,7 @@ fn run_ods_audit_command(args: &[String]) -> Result<ExitCode, CliError> {
 
     if write_report {
         if let Some(parent) = report_path.parent() {
-            fs::create_dir_all(parent).map_err(|e| failure(e.to_string()))?;
+            fs::create_dir_all(parent).map_err(|e| fail_io("upgrade/audit", e))?;
         }
         let mut md = String::new();
         md.push_str("---\ngenerated_by: ods audit\n");
@@ -238,7 +243,7 @@ fn run_ods_audit_command(args: &[String]) -> Result<ExitCode, CliError> {
             }
         }
         md.push_str("\n## Suggested next commands\n\n```bash\nods adopt --write\nods fmt --migrate\nods lint\n```\n");
-        fs::write(&report_path, md).map_err(|e| failure(e.to_string()))?;
+        fs::write(&report_path, md).map_err(|e| fail_io("upgrade/audit", e))?;
         if matches!(format, OutputFormat::Text) {
             println!("wrote {}", report_path.display());
         }
@@ -250,8 +255,10 @@ fn run_ods_audit_command(args: &[String]) -> Result<ExitCode, CliError> {
         Some("invalid") => invalid > 0,
         Some("any") => plain + invalid + partial > 0,
         Some(other) => {
-            return Err(usage(format!(
-                "invalid --fail-on {other} (use plain|invalid|any)"
+            return Err(usage_msg(ods_core::invalid_choice(
+                "--fail-on",
+                other,
+                "plain|invalid|any",
             )));
         }
     };
@@ -272,11 +279,11 @@ mod test_upgrade_and_audit {
         let root = td.path();
         fs::write(
             root.join("index.ods.md"),
-            "---\nprofile: index\nods: 0.1\n---\n\n# R\n",
+            "---\nprofile: index\nods: 0.1\n---\n\n# Root\n",
         )
         .unwrap();
         fs::write(
-            root.join("n.md"),
+            root.join("legacy.md"),
             "---\nprofile: note\nstatus: draft\n---\n\n# N\n",
         )
         .unwrap();
@@ -288,7 +295,7 @@ mod test_upgrade_and_audit {
             path.clone(),
             "--migrate-fm".into(),
         ]);
-        let _ = res;
+        assert!(res.is_ok());
 
         let res = run_upgrade_command(&[
             "ods".into(),
@@ -297,7 +304,7 @@ mod test_upgrade_and_audit {
             "--migrate-fm".into(),
             "--write".into(),
         ]);
-        let _ = res;
+        assert!(res.is_ok());
 
         let res = run_upgrade_command(&[
             "ods".into(),
@@ -305,7 +312,7 @@ mod test_upgrade_and_audit {
             path.clone(),
             "--write".into(),
         ]);
-        let _ = res;
+        assert!(res.is_ok());
 
         let res = run_upgrade_command(&[
             "ods".into(),
@@ -313,9 +320,87 @@ mod test_upgrade_and_audit {
             path,
             "--format".into(),
             "json".into(),
-            "--check".into(),
         ]);
-        let _ = res;
+        assert!(res.is_ok());
+    }
+
+    #[test]
+    fn audit_command_inventory_paths_and_fail_on() {
+        let td = tempdir().unwrap();
+        let root = td.path();
+        let path = root.to_str().unwrap().to_string();
+
+        // 1. Audit non-ODS workspace
+        let err = run_ods_audit_command(&["ods".into(), "audit".into(), path.clone()]).unwrap_err();
+        assert!(err.message().contains("workspace") || err.message().contains("ODS"));
+
+        // Setup ODS workspace with root index, plain doc, invalid doc, and partial doc
+        fs::write(
+            root.join("index.ods.md"),
+            "---\nprofile: index\nods: 0.1\n---\n\n# Root\n",
+        )
+        .unwrap();
+        fs::write(root.join("plain.md"), "# Plain Text\n").unwrap();
+        fs::write(
+            root.join("invalid.md"),
+            "---\nprofile: [invalid json yaml---\n",
+        )
+        .unwrap();
+        fs::write(
+            root.join("partial.md"),
+            "---\nstatus: draft\n---\n\n# Partial\n",
+        )
+        .unwrap();
+
+        // 2. Audit text output
+        let res = run_ods_audit_command(&["ods".into(), "audit".into(), path.clone()]);
+        assert!(res.is_ok());
+
+        // 3. Audit json output + write-report + report-path
+        let report_file = root.join("custom-audit-report.md");
+        let res = run_ods_audit_command(&[
+            "ods".into(),
+            "audit".into(),
+            path.clone(),
+            "--format".into(),
+            "json".into(),
+            "--write-report".into(),
+            "--report-path".into(),
+            report_file.to_str().unwrap().into(),
+        ]);
+        assert!(res.is_ok());
+        assert!(report_file.exists());
+
+        // 4. Fail-on choices
+        let code = run_ods_audit_command(&[
+            "ods".into(),
+            "audit".into(),
+            path.clone(),
+            "--fail-on".into(),
+            "plain".into(),
+        ])
+        .unwrap();
+        assert_eq!(code, ExitCode::from(1));
+
+        let code = run_ods_audit_command(&[
+            "ods".into(),
+            "audit".into(),
+            path.clone(),
+            "--fail-on".into(),
+            "any".into(),
+        ])
+        .unwrap();
+        assert_eq!(code, ExitCode::from(1));
+
+        let err = run_ods_audit_command(&[
+            "ods".into(),
+            "audit".into(),
+            path,
+            "--fail-on".into(),
+            "unknown_choice".into(),
+        ])
+        .unwrap_err();
+        assert!(err.message().contains("fail-on"));
     }
 
     #[test]
@@ -347,13 +432,13 @@ mod test_upgrade_and_audit {
             "--fail-on".into(),
             "any".into(),
         ]);
-        // may return exit 1 due to fail-on
         assert!(res.is_ok());
+        assert!(report.exists());
 
         let res = run_ods_audit_command(&[
             "ods".into(),
             "audit".into(),
-            path,
+            path.clone(),
             "--format".into(),
             "json".into(),
             "--fail-on".into(),
@@ -361,13 +446,17 @@ mod test_upgrade_and_audit {
         ]);
         assert!(res.is_ok());
 
-        let res = run_ods_audit_command(&[
+        let res = run_ods_audit_command(&["ods".into(), "audit".into(), "--help".into()]);
+        assert!(res.is_ok());
+
+        let err = run_ods_audit_command(&[
             "ods".into(),
             "audit".into(),
-            "/tmp".into(),
+            path,
             "--fail-on".into(),
-            "bogus".into(),
-        ]);
-        let _ = res;
+            "invalid_level".into(),
+        ]).unwrap_err();
+        assert!(err.message().contains("fail-on"));
     }
 }
+

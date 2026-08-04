@@ -24,7 +24,7 @@ fn dispatch_platform_command(args: &[String]) -> Result<ExitCode, CliError> {
         "diff" => run_diff_command(args),
         "clean" => run_clean_command(args),
         "lsp" => run_lsp_command(args),
-        other => Err(usage(format!("unknown platform command: {other}"))),
+        other => Err(usage_msg(ods_core::unknown_platform_command(other))),
     }
 }
 
@@ -43,12 +43,15 @@ fn dispatch_ods_command(args: &[String]) -> Result<ExitCode, CliError> {
         "index" => run_index_command(args),
         "profile" | "profiles" => {
             let sub = args.get(2).map(String::as_str).unwrap_or("");
-            if sub == "init" {
-                run_profile_init_command(args)
-            } else {
-                run_profile_list_command(args)
+            match sub {
+                "init" => run_profile_init_command(args),
+                "show" => run_profile_show_command(args),
+                "list" | "" => run_profile_list_command(args),
+                other if other.starts_with('-') => run_profile_list_command(args),
+                _ => run_profile_list_command(args),
             }
-        },
+        }
+        "alias" | "aliases" => run_aliases_command(args),
         "tags" => run_tags_command(args),
         "find" => run_find_command(args),
         "tag" => run_tag_command(args),
@@ -59,6 +62,7 @@ fn dispatch_ods_command(args: &[String]) -> Result<ExitCode, CliError> {
         "adopt" => run_adopt_command(args),
         "new" => run_new_command(args),
         "rm" | "remove" => run_rm_command(args),
+        "status" => run_status_command(args),
         "archive" => run_archive_command(args),
         "init" | "enable" => run_init_command(args),
         "disable" | "revert" => run_disable_command(args),
@@ -84,6 +88,9 @@ fn dispatch_ods_command(args: &[String]) -> Result<ExitCode, CliError> {
         "undo" => run_undo_command(args),
         "update" => run_update_command(args),
         "upgrade" => run_upgrade_command(args),
-        other => Err(usage(format!("unknown ods command: {other}"))),
+        other => {
+            let suggestion = ods_core::suggest_command(other);
+            Err(usage_msg(ods_core::unknown_ods_command(other, suggestion)))
+        }
     }
 }

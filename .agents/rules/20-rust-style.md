@@ -4,6 +4,7 @@
 - See `docs/maintainer/functional-style.md`
 - Keep public re-exports stable when moving modules
 - Tests live next to domains under `src/ods-core/tests/` and `src/ods-cli/tests/`
+- **User-facing strings:** `src/ods-core/src/error/messages.rs` only (CLI constructs `CliError` via catalog helpers)
 
 ## Schema-driven keys
 

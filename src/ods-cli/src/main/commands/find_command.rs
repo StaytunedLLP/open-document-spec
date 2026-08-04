@@ -21,14 +21,14 @@ fn run_find_command(args: &[String]) -> Result<ExitCode, CliError> {
             "--tag" => {
                 let v = args
                     .get(i + 1)
-                    .ok_or_else(|| usage("missing value for --tag"))?;
+                    .ok_or_else(|| usage_msg(ods_core::missing_flag_value("--tag", "`ods find --tag api`")))?;
                 tags.push(v.clone());
                 i += 2;
             }
             "--level" | "--format" | "--mode" | "--root" => i += 2,
             "--all" | "--write" | "--check" | "--force" | "--help" | "-h" => i += 1,
             other if other.starts_with('-') => {
-                return Err(usage(format!("unknown find flag: {other}")));
+                return Err(usage_msg(ods_core::unknown_flag(other, "ods find --help")));
             }
             other => {
                 let p = PathBuf::from(other);
@@ -45,14 +45,14 @@ fn run_find_command(args: &[String]) -> Result<ExitCode, CliError> {
     }
 
     if tags.is_empty() && query.is_none() {
-        return Err(usage(
-            "usage: ods find [path] [--tag <name> ...] [<id-or-path-query>]\n\
-             Provide at least one --tag or a free-text query (id/path/stem).",
-        ));
+        return Err(usage_msg(ods_core::missing_required_arg(
+            "query or --tag",
+            "ods find [path] [--tag <name> ...] [<id-or-path-query>]",
+        )));
     }
 
     let workspace = load_workspace_with_options(&root, load_options_graph())
-        .map_err(|err| failure(err.to_string()))?;
+        .map_err(|err| fail_load(&root, err))?;
 
     let mut ids: Vec<String> = if tags.is_empty() {
         let mut all: Vec<String> = workspace.by_id.keys().cloned().collect();

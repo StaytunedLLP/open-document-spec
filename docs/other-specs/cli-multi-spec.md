@@ -19,6 +19,9 @@ Authoritative product rules for the `ods` binary.
 | Machine config | `~/.ods/odsconfig.toml` (legacy `odcconfig.toml` readable if present) |
 | Editor LSP | `ods lsp` / `ods setup --editor zed\|vscode\|nvim\|cursor` |
 | Crates | `src/ods-core`, `src/ods-cli`, `src/ods-test-support` |
+| Error shape | `error:`/`usage:` + `Next:` from `src/ods-core/src/error/messages.rs` |
+| Reject `--ods` | `usage: unknown flag: --ods` → bare `ods <cmd>` |
+| Not a workspace | `error: not an ODS workspace…` → `ods init` (Hint: `--okf` / `--skills` when markers exist) |
 
 ```bash
 ods init .

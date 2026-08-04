@@ -54,7 +54,7 @@ fn dfs_cycles(
                         diagnostics.push(Diagnostic {
                             path: doc.path.clone(),
                             severity: Severity::Error,
-                            message: format!("depends cycle detected: {cycle}"),
+                            message: crate::error::lint_depends_cycle(&cycle),
                         });
                     }
                 }
@@ -107,7 +107,7 @@ fn lint_document(
             diagnostics.push(Diagnostic {
                 path: document.path.clone(),
                 severity: Severity::Error,
-                message: format!("frontmatter parse error: {message}"),
+                message: crate::error::lint_frontmatter_parse(message),
             });
             return diagnostics;
         }
@@ -123,7 +123,7 @@ fn lint_document(
                     diagnostics.push(Diagnostic {
                         path: document.path.clone(),
                         severity: Severity::Warning,
-                        message: format!("invalid created date format: '{created}' (expected YYYY-MM-DD or ISO-8601)"),
+                        message: crate::error::lint_invalid_date("created", created),
                     });
                 }
             }
@@ -133,7 +133,7 @@ fn lint_document(
                     diagnostics.push(Diagnostic {
                         path: document.path.clone(),
                         severity: Severity::Warning,
-                        message: format!("invalid updated date format: '{updated}' (expected YYYY-MM-DD or ISO-8601)"),
+                        message: crate::error::lint_invalid_date("updated", updated),
                     });
                 }
             }
@@ -148,7 +148,7 @@ fn lint_document(
                         diagnostics.push(Diagnostic {
                             path: document.path.clone(),
                             severity: Severity::Warning,
-                            message: format!("missing expected key '{key}' for profile '{profile}'"),
+                            message: crate::error::lint_missing_expected_key(key, profile),
                         });
                     }
                 }
@@ -156,7 +156,7 @@ fn lint_document(
                 diagnostics.push(Diagnostic {
                     path: document.path.clone(),
                     severity: Severity::Warning,
-                    message: format!("unknown profile: {profile}"),
+                    message: crate::error::lint_unknown_profile(profile),
                 });
             }
 
@@ -197,9 +197,8 @@ fn lint_root_ods_metadata(workspace: &Workspace) -> Vec<Diagnostic> {
         return vec![Diagnostic {
             path: root_index_path,
             severity: Severity::Error,
-            message: format!(
-                "missing root index.ods.md with ods: {}",
-                crate::model::current_ods_spec_version()
+            message: crate::error::lint_missing_root_index(
+                crate::model::current_ods_spec_version(),
             ),
         }];
     };
@@ -235,5 +234,55 @@ fn is_valid_date_str(s: &str) -> bool {
             && parts[2].parse::<u32>().is_ok()
     } else {
         false
+    }
+}
+
+#[cfg(test)]
+mod test_canonical_dates_and_cycles {
+    use super::*;
+    use crate::fs::load_workspace;
+    use tempfile::tempdir;
+
+    #[test]
+    fn test_invalid_date_lint() {
+        assert!(!is_valid_date_str("bad"));
+        assert!(is_valid_date_str("2024-01-01"));
+
+        let td = tempdir().unwrap();
+        let root = td.path();
+        std::fs::write(
+            root.join("index.md"),
+            "---\nprofile: index\nods: 0.1\n---\n\n# Root\n",
+        )
+        .unwrap();
+        std::fs::write(
+            root.join("bad_date.md"),
+            "---\nprofile: note\ncreated: bad-date\nupdated: not-a-date\n---\n\n# Doc\n",
+        )
+        .unwrap();
+
+        let ws = load_workspace(root).unwrap();
+        let diags = crate::lint_workspace(&ws);
+        assert!(diags.iter().any(|d| d.message.contains("created") || d.message.contains("updated")));
+    }
+
+    #[test]
+    fn test_dangling_refs_and_packs_lint() {
+        let td = tempdir().unwrap();
+        let root = td.path();
+        std::fs::write(
+            root.join("index.ods.md"),
+            "---\nprofile: index\nods: 0.1\npacks:\n  - missing-pack\n---\n\n# Root\n",
+        )
+        .unwrap();
+        std::fs::write(
+            root.join("sub.md"),
+            "---\nprofile: note\nods: 0.1\ndepends:\n  - missing.md\nrelated:\n  - missing2.md\nresources:\n  - path: missing_resource.png\ncode:\n  - path: src/main.rs:L10\n    role: implementation\ncontext:\n  load:\n    - missing_res.png\n    - missing_doc.md\n  ignore:\n    - missing_ignore.png\n---\n\n# Sub\n",
+        )
+        .unwrap();
+
+        let ws = load_workspace(root).unwrap();
+        let diags = crate::lint_workspace(&ws);
+        assert!(diags.iter().any(|d| d.message.contains("dangling") || d.message.contains("pack") || d.message.contains("ODS version")));
     }
 }

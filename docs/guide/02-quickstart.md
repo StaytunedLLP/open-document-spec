@@ -77,6 +77,18 @@ ods init --okf .    # OKF v0.2 knowledge bundle (extra-spec flag)
 
 `ods init` (ODS default) makes the folder ODS-compliant by creating a root `index.md` with `ods: 0.1` and generating child index files.
 
+### Multi-spec: when do I need a flag?
+
+| Situation | Command |
+| :--- | :--- |
+| ODS workspace (default) | bare `ods lint`, `ods context …` |
+| Pure OKF tree (`okf_version` only) | always pass **`--okf`** (e.g. `ods lint --okf`) |
+| Hybrid (both markers) | bare = **ODS only**; pass **`--okf`** for ODS+OKF, or set root `specs.okf.enabled: true` once |
+| Agent Skills package | **`--skills`** |
+
+OKF ships **in the same binary** (native engine) but is **not** always on. There is no `--ods` flag.  
+ODS lifecycle is **`ods.status`**; OKF uses top-level **`status`** — they are not auto-mapped.
+
 ---
 
 ## 3. Run Setup & Start Background Service
@@ -123,13 +135,25 @@ Everything is fine — graph and links are consistent. No update required.
 
 ## 5. Use AI Context
 
-Preferred bounded reading list:
+Preferred bounded reading list (what agents should load):
 
 ```bash
 ods context <doc-id>
+ods context <doc-id> --max-tokens 8000 --print
+ods context <doc-id> --explain              # why each path was included
+ods context <doc-id> --include-related      # also walk soft related: edges
+ods context <doc-id> --okf                  # pure OKF, or hybrid ODS+OKF merge
 ```
 
-Optional full graph file:
+| Frontmatter | Role in context |
+| :--- | :--- |
+| `ods.depends` | Structural prerequisites — **walked** (up to `context.max-depth`) |
+| `ods.related` | Soft links — **not** walked unless `--include-related` |
+| `ods.context.load` | Extra files (md or resources) that **must** load |
+| `ods.context.ignore` | Skip noisy trees during expansion |
+| `ods.code` | Only if you pass `--include-code` |
+
+`ods export` writes a **full graph dump** (default `.ods/graph.md`) for humans/CI — not the primary AI prompt pack.
 
 ```bash
 ods export

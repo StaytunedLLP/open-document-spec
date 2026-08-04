@@ -8,7 +8,7 @@ fn run_diff_command(args: &[String]) -> Result<ExitCode, CliError> {
         .current_dir(&root)
         .args(["diff", target, "--name-status", "--", "*.md"])
         .output()
-        .map_err(|e| failure(format!("git diff failed: {e}")))?;
+        .map_err(|e| fail_msg(ods_core::io_failed("git diff", e)))?;
 
     let stdout = String::from_utf8_lossy(&output.stdout);
 

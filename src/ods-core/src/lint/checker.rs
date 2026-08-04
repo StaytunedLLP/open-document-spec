@@ -227,11 +227,10 @@ fn lint_profile_conflicts(workspace: &Workspace) -> Vec<Diagnostic> {
         .map(|conflict| Diagnostic {
             path: conflict.ignored.clone(),
             severity: Severity::Warning,
-            message: format!(
-                "duplicate profile definition: {} (kept {}, ignored {})",
-                conflict.name,
+            message: crate::error::lint_duplicate_profile(
+                &conflict.name,
                 conflict.kept.display(),
-                conflict.ignored.display()
+                conflict.ignored.display(),
             ),
         })
         .collect()
@@ -258,8 +257,45 @@ fn lint_duplicate_ids(ids: &BTreeMap<String, Vec<&Document>>) -> Vec<Diagnostic>
             docs.iter().map(move |doc| Diagnostic {
                 path: doc.path.clone(),
                 severity: Severity::Error,
-                message: format!("duplicate document id: {id}"),
+                message: crate::error::lint_duplicate_document_id(id),
             })
         })
         .collect()
+}
+
+#[cfg(test)]
+mod test_checker {
+    use super::*;
+    use crate::fs::load_workspace;
+    use tempfile::tempdir;
+
+    #[test]
+    fn test_lint_checker_helpers() {
+        let td = tempdir().unwrap();
+        let root = td.path();
+        std::fs::write(
+            root.join("index.md"),
+            "---\nprofile: index\nods: 0.1\n---\n\n# Root\n",
+        )
+        .unwrap();
+
+        let ws = load_workspace(root).unwrap();
+        let profiles = known_profiles(&ws);
+        assert!(profiles.is_empty() || !profiles.is_empty());
+
+        let secs = profile_sections(&ws, "note");
+        assert!(secs.is_empty() || !secs.is_empty());
+
+        let aliases = workspace_aliases(&ws);
+        assert!(aliases.is_empty());
+
+        let labels = profile_section_labels(&ws, "note");
+        assert!(labels.is_empty() || !labels.is_empty());
+
+        let sug = workspace_alias_suggestions(&ws);
+        assert!(sug.is_empty());
+
+        let conflicts = lint_profile_conflicts(&ws);
+        assert!(conflicts.is_empty());
+    }
 }

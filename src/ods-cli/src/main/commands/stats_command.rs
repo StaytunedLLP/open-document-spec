@@ -3,7 +3,7 @@ fn run_stats_command(args: &[String]) -> Result<ExitCode, CliError> {
     require_ods_workspace(&root)?;
 
     let workspace = load_workspace_with_options(&root, load_options_graph())
-        .map_err(|err| failure(err.to_string()))?;
+        .map_err(|err| fail_load(&root, err))?;
 
     let total_docs = workspace.documents.len();
 

@@ -174,3 +174,21 @@ pub fn apply_path_changes(
 
     Ok(report)
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_path_change_report_summary_and_has_issues() {
+        let mut rep = PathChangeReport::default();
+        assert!(!rep.has_issues());
+        assert!(rep.summary().contains("0 file(s)"));
+
+        rep.warnings.push("warn".into());
+        rep.errors.push("err".into());
+        assert!(rep.has_issues());
+        assert!(rep.summary().contains("warning"));
+        assert!(rep.summary().contains("error"));
+    }
+}

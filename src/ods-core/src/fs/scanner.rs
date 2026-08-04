@@ -232,9 +232,18 @@ mod test_scanner {
     fn scanner_helper_edge_cases() {
         assert_eq!(normalize_path(Path::new("a/./b")), PathBuf::from("a/b"));
         assert!(!path_matches_workspace_ignore(Path::new("/root"), Path::new("/root/a.md"), &["".into(), "  ".into()]));
+        assert!(path_matches_workspace_ignore(Path::new("/root"), Path::new("/root/build/a.md"), &["build/".into()]));
+        assert!(!path_matches_workspace_ignore(Path::new("/root"), Path::new("/root"), &["build".into()]));
 
         let mut ws = Workspace::empty(PathBuf::from("/root"));
         ws.ignore = vec!["ignored".into()];
+        ws.profile_roots.push(PathBuf::from("/root/specs"));
+        ws.profile_catalog_paths.insert(PathBuf::from("/root/okf"));
+
+        assert!(is_excluded_profile_catalog(&ws, Path::new("/root/specs/ods")));
+        assert!(is_excluded_profile_catalog(&ws, Path::new("/root/okf/sub")));
+        assert!(!is_excluded_profile_catalog(&ws, Path::new("/root/docs")));
+
         let mut d = crate::parse::parse_document_text(&ws.root, PathBuf::from("/root/ignored/doc.md"), "---\nprofile: note\n---\n\n# Doc\n", true);
         d.directory = PathBuf::from("/root/ignored");
         ws.documents.push(d);
@@ -242,5 +251,10 @@ mod test_scanner {
 
         let children = directory_children_for(&ws, Path::new("/nonexistent_dir_12345"));
         assert!(children.is_empty());
+
+        let joined = normalize_join(Path::new("/tmp/a/b"), Path::new("../c/d.png"));
+        assert_eq!(joined, PathBuf::from("/tmp/a/c/d.png"));
+
+        assert!(paths_equal_normalized(Path::new("/tmp/a/./b"), Path::new("/tmp/a/b")));
     }
 }

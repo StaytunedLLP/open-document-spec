@@ -7,10 +7,10 @@ pub(crate) fn run_lsp_command(args: &[String]) -> Result<ExitCode, CliError> {
     let port = parse_port_flag(args);
     if let Some(port) = port {
         let listener = TcpListener::bind(format!("127.0.0.1:{port}"))
-            .map_err(|e| failure(format!("failed to bind LSP TCP socket on port {port}: {e}")))?;
+            .map_err(|e| fail_msg(ods_core::io_failed("bind LSP socket", e)))?;
         eprintln!("ods lsp: listening for JSON-RPC connections on 127.0.0.1:{port}");
         for stream in listener.incoming().flatten() {
-            let reader = stream.try_clone().map_err(|e| failure(e.to_string()))?;
+            let reader = stream.try_clone().map_err(|e| fail_io("operation", e))?;
             let writer = stream;
             let mut session = LspSession::new(BufReader::new(reader), writer);
             let _ = session.run_loop();

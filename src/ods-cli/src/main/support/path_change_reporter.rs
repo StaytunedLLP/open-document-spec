@@ -2,8 +2,13 @@ fn sync_git_renames(root: &Path) -> Result<ods_core::PathChangeReport, CliError>
     let root = root.canonicalize().unwrap_or_else(|_| root.to_path_buf());
     let root = root.as_path();
     let Some(renames) = git_detect_renames(root)? else {
-        return Err(failure(
-            "git is not available or workspace is not a git repo",
+        return Err(fail_msg(
+            ods_core::UserMsg::new(
+                "git_unavailable",
+                ods_core::ErrorStage::Service,
+                "git is not available or this folder is not a git repo",
+            )
+            .next("install git, or run renames with `ods mv` / `ods watch` instead of `ods sync`"),
         ));
     };
     if renames.is_empty() {
@@ -27,5 +32,5 @@ fn sync_git_renames(root: &Path) -> Result<ods_core::PathChangeReport, CliError>
             }
         })
         .collect::<Vec<_>>();
-    ods_core::apply_path_changes(root, &changes).map_err(|err| failure(err.to_string()))
+    ods_core::apply_path_changes(root, &changes).map_err(|err| fail_io("apply path changes", err))
 }

@@ -63,6 +63,26 @@ fn failure<T: Into<String>>(message: T) -> CliError {
     CliError::Failure(message.into())
 }
 
+/// Usage error (exit 2) from the central message catalog.
+fn usage_msg(msg: ods_core::UserMsg) -> CliError {
+    CliError::Usage(msg.render_usage())
+}
+
+/// Failure (exit 1) from the central message catalog.
+fn fail_msg(msg: ods_core::UserMsg) -> CliError {
+    CliError::Failure(msg.render_error())
+}
+
+/// Map load_workspace / load_workspace_with_options errors to a directive failure.
+fn fail_load(root: &std::path::Path, err: impl std::fmt::Display) -> CliError {
+    fail_msg(ods_core::load_workspace_failed(root, err))
+}
+
+/// Generic I/O / operation failure with a Next: line (prefer over bare `failure(e.to_string())`).
+fn fail_io(action: &str, err: impl std::fmt::Display) -> CliError {
+    fail_msg(ods_core::io_failed(action, err))
+}
+
 fn is_platform_command(cmd: &str) -> bool {
     matches!(
         cmd,
@@ -95,6 +115,8 @@ fn is_ods_document_command(cmd: &str) -> bool {
             | "index"
             | "profiles"
             | "profile"
+            | "alias"
+            | "aliases"
             | "tags"
             | "find"
             | "tag"
@@ -106,6 +128,7 @@ fn is_ods_document_command(cmd: &str) -> bool {
             | "new"
             | "rm"
             | "remove"
+            | "status"
             | "archive"
             | "init"
             | "enable"
@@ -169,16 +192,7 @@ fn run(args: Vec<String>) -> Result<ExitCode, CliError> {
     match first {
         "okf" => {
             // Namespace removed: OKF is flag-only (`ods <cmd> --okf`).
-            return Err(usage(
-                "unknown command: okf\n\n\
-                 OKF is enabled with the `--okf` flag on shared commands (no namespace).\n\
-                 Examples:\n\
-                   ods init --okf\n\
-                   ods lint --okf\n\
-                   ods doctor --okf\n\
-                   ods index --okf\n\
-                 See: ods help",
-            ));
+            return Err(usage_msg(ods_core::okf_namespace_removed()));
         }
         "agents" => {
             return dispatch_agents_command(&args);
@@ -194,7 +208,8 @@ fn run(args: Vec<String>) -> Result<ExitCode, CliError> {
         return dispatch_ods_command(&args);
     }
 
-    Err(usage(format!("unknown command: {first}")))
+    let suggestion = ods_core::suggest_command(first);
+    Err(usage_msg(ods_core::unknown_command(first, suggestion)))
 }
 
 include!("entry_dispatch.rs");

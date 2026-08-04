@@ -49,7 +49,7 @@ fn doctor_workspace(root: &Path) -> Result<DoctorReport, CliError> {
                 }
             }
             let current =
-                indexes_are_current(&workspace).map_err(|err| failure(err.to_string()))?;
+                indexes_are_current(&workspace).map_err(|err| fail_io("git sync", err))?;
             lines.push(if current {
                 "indexes: current".to_string()
             } else {

@@ -1,6 +1,7 @@
 #![forbid(unsafe_code)]
 
 pub mod bench;
+pub mod error;
 pub mod fs;
 pub mod graph;
 pub mod index;
@@ -42,7 +43,8 @@ pub mod refs {
 pub use bench::{
     BenchRestoreReport, BenchRunReport, BenchStatsReport, BenchStripOptions, BenchStripReport,
     bench_calculate_stats, bench_restore_workspace, bench_run_simulation, bench_strip_workspace,
-    compute_repo_hash, create_workspace_snapshot, get_backup_dir, undo_latest_snapshot,
+    compute_repo_hash, create_workspace_snapshot, get_backup_dir, list_workspace_snapshots,
+    undo_latest_snapshot,
 };
 
 pub use fs::{
@@ -131,4 +133,15 @@ pub use multi_spec::{
     lint_skill_package_with_config, load_root_specs_config, parse_extra_spec_flags,
     parse_skill_package, resolve_engines, resolve_engines_with_config, skill_package_roots,
     skills_enabled,
+};
+
+pub use error::{
+    CATALOG_MESSAGE_IDS, ErrorStage, KNOWN_COMMANDS, UserMsg, already_exists, concept_not_found,
+    context_requires_ods_or_okf, document_not_found, document_not_found_context,
+    forbidden_ods_flag, home_dir_unresolved, invalid_choice, io_failed, load_okf_bundle_failed,
+    load_workspace_failed, missing_context_id, missing_flag_value, missing_required_arg,
+    no_skills_package, not_ods_workspace, not_okf_bundle, okf_namespace_removed, path_not_found,
+    render_error, render_usage, root_index_missing, scaffold_failed, service_failed,
+    suggest_command, undo_no_snapshot, unknown_command, unknown_flag, unknown_ods_command,
+    unknown_platform_command, unknown_subcommand, update_failed,
 };

@@ -3,7 +3,7 @@ fn run_pack_remove(args: &[String]) -> Result<ExitCode, CliError> {
     let (root_path, name) = match positionals.as_slice() {
         [ws, n] => (PathBuf::from(ws), n.clone()),
         [n] => (env::current_dir().unwrap_or_else(|_| PathBuf::from(".")), n.clone()),
-        _ => return Err(usage("ods pack remove [root] <pack-name-or-path>")),
+        _ => return Err(usage_msg(ods_core::missing_required_arg("pack name", "ods pack remove [root] <pack-name-or-path>"))),
     };
 
     let root = resolve_root_path(root_path);
@@ -14,14 +14,14 @@ fn run_pack_remove(args: &[String]) -> Result<ExitCode, CliError> {
     };
 
     if !root_index_path.exists() {
-        return Err(failure("root index.ods.md not found"));
+        return Err(fail_msg(ods_core::root_index_missing()));
     }
 
-    let text = fs::read_to_string(&root_index_path).map_err(|e| failure(e.to_string()))?;
+    let text = fs::read_to_string(&root_index_path).map_err(|e| fail_io("pack", e))?;
     let target_line = format!("  - {name}");
     let updated = text.lines().filter(|line| *line != target_line).collect::<Vec<_>>().join("\n");
 
-    fs::write(&root_index_path, updated).map_err(|e| failure(e.to_string()))?;
+    fs::write(&root_index_path, updated).map_err(|e| fail_io("pack", e))?;
     println!("Removed ODS Pack reference '{}' from root index.ods.md.", name);
     Ok(ExitCode::from(0))
 }
@@ -29,17 +29,17 @@ fn run_pack_remove(args: &[String]) -> Result<ExitCode, CliError> {
 fn run_pack_preview(args: &[String]) -> Result<ExitCode, CliError> {
     let name = args
         .get(3)
-        .ok_or_else(|| usage("ods pack preview requires a pack name or path"))?;
+        .ok_or_else(|| usage_msg(ods_core::missing_required_arg("pack name", "ods pack preview <pack-name-or-path>")))?;
 
     let root = resolve_root_path(env::current_dir().unwrap_or_else(|_| PathBuf::from(".")));
     let pack_dir = root.join(name);
 
     if !pack_dir.exists() {
-        return Err(failure(format!("pack directory {} does not exist", pack_dir.display())));
+        return Err(fail_msg(ods_core::path_not_found(&pack_dir)));
     }
 
     println!("Previewing ODS Pack at {}:", pack_dir.display());
-    let workspace = load_workspace(&pack_dir).map_err(|e| failure(e.to_string()))?;
+    let workspace = load_workspace(&pack_dir).map_err(|e| fail_load(&pack_dir, e))?;
     for (schema_name, def) in &workspace.profiles.definitions {
         println!("  • profile: {} ({})", schema_name, def.source.display());
     }
@@ -52,24 +52,24 @@ fn run_pack_init(args: &[String]) -> Result<ExitCode, CliError> {
     let root = PathBuf::from(name);
 
     if !root.exists() {
-        fs::create_dir_all(&root).map_err(|e| failure(e.to_string()))?;
+        fs::create_dir_all(&root).map_err(|e| fail_io("pack", e))?;
     }
 
     let ods_profiles_dir = root.join("ods-profiles");
     let skills_dir = root.join("skills");
-    fs::create_dir_all(&ods_profiles_dir).map_err(|e| failure(e.to_string()))?;
-    fs::create_dir_all(&skills_dir).map_err(|e| failure(e.to_string()))?;
+    fs::create_dir_all(&ods_profiles_dir).map_err(|e| fail_io("pack", e))?;
+    fs::create_dir_all(&skills_dir).map_err(|e| fail_io("pack", e))?;
 
     let root_index = format!(
         "---\nprofile: index\nods: 0.1\ndescription: Reusable ODS Pack for {name}.\n---\n\n# {name}\n\n- [ods-profiles/](ods-profiles/index.ods.md) - Custom Profile schemas\n- [skills/](skills/index.ods.md) - AI Agent skills\n"
     );
-    fs::write(root.join("index.ods.md"), root_index).map_err(|e| failure(e.to_string()))?;
+    fs::write(root.join("index.ods.md"), root_index).map_err(|e| fail_io("pack", e))?;
 
     let profile_index = "---\nprofile: index\n---\n\n# Profile Schemas\n";
-    fs::write(ods_profiles_dir.join("index.ods.md"), profile_index).map_err(|e| failure(e.to_string()))?;
+    fs::write(ods_profiles_dir.join("index.ods.md"), profile_index).map_err(|e| fail_io("pack", e))?;
 
     let skills_index = "---\nprofile: index\n---\n\n# AI Agent Skills\n";
-    fs::write(skills_dir.join("index.ods.md"), skills_index).map_err(|e| failure(e.to_string()))?;
+    fs::write(skills_dir.join("index.ods.md"), skills_index).map_err(|e| fail_io("pack", e))?;
 
     println!("Scaffolding new ODS Pack at {}:", root.display());
     println!("  ✓ Created index.ods.md (root marker)");

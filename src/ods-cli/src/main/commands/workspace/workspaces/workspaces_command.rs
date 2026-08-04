@@ -68,16 +68,10 @@ fn require_ods_workspace(root: &Path) -> Result<(), CliError> {
         return Ok(());
     }
 
-    Err(failure(format!(
-        "not an ODS workspace: {}\n\n\
-         No root index.md with 'ods:' marker found, and this path is not\n\
-         registered in the global machine config (~/.ods/odsconfig.toml).\n\n\
-         To fix:\n\
-         • Run 'ods init' here to make this folder ODS-compliant, or\n\
-         • Run 'ods workspaces add' to track it globally without modifying files, or\n\
-         • Pass `--okf` / `--skills` for other specs (no `--ods` flag — ODS is the default).",
-        root.display()
-    )))
+    Err(fail_msg(
+        ods_core::not_ods_workspace(false, false)
+            .hint("or run `ods workspaces add` to track it in ~/.ods/odsconfig.toml without init"),
+    ))
 }
 
 fn run_workspaces_command(args: &[String]) -> Result<ExitCode, CliError> {
@@ -103,7 +97,7 @@ fn run_workspaces_command(args: &[String]) -> Result<ExitCode, CliError> {
                 .map(PathBuf::from)
                 .unwrap_or_else(|| env::current_dir().unwrap_or_else(|_| PathBuf::from(".")));
             let abs_path = fs::canonicalize(&raw_path)
-                .map_err(|e| failure(format!("invalid path '{}': {e}", raw_path.display())))?;
+                .map_err(|e| fail_msg(ods_core::io_failed("resolve path", e)))?;
             let path_str = abs_path.to_string_lossy().into_owned();
 
             let mut paths = load_registry_paths();
@@ -126,7 +120,7 @@ fn run_workspaces_command(args: &[String]) -> Result<ExitCode, CliError> {
                 .map(PathBuf::from)
                 .unwrap_or_else(|| env::current_dir().unwrap_or_else(|_| PathBuf::from(".")));
             let abs_path = fs::canonicalize(&raw_path)
-                .map_err(|e| failure(format!("invalid path '{}': {e}", raw_path.display())))?;
+                .map_err(|e| fail_msg(ods_core::io_failed("resolve path", e)))?;
             let path_str = abs_path.to_string_lossy().into_owned();
 
             let mut paths = load_registry_paths();
@@ -173,8 +167,10 @@ fn run_workspaces_command(args: &[String]) -> Result<ExitCode, CliError> {
             println!("{}", registry_path().display());
             Ok(ExitCode::from(0))
         }
-        other => Err(usage(format!(
-            "unknown workspaces subcommand: {other} (use add, remove, list, or path)"
+        other => Err(usage_msg(ods_core::unknown_subcommand(
+            "workspaces",
+            other,
+            "ods workspaces add|remove|list|path",
         ))),
     }
 }

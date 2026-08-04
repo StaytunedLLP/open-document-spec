@@ -23,19 +23,25 @@ Commands:
   index [path]             Generate index.ods.md navigation lockfiles
   index --check [path]     Exit 1 if indexes are stale
   profiles [path]          List loaded profiles
+  profile init <name>      Scaffold custom profile (registers under custom-profiles: by default)
+  profile show <name>      Show profile layer, sections, expected keys
+  aliases [path]           List workspace section-heading aliases
+  alias add <Can> <Syn>    Add a section alias on the root index
   tags [path]              List root-level project tags (observed) with use counts
   tags --all [path]        Include unused default ODS tags
   find [path] [--tag t] [q]  Find docs by tag and/or id/path/stem query
   tag rename <old> <new>   Rewrite a root-level tag across frontmatter (dry-run; --write)
                            Nested tags under ods: are invalid — run: ods fmt --migrate
   setup [path]             Set up machine service for workspace + check updates and workspace health
-  context <id>             Bounded reading list (depends + context.load; see --help)
+  context <id>             Bounded reading list (depends + context.load; --explain / --include-related)
+  undo [path]              Restore latest frontmatter snapshot (`ods undo --list` to inspect)
   graph [path]             Print depends/related edges
   export [path]            Write graph under .ods/graph.md (optional --out PATH, --include-private)
   share [path] --out DIR   Publish a share-filtered copy of a workspace/subtree
   new <path>               Scaffold new document with inferred profile and valid frontmatter
   rm <path-or-id>          Atomically delete document and scrub graph references workspace-wide
-  archive <path-or-id>     Set document status to archived (frontmatter only)
+  status <path> <value>    Set lifecycle status (draft|stable|deprecated|archived)
+  archive <path-or-id>     Alias for status … archived
   mv [path] <from> <to>    Move file/folder and rewrite refs + indexes
   fmt [path]               Normalize frontmatter/body blank lines
   fmt --refs md-paths      Also rewrite Document refs to .md paths
@@ -60,9 +66,12 @@ Extra specs (ODS is the default — there is no `--ods` flag):
   --okf                    Enable Google OKF v0.2 engine for this command
   --skills                 Enable Agent Skills package engine for this command
 
-  ods lint --okf           Lint an OKF bundle (or ODS+OKF when both present)
+  Native in binary ≠ always on: OKF/Skills activate with flags or root specs.*.enabled
+  --okf supported: init lint doctor audit adopt index context export fmt watch serve
+  ODS-only (no --okf graph rewrite): mv tags status archive pack share graph new rm
+  ods lint --okf           Pure OKF or hybrid ODS+OKF lint
   ods init --okf           Scaffold OKF v0.2 bundle
-  ods lint --skills        Lint Agent Skills packages (engine rolling out)
+  ods lint --skills        Lint Agent Skills packages (parse/lint/init surface)
 
 Also: `ods lsp` — JSON-RPC Language Server for editors (stdio; not the same as `ods serve`).
 
@@ -126,12 +135,12 @@ fn run_setup_command(args: &[String]) -> Result<ExitCode, CliError> {
             "--editor" => {
                 let v = args
                     .get(i + 1)
-                    .ok_or_else(|| usage("setup --editor requires zed|vscode|nvim|cursor"))?;
+                    .ok_or_else(|| usage_msg(ods_core::missing_flag_value("--editor", "`ods setup --editor zed|vscode|nvim|cursor`")))?;
                 editor = Some(v.to_lowercase());
                 i += 1;
             }
             flag if flag.starts_with('-') => {
-                return Err(usage(format!("unknown setup flag: {flag}")));
+                return Err(usage_msg(ods_core::unknown_flag(flag, "ods setup --help")));
             }
             other => {
                 if path.is_none() {
@@ -211,7 +220,7 @@ fn run_setup_command(args: &[String]) -> Result<ExitCode, CliError> {
     };
 
     let init = init_workspace(&root, ods_core::InitOptions { adopt: false })
-        .map_err(|err| failure(err.to_string()))?;
+        .map_err(|err| fail_io("setup", err))?;
     if init.initialized {
         println!(
             "setup: root index ensured with ods: {}",
@@ -236,7 +245,7 @@ fn run_setup_command(args: &[String]) -> Result<ExitCode, CliError> {
         {
             println!("setup: service start skipped by ODS_SETUP_NO_START");
         } else {
-            let msg = service::start_service(&root).map_err(|e| failure(e.to_string()))?;
+            let msg = service::start_service(&root).map_err(|e| fail_io("setup", e))?;
             println!("setup: {msg}");
         }
     }
@@ -283,7 +292,7 @@ fn write_editor_lsp_config(root: &Path, editor: &str) -> Result<(), CliError> {
     match editor {
         "zed" => {
             let dir = root.join(".zed");
-            fs::create_dir_all(&dir).map_err(|e| failure(e.to_string()))?;
+            fs::create_dir_all(&dir).map_err(|e| fail_io("setup", e))?;
             let path = dir.join("settings.json");
             let body = r#"{
   "languages": {
@@ -302,12 +311,12 @@ fn write_editor_lsp_config(root: &Path, editor: &str) -> Result<(), CliError> {
   }
 }
 "#;
-            fs::write(&path, body).map_err(|e| failure(e.to_string()))?;
+            fs::write(&path, body).map_err(|e| fail_io("setup", e))?;
             println!("setup: wrote {}", path.display());
         }
         "vscode" | "cursor" => {
             let dir = root.join(".vscode");
-            fs::create_dir_all(&dir).map_err(|e| failure(e.to_string()))?;
+            fs::create_dir_all(&dir).map_err(|e| fail_io("setup", e))?;
             let path = dir.join("settings.json");
             // Generic LSP client settings (extension may map these keys).
             let body = r#"{
@@ -315,12 +324,12 @@ fn write_editor_lsp_config(root: &Path, editor: &str) -> Result<(), CliError> {
   "ods.lsp.args": ["lsp"]
 }
 "#;
-            fs::write(&path, body).map_err(|e| failure(e.to_string()))?;
+            fs::write(&path, body).map_err(|e| fail_io("setup", e))?;
             println!("setup: wrote {} (configure your LSP client to use path/args)", path.display());
         }
         "nvim" => {
             let dir = root.join(".nvim");
-            fs::create_dir_all(&dir).map_err(|e| failure(e.to_string()))?;
+            fs::create_dir_all(&dir).map_err(|e| fail_io("setup", e))?;
             let path = dir.join("ods-lsp.lua");
             let body = r#"-- Open Document Spec LSP (ods lsp)
 -- Add to your Neovim config, e.g. require from this file:
@@ -336,12 +345,14 @@ vim.api.nvim_create_autocmd('FileType', {
   end,
 })
 "#;
-            fs::write(&path, body).map_err(|e| failure(e.to_string()))?;
+            fs::write(&path, body).map_err(|e| fail_io("setup", e))?;
             println!("setup: wrote {}", path.display());
         }
         other => {
-            return Err(usage(format!(
-                "unknown --editor {other} (use zed, vscode, nvim, or cursor)"
+            return Err(usage_msg(ods_core::invalid_choice(
+                "--editor",
+                other,
+                "zed|vscode|nvim|cursor",
             )));
         }
     }

@@ -33,6 +33,7 @@ pub fn bench_calculate_stats(root: &Path) -> io::Result<crate::bench::BenchStats
             &ContextOptions {
                 include_private: false,
                 include_code: false,
+                include_related: false,
                 max_tokens: None,
             },
         );

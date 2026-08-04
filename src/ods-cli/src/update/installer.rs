@@ -89,10 +89,10 @@ fn install_release(tag: &str, target: &str, prefix: &Path) -> Result<(), String>
             let release_url = format!("{API_BASE}/releases/tags/{tag}");
             let release_json = http_get_string(&release_url)?;
             let archive_id = find_asset_id(&release_json, &filename).ok_or_else(|| {
-                format!("asset {filename} not found on release {tag}")
+                ods_core::error::update_asset_not_found(&filename, tag)
             })?;
             let sums_id = find_asset_id(&release_json, "SHA256SUMS").ok_or_else(|| {
-                format!("SHA256SUMS not found on release {tag}")
+                ods_core::error::update_checksums_not_found(tag)
             })?;
             let a = http_get_asset(archive_id)?;
             let s = http_get_asset(sums_id)?;
@@ -102,11 +102,11 @@ fn install_release(tag: &str, target: &str, prefix: &Path) -> Result<(), String>
 
     let sums = String::from_utf8_lossy(&sums_bytes);
     let expected = find_checksum(&sums, &filename)
-        .ok_or_else(|| format!("no SHA256 entry for {filename} in release checksums"))?;
+        .ok_or_else(|| ods_core::error::update_checksum_entry_missing(&filename))?;
     let actual = hex_sha256(&archive);
     if actual != expected {
-        return Err(format!(
-            "checksum mismatch for {filename}\n  expected: {expected}\n  got:      {actual}"
+        return Err(ods_core::error::update_checksum_mismatch(
+            &filename, &expected, &actual,
         ));
     }
 
@@ -118,12 +118,15 @@ fn install_release(tag: &str, target: &str, prefix: &Path) -> Result<(), String>
             .map(|d| d.as_nanos())
             .unwrap_or(0)
     ));
-    fs::create_dir_all(&tmp).map_err(|e| e.to_string())?;
+    fs::create_dir_all(&tmp)
+        .map_err(|e| ods_core::error::detail("create update temp dir", e))?;
     let archive_path = tmp.join(&filename);
-    fs::write(&archive_path, &archive).map_err(|e| e.to_string())?;
+    fs::write(&archive_path, &archive)
+        .map_err(|e| ods_core::error::detail("write update archive", e))?;
 
     let extract_dir = tmp.join("out");
-    fs::create_dir_all(&extract_dir).map_err(|e| e.to_string())?;
+    fs::create_dir_all(&extract_dir)
+        .map_err(|e| ods_core::error::detail("create extract dir", e))?;
 
     if is_windows_target(target) {
         extract_zip(&archive_path, &extract_dir)?;
@@ -132,8 +135,9 @@ fn install_release(tag: &str, target: &str, prefix: &Path) -> Result<(), String>
     }
 
     let bin_src = find_ods_binary(&extract_dir, is_windows_target(target))?;
-    fs::create_dir_all(prefix)
-        .map_err(|e| format!("create install dir {}: {e}", prefix.display()))?;
+    fs::create_dir_all(prefix).map_err(|e| {
+        ods_core::error::detail(&format!("create install dir {}", prefix.display()), e)
+    })?;
 
     let ods_name = if is_windows_target(target) {
         "ods.exe"

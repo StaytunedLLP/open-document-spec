@@ -42,6 +42,7 @@ When assisting users inside an ODS workspace, follow these operational directive
 
 - ❓ **WHAT**: Recognize ODS workspaces by checking for `ods:` in root `index.ods.md`. Keep files as `.md`. Title is H1 only (no FM `title:`); optional top-level `name:` is fine.
 - 💡 **WHY (token discipline)**: Prefer `ods context <id> [--max-tokens N] [--print]` for a **bounded** list (depends + `context.load` only — **not** `related`). Read only those paths. Never dump the repo or use full graph export for routine Q&A. On “document not found”, run `ods find <query>` — do not load all markdown.
+- 🚨 **ERRORS**: CLI prints `error:`/`usage:` + `Next:` (sometimes `Hint:`). Surface that Next line to the user; do not invent a different recovery. Common: not a workspace → `ods init`; miss → `ods find`; indexes → `ods index`; tags under `ods:` → `ods fmt --migrate`.
 - 👥 **WHO**: Operate seamlessly on behalf of non-technical or developer users without requiring manual terminal commands.
 - 📍 **WHERE**: Open `references/keys.md` only when authoring frontmatter; do not preload all references every turn.
 - ⏰ **WHEN**: Run `ods lint` after structural edits (`--fix` only regenerates indexes — it does not invent missing docs). Use `ods mv` for renames.

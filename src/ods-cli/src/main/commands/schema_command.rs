@@ -13,7 +13,7 @@ fn run_schema_command(args: &[String]) -> Result<ExitCode, CliError> {
             "--out" | "-o" => {
                 let p = args
                     .get(i + 1)
-                    .ok_or_else(|| usage("missing value for --out"))?;
+                    .ok_or_else(|| usage_msg(ods_core::missing_flag_value("--out", "`ods schema --out schema.json`")))?;
                 out_path = Some(PathBuf::from(p));
                 i += 2;
             }
@@ -28,7 +28,7 @@ fn run_schema_command(args: &[String]) -> Result<ExitCode, CliError> {
             "--spec" => {
                 let p = args
                     .get(i + 1)
-                    .ok_or_else(|| usage("missing value for --spec"))?;
+                    .ok_or_else(|| usage_msg(ods_core::missing_flag_value("--spec", "`ods schema --spec ods`")))?;
                 dialect = p.clone();
                 i += 2;
             }
@@ -45,7 +45,9 @@ fn run_schema_command(args: &[String]) -> Result<ExitCode, CliError> {
             let registry = ods_core::SpecSchemaRegistry::with_defaults();
             let schema = registry
                 .get(other)
-                .ok_or_else(|| usage(format!("unknown schema dialect: {other}")))?;
+                .ok_or_else(|| {
+                    usage_msg(ods_core::invalid_choice("--spec", other, "ods|okf|skills"))
+                })?;
             let keys: Vec<_> = schema
                 .keys
                 .values()
@@ -63,7 +65,7 @@ fn run_schema_command(args: &[String]) -> Result<ExitCode, CliError> {
                 "version": schema.version,
                 "keys": keys,
             }))
-            .map_err(|e| failure(format!("serialize schema: {e}")))?
+            .map_err(|e| fail_msg(ods_core::io_failed("serialize schema", e)))?
         }
     };
 
@@ -79,7 +81,7 @@ fn run_schema_command(args: &[String]) -> Result<ExitCode, CliError> {
             let _ = fs::create_dir_all(parent);
         }
         fs::write(&dest, &schema_json)
-            .map_err(|e| failure(format!("write {}: {e}", dest.display())))?;
+            .map_err(|e| fail_msg(ods_core::io_failed("write schema", e)))?;
         println!("wrote JSON Schema to {}", dest.display());
     } else {
         println!("{schema_json}");

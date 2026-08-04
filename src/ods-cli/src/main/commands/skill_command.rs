@@ -5,13 +5,17 @@ fn run_skill_command(args: &[String]) -> Result<ExitCode, CliError> {
         return Ok(ExitCode::from(0));
     }
     if sub != "install" {
-        return Err(usage(format!(
-            "unknown skill subcommand: {sub} (use install or help)"
+        return Err(usage_msg(ods_core::unknown_subcommand(
+            "skill",
+            sub,
+            "ods skill install --agent <name> | ods skill help",
         )));
     }
 
     let agent = parse_flag_val(args, "--agent").ok_or_else(|| {
-        usage("missing required --agent parameter (e.g. --agent claude-code)")
+        usage_msg(
+            ods_core::missing_flag_value("--agent", "`ods skill install --agent claude-code`"),
+        )
     })?;
 
     let scope_val = parse_flag_val(args, "--scope");
@@ -19,9 +23,14 @@ fn run_skill_command(args: &[String]) -> Result<ExitCode, CliError> {
         Some("project") => "project",
         Some("user") => "user",
         Some(other) => {
-            return Err(usage(format!(
-                "invalid scope: {other} (use project or user)"
-            )));
+            return Err(usage_msg(
+                ods_core::UserMsg::new(
+                    "invalid_skill_scope",
+                    ods_core::ErrorStage::Argv,
+                    format!("invalid scope: {other}"),
+                )
+                .next("use --scope project or --scope user"),
+            ));
         }
         None => {
             // Default scopes per agent
@@ -35,7 +44,7 @@ fn run_skill_command(args: &[String]) -> Result<ExitCode, CliError> {
 
     let home = env::var("HOME")
         .or_else(|_| env::var("USERPROFILE"))
-        .map_err(|_| failure("could not resolve home directory"))?;
+        .map_err(|_| fail_msg(ods_core::home_dir_unresolved()))?;
 
     let target = match agent.as_str() {
         "claude-code" => {
@@ -102,9 +111,16 @@ fn run_skill_command(args: &[String]) -> Result<ExitCode, CliError> {
             }
         }
         other => {
-            return Err(usage(format!(
-                "unknown agent: {other} (use claude-code, cursor, antigravity, codex, gemini-cli, windsurf, or copilot)"
-            )));
+            return Err(usage_msg(
+                ods_core::UserMsg::new(
+                    "unknown_skill_agent",
+                    ods_core::ErrorStage::Argv,
+                    format!("unknown agent: {other}"),
+                )
+                .next(
+                    "use --agent claude-code|cursor|antigravity|codex|gemini-cli|windsurf|copilot",
+                ),
+            ));
         }
     };
 
@@ -147,15 +163,12 @@ fn install_skill_bundle(destination: &Path) -> Result<(), CliError> {
 fn write_install_file(path: &Path, contents: &[u8]) -> Result<(), CliError> {
     if let Some(parent) = path.parent() {
         fs::create_dir_all(parent).map_err(|e| {
-            failure(format!(
-                "failed to create destination directory {}: {e}",
-                parent.display()
-            ))
+            fail_msg(ods_core::io_failed("create directory", e))
         })?;
     }
 
     fs::write(path, contents)
-        .map_err(|e| failure(format!("failed to write skill file to {}: {e}", path.display())))
+        .map_err(|e| fail_msg(ods_core::io_failed("write skill file", e)))
 }
 
 fn print_skill_help() {

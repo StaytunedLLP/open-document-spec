@@ -45,6 +45,7 @@ cargo test --workspace --locked 2>&1 | tail -20
 - CLI flags: `--okf`, `--skills`, reject `--ods`, namespaces  
 - Keys: invalid enums, placement, missing required  
 - Prefer table-driven tests over coverage-only stubs  
+- **User errors:** new failures use `src/ods-core/src/error/messages.rs`; stderr should include `Next:`; avoid bare `failure(e.to_string())` without a catalog wrapper
 
 ### 5. Coverage
 

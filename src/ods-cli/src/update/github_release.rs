@@ -109,8 +109,8 @@ fn maybe_auto_update_inner(force_check: bool) {
         }
         Ok(UpdateOutcome::Available { .. }) => {}
         Err(err) => {
-            // Soft: never break lint/index/watch.
-            eprintln!("ods: auto-update skipped ({err})");
+            // Soft: never break lint/index/watch. Keep one line; full `ods update` uses Next:.
+            eprintln!("ods: auto-update skipped — {err} (run `ods update` to retry)");
         }
     }
 }
@@ -137,9 +137,7 @@ pub fn host_target() -> Result<String, String> {
         ("macos", "x86_64") => Ok("macos-x86_64".into()),
         ("windows", "x86_64") => Ok("windows-x86_64".into()),
         ("windows", "aarch64") => Ok("windows-arm64".into()),
-        _ => Err(format!(
-            "unsupported platform {os}/{arch}; supported: Linux/macOS/Windows x86_64 and arm64"
-        )),
+        _ => Err(ods_core::error::update_unsupported_platform(os, arch)),
     }
 }
 

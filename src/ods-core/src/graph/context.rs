@@ -9,6 +9,8 @@ pub struct ContextOptions {
     pub include_private: bool,
     /// Walk `code:` edges (default false for AI context — source dumps burn tokens).
     pub include_code: bool,
+    /// Walk soft `related` edges (default false — not structural prerequisites).
+    pub include_related: bool,
     /// Soft token budget (bytes/4 heuristic). `None` = unlimited.
     pub max_tokens: Option<usize>,
 }
@@ -17,6 +19,8 @@ pub struct ContextOptions {
 #[derive(Clone, Debug, Default)]
 pub struct ContextResult {
     pub paths: Vec<PathBuf>,
+    /// Why each path was included (same length/order as `paths`).
+    pub reasons: Vec<String>,
     /// Document paths skipped because `share: private` (or org when filtered).
     pub skipped_private: Vec<PathBuf>,
     /// Estimated tokens of included paths (file size / 4).
@@ -37,13 +41,14 @@ pub fn resolve_context(workspace: &Workspace, query: &str, include_private: bool
         &ContextOptions {
             include_private,
             include_code: true,
+            include_related: false,
             max_tokens: None,
         },
     )
     .paths
 }
 
-/// Resolve context with token budget, private-skip tracking, and optional code edges.
+/// Resolve context with token budget, private-skip tracking, and optional code/related edges.
 pub fn resolve_context_with_options(
     workspace: &Workspace,
     query: &str,
@@ -53,16 +58,18 @@ pub fn resolve_context_with_options(
         return ContextResult::default();
     };
 
-    let mut queue = VecDeque::from([(start.clone(), 0usize)]);
+    // queue: (path, depth, reason)
+    let mut queue = VecDeque::from([(start.clone(), 0usize, String::from("start"))]);
     let mut visited = BTreeSet::<PathBuf>::new();
     let mut output = Vec::<PathBuf>::new();
+    let mut reasons = Vec::<String>::new();
     let mut skipped_private = Vec::<PathBuf>::new();
     let mut token_estimate = 0usize;
     let mut truncated = false;
     let max_depth = context_depth(workspace, &start).unwrap_or(2);
     let ignore_rules = context_ignore_rules(workspace, &start);
 
-    while let Some((path, depth)) = queue.pop_front() {
+    while let Some((path, depth, reason)) = queue.pop_front() {
         if is_ignored(&path, &workspace.root, &ignore_rules) {
             continue;
         }
@@ -89,6 +96,7 @@ pub fn resolve_context_with_options(
         }
         token_estimate = token_estimate.saturating_add(file_tokens);
         output.push(path.clone());
+        reasons.push(reason);
 
         if depth >= max_depth {
             continue;
@@ -101,54 +109,75 @@ pub fn resolve_context_with_options(
             continue;
         };
 
-        let mut next = frontmatter
-            .depends
-            .iter()
-            .chain(frontmatter.context.iter().flat_map(|ctx| ctx.load.iter()))
-            .filter_map(|reference| {
-                if let Some(document_path) =
-                    crate::refs::document_ref_to_path(workspace, document, reference)
-                {
-                    Some(document_path)
-                } else if crate::refs::is_file_like_ref(reference) {
-                    let resource_path =
-                        crate::fs::normalize_join(&document.directory, Path::new(reference));
-                    if resource_path.exists() {
-                        Some(resource_path)
-                    } else {
-                        None
-                    }
+        let from_label = path.file_name().and_then(|n| n.to_str()).unwrap_or("doc");
+
+        let resolve_ref = |reference: &String| -> Option<PathBuf> {
+            if let Some(document_path) =
+                crate::refs::document_ref_to_path(workspace, document, reference)
+            {
+                Some(document_path)
+            } else if crate::refs::is_file_like_ref(reference) {
+                let resource_path =
+                    crate::fs::normalize_join(&document.directory, Path::new(reference));
+                if resource_path.exists() {
+                    Some(resource_path)
                 } else {
                     None
                 }
-            })
-            .filter(|candidate| !is_ignored(candidate, &workspace.root, &ignore_rules))
-            .collect::<Vec<_>>();
-        next.sort();
+            } else {
+                None
+            }
+        };
 
-        if options.include_code {
-            let mut code_next = frontmatter
-                .code
-                .iter()
-                .filter_map(|code| {
-                    let code_path = crate::fs::normalize_join(&document.directory, &code.path);
-                    if code_path.exists() && !is_ignored(&code_path, &workspace.root, &ignore_rules)
-                    {
-                        Some(code_path)
-                    } else {
-                        None
-                    }
-                })
-                .collect::<Vec<_>>();
-            code_next.sort();
-            next.extend(code_next);
+        let mut next: Vec<(PathBuf, String)> = Vec::new();
+
+        for reference in &frontmatter.depends {
+            if let Some(p) = resolve_ref(reference) {
+                if !is_ignored(&p, &workspace.root, &ignore_rules) {
+                    next.push((p, format!("depends hop {} from {from_label}", depth + 1)));
+                }
+            }
         }
 
-        queue.extend(next.into_iter().map(|path| (path, depth + 1)));
+        if let Some(ctx) = &frontmatter.context {
+            for reference in &ctx.load {
+                if let Some(p) = resolve_ref(reference) {
+                    if !is_ignored(&p, &workspace.root, &ignore_rules) {
+                        next.push((p, format!("context.load from {from_label}")));
+                    }
+                }
+            }
+        }
+
+        if options.include_related {
+            for reference in &frontmatter.related {
+                if let Some(p) = resolve_ref(reference) {
+                    if !is_ignored(&p, &workspace.root, &ignore_rules) {
+                        next.push((p, format!("related from {from_label}")));
+                    }
+                }
+            }
+        }
+
+        if options.include_code {
+            for code in &frontmatter.code {
+                let code_path = crate::fs::normalize_join(&document.directory, &code.path);
+                if code_path.exists() && !is_ignored(&code_path, &workspace.root, &ignore_rules) {
+                    next.push((code_path, format!("code from {from_label}")));
+                }
+            }
+        }
+
+        next.sort_by(|a, b| a.0.cmp(&b.0));
+        queue.extend(
+            next.into_iter()
+                .map(|(path, reason)| (path, depth + 1, reason)),
+        );
     }
 
     ContextResult {
         paths: output,
+        reasons,
         skipped_private,
         token_estimate,
         truncated,

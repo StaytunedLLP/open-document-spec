@@ -13,6 +13,42 @@ This guide provides a comprehensive reference for diagnosing workspace issues, r
 
 ---
 
+## 0. CLI error shape (first call)
+
+User-facing CLI failures use a fixed, short format so the next action is never ambiguous:
+
+```text
+error: <what failed — one short line>
+Next: <exact command or action>
+```
+
+Usage mistakes (wrong args/flags) use `usage:` instead of `error:` (exit code **2** vs **1**).
+
+Optional `Hint:` lines appear only when they prevent a second failure (for example, OKF markers found → pass `--okf`).
+
+**Source of truth (code):** `src/ods-core/src/error/messages.rs` — do not invent alternate stderr copy in commands.
+
+### Common CLI lifecycle messages
+
+| Situation | You will see | Do this |
+|---|---|---|
+| Not an ODS workspace | `error: not an ODS workspace (no root index.ods.md with ods:)` | `Next: run \`ods init\`` (or `--okf` / `--skills` if Hint says so) |
+| Forbidden `--ods` | `usage: unknown flag: --ods` | ODS is default — bare `ods <cmd>`; extras are `--okf` / `--skills` only |
+| Unknown command | `usage: unknown command '…'` | `ods help`; may include `did you mean …?` |
+| Context miss | `error: no document matched '…'` | `ods find <query>` or a path-shaped id |
+| Missing context id | `usage: missing document id` | `ods context <id-or-path>` |
+| Load failure | `error: could not load workspace at '…'` | Check path or `ods init` |
+| Missing root index | `error: missing root index.ods.md` | `ods init` then retry |
+| Nothing to undo | `error: nothing to undo (no snapshot found)` | Snapshots come from bulk writes (adopt/fmt) |
+| Update failed | `error: update failed: …` | Check GitHub network access or install from Releases |
+| Service start/stop failed | `error: start service: …` / `stop service: …` | Permissions; `ods start --status`; guide § daemon troubleshooting |
+
+Set `ODS_ERROR_CODES=1` to append stable message ids (for docs/automation); default human output stays code-free.
+
+Lint diagnostics for ODS, OKF, and Skills also come from the same catalog (short fact strings in `ods lint` / `.ods/ods-errors.md`).
+
+---
+
 ## 1. The Diagnostic Workflow
 
 When an issue occurs or documents are modified, follow this 3-step diagnostic workflow:
@@ -44,63 +80,69 @@ Below is the complete catalog of errors and warnings reported by `ods lint`, alo
 
 ### 2. Invalid Status Enum
 * **Severity**: Error (Level 1+)
-* **Diagnostic Message**: `invalid status value: '<value>'`
+* **Diagnostic Message**: `invalid status: <value> (allowed: draft|stable|deprecated|archived)` — may include `(did you mean \`draft\`? …)` for common aliases (`wip`, `done`, …)
 * **Cause**: `status` in frontmatter is set to an unsupported value (e.g. `done`, `wip`, `COMPLETE`).
 * **Resolution**: Change `status` to one of the four valid lowercase enums: `draft`, `stable`, `deprecated`, or `archived`.
 
 ### 3. Invalid Share Enum
 * **Severity**: Error (Level 1+)
-* **Diagnostic Message**: `invalid share value: '<value>'`
+* **Diagnostic Message**: `invalid share value: <value> (allowed: public|org|private)`
 * **Cause**: `share` in frontmatter is set to an unsupported value.
 * **Resolution**: Change `share` to one of the three valid lowercase enums: `public`, `org`, or `private`.
 
 ### 4. Profile Expected Section Warning
 * **Severity**: Warning (Level 3)
-* **Diagnostic Message**: `Profile '<name>' expects heading '## <Section>', but it was missing`
+* **Diagnostic Message**: `missing expected section: <Section>`
 * **Cause**: Document frontmatter declares `profile: <name>`, but the Markdown body lacks one or more `## H2` section headings specified by that profile.
 * **Resolution**: Add the required `## <Section>` heading to your document, or switch to `profile: note` if the document has a custom structure.
 
 ### 5. Dangling `depends` or `related` Reference
 * **Severity**: Error (Level 3)
-* **Diagnostic Message**: `Dangling document reference: '<ref>' does not exist`
+* **Diagnostic Message**: `dangling reference: <ref>`
 * **Cause**: A path listed in `depends:` or `related:` does not resolve to an existing document file.
 * **Resolution**: Fix the path spelling, update the reference to point to the renamed document, or remove the entry. Run `ods fmt --refs md-paths` to auto-normalize Document refs to relative `.md` paths.
 
 ### 6. Duplicate Document ID
 * **Severity**: Error (Level 3)
-* **Diagnostic Message**: `Duplicate document ID found: '<id>' in '<path-a>' and '<path-b>'`
+* **Diagnostic Message**: `duplicate document id: <id>`
 * **Cause**: Two distinct Markdown documents specify the exact same explicit `id:` in their frontmatter, or have conflicting path-derived IDs.
 * **Resolution**: Remove the explicit `id:` override from one file (letting it use its relative path ID), or change the `id:` value to be unique.
 
 ### 7. Dependency Cycle Detected (`depends`)
 * **Severity**: Error (Level 3)
-* **Diagnostic Message**: `Dependency cycle detected: doc-a -> doc-b -> doc-a`
+* **Diagnostic Message**: `depends cycle detected: doc-a -> doc-b -> doc-a`
 * **Cause**: Document A depends on Document B, which transitively depends back on Document A. `depends` forms a directed acyclic graph (DAG).
 * **Resolution**: Remove the circular dependency. Move optional or bi-directional references from `depends:` into `related:`.
 
 ### 8. Missing Resource Path
 * **Severity**: Error (Level 3)
-* **Diagnostic Message**: `Resource path does not exist: '<path>'`
+* **Diagnostic Message**: `missing resource: <path>`
 * **Cause**: A non-Markdown asset listed under `resources:` (`- path: assets/diagram.png`) does not exist on disk.
 * **Resolution**: Check the file relative path and extension, move the asset to the expected location, or remove the `resources:` entry.
 
 ### 9. Missing Code Path or Invalid Role
 * **Severity**: Error (Level 1+ for role, Level 3 for path)
-* **Diagnostic Message**: `Invalid code role: '<role>'` or `Code reference path does not exist: '<path>'`
+* **Diagnostic Message**: `missing code path: <path>` (or role validation message)
 * **Cause**: A `code:` item specifies an unknown role or points to a source code file that does not exist.
 * **Resolution**: Ensure `role` is one of the fixed roles (`entrypoint`, `implementation`, `test`, `schema`, `migration`, `config`, `infrastructure`, `pipeline`). Verify the target source file path.
 
 ### 10. Stale Index Bullet List
 * **Severity**: Error (Level 3)
-* **Diagnostic Message**: `Index '<path>/index.md' does not match immediate directory children`
-* **Cause**: Files were added, deleted, or renamed without updating `index.md`.
-* **Resolution**: Run `ods index` to regenerate all `index.md` child bullet lists lockfiles automatically.
+* **Diagnostic Message**: `index missing children: …` / `index has extra entries: …`
+* **Cause**: Files were added, deleted, or renamed without updating `index.ods.md` / `index.md`.
+* **Resolution**: Run `ods index` to regenerate navigation lockfiles automatically.
 
 ### 11. Dangling Body Markdown Link
 * **Severity**: Error (Level 3)
-* **Diagnostic Message**: `Dangling body link '[Text]\(path/to/missing.md\)'`
-* **Cause**: Standard Markdown link `[label]\(target.md\)` in prose points to a non-existent file or relative path.
+* **Diagnostic Message**: `dangling markdown link in body: <link>`
+* **Cause**: Standard Markdown link in prose points to a non-existent file or relative path.
 * **Resolution**: Update the target link path or create the missing file.
+
+### 12. Tags nested under `ods:`
+* **Severity**: Warning
+* **Diagnostic Message**: `tags must be top-level frontmatter (not under ods:) …; run: ods fmt --migrate`
+* **Cause**: Tags were placed under the nested `ods:` map.
+* **Resolution**: Run `ods fmt --migrate` (hoists tags; never drops values).
 
 ---
 

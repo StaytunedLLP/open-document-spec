@@ -5,6 +5,7 @@
 - Reject `--ods` and legacy namespaces in help / arg parsing
 - LSP: `ods lsp`; service: `ods serve` / `ods start` (not LSP)
 - When adding a command: tests under `tests/`, help strings, CHANGELOG, skill matrix if user-facing
+- **Errors:** use catalog builders from `ods_core::error` / re-exports + `fail_msg` / `usage_msg` / `fail_load` — never invent long stderr prose in the command file
 
 ## Argv / subcommands
 

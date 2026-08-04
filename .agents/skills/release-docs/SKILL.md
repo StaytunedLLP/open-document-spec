@@ -7,9 +7,10 @@ description: >-
 
 # Release docs sync
 
-When `specs/**`, CLI flags, or key placement change:
+When `specs/**`, CLI flags, key placement, or **user-facing error catalog** change:
 
 1. **Schema registry** — if keys changed, update `src/ods-core/src/spec/schema.rs` in the same change set
+1b. **Error catalog** — if CLI/lifecycle messages changed: `src/ods-core/src/error/messages.rs` + `docs/guide/07-troubleshooting-and-diagnostics.md` + skill error directive
 2. **Specs** — `specs/{ods,okf,skills}/` consistent indexes
 3. **Guide** — `docs/guide/*` links and summaries (no forked key rules)
 4. **Other-specs** — comparisons point at `specs`, not old flat paths; archive plans under `docs/plan/archive/`

@@ -11,17 +11,16 @@ pub(super) fn lint_root_spec(
         Some(version) => diagnostics.push(Diagnostic {
             path: root_index.path.clone(),
             severity: Severity::Error,
-            message: format!(
-                "root ods spec version mismatch: {version} (expected {})",
-                crate::model::current_ods_spec_version()
+            message: crate::error::lint_root_version_mismatch(
+                version,
+                crate::model::current_ods_spec_version(),
             ),
         }),
         None => diagnostics.push(Diagnostic {
             path: root_index.path.clone(),
             severity: Severity::Error,
-            message: format!(
-                "root index.ods.md missing ods: {}",
-                crate::model::current_ods_spec_version()
+            message: crate::error::lint_root_missing_ods_version(
+                crate::model::current_ods_spec_version(),
             ),
         }),
     }
@@ -42,7 +41,7 @@ pub(super) fn lint_packs(
                 diagnostics.push(Diagnostic {
                     path: document.path.clone(),
                     severity: Severity::Error,
-                    message: format!("missing pack path: {pack}"),
+                    message: crate::error::lint_missing_pack_path(pack),
                 });
             }
         }
@@ -66,7 +65,7 @@ pub(super) fn lint_references(
             diagnostics.push(Diagnostic {
                 path: document.path.clone(),
                 severity: Severity::Error,
-                message: format!("dangling reference: {reference}"),
+                message: crate::error::lint_dangling_reference(reference),
             });
         } else if canonical_refs
             && !crate::refs::is_markdown_ref(reference)
@@ -77,9 +76,7 @@ pub(super) fn lint_references(
             diagnostics.push(Diagnostic {
                 path: document.path.clone(),
                 severity: Severity::Warning,
-                message: format!(
-                    "non-canonical document reference: {reference} (prefer {canonical})"
-                ),
+                message: crate::error::lint_non_canonical_ref(reference, &canonical),
             });
         }
     }
@@ -96,9 +93,7 @@ pub(super) fn lint_references(
                     diagnostics.push(Diagnostic {
                         path: document.path.clone(),
                         severity: Severity::Warning,
-                        message: format!(
-                            "non-canonical context document reference: {load} (prefer {canonical})"
-                        ),
+                        message: crate::error::lint_non_canonical_context_ref(load, &canonical),
                     });
                 }
             } else if is_resource_like(load) {
@@ -107,14 +102,14 @@ pub(super) fn lint_references(
                     diagnostics.push(Diagnostic {
                         path: document.path.clone(),
                         severity: Severity::Error,
-                        message: format!("missing context resource: {load}"),
+                        message: crate::error::lint_missing_context_resource(load),
                     });
                 }
             } else if !ids.contains_key(&load.to_lowercase()) {
                 diagnostics.push(Diagnostic {
                     path: document.path.clone(),
                     severity: Severity::Error,
-                    message: format!("dangling context reference: {load}"),
+                    message: crate::error::lint_dangling_context_reference(load),
                 });
             }
         }
@@ -125,7 +120,7 @@ pub(super) fn lint_references(
                 diagnostics.push(Diagnostic {
                     path: document.path.clone(),
                     severity: Severity::Warning,
-                    message: format!("context ignore target not found: {ignore}"),
+                    message: crate::error::lint_context_ignore_not_found(ignore),
                 });
             }
         }
@@ -151,7 +146,7 @@ pub(super) fn lint_ods_scope(
     vec![Diagnostic {
         path: document.path.clone(),
         severity: Severity::Error,
-        message: "ods and ods should be declared only in root index.ods.md".to_string(),
+        message: crate::error::lint_root_ods_scope_only(),
     }]
 }
 
@@ -171,6 +166,34 @@ pub(super) fn lint_alias_scope(
     vec![Diagnostic {
         path: document.path.clone(),
         severity: Severity::Warning,
-        message: "workspace aliases should be declared in the root index.ods.md".to_string(),
+        message: crate::error::lint_aliases_root_only(),
     }]
+}
+
+#[cfg(test)]
+mod test_canonical_rules {
+    use super::*;
+    use crate::fs::load_workspace;
+    use tempfile::tempdir;
+
+    #[test]
+    fn test_canonical_rules_helpers() {
+        let td = tempdir().unwrap();
+        let root = td.path();
+        std::fs::write(
+            root.join("index.md"),
+            "---\nprofile: index\nods: 0.999\n---\n\n# Root\n",
+        )
+        .unwrap();
+
+        let ws = load_workspace(root).unwrap();
+        let doc = ws.documents.first().unwrap();
+        if let crate::model::FrontmatterState::Parsed(fm) = &doc.frontmatter {
+            let diags = lint_root_spec(doc, fm);
+            assert!(!diags.is_empty());
+
+            let alias_diags = lint_alias_scope(&ws, doc, fm);
+            assert!(alias_diags.is_empty());
+        }
+    }
 }

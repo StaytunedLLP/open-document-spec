@@ -23,7 +23,7 @@ fn run_bench_command(args: &[String]) -> Result<ExitCode, CliError> {
                 full,
             };
             let report = ods_core::bench_strip_workspace(&root, options)
-                .map_err(|err| failure(err.to_string()))?;
+                .map_err(|err| fail_io("bench", err))?;
 
             match format {
                 OutputFormat::Text => {
@@ -61,7 +61,7 @@ fn run_bench_command(args: &[String]) -> Result<ExitCode, CliError> {
             let root = resolve_root_path(root);
 
             let report = ods_core::bench_restore_workspace(&root, snapshot_id.as_deref())
-                .map_err(|err| failure(err.to_string()))?;
+                .map_err(|err| fail_io("bench", err))?;
 
             match format {
                 OutputFormat::Text => {
@@ -90,7 +90,7 @@ fn run_bench_command(args: &[String]) -> Result<ExitCode, CliError> {
             let root = resolve_root_path(root);
 
             let stats = ods_core::bench_calculate_stats(&root)
-                .map_err(|err| failure(err.to_string()))?;
+                .map_err(|err| fail_io("bench", err))?;
 
             match format {
                 OutputFormat::Text => {
@@ -138,7 +138,7 @@ fn run_bench_command(args: &[String]) -> Result<ExitCode, CliError> {
             let root = resolve_root_path(root);
 
             let report = ods_core::bench_run_simulation(&root, &prompt, &agent)
-                .map_err(|err| failure(err.to_string()))?;
+                .map_err(|err| fail_io("bench", err))?;
 
             let fitness_score = (report.token_savings_pct * 0.9 + 10.0).min(99.9);
 
@@ -173,8 +173,10 @@ fn run_bench_command(args: &[String]) -> Result<ExitCode, CliError> {
             }
         }
         other => {
-            return Err(usage(format!(
-                "unknown bench subcommand: {other} (use strip, restore, stats, run, or agent)"
+            return Err(usage_msg(ods_core::unknown_subcommand(
+                "bench",
+                other,
+                "ods bench strip|restore|stats|run|agent",
             )));
         }
     }

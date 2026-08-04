@@ -293,3 +293,19 @@ pub fn compute_path_change_edits(
     report.rewritten_files = rewritten.into_iter().collect();
     Ok((report, edits))
 }
+
+#[cfg(test)]
+mod test_rewriter {
+    use super::*;
+
+    #[test]
+    fn test_rewriter_helpers() {
+        let text_with_fm = "---\nprofile: note\nid: old-id\n---\n\n# Body\n";
+        let forced_fm = force_frontmatter_id(text_with_fm, "my-new-id");
+        assert!(forced_fm.contains("id: my-new-id"));
+
+        let spaced = "---\nprofile: note\n---\n\n\n# Heading\n";
+        let normalized = normalize_frontmatter_body_spacing(spaced);
+        assert!(!normalized.is_empty());
+    }
+}

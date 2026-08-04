@@ -31,5 +31,42 @@ mod test_workspaces_command {
             "json".into(),
         ]);
         assert!(res_list_json.is_ok());
+
+        // add
+        let res_add = run_workspaces_command(&[
+            "ods".into(),
+            "workspaces".into(),
+            "add".into(),
+            sample.to_str().unwrap().into(),
+        ]);
+        assert!(res_add.is_ok());
+
+        // duplicate add
+        let res_add_dup = run_workspaces_command(&[
+            "ods".into(),
+            "workspaces".into(),
+            "add".into(),
+            sample.to_str().unwrap().into(),
+        ]);
+        assert!(res_add_dup.is_ok());
+
+        // remove
+        let res_rm = run_workspaces_command(&[
+            "ods".into(),
+            "workspaces".into(),
+            "remove".into(),
+            sample.to_str().unwrap().into(),
+        ]);
+        assert!(res_rm.is_ok());
+
+        // remove non-tracked
+        let res_rm_non = run_workspaces_command(&[
+            "ods".into(),
+            "workspaces".into(),
+            "remove".into(),
+            sample.to_str().unwrap().into(),
+        ]);
+        assert!(res_rm_non.is_ok());
     }
 }
+

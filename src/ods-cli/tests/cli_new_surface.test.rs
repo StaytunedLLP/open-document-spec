@@ -143,6 +143,14 @@ fn undo_without_snapshot_is_failure() {
     let dir = temp_workspace();
     let root = dir.to_str().unwrap();
     init_ods(root);
+    let out = ods().args(["undo", "--list", root]).output().unwrap();
+    assert!(out.status.success(), "undo --list: {:?}", out);
+    let list_out = String::from_utf8_lossy(&out.stdout);
+    assert!(
+        list_out.contains("snapshot") || list_out.contains("no snapshots"),
+        "{list_out}"
+    );
+
     let out = ods().args(["undo", root]).output().unwrap();
     // No snapshot → non-zero (or message about snapshot).
     let combined = format!(
@@ -186,7 +194,7 @@ fn profile_fmt_disable_doctor_and_flag_matrix() {
         .unwrap();
     assert!(out.status.success(), "profiles json: {:?}", out);
 
-    // profile init writes under cwd/.ods/profiles/
+    // profile init writes under cwd/.ods/profiles/ and registers custom-profiles:
     let out = ods()
         .current_dir(&dir)
         .args(["profile", "init", "rfc"])
@@ -194,13 +202,67 @@ fn profile_fmt_disable_doctor_and_flag_matrix() {
         .unwrap();
     assert!(out.status.success(), "profile init: {:?}", out);
     assert!(dir.join(".ods/profiles/rfc.md").is_file());
-    // second call hits already-exists branch
+    let index_text = fs::read_to_string(dir.join("index.md"))
+        .unwrap_or_else(|_| fs::read_to_string(dir.join("index.ods.md")).expect("root index"));
+    assert!(
+        index_text.contains(".ods/profiles/rfc.md"),
+        "expected custom-profiles registration: {index_text}"
+    );
+    let out = ods()
+        .current_dir(&dir)
+        .args(["profile", "show", "rfc"])
+        .output()
+        .unwrap();
+    assert!(out.status.success(), "profile show: {:?}", out);
+    let show = String::from_utf8_lossy(&out.stdout);
+    assert!(show.contains("profile: rfc"), "{show}");
+    // second call hits already-exists + already-registered branches
     let out = ods()
         .current_dir(&dir)
         .args(["profile", "init", "rfc"])
         .output()
         .unwrap();
     assert!(out.status.success(), "profile init exists: {:?}", out);
+
+    // status lifecycle + archive alias
+    let doc = dir.join("note.md");
+    fs::write(
+        &doc,
+        "---\nods:\n  profile: note\n  status: draft\n---\n\n# Note\n",
+    )
+    .unwrap();
+    let out = ods()
+        .current_dir(&dir)
+        .args(["status", "note.md", "stable"])
+        .output()
+        .unwrap();
+    assert!(out.status.success(), "status stable: {:?}", out);
+    let body = fs::read_to_string(&doc).unwrap();
+    assert!(body.contains("status: stable"), "{body}");
+    let out = ods()
+        .current_dir(&dir)
+        .args(["archive", "note.md"])
+        .output()
+        .unwrap();
+    assert!(out.status.success(), "archive: {:?}", out);
+    let body = fs::read_to_string(&doc).unwrap();
+    assert!(body.contains("status: archived"), "{body}");
+
+    // section aliases list + add
+    let out = ods().current_dir(&dir).args(["aliases"]).output().unwrap();
+    assert!(out.status.success(), "aliases list: {:?}", out);
+    let out = ods()
+        .current_dir(&dir)
+        .args(["alias", "add", "Goal", "Objective"])
+        .output()
+        .unwrap();
+    assert!(out.status.success(), "alias add: {:?}", out);
+    let index_text = fs::read_to_string(dir.join("index.md"))
+        .unwrap_or_else(|_| fs::read_to_string(dir.join("index.ods.md")).expect("root index"));
+    assert!(
+        index_text.contains("aliases:") && index_text.contains("Objective"),
+        "{index_text}"
+    );
 
     // fmt migrate + refs + json
     let out = ods()
@@ -252,7 +314,27 @@ fn profile_fmt_disable_doctor_and_flag_matrix() {
     }
 
     // context / export / tree / diff / clean / find / tags
-    let _ = ods().args(["context", "n.md", root]).output();
+    let out = ods()
+        .current_dir(&dir)
+        .args(["context", "n.md", "--explain"])
+        .output()
+        .unwrap();
+    assert!(out.status.success(), "context --explain: {:?}", out);
+    let ctx = String::from_utf8_lossy(&out.stdout);
+    assert!(
+        ctx.contains("# start") || ctx.contains("n.md"),
+        "expected explain annotations: {ctx}"
+    );
+    let out = ods()
+        .current_dir(&dir)
+        .args(["context", "n.md", "--include-related"])
+        .output()
+        .unwrap();
+    assert!(
+        out.status.success() || out.status.code() == Some(1),
+        "context --include-related: {:?}",
+        out
+    );
     let export_out = dir.join("g.md");
     let _ = ods()
         .args(["export", root, "--out", export_out.to_str().unwrap()])
@@ -480,9 +562,7 @@ fn init_skills_and_lint_skills() {
     let out = ods().args(["lint", "--skills", root]).output().unwrap();
     // may fail if hybrid requirements; just exercise path
     let _ = out.status;
-    let s = String::from_utf8_lossy(&out.stdout);
-    let e = String::from_utf8_lossy(&out.stderr);
-    assert!(!s.is_empty() || !e.is_empty() || out.status.success() || !out.status.success());
+    assert!(out.status.code().is_some());
 }
 
 #[test]

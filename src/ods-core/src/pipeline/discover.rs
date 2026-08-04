@@ -110,3 +110,36 @@ fn is_gitignored(root: &Path, path: &Path, patterns: &[String]) -> bool {
         }
     })
 }
+
+#[cfg(test)]
+mod test_discover {
+    use super::*;
+    use tempfile::tempdir;
+
+    #[test]
+    fn test_discover_markdown_paths_with_gitignore_and_excluded() {
+        let td = tempdir().unwrap();
+        let root = td.path();
+
+        let sub = root.join("sub");
+        std::fs::create_dir_all(&sub).unwrap();
+        let excl = root.join("excl");
+        std::fs::create_dir_all(&excl).unwrap();
+
+        std::fs::write(root.join("index.md"), "# Root").unwrap();
+        std::fs::write(sub.join("doc.md"), "# Doc").unwrap();
+        std::fs::write(sub.join("ignored.md"), "# Ignored").unwrap();
+        std::fs::write(excl.join("excluded.md"), "# Excluded").unwrap();
+
+        let gitignore = vec!["sub/ignored.md".to_string()];
+        let excluded_roots = vec![excl];
+        let workspace_ignore = vec![];
+
+        let paths =
+            discover_markdown_paths(root, &excluded_roots, &gitignore, &workspace_ignore).unwrap();
+        assert!(paths.contains(&root.join("index.md")));
+        assert!(paths.contains(&sub.join("doc.md")));
+        assert!(!paths.contains(&sub.join("ignored.md")));
+        assert!(!paths.contains(&root.join("excl/excluded.md")));
+    }
+}

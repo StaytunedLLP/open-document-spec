@@ -156,7 +156,7 @@ pub fn lint_document_tags(document: &Document, workspace: &Workspace) -> Vec<Dia
         diagnostics.push(Diagnostic {
             path: document.path.clone(),
             severity: Severity::Warning,
-            message: "tags must be top-level frontmatter (not under ods:) so other tools can read them; run: ods fmt --migrate".to_string(),
+            message: crate::error::lint_tags_misplaced(),
         });
     }
 
@@ -167,7 +167,7 @@ pub fn lint_document_tags(document: &Document, workspace: &Workspace) -> Vec<Dia
             diagnostics.push(Diagnostic {
                 path: document.path.clone(),
                 severity: Severity::Warning,
-                message: format!("duplicate tag: {tag}"),
+                message: crate::error::lint_duplicate_tag(tag),
             });
         }
         if tag.contains(' ') {
@@ -175,21 +175,21 @@ pub fn lint_document_tags(document: &Document, workspace: &Workspace) -> Vec<Dia
             diagnostics.push(Diagnostic {
                 path: document.path.clone(),
                 severity: Severity::Warning,
-                message: format!("tag has spaces: {tag} (prefer {suggested})"),
+                message: crate::error::lint_tag_has_spaces(tag, &suggested),
             });
         }
         if is_reserved_status_token(tag) {
             diagnostics.push(Diagnostic {
                 path: document.path.clone(),
                 severity: Severity::Warning,
-                message: format!("tag collides with status value: {tag} (use status: field)"),
+                message: crate::error::lint_tag_collides_status(tag),
             });
         }
         if is_profile_name(tag, workspace) {
             diagnostics.push(Diagnostic {
                 path: document.path.clone(),
                 severity: Severity::Warning,
-                message: format!("tag collides with profile name: {tag} (use profile: field)"),
+                message: crate::error::lint_tag_collides_profile(tag),
             });
         }
     }
@@ -224,4 +224,61 @@ fn is_profile_name(tag: &str, workspace: &Workspace) -> bool {
         return true;
     }
     workspace.profiles.definitions.contains_key(tag)
+}
+
+#[cfg(test)]
+mod test_tags_catalog {
+    use super::*;
+    use crate::fs::load_workspace;
+    use tempfile::tempdir;
+
+    #[test]
+    fn test_tags_catalog_functions() {
+        assert!(!builtin_tags().is_empty());
+
+        assert_eq!(normalize_tag("  Security "), Some("security".into()));
+        assert_eq!(normalize_tag("   "), None);
+
+        let list = normalize_tag_list(vec!["   ", "OnCall", "oncall", "Security"]);
+        assert_eq!(list, vec!["oncall", "security"]);
+
+        let td = tempdir().unwrap();
+        let root = td.path();
+        std::fs::write(
+            root.join("index.md"),
+            "---\nprofile: index\nods: 0.1\n---\n\n# Root\n",
+        )
+        .unwrap();
+        std::fs::write(
+            root.join("doc1.md"),
+            "---\nprofile: note\nstatus: draft\ntags:\n  - oncall\n  - oncall\n  - tag with space\n  - draft\n  - note\n---\n\n# Doc1\n",
+        )
+        .unwrap();
+
+        let workspace = load_workspace(root).unwrap();
+
+        let obs = observed_tags(&workspace);
+        assert!(obs.contains(&"oncall".to_string()));
+
+        let comp = completion_tags(&workspace);
+        assert!(comp.contains(&"security".to_string()));
+
+        let with_tag = docs_with_tag(&workspace, "oncall");
+        assert!(!with_tag.is_empty());
+        assert!(docs_with_tag(&workspace, "   ").is_empty());
+
+        let any_tag = docs_with_any_tag(&workspace, &["oncall".into(), "nonexistent".into()]);
+        assert!(!any_tag.is_empty());
+
+        let usage = tag_usage(&workspace);
+        assert!(!usage.is_empty());
+
+        let usage_builtins = tag_usage_with_builtins(&workspace, true);
+        assert!(usage_builtins.iter().any(|(_, _, unused)| *unused));
+
+        if let Some(doc1) = workspace.document_by_path(&root.join("doc1.md")) {
+            let diags = lint_document_tags(doc1, &workspace);
+            assert!(!diags.is_empty());
+        }
+    }
 }

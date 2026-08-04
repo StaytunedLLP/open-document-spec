@@ -4,12 +4,7 @@ fn require_okf_bundle(root: &Path) -> Result<(), CliError> {
     if ods_core::okf_enabled(root) {
         return Ok(());
     }
-    Err(failure(format!(
-        "not an OKF bundle: {}\n\n\
-         No root index.md with okf_version found.\n\
-         Run `ods init --okf` here to create an OKF v0.2 bundle.",
-        root.display()
-    )))
+    Err(fail_msg(ods_core::not_okf_bundle()))
 }
 
 fn run_okf_init_command(args: &[String]) -> Result<ExitCode, CliError> {
@@ -26,7 +21,7 @@ fn run_okf_init_command(args: &[String]) -> Result<ExitCode, CliError> {
     }
     let (root, _level, format) = parse_common_flags(&filtered, 2)?;
     let report =
-        ods_core::init_okf_bundle(&root, opts).map_err(|e| failure(e.to_string()))?;
+        ods_core::init_okf_bundle(&root, opts).map_err(|e| fail_io("okf", e))?;
     match format {
         OutputFormat::Text => {
             println!("initialized OKF bundle at {}", report.root.display());
@@ -63,7 +58,7 @@ fn run_okf_lint_command_with_config(
 ) -> Result<ExitCode, CliError> {
     let (root, level, format) = parse_common_flags(args, 2)?;
     require_okf_bundle(&root)?;
-    let bundle = ods_core::load_okf_bundle(&root).map_err(|e| failure(e.to_string()))?;
+    let bundle = ods_core::load_okf_bundle(&root).map_err(|e| fail_msg(ods_core::load_okf_bundle_failed(&root, e)))?;
     let okf_level = match level {
         LintLevel::Level1 => ods_core::OkfLintLevel::Level1,
         LintLevel::Level3 => ods_core::OkfLintLevel::Level3,
@@ -79,7 +74,7 @@ fn run_okf_lint_command_with_config(
 fn run_okf_doctor_command(args: &[String]) -> Result<ExitCode, CliError> {
     let (root, _level, format) = parse_common_flags(args, 2)?;
     require_okf_bundle(&root)?;
-    let bundle = ods_core::load_okf_bundle(&root).map_err(|e| failure(e.to_string()))?;
+    let bundle = ods_core::load_okf_bundle(&root).map_err(|e| fail_msg(ods_core::load_okf_bundle_failed(&root, e)))?;
     let diags = ods_core::lint_okf_bundle(&bundle);
     let audit = ods_core::audit_okf_bundle(&bundle);
     let mut human = 0usize;
@@ -160,7 +155,7 @@ fn run_okf_audit_command(args: &[String]) -> Result<ExitCode, CliError> {
     let (root, _level, format) = parse_common_flags(&filtered, 2)?;
     require_okf_bundle(&root)?;
     let report_path = report_path_opt.unwrap_or_else(|| root.join(".ods/ods-errors.md"));
-    let bundle = ods_core::load_okf_bundle(&root).map_err(|e| failure(e.to_string()))?;
+    let bundle = ods_core::load_okf_bundle(&root).map_err(|e| fail_msg(ods_core::load_okf_bundle_failed(&root, e)))?;
     let report = ods_core::audit_okf_bundle(&bundle);
 
     match format {
@@ -201,10 +196,10 @@ fn run_okf_audit_command(args: &[String]) -> Result<ExitCode, CliError> {
 
     if write_report {
         if let Some(parent) = report_path.parent() {
-            fs::create_dir_all(parent).map_err(|e| failure(e.to_string()))?;
+            fs::create_dir_all(parent).map_err(|e| fail_io("okf", e))?;
         }
         let md = ods_core::render_okf_audit_markdown(&root, &report);
-        fs::write(&report_path, md).map_err(|e| failure(e.to_string()))?;
+        fs::write(&report_path, md).map_err(|e| fail_io("okf", e))?;
         if matches!(format, OutputFormat::Text) {
             println!("wrote {}", report_path.display());
         }
@@ -216,8 +211,10 @@ fn run_okf_audit_command(args: &[String]) -> Result<ExitCode, CliError> {
         Some("invalid") => report.invalid > 0,
         Some("any") => report.plain + report.invalid + report.partial > 0,
         Some(other) => {
-            return Err(usage(format!(
-                "invalid --fail-on {other} (use plain|invalid|any)"
+            return Err(usage_msg(ods_core::invalid_choice(
+                "--fail-on",
+                other,
+                "plain|invalid|any",
             )));
         }
     };

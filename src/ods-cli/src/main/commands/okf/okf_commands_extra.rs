@@ -4,7 +4,7 @@ fn run_okf_adopt_command(args: &[String]) -> Result<ExitCode, CliError> {
     let (root, _level, format) = parse_common_flags(args, 2)?;
     require_okf_bundle(&root)?;
     let write = args.iter().any(|a| a == "--write");
-    let bundle = ods_core::load_okf_bundle(&root).map_err(|e| failure(e.to_string()))?;
+    let bundle = ods_core::load_okf_bundle(&root).map_err(|e| fail_msg(ods_core::load_okf_bundle_failed(&root, e)))?;
     let mut changed = 0usize;
     for doc in &bundle.documents {
         if doc.is_reserved {
@@ -20,9 +20,9 @@ fn run_okf_adopt_command(args: &[String]) -> Result<ExitCode, CliError> {
                 .file_stem()
                 .and_then(|s| s.to_str())
                 .unwrap_or("concept");
-            let body = fs::read_to_string(&doc.path).map_err(|e| failure(e.to_string()))?;
+            let body = fs::read_to_string(&doc.path).map_err(|e| fail_io("okf", e))?;
             let drafted = format!("---\ntype: Reference\ntitle: {stem}\nstatus: draft\n---\n\n{body}");
-            fs::write(&doc.path, drafted).map_err(|e| failure(e.to_string()))?;
+            fs::write(&doc.path, drafted).map_err(|e| fail_io("okf", e))?;
             changed += 1;
             if matches!(format, OutputFormat::Text) {
                 println!("adopted {}", rel.display());
@@ -46,10 +46,10 @@ fn run_okf_index_command(args: &[String]) -> Result<ExitCode, CliError> {
     let (root, _level, format) = parse_common_flags(args, 2)?;
     require_okf_bundle(&root)?;
     let check = args.iter().any(|a| a == "--check");
-    let bundle = ods_core::load_okf_bundle(&root).map_err(|e| failure(e.to_string()))?;
+    let bundle = ods_core::load_okf_bundle(&root).map_err(|e| fail_msg(ods_core::load_okf_bundle_failed(&root, e)))?;
     if check {
         let current =
-            ods_core::okf_indexes_are_current(&bundle).map_err(|e| failure(e.to_string()))?;
+            ods_core::okf_indexes_are_current(&bundle).map_err(|e| fail_io("okf", e))?;
         match format {
             OutputFormat::Text => {
                 if current {
@@ -65,7 +65,7 @@ fn run_okf_index_command(args: &[String]) -> Result<ExitCode, CliError> {
         return Ok(ExitCode::from(if current { 0 } else { 1 }));
     }
     let paths =
-        ods_core::generate_okf_indexes(&bundle).map_err(|e| failure(e.to_string()))?;
+        ods_core::generate_okf_indexes(&bundle).map_err(|e| fail_io("okf", e))?;
     match format {
         OutputFormat::Text => {
             for p in &paths {
@@ -82,17 +82,16 @@ fn run_okf_index_command(args: &[String]) -> Result<ExitCode, CliError> {
 fn run_okf_context_command(args: &[String]) -> Result<ExitCode, CliError> {
     let (root, _level, format) = parse_common_flags(args, 2)?;
     require_okf_bundle(&root)?;
-    let root_s = root.to_string_lossy();
-    let id = args
-        .iter()
-        .skip(2)
-        .rfind(|a| !a.starts_with('-') && a.as_str() != root_s.as_ref())
+    let positionals = positional_args(args, 2);
+    let id = positionals
+        .last()
         .cloned()
-        .ok_or_else(|| usage("okf context requires a concept id or path"))?;
-    let bundle = ods_core::load_okf_bundle(&root).map_err(|e| failure(e.to_string()))?;
+        .ok_or_else(|| usage_msg(ods_core::missing_context_id()))?;
+    let bundle = ods_core::load_okf_bundle(&root)
+        .map_err(|e| fail_msg(ods_core::load_okf_bundle_failed(&root, e)))?;
     let list = ods_core::okf_context(&bundle, &id);
     if list.is_empty() {
-        return Err(failure(format!("concept not found: {id}")));
+        return Err(fail_msg(ods_core::concept_not_found(&id)));
     }
     match format {
         OutputFormat::Text => {
@@ -122,6 +121,9 @@ fn run_okf_export_command(args: &[String]) -> Result<ExitCode, CliError> {
                 out = args.get(i + 1).map(PathBuf::from);
                 i += 2;
             }
+            "--format" | "--mode" | "--level" => {
+                i += 2;
+            }
             other if other.starts_with("--out=") => {
                 out = Some(PathBuf::from(&other["--out=".len()..]));
                 i += 1;
@@ -138,9 +140,9 @@ fn run_okf_export_command(args: &[String]) -> Result<ExitCode, CliError> {
     );
     require_okf_bundle(&root)?;
     let out = out.unwrap_or_else(|| root.join("okf-graph.md"));
-    let bundle = ods_core::load_okf_bundle(&root).map_err(|e| failure(e.to_string()))?;
+    let bundle = ods_core::load_okf_bundle(&root).map_err(|e| fail_msg(ods_core::load_okf_bundle_failed(&root, e)))?;
     let written =
-        ods_core::export_okf_graph(&bundle, &out).map_err(|e| failure(e.to_string()))?;
+        ods_core::export_okf_graph(&bundle, &out).map_err(|e| fail_io("okf", e))?;
     println!("wrote {}", written.display());
     Ok(ExitCode::from(0))
 }
@@ -148,8 +150,8 @@ fn run_okf_export_command(args: &[String]) -> Result<ExitCode, CliError> {
 fn run_okf_fmt_command(args: &[String]) -> Result<ExitCode, CliError> {
     let (root, _level, format) = parse_common_flags(args, 2)?;
     require_okf_bundle(&root)?;
-    let bundle = ods_core::load_okf_bundle(&root).map_err(|e| failure(e.to_string()))?;
-    let changed = ods_core::fmt_okf_bundle(&bundle).map_err(|e| failure(e.to_string()))?;
+    let bundle = ods_core::load_okf_bundle(&root).map_err(|e| fail_msg(ods_core::load_okf_bundle_failed(&root, e)))?;
+    let changed = ods_core::fmt_okf_bundle(&bundle).map_err(|e| fail_io("okf", e))?;
     match format {
         OutputFormat::Text => {
             if changed.is_empty() {
@@ -250,13 +252,15 @@ mod test_okf_extra {
     fn adopt_index_context_export_fmt_json_branches() {
         let (td, path) = okf_root();
         let out = td.path().join("okf-graph.md");
-        let _ = run_okf_adopt_command(&[
+        let res = run_okf_adopt_command(&[
             "ods".into(),
             "adopt".into(),
             path.clone(),
             "--okf".into(),
         ]);
-        let _ = run_okf_adopt_command(&[
+        assert!(res.is_ok());
+
+        let res = run_okf_adopt_command(&[
             "ods".into(),
             "adopt".into(),
             path.clone(),
@@ -265,7 +269,9 @@ mod test_okf_extra {
             "--format".into(),
             "json".into(),
         ]);
-        let _ = run_okf_index_command(&[
+        assert!(res.is_ok());
+
+        let res = run_okf_index_command(&[
             "ods".into(),
             "index".into(),
             path.clone(),
@@ -273,7 +279,9 @@ mod test_okf_extra {
             "--format".into(),
             "json".into(),
         ]);
-        let _ = run_okf_index_command(&[
+        assert!(res.is_ok());
+
+        let res = run_okf_index_command(&[
             "ods".into(),
             "index".into(),
             path.clone(),
@@ -282,37 +290,49 @@ mod test_okf_extra {
             "--format".into(),
             "json".into(),
         ]);
-        let _ = run_okf_index_command(&[
+        assert!(res.is_ok());
+
+        let res = run_okf_index_command(&[
             "ods".into(),
             "index".into(),
             path.clone(),
             "--okf".into(),
             "--check".into(),
         ]);
-        let _ = run_okf_context_command(&[
+        assert!(res.is_ok());
+
+        let res = run_okf_context_command(&[
             "ods".into(),
             "context".into(),
+            "--root".into(),
             path.clone(),
             "metric".into(),
             "--okf".into(),
             "--format".into(),
             "json".into(),
         ]);
-        let _ = run_okf_context_command(&[
+        assert!(res.is_ok());
+
+        let res = run_okf_context_command(&[
             "ods".into(),
             "context".into(),
+            "--root".into(),
             path.clone(),
             "metric".into(),
             "--okf".into(),
         ]);
-        let _ = run_okf_context_command(&[
+        assert!(res.is_ok());
+
+        let res = run_okf_context_command(&[
             "ods".into(),
             "context".into(),
             path.clone(),
             "missing-id".into(),
             "--okf".into(),
         ]);
-        let _ = run_okf_export_command(&[
+        assert!(res.is_err());
+
+        let res = run_okf_export_command(&[
             "ods".into(),
             "export".into(),
             path.clone(),
@@ -322,7 +342,10 @@ mod test_okf_extra {
             "--format".into(),
             "json".into(),
         ]);
-        let _ = run_okf_fmt_command(&[
+        assert!(res.is_ok());
+        assert!(out.exists());
+
+        let res = run_okf_fmt_command(&[
             "ods".into(),
             "fmt".into(),
             path.clone(),
@@ -330,6 +353,10 @@ mod test_okf_extra {
             "--format".into(),
             "json".into(),
         ]);
-        let _ = run_okf_fmt_command(&["ods".into(), "fmt".into(), path, "--okf".into()]);
+        assert!(res.is_ok());
+
+        let res = run_okf_fmt_command(&["ods".into(), "fmt".into(), path, "--okf".into()]);
+        assert!(res.is_ok());
     }
 }
+

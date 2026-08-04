@@ -227,9 +227,8 @@ pub fn disable_workspace(
         let body_before = body_before.trim_start_matches(['\r', '\n']);
         let body_after = body_after.trim_start_matches(['\r', '\n']);
         if body_before != body_after {
-            return Err(io::Error::other(format!(
-                "refuse to change body of {}",
-                path.display()
+            return Err(io::Error::other(crate::error::lifecycle_refuse_body_change(
+                path.display(),
             )));
         }
 

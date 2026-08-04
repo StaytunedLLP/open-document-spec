@@ -12,8 +12,10 @@ fn dispatch_agents_command(args: &[String]) -> Result<ExitCode, CliError> {
             Ok(ExitCode::from(0))
         }
         "sync" => run_agents_sync_command(args),
-        other => Err(usage(format!(
-            "unknown agents command: {other} (try: ods agents sync)"
+        other => Err(usage_msg(ods_core::unknown_subcommand(
+            "agents",
+            other,
+            "ods agents sync",
         ))),
     }
 }
@@ -44,7 +46,7 @@ fn run_agents_sync_command(args: &[String]) -> Result<ExitCode, CliError> {
             agents_path.display()
         );
     } else {
-        fs::write(&agents_path, &body).map_err(|e| failure(e.to_string()))?;
+        fs::write(&agents_path, &body).map_err(|e| fail_io("agents sync", e))?;
         println!("wrote {}", agents_path.display());
     }
 
@@ -57,7 +59,7 @@ fn run_agents_sync_command(args: &[String]) -> Result<ExitCode, CliError> {
          Use `ods context <id>` for ODS reading lists and `ods context --okf <id>` for OKF.\n\
          Maintainer quality gates: `.agents/rules/40-quality-gates.md` when present.\n",
     )
-    .map_err(|e| failure(e.to_string()))?;
+    .map_err(|e| fail_io("agents sync", e))?;
     println!("wrote {}", claude_rules.display());
 
     let cursor = root.join(".cursor");
@@ -69,7 +71,7 @@ fn run_agents_sync_command(args: &[String]) -> Result<ExitCode, CliError> {
          Prefer bare `ods` for codebase docs and `ods … --okf` for OKF knowledge bundles. \
          See root AGENTS.md. Never use namespaces or `--ods`.\n",
     )
-    .map_err(|e| failure(e.to_string()))?;
+    .map_err(|e| fail_io("agents sync", e))?;
     println!("wrote {}", cursor_rules.display());
     Ok(ExitCode::from(0))
 }

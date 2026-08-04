@@ -23,12 +23,12 @@ import json, os, re
 matcher = json.load(open("'"${REPO_ROOT}"'/src/action/problem-matcher.json"))
 pattern = matcher["problemMatcher"][0]["pattern"][0]["regexp"]
 regex = re.compile(pattern)
-sample = "error: docs/setup.md: dangling reference to nonexistent"
+sample = "error: docs/setup.md: dangling reference: nonexistent"
 m = regex.match(sample)
 assert m, "Regex failed to match sample"
 assert m.group(1) == "error"
 assert m.group(2) == "docs/setup.md"
-assert m.group(3) == "dangling reference to nonexistent"
+assert m.group(3) == "dangling reference: nonexistent"
 ' || fatal "problem-matcher regex pattern check failed"
 fi
 

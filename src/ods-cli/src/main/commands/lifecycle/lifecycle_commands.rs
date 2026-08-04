@@ -5,7 +5,10 @@ use ods_core::{
 
 fn run_new_command(args: &[String]) -> Result<ExitCode, CliError> {
     if args.len() < 3 {
-        return Err(usage("ods new <path> [--profile <p>] [--title \"<t>\"]"));
+        return Err(usage_msg(ods_core::missing_required_arg(
+            "path",
+            "ods new <path> [--profile <p>] [--title \"<t>\"]",
+        )));
     }
 
     let mut target_path = None;
@@ -16,12 +19,12 @@ fn run_new_command(args: &[String]) -> Result<ExitCode, CliError> {
     while i < args.len() {
         match args[i].as_str() {
             "--profile" | "-p" => {
-                let v = args.get(i + 1).ok_or_else(|| usage("--profile requires a profile name"))?;
+                let v = args.get(i + 1).ok_or_else(|| usage_msg(ods_core::missing_flag_value("--profile", "`ods new path.md --profile note`")))?;
                 profile = Some(v.clone());
                 i += 2;
             }
             "--title" | "-t" => {
-                let v = args.get(i + 1).ok_or_else(|| usage("--title requires a title string"))?;
+                let v = args.get(i + 1).ok_or_else(|| usage_msg(ods_core::missing_flag_value("--title", "`ods new path.md --title \"My Doc\"`")))?;
                 title = Some(v.clone());
                 i += 2;
             }
@@ -36,12 +39,12 @@ fn run_new_command(args: &[String]) -> Result<ExitCode, CliError> {
     }
 
     let Some(path) = target_path else {
-        return Err(usage("ods new requires a file path (e.g. ods new docs/guides/oauth.md)"));
+        return Err(usage_msg(ods_core::missing_required_arg("path", "ods new <path> [--profile <p>]")));
     };
 
     let root = env::current_dir().unwrap_or_else(|_| PathBuf::from("."));
     let report = scaffold_new_document(&root, &path, NewDocumentOptions { profile, title })
-        .map_err(|e| failure(format!("failed to scaffold document: {e}")))?;
+        .map_err(|e| fail_msg(ods_core::scaffold_failed(e)))?;
 
     println!(
         "created document {}\n  id: {}\n  profile: {}\n  indexes updated: {}",
@@ -61,14 +64,14 @@ fn run_rm_command(args: &[String]) -> Result<ExitCode, CliError> {
 
     let root_flag = parse_flag_val(args, "--root").map(PathBuf::from);
     let (root_dir, target_str) = if let Some(rf) = root_flag {
-        let t = positionals.first().ok_or_else(|| usage("ods rm --root <dir> <path-or-id>"))?;
+        let t = positionals.first().ok_or_else(|| usage_msg(ods_core::missing_required_arg("path-or-id", "ods rm --root <dir> <path-or-id>")))?;
         (rf, t.clone())
     } else if positionals.len() >= 2 && PathBuf::from(&positionals[0]).is_dir() {
         (PathBuf::from(&positionals[0]), positionals[1].clone())
     } else if !positionals.is_empty() {
         (env::current_dir().unwrap_or_else(|_| PathBuf::from(".")), positionals[0].clone())
     } else {
-        return Err(usage("ods rm [root] <path-or-id> [--dry-run]"));
+        return Err(usage_msg(ods_core::missing_required_arg("path-or-id", "ods rm [root] <path-or-id> [--dry-run]")));
     };
 
     let root = resolve_root_path(root_dir);
@@ -92,7 +95,7 @@ fn run_rm_command(args: &[String]) -> Result<ExitCode, CliError> {
     }
 
     let report = atomic_delete_document(&root, &target, RemoveDocumentOptions { scrub_dependencies: true })
-        .map_err(|e| failure(format!("failed to delete document: {e}")))?;
+        .map_err(|e| fail_msg(ods_core::io_failed("delete document", e)))?;
 
     match format {
         OutputFormat::Text => {
@@ -119,13 +122,64 @@ fn run_rm_command(args: &[String]) -> Result<ExitCode, CliError> {
 }
 
 fn run_archive_command(args: &[String]) -> Result<ExitCode, CliError> {
-    if args.len() < 3 {
-        return Err(usage("ods archive <path-or-id>"));
+    // Thin alias for `ods status <path-or-id> archived` (friendly archive wording).
+    let target = args.get(2).map(String::as_str).unwrap_or("");
+    if target.is_empty() || target.starts_with('-') {
+        return Err(usage_msg(ods_core::missing_required_arg(
+            "path-or-id",
+            "ods archive <path-or-id>",
+        )));
+    }
+    set_document_status_with_label(target, "archived", "archived document")
+}
+
+fn run_status_command(args: &[String]) -> Result<ExitCode, CliError> {
+    if args.iter().any(|a| a == "--help" || a == "-h") {
+        println!(
+            "ods status <path-or-id> <draft|stable|deprecated|archived>\n\n\
+             Set document lifecycle status (writes nested ods.status when an ods: map exists).\n\
+             Alias: ods archive <path-or-id>  →  status archived"
+        );
+        return Ok(ExitCode::from(0));
+    }
+    let positionals = positional_args(args, 2);
+    match positionals.as_slice() {
+        [path, status] => set_document_status_with_label(path, status, "set status on"),
+        [_] => Err(usage_msg(ods_core::missing_required_arg(
+            "status",
+            "ods status <path-or-id> <draft|stable|deprecated|archived>",
+        ))),
+        _ => Err(usage_msg(ods_core::missing_required_arg(
+            "path-or-id status",
+            "ods status <path-or-id> <draft|stable|deprecated|archived>",
+        ))),
+    }
+}
+
+fn set_document_status_with_label(
+    target_str: &str,
+    status: &str,
+    action_label: &str,
+) -> Result<ExitCode, CliError> {
+    if target_str.is_empty() {
+        return Err(usage_msg(ods_core::missing_required_arg(
+            "path-or-id",
+            "ods status <path-or-id> <draft|stable|deprecated|archived>",
+        )));
+    }
+    let status = status.trim().to_ascii_lowercase();
+    const ALLOWED: &[&str] = &["draft", "stable", "deprecated", "archived"];
+    if !ALLOWED.contains(&status.as_str()) {
+        return Err(usage_msg(ods_core::invalid_choice(
+            "status",
+            &status,
+            "draft|stable|deprecated|archived",
+        )));
     }
 
-    let target = PathBuf::from(&args[2]);
+    let target = PathBuf::from(target_str);
     let root = env::current_dir().unwrap_or_else(|_| PathBuf::from("."));
-    let workspace = load_workspace(&root).map_err(|e| failure(format!("load workspace error: {e}")))?;
+    let workspace = load_workspace(&root).map_err(|e| fail_load(&root, e))?;
 
     let target_abs = if target.is_absolute() {
         target.clone()
@@ -134,7 +188,6 @@ fn run_archive_command(args: &[String]) -> Result<ExitCode, CliError> {
     };
     let target_canon = target_abs.canonicalize().ok();
     let target_stem = target.file_stem().map(|s| s.to_string_lossy().to_lowercase());
-
     let target_id_str = target.to_string_lossy().to_lowercase();
 
     let doc = workspace
@@ -155,31 +208,41 @@ fn run_archive_command(args: &[String]) -> Result<ExitCode, CliError> {
                 || did == target_id_str
                 || target_stem.as_deref() == Some(did.as_str())
         })
-        .ok_or_else(|| failure(format!("document not found: {}", target.display())))?;
+        .ok_or_else(|| fail_msg(ods_core::document_not_found(target_str)))?;
 
-    let doc_id = document_id(&root, &doc.path, match &doc.frontmatter {
-        FrontmatterState::Parsed(fm) => Some(fm),
-        _ => None,
-    });
+    let doc_id = document_id(
+        &root,
+        &doc.path,
+        match &doc.frontmatter {
+            FrontmatterState::Parsed(fm) => Some(fm),
+            _ => None,
+        },
+    );
 
-    let text = fs::read_to_string(&doc.path).map_err(|e| failure(format!("read error: {e}")))?;
+    let text =
+        fs::read_to_string(&doc.path).map_err(|e| fail_msg(ods_core::io_failed("read file", e)))?;
     let (fm_opt, body) = ods_core::split_frontmatter(&text);
 
     let new_text = if let Some(fm) = fm_opt {
-        let lines = set_frontmatter_status_archived(fm);
+        let lines = set_frontmatter_status(fm, &status);
         format!("---\n{}\n---\n\n{}", lines.join("\n"), body.trim_start())
     } else {
-        format!("---\nstatus: archived\n---\n\n{}", text.trim_start())
+        format!("---\nstatus: {status}\n---\n\n{}", text.trim_start())
     };
 
-    fs::write(&doc.path, new_text).map_err(|e| failure(format!("write error: {e}")))?;
+    fs::write(&doc.path, new_text)
+        .map_err(|e| fail_msg(ods_core::io_failed("write file", e)))?;
 
-    println!("archived document {}\n  id: {}\n  status: archived", doc.path.display(), doc_id);
+    println!(
+        "{action_label} {}\n  id: {}\n  status: {status}",
+        doc.path.display(),
+        doc_id
+    );
     Ok(ExitCode::from(0))
 }
 
-/// Set `status: archived` on flat top-level and nested `ods.status` keys (preserve indent).
-fn set_frontmatter_status_archived(fm: &str) -> Vec<String> {
+/// Set `status:` on flat top-level and nested `ods.status` keys (preserve indent).
+fn set_frontmatter_status(fm: &str, status: &str) -> Vec<String> {
     let mut lines: Vec<String> = fm.lines().map(|s| s.to_string()).collect();
     let mut in_ods_map = false;
     let mut ods_child_indent: Option<usize> = None;
@@ -228,7 +291,7 @@ fn set_frontmatter_status_archived(fm: &str) -> Vec<String> {
                     in_ods_map = false;
                     ods_child_indent = None;
                 } else if indent == ci && trimmed.starts_with("status:") {
-                    *line = format!("{:indent$}status: archived", "", indent = indent);
+                    *line = format!("{:indent$}status: {status}", "", indent = indent);
                     updated_nested = true;
                     continue;
                 } else {
@@ -238,20 +301,19 @@ fn set_frontmatter_status_archived(fm: &str) -> Vec<String> {
         }
 
         if !in_ods_map && indent == 0 && trimmed.starts_with("status:") {
-            *line = "status: archived".to_string();
+            *line = format!("status: {status}");
             updated_flat = true;
         }
     }
 
     if !updated_nested && has_ods_map {
-        // Insert status under the `ods:` map using a conventional 2-space indent.
         if let Some(idx) = lines.iter().position(|l| l.trim() == "ods:") {
-            lines.insert(idx + 1, "  status: archived".to_string());
+            lines.insert(idx + 1, format!("  status: {status}"));
             updated_nested = true;
         }
     }
     if !updated_nested && !updated_flat {
-        lines.push("status: archived".to_string());
+        lines.push(format!("status: {status}"));
     }
 
     lines
@@ -278,7 +340,7 @@ fn run_logs_command(args: &[String]) -> Result<ExitCode, CliError> {
             }
             Ok(body) => print!("{body}"),
             Err(e) => {
-                return Err(failure(format!("read {}: {e}", log_path.display())));
+                return Err(fail_msg(ods_core::io_failed("read log", e)));
             }
         }
         Ok(())
@@ -318,41 +380,54 @@ mod test_lifecycle_helpers {
     #[test]
     fn archive_status_flat_nested_and_insert() {
         let flat = "profile: note\nstatus: draft\n";
-        let out = set_frontmatter_status_archived(flat);
+        let out = set_frontmatter_status(flat, "archived");
         assert!(out.iter().any(|l| l.trim() == "status: archived"), "{out:?}");
 
         let nested = "ods:\n  profile: note\n  status: draft\n";
-        let out = set_frontmatter_status_archived(nested);
+        let out = set_frontmatter_status(nested, "archived");
         assert!(
             out.iter().any(|l| l.contains("status: archived")),
             "{out:?}"
         );
 
         let ods_map_no_status = "ods:\n  profile: note\nprofile: note\n";
-        let out = set_frontmatter_status_archived(ods_map_no_status);
+        let out = set_frontmatter_status(ods_map_no_status, "archived");
         assert!(
             out.iter().any(|l| l.contains("status: archived")),
             "{out:?}"
         );
 
         let scalar_ods = "ods: 0.1\nprofile: note\n";
-        let out = set_frontmatter_status_archived(scalar_ods);
+        let out = set_frontmatter_status(scalar_ods, "archived");
         assert!(
             out.iter().any(|l| l.contains("status: archived")),
             "{out:?}"
         );
 
         let empty = "profile: note\n";
-        let out = set_frontmatter_status_archived(empty);
+        let out = set_frontmatter_status(empty, "archived");
         assert!(
             out.iter().any(|l| l.contains("status: archived")),
             "{out:?}"
         );
+    }
 
+    #[test]
+    fn test_run_logs_command_smoke() {
+        let res = run_logs_command(&["ods".into(), "logs".into()]);
+        assert!(res.is_ok());
+    }
+
+    #[test]
+    fn archive_status_flat_nested_and_insert_extended() {
         // comments / blanks
         let with_comments = "# c\n\nprofile: note\nstatus: draft\n";
-        let out = set_frontmatter_status_archived(with_comments);
+        let out = set_frontmatter_status(with_comments, "archived");
         assert!(out.iter().any(|l| l.contains("archived")));
+
+        let nested = "ods:\n  profile: note\n  status: draft\n";
+        let out = set_frontmatter_status(nested, "stable");
+        assert!(out.iter().any(|l| l.contains("status: stable")), "{out:?}");
     }
 
     #[test]
@@ -365,5 +440,98 @@ mod test_lifecycle_helpers {
 
         let err = run_archive_command(&["ods".into(), "archive".into()]).unwrap_err();
         assert!(err.message().contains("archive") || err.message().contains("path"));
+
+        let err = run_status_command(&["ods".into(), "status".into()]).unwrap_err();
+        assert!(err.message().contains("status") || err.message().contains("path"));
+    }
+
+    #[test]
+    fn test_run_new_rm_archive_restore_and_logs() {
+        let td = tempfile::tempdir().unwrap();
+        let root = td.path();
+        let index_path = root.join("index.ods.md");
+        fs::write(
+            &index_path,
+            "---\nprofile: index\nods: 0.1\nchildren:\n  - doc.md\n---\n\n# Root\n",
+        )
+        .unwrap();
+
+        let doc_path = root.join("doc.md");
+        fs::write(
+            &doc_path,
+            "---\nprofile: note\nstatus: draft\n---\n\n# Doc\n",
+        )
+        .unwrap();
+
+        // 1. run_new_command
+        let new_doc = root.join("sub").join("feature.md");
+        let res = run_new_command(&[
+            "ods".into(),
+            "new".into(),
+            new_doc.to_str().unwrap().into(),
+            "--title".into(),
+            "My Feature".into(),
+            "--profile".into(),
+            "feature".into(),
+        ]);
+        assert!(res.is_ok());
+        assert!(new_doc.exists());
+
+        // dry run new
+        let dry_doc = root.join("dry.md");
+        let res = run_new_command(&[
+            "ods".into(),
+            "new".into(),
+            dry_doc.to_str().unwrap().into(),
+            "--dry-run".into(),
+        ]);
+        assert!(res.is_ok());
+        assert!(dry_doc.exists());
+
+        // 2. set_frontmatter_status helper
+        let archived = set_frontmatter_status("profile: note\nstatus: draft\n", "archived");
+        assert!(archived.iter().any(|l| l.contains("status: archived")));
+
+        let stable = set_frontmatter_status("profile: note\nstatus: archived\n", "stable");
+        assert!(stable.iter().any(|l| l.contains("status: stable")));
+
+
+        // 4. run_rm_command
+        let res = run_rm_command(&[
+            "ods".into(),
+            "rm".into(),
+            root.to_str().unwrap().into(),
+            new_doc.to_str().unwrap().into(),
+        ]);
+        assert!(res.is_ok());
+
+        // rm missing args
+        let err = run_rm_command(&["ods".into(), "rm".into()]).unwrap_err();
+        assert!(err.message().contains("path-or-id"));
+
+        // rm dry run text and json
+        let res = run_rm_command(&[
+            "ods".into(),
+            "rm".into(),
+            root.to_str().unwrap().into(),
+            index_path.to_str().unwrap().into(),
+            "--dry-run".into(),
+        ]);
+        assert!(res.is_ok());
+
+        let res = run_rm_command(&[
+            "ods".into(),
+            "rm".into(),
+            root.to_str().unwrap().into(),
+            index_path.to_str().unwrap().into(),
+            "--dry-run".into(),
+            "--format".into(),
+            "json".into(),
+        ]);
+        assert!(res.is_ok());
+
+        // 5. run_logs_command
+        let res = run_logs_command(&["ods".into(), "logs".into(), root.to_str().unwrap().into()]);
+        assert!(res.is_ok());
     }
 }

@@ -423,4 +423,20 @@ mod tests {
         assert!(res.is_ok());
         assert!(out_rel.exists());
     }
+
+    #[test]
+    fn test_render_graph_json_full() {
+        let td = tempfile::tempdir().unwrap();
+        let dir = td.path();
+        fs::write(
+            dir.join("index.md"),
+            "---\nprofile: index\nods: 0.1\ntags:\n  - tag1\ndepends:\n  - other.md\ncode:\n  - path: src/lib.rs\n    role: implementation\n---\n\n# Root\n",
+        ).unwrap();
+
+        let ws = load_workspace(dir).unwrap();
+        let json_str = render_graph_json(&ws, true, "ods:0.1");
+        assert!(json_str.contains("\"health_score_pct\""));
+        assert!(json_str.contains("\"nodes\""));
+        assert!(json_str.contains("\"edges\""));
+    }
 }
