@@ -258,3 +258,33 @@ fn normalize_heading(text: &str) -> String {
         .flat_map(char::to_lowercase)
         .collect()
 }
+
+#[cfg(test)]
+mod test_lint_helpers {
+    use super::*;
+    use std::path::PathBuf;
+
+    #[test]
+    fn test_lint_helpers() {
+        assert_eq!(normalize_heading("  ## Section Name!  "), "sectionname");
+
+        let body = "- [Link](nonexistent.md)\n- [Web](https://example.com)\n";
+        let links = extract_markdown_links(body);
+        assert!(links.contains("nonexistent.md"));
+        assert!(links.contains("https://example.com"));
+
+        let list_links = extract_index_list_links(body);
+        assert!(list_links.contains("nonexistent.md"));
+
+        let doc = Document {
+            path: PathBuf::from("/tmp/doc.md"),
+            directory: PathBuf::from("/tmp"),
+            body: body.to_string(),
+            headings: vec!["# Section Name".into()],
+            frontmatter: crate::model::FrontmatterState::Absent,
+        };
+
+        let diags = lint_body_links(&doc);
+        assert!(diags.iter().any(|d| d.message.contains("dangling")));
+    }
+}

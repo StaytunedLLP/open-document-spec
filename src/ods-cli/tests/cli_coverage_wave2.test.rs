@@ -125,11 +125,7 @@ fn upgrade_migrate_fm_and_json_and_empty_workspace() {
         .args(["upgrade", empty.to_str().unwrap(), "--check"])
         .output()
         .unwrap();
-    assert!(
-        out.status.code() == Some(1) || out.status.success() || !out.status.success(),
-        "{:?}",
-        out
-    );
+    assert!(out.status.code().is_some(), "{:?}", out);
 }
 
 #[test]

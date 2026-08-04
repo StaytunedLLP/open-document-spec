@@ -410,12 +410,22 @@ mod test_lifecycle_helpers {
             out.iter().any(|l| l.contains("status: archived")),
             "{out:?}"
         );
+    }
 
+    #[test]
+    fn test_run_logs_command_smoke() {
+        let res = run_logs_command(&["ods".into(), "logs".into()]);
+        assert!(res.is_ok());
+    }
+
+    #[test]
+    fn archive_status_flat_nested_and_insert_extended() {
         // comments / blanks
         let with_comments = "# c\n\nprofile: note\nstatus: draft\n";
         let out = set_frontmatter_status(with_comments, "archived");
         assert!(out.iter().any(|l| l.contains("archived")));
 
+        let nested = "ods:\n  profile: note\n  status: draft\n";
         let out = set_frontmatter_status(nested, "stable");
         assert!(out.iter().any(|l| l.contains("status: stable")), "{out:?}");
     }
@@ -430,5 +440,98 @@ mod test_lifecycle_helpers {
 
         let err = run_archive_command(&["ods".into(), "archive".into()]).unwrap_err();
         assert!(err.message().contains("archive") || err.message().contains("path"));
+
+        let err = run_status_command(&["ods".into(), "status".into()]).unwrap_err();
+        assert!(err.message().contains("status") || err.message().contains("path"));
+    }
+
+    #[test]
+    fn test_run_new_rm_archive_restore_and_logs() {
+        let td = tempfile::tempdir().unwrap();
+        let root = td.path();
+        let index_path = root.join("index.ods.md");
+        fs::write(
+            &index_path,
+            "---\nprofile: index\nods: 0.1\nchildren:\n  - doc.md\n---\n\n# Root\n",
+        )
+        .unwrap();
+
+        let doc_path = root.join("doc.md");
+        fs::write(
+            &doc_path,
+            "---\nprofile: note\nstatus: draft\n---\n\n# Doc\n",
+        )
+        .unwrap();
+
+        // 1. run_new_command
+        let new_doc = root.join("sub").join("feature.md");
+        let res = run_new_command(&[
+            "ods".into(),
+            "new".into(),
+            new_doc.to_str().unwrap().into(),
+            "--title".into(),
+            "My Feature".into(),
+            "--profile".into(),
+            "feature".into(),
+        ]);
+        assert!(res.is_ok());
+        assert!(new_doc.exists());
+
+        // dry run new
+        let dry_doc = root.join("dry.md");
+        let res = run_new_command(&[
+            "ods".into(),
+            "new".into(),
+            dry_doc.to_str().unwrap().into(),
+            "--dry-run".into(),
+        ]);
+        assert!(res.is_ok());
+        assert!(dry_doc.exists());
+
+        // 2. set_frontmatter_status helper
+        let archived = set_frontmatter_status("profile: note\nstatus: draft\n", "archived");
+        assert!(archived.iter().any(|l| l.contains("status: archived")));
+
+        let stable = set_frontmatter_status("profile: note\nstatus: archived\n", "stable");
+        assert!(stable.iter().any(|l| l.contains("status: stable")));
+
+
+        // 4. run_rm_command
+        let res = run_rm_command(&[
+            "ods".into(),
+            "rm".into(),
+            root.to_str().unwrap().into(),
+            new_doc.to_str().unwrap().into(),
+        ]);
+        assert!(res.is_ok());
+
+        // rm missing args
+        let err = run_rm_command(&["ods".into(), "rm".into()]).unwrap_err();
+        assert!(err.message().contains("path-or-id"));
+
+        // rm dry run text and json
+        let res = run_rm_command(&[
+            "ods".into(),
+            "rm".into(),
+            root.to_str().unwrap().into(),
+            index_path.to_str().unwrap().into(),
+            "--dry-run".into(),
+        ]);
+        assert!(res.is_ok());
+
+        let res = run_rm_command(&[
+            "ods".into(),
+            "rm".into(),
+            root.to_str().unwrap().into(),
+            index_path.to_str().unwrap().into(),
+            "--dry-run".into(),
+            "--format".into(),
+            "json".into(),
+        ]);
+        assert!(res.is_ok());
+
+        // 5. run_logs_command
+        let res = run_logs_command(&["ods".into(), "logs".into(), root.to_str().unwrap().into()]);
+        assert!(res.is_ok());
     }
 }

@@ -236,3 +236,53 @@ fn is_valid_date_str(s: &str) -> bool {
         false
     }
 }
+
+#[cfg(test)]
+mod test_canonical_dates_and_cycles {
+    use super::*;
+    use crate::fs::load_workspace;
+    use tempfile::tempdir;
+
+    #[test]
+    fn test_invalid_date_lint() {
+        assert!(!is_valid_date_str("bad"));
+        assert!(is_valid_date_str("2024-01-01"));
+
+        let td = tempdir().unwrap();
+        let root = td.path();
+        std::fs::write(
+            root.join("index.md"),
+            "---\nprofile: index\nods: 0.1\n---\n\n# Root\n",
+        )
+        .unwrap();
+        std::fs::write(
+            root.join("bad_date.md"),
+            "---\nprofile: note\ncreated: bad-date\nupdated: not-a-date\n---\n\n# Doc\n",
+        )
+        .unwrap();
+
+        let ws = load_workspace(root).unwrap();
+        let diags = crate::lint_workspace(&ws);
+        assert!(diags.iter().any(|d| d.message.contains("created") || d.message.contains("updated")));
+    }
+
+    #[test]
+    fn test_dangling_refs_and_packs_lint() {
+        let td = tempdir().unwrap();
+        let root = td.path();
+        std::fs::write(
+            root.join("index.ods.md"),
+            "---\nprofile: index\nods: 0.1\npacks:\n  - missing-pack\n---\n\n# Root\n",
+        )
+        .unwrap();
+        std::fs::write(
+            root.join("sub.md"),
+            "---\nprofile: note\nods: 0.1\ndepends:\n  - missing.md\nrelated:\n  - missing2.md\nresources:\n  - path: missing_resource.png\ncode:\n  - path: src/main.rs:L10\n    role: implementation\ncontext:\n  load:\n    - missing_res.png\n    - missing_doc.md\n  ignore:\n    - missing_ignore.png\n---\n\n# Sub\n",
+        )
+        .unwrap();
+
+        let ws = load_workspace(root).unwrap();
+        let diags = crate::lint_workspace(&ws);
+        assert!(diags.iter().any(|d| d.message.contains("dangling") || d.message.contains("pack") || d.message.contains("ODS version")));
+    }
+}

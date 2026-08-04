@@ -227,5 +227,57 @@ mod tests {
         let _ = fs::remove_dir_all(&out);
     }
 
+    #[test]
+    fn share_level_parse_and_as_str() {
+        assert_eq!(ShareLevel::parse("public"), Some(ShareLevel::Public));
+        assert_eq!(ShareLevel::parse("org"), Some(ShareLevel::Org));
+        assert_eq!(ShareLevel::parse("private"), Some(ShareLevel::Private));
+        assert_eq!(ShareLevel::parse("unknown"), None);
+
+        assert_eq!(ShareLevel::Public.as_str(), "public");
+        assert_eq!(ShareLevel::Org.as_str(), "org");
+        assert_eq!(ShareLevel::Private.as_str(), "private");
+    }
+
+    #[test]
+    fn publish_workspace_includes_org_and_private() {
+        let dir = temp_dir("publish-all");
+        write(
+            dir.as_path(),
+            "index.ods.md",
+            "---\nprofile: index\nods: 0.1\n---\n\n# R\n",
+        );
+        write(
+            dir.as_path(),
+            "internal.md",
+            "---\nprofile: note\nstatus: draft\nid: internal\nshare: org\n---\n\n# Internal\n",
+        );
+        write(
+            dir.as_path(),
+            "secret.md",
+            "---\nprofile: note\nstatus: draft\nid: secret\nshare: private\n---\n\n# Secret\n",
+        );
+        let ws = load_workspace(&dir).unwrap();
+        let out = temp_dir("publish-all-out");
+        let report = publish_workspace(
+            &ws,
+            &dir,
+            &out,
+            ShareOptions {
+                include_org: true,
+                include_private: true,
+            },
+        )
+        .unwrap();
+
+        assert_eq!(report.written.len(), 2);
+        assert!(out.join("internal.md").exists());
+        assert!(out.join("secret.md").exists());
+        assert_eq!(report.excluded.len(), 0);
+
+        let _ = fs::remove_dir_all(&dir);
+        let _ = fs::remove_dir_all(&out);
+    }
+
     include!("pack_tests.rs");
 }

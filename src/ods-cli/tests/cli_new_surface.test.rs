@@ -562,9 +562,7 @@ fn init_skills_and_lint_skills() {
     let out = ods().args(["lint", "--skills", root]).output().unwrap();
     // may fail if hybrid requirements; just exercise path
     let _ = out.status;
-    let s = String::from_utf8_lossy(&out.stdout);
-    let e = String::from_utf8_lossy(&out.stderr);
-    assert!(!s.is_empty() || !e.is_empty() || out.status.success() || !out.status.success());
+    assert!(out.status.code().is_some());
 }
 
 #[test]

@@ -233,8 +233,8 @@ mod test_launchers {
         let bin = ods_binary();
         let bin_s = bin.to_string_lossy();
         assert!(
-            bin_s.contains("ods") || bin_s.contains("ods"),
-            "expected ods or ods binary, got {bin_s}"
+            bin_s.contains("ods"),
+            "expected ods binary, got {bin_s}"
         );
 
         let linux_path = linux_unit_path(&id);

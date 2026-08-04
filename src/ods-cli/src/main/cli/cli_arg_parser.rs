@@ -290,14 +290,20 @@ fn parse_common_flags(
             | "--skip-keys"
             | "--no-key-lint"
             | "--no-keys"
-            | "--migrate" => {
+            | "--migrate"
+            | "--migrate-fm" => {
                 i += 1;
             }
             "--refs" | "--ignore-keys" | "--ignore-key" => {
                 i += 2;
             }
-            "--root" | "--max-tokens" => {
-                // value consumed by context/mv/rm; do not treat as workspace path positional
+            "--root" => {
+                if let Some(val) = args.get(i + 1) {
+                    path = Some(PathBuf::from(val));
+                }
+                i += 2;
+            }
+            "--max-tokens" => {
                 i += 2;
             }
             "--include-code"

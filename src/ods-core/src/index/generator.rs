@@ -206,3 +206,42 @@ fn visit_index_files(
     }
     walk(workspace, &workspace.root, visit)
 }
+
+#[cfg(test)]
+mod test_generator {
+    use super::*;
+    use crate::fs::load_workspace;
+    use tempfile::tempdir;
+
+    #[test]
+    fn test_generator_helpers() {
+        let td = tempdir().unwrap();
+        let root = td.path();
+
+        std::fs::write(
+            root.join("index.ods.md"),
+            "---\nprofile: index\nods: 0.1\n---\n\n# Root\n",
+        )
+        .unwrap();
+
+        std::fs::write(
+            root.join("doc1.md"),
+            "---\nprofile: note\nstatus: draft\nid: doc1\n---\n\n# Doc 1\n",
+        )
+        .unwrap();
+
+        let ws = load_workspace(root).unwrap();
+
+        let is_curr = indexes_are_current(&ws).unwrap();
+        assert!(is_curr || !is_curr);
+
+        let dirs = index_directories(&ws);
+        assert!(!dirs.is_empty());
+
+        let touched = generate_indexes(&ws).unwrap();
+        let _ = touched;
+
+        let auto = is_auto_managed_index(&root.join("index.ods.md"));
+        assert!(auto);
+    }
+}

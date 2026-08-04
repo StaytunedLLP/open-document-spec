@@ -248,3 +248,188 @@ fn run_mv_command(args: &[String]) -> Result<ExitCode, CliError> {
     print_path_change_report(&root, &from, &to, &report, format, "moved");
     Ok(ExitCode::from(if report.errors.is_empty() { 0 } else { 1 }))
 }
+
+#[cfg(test)]
+mod test_context_graph_mv {
+    use super::*;
+    use tempfile::tempdir;
+
+    #[test]
+    fn test_context_command_routing_and_execution() {
+        let td = tempdir().unwrap();
+        let root = td.path();
+        let index_path = root.join("index.ods.md");
+        fs::write(
+            &index_path,
+            "---\nprofile: index\nods: 0.1\nchildren:\n  - doc.md\n---\n\n# Root\n",
+        )
+        .unwrap();
+        let doc_path = root.join("doc.md");
+        fs::write(
+            &doc_path,
+            "---\nprofile: note\nid: doc-id\n---\n\n# Doc\n",
+        )
+        .unwrap();
+
+        // help
+        let res = run_context_command(&["ods".into(), "context".into(), "--help".into()]);
+        assert!(res.is_ok());
+
+        // missing query
+        let err = run_context_command(&["ods".into(), "context".into()]).unwrap_err();
+        assert!(err.message().contains("query"));
+
+        // valid context query text
+        let res = run_context_command(&[
+            "ods".into(),
+            "context".into(),
+            root.to_str().unwrap().into(),
+            "doc-id".into(),
+            "--print".into(),
+            "--include-code".into(),
+            "--max-tokens".into(),
+            "500".into(),
+        ]);
+        assert!(res.is_ok());
+
+        // valid context query json
+        let res = run_context_command(&[
+            "ods".into(),
+            "context".into(),
+            root.to_str().unwrap().into(),
+            "doc-id".into(),
+            "--format".into(),
+            "json".into(),
+        ]);
+        assert!(res.is_ok());
+    }
+
+    #[test]
+    fn test_graph_command_routing_and_execution() {
+        let td = tempdir().unwrap();
+        let root = td.path();
+        let index_path = root.join("index.ods.md");
+        fs::write(
+            &index_path,
+            "---\nprofile: index\nods: 0.1\n---\n\n# Root\n",
+        )
+        .unwrap();
+
+        let res = run_graph_command(&["ods".into(), "graph".into(), "--help".into()]);
+        assert!(res.is_ok());
+
+        let res = run_graph_command(&["ods".into(), "graph".into(), root.to_str().unwrap().into()]);
+        assert!(res.is_ok());
+
+        let res = run_graph_command(&[
+            "ods".into(),
+            "graph".into(),
+            root.to_str().unwrap().into(),
+            "--format".into(),
+            "json".into(),
+        ]);
+        assert!(res.is_ok());
+    }
+
+    #[test]
+    fn test_mv_command_routing_and_execution() {
+        let td = tempdir().unwrap();
+        let root = td.path();
+        let index_path = root.join("index.ods.md");
+        fs::write(
+            &index_path,
+            "---\nprofile: index\nods: 0.1\nchildren:\n  - doc.md\n---\n\n# Root\n",
+        )
+        .unwrap();
+        let doc_path = root.join("doc.md");
+        fs::write(
+            &doc_path,
+            "---\nprofile: note\n---\n\n# Doc\n",
+        )
+        .unwrap();
+
+        // missing args
+        let err = run_mv_command(&["ods".into(), "mv".into()]).unwrap_err();
+        assert!(err.message().contains("from/to"));
+
+        // dry run text
+        let res = run_mv_command(&[
+            "ods".into(),
+            "mv".into(),
+            root.to_str().unwrap().into(),
+            "doc.md".into(),
+            "renamed.md".into(),
+            "--dry-run".into(),
+        ]);
+        assert!(res.is_ok());
+
+        // dry run json
+        let res = run_mv_command(&[
+            "ods".into(),
+            "mv".into(),
+            root.to_str().unwrap().into(),
+            "doc.md".into(),
+            "renamed.md".into(),
+            "--dry-run".into(),
+            "--format".into(),
+            "json".into(),
+        ]);
+        assert!(res.is_ok());
+
+        // real move with positional root
+        let res = run_mv_command(&[
+            "ods".into(),
+            "mv".into(),
+            root.to_str().unwrap().into(),
+            "doc.md".into(),
+            "renamed.md".into(),
+        ]);
+        assert!(res.is_ok());
+        assert!(root.join("renamed.md").exists());
+        assert!(!root.join("doc.md").exists());
+
+        // real move back with --root flag and json output
+        let res = run_mv_command(&[
+            "ods".into(),
+            "mv".into(),
+            "--root".into(),
+            root.to_str().unwrap().into(),
+            "renamed.md".into(),
+            "doc.md".into(),
+            "--format".into(),
+            "json".into(),
+        ]);
+        assert!(res.is_ok());
+        assert!(root.join("doc.md").exists());
+    }
+
+    #[test]
+    fn test_run_context_command() {
+        let help_res = run_context_command(&["ods".into(), "context".into(), "--help".into()]);
+        assert!(help_res.is_ok());
+
+        let err_res = run_context_command(&["ods".into(), "context".into()]);
+        assert!(err_res.is_err());
+
+        let td = tempfile::tempdir().unwrap();
+        let root = td.path();
+        std::fs::write(
+            root.join("index.md"),
+            "---\nprofile: index\nods: 0.1\n---\n\n# Root\n",
+        )
+        .unwrap();
+
+        let ctx_res = run_context_command(&[
+            "ods".into(),
+            "context".into(),
+            "--root".into(),
+            root.to_str().unwrap().into(),
+            "index.md".into(),
+            "--format".into(),
+            "json".into(),
+        ]);
+        assert!(ctx_res.is_ok());
+    }
+}
+
+

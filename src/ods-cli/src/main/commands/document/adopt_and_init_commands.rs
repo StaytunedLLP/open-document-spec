@@ -143,19 +143,25 @@ mod test_adopt_init {
         fs::write(root.join("plain.md"), "# plain\n").unwrap();
 
         // init
-        let _ = run_init_command(&[
+        let res = run_init_command(&[
             "ods".into(),
             "init".into(),
             path.clone(),
         ]);
-        let _ = run_init_command(&[
+        assert!(res.is_ok());
+
+        let res = run_init_command(&[
             "ods".into(),
             "init".into(),
             path.clone(),
             "--adopt".into(),
         ]);
-        let _ = run_adopt_command(&["ods".into(), "adopt".into(), path.clone()]);
-        let _ = run_adopt_command(&[
+        assert!(res.is_ok());
+
+        let res = run_adopt_command(&["ods".into(), "adopt".into(), path.clone()]);
+        assert!(res.is_ok());
+
+        let res = run_adopt_command(&[
             "ods".into(),
             "adopt".into(),
             path.clone(),
@@ -163,22 +169,53 @@ mod test_adopt_init {
             "--format".into(),
             "json".into(),
         ]);
-        let _ = run_adopt_command(&[
+        assert!(res.is_ok());
+
+        let res = run_adopt_command(&[
             "ods".into(),
             "adopt".into(),
             path.clone(),
             "--write".into(),
         ]);
+        assert!(res.is_ok());
 
         let skill = root.join("skill-pkg");
         fs::create_dir_all(&skill).unwrap();
-        let _ = run_skills_init_command(&[
+        let res = run_skills_init_command(&[
             "ods".into(),
             "init".into(),
             skill.to_str().unwrap().into(),
             "--skills".into(),
         ]);
-        let _ = run_skills_init_command(&[
+        assert!(res.is_ok());
+
+        // init --okf and init --force
+        let okf_dir = root.join("okf-bundle");
+        fs::create_dir_all(&okf_dir).unwrap();
+        let res = run_init_command(&[
+            "ods".into(),
+            "init".into(),
+            okf_dir.to_str().unwrap().into(),
+            "--okf".into(),
+        ]);
+        assert!(res.is_ok());
+
+        let res = run_init_command(&[
+            "ods".into(),
+            "init".into(),
+            path.clone(),
+        ]);
+        assert!(res.is_ok());
+
+        let res = run_adopt_command(&[
+            "ods".into(),
+            "adopt".into(),
+            okf_dir.to_str().unwrap().into(),
+            "--okf".into(),
+        ]);
+        assert!(res.is_ok());
+
+        let res = run_skills_init_command(&[
             "ods".into(),
             "init".into(),
             skill.to_str().unwrap().into(),
@@ -186,6 +223,8 @@ mod test_adopt_init {
             "--name".into(),
             "my-skill".into(),
         ]);
+        assert!(res.is_ok());
         let _ = path;
     }
 }
+

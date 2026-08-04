@@ -365,39 +365,50 @@ mod test_lint_index_commands {
                 "--format".into(),
                 "text".into(),
             ],
-            vec!["ods".into(), "index".into(), path.clone()],
-            vec![
-                "ods".into(),
-                "index".into(),
-                path.clone(),
-                "--check".into(),
-            ],
-            vec![
-                "ods".into(),
-                "index".into(),
-                path,
-                "--format".into(),
-                "json".into(),
-            ],
         ] {
-            let _ = run_lint_command(&args);
-            // index uses run_index_command
+            let res = run_lint_command(&args);
+            assert!(res.is_ok());
         }
 
         let path = root.to_str().unwrap().to_string();
-        let _ = run_index_command(&["ods".into(), "index".into(), path.clone()]);
-        let _ = run_index_command(&[
+        let res = run_index_command(&["ods".into(), "index".into(), path.clone()]);
+        assert!(res.is_ok());
+        let res = run_index_command(&[
             "ods".into(),
             "index".into(),
             path.clone(),
             "--check".into(),
         ]);
-        let _ = run_index_command(&[
+        assert!(res.is_ok());
+        let res = run_index_command(&[
             "ods".into(),
             "index".into(),
-            path,
+            path.clone(),
             "--format".into(),
             "json".into(),
         ]);
+        assert!(res.is_ok());
+
+        // fmt command and index --strip-indexes
+        let res = run_fmt_command(&["ods".into(), "fmt".into(), path.clone()]);
+        assert!(res.is_ok());
+
+        let res = run_fmt_command(&[
+            "ods".into(),
+            "fmt".into(),
+            path.clone(),
+            "--format".into(),
+            "json".into(),
+        ]);
+        assert!(res.is_ok());
+
+        let res = run_index_command(&[
+            "ods".into(),
+            "index".into(),
+            path,
+            "--strip-indexes".into(),
+        ]);
+        assert!(res.is_ok());
     }
 }
+

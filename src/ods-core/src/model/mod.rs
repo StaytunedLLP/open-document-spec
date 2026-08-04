@@ -279,3 +279,44 @@ impl Workspace {
             .and_then(|&idx| self.documents.get(idx))
     }
 }
+
+#[cfg(test)]
+mod test_model {
+    use super::*;
+    use std::path::Path;
+
+    #[test]
+    fn test_model_helpers() {
+        assert_eq!(current_ods_spec_version(), "0.1");
+        assert!(!current_ods_version().is_empty());
+
+        assert_eq!(CodeRole::parse("entrypoint"), Some(CodeRole::Entrypoint));
+        assert_eq!(
+            CodeRole::parse("implementation"),
+            Some(CodeRole::Implementation)
+        );
+        assert_eq!(CodeRole::parse("test"), Some(CodeRole::Test));
+        assert_eq!(CodeRole::parse("schema"), Some(CodeRole::Schema));
+        assert_eq!(CodeRole::parse("migration"), Some(CodeRole::Migration));
+        assert_eq!(CodeRole::parse("config"), Some(CodeRole::Config));
+        assert_eq!(
+            CodeRole::parse("infrastructure"),
+            Some(CodeRole::Infrastructure)
+        );
+        assert_eq!(CodeRole::parse("pipeline"), Some(CodeRole::Pipeline));
+        assert_eq!(CodeRole::parse("invalid"), None);
+
+        assert_eq!(CodeRole::Entrypoint.as_str(), "entrypoint");
+        assert_eq!(CodeRole::Implementation.as_str(), "implementation");
+        assert_eq!(CodeRole::Test.as_str(), "test");
+        assert_eq!(CodeRole::Schema.as_str(), "schema");
+        assert_eq!(CodeRole::Migration.as_str(), "migration");
+        assert_eq!(CodeRole::Config.as_str(), "config");
+        assert_eq!(CodeRole::Infrastructure.as_str(), "infrastructure");
+        assert_eq!(CodeRole::Pipeline.as_str(), "pipeline");
+
+        let ws = Workspace::empty(PathBuf::from("/tmp"));
+        assert!(ws.document_by_id("nonexistent").is_none());
+        assert!(ws.document_by_path(Path::new("/tmp/nonexistent")).is_none());
+    }
+}

@@ -214,3 +214,31 @@ pub(super) fn parse_context(
         index,
     ))
 }
+
+#[cfg(test)]
+mod test_helpers {
+    use super::*;
+
+    #[test]
+    fn test_parse_helpers() {
+        let lines = vec!["  - res1.png", "  - path: res2.png"];
+        let (res, idx) = parse_resources(&lines, 0, 2).unwrap();
+        assert_eq!(res.len(), 2);
+        assert_eq!(idx, 2);
+
+        let code_lines = vec![
+            "  - path: src/main.rs",
+            "    role: implementation",
+            "    symbol: main",
+        ];
+        let (code, _idx) = parse_code_refs(&code_lines, 0, 2).unwrap();
+        assert_eq!(code.len(), 1);
+        assert_eq!(code[0].path, PathBuf::from("src/main.rs"));
+
+        let ctx_lines = vec!["  load:", "    - doc1.md", "  ignore:", "    - temp.md", "  max-depth: 3"];
+        let (ctx, _) = parse_context(&ctx_lines, 0, 2).unwrap();
+        assert_eq!(ctx.load, vec!["doc1.md"]);
+        assert_eq!(ctx.ignore, vec!["temp.md"]);
+        assert_eq!(ctx.max_depth, Some(3));
+    }
+}

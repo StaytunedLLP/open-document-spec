@@ -416,5 +416,32 @@ mod tests {
 
         let cat = load_profile_catalog(root, &roots).unwrap();
         assert!(cat.definitions.contains_key("subprof"));
+
+        // Test render_profile_template
+        let templ = render_profile_template(&cat, "subprof", "My Sub Title").unwrap();
+        assert!(templ.contains("# My Sub Title"));
+
+        let templ_err = render_profile_template(&cat, "nonexistent", "Title").unwrap_err();
+        assert!(templ_err.contains("unknown profile"));
+
+        // Test resolve_document_profile Tier 2 folder conventions
+        let mut doc = parse_document_text(root, root.join("adrs/001.md"), "# Decision\n", true);
+        assert_eq!(resolve_document_profile(&doc, &cat), "decision");
+
+        doc.path = root.join("features/001.md");
+        assert_eq!(resolve_document_profile(&doc, &cat), "feature");
+
+        doc.path = root.join("rfcs/001.md");
+        assert_eq!(resolve_document_profile(&doc, &cat), "rfc");
+
+        // Test resolve_document_profile Tier 3 heading signature matching
+        let mut doc_headings = parse_document_text(
+            root,
+            root.join("misc/doc.md"),
+            "---\nstatus: draft\n---\n\n## NewCanonical\n",
+            true,
+        );
+        doc_headings.headings = vec!["NewCanonical".into()];
+        assert_eq!(resolve_document_profile(&doc_headings, &cat), "subprof");
     }
 }

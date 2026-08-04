@@ -58,3 +58,28 @@ fn run_undo_command(args: &[String]) -> Result<ExitCode, CliError> {
     }
     Ok(ExitCode::from(0))
 }
+
+#[cfg(test)]
+mod test_undo_command {
+    use super::*;
+    use tempfile::tempdir;
+
+    #[test]
+    fn test_undo_command() {
+        let td = tempdir().unwrap();
+        let root = td.path();
+
+        // help
+        let res = run_undo_command(&["ods".into(), "undo".into(), "--help".into()]);
+        assert!(res.is_ok());
+
+        // --list with no snapshots
+        let res = run_undo_command(&["ods".into(), "undo".into(), root.to_str().unwrap().into(), "--list".into()]);
+        assert!(res.is_ok());
+
+        // undo with no snapshots -> error
+        let err = run_undo_command(&["ods".into(), "undo".into(), root.to_str().unwrap().into()]).unwrap_err();
+        assert!(err.message().contains("snapshot"));
+    }
+}
+

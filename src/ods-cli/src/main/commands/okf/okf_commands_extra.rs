@@ -82,11 +82,9 @@ fn run_okf_index_command(args: &[String]) -> Result<ExitCode, CliError> {
 fn run_okf_context_command(args: &[String]) -> Result<ExitCode, CliError> {
     let (root, _level, format) = parse_common_flags(args, 2)?;
     require_okf_bundle(&root)?;
-    let root_s = root.to_string_lossy();
-    let id = args
-        .iter()
-        .skip(2)
-        .rfind(|a| !a.starts_with('-') && a.as_str() != root_s.as_ref())
+    let positionals = positional_args(args, 2);
+    let id = positionals
+        .last()
         .cloned()
         .ok_or_else(|| usage_msg(ods_core::missing_context_id()))?;
     let bundle = ods_core::load_okf_bundle(&root)
@@ -121,6 +119,9 @@ fn run_okf_export_command(args: &[String]) -> Result<ExitCode, CliError> {
         match args[i].as_str() {
             "--out" => {
                 out = args.get(i + 1).map(PathBuf::from);
+                i += 2;
+            }
+            "--format" | "--mode" | "--level" => {
                 i += 2;
             }
             other if other.starts_with("--out=") => {
@@ -251,13 +252,15 @@ mod test_okf_extra {
     fn adopt_index_context_export_fmt_json_branches() {
         let (td, path) = okf_root();
         let out = td.path().join("okf-graph.md");
-        let _ = run_okf_adopt_command(&[
+        let res = run_okf_adopt_command(&[
             "ods".into(),
             "adopt".into(),
             path.clone(),
             "--okf".into(),
         ]);
-        let _ = run_okf_adopt_command(&[
+        assert!(res.is_ok());
+
+        let res = run_okf_adopt_command(&[
             "ods".into(),
             "adopt".into(),
             path.clone(),
@@ -266,7 +269,9 @@ mod test_okf_extra {
             "--format".into(),
             "json".into(),
         ]);
-        let _ = run_okf_index_command(&[
+        assert!(res.is_ok());
+
+        let res = run_okf_index_command(&[
             "ods".into(),
             "index".into(),
             path.clone(),
@@ -274,7 +279,9 @@ mod test_okf_extra {
             "--format".into(),
             "json".into(),
         ]);
-        let _ = run_okf_index_command(&[
+        assert!(res.is_ok());
+
+        let res = run_okf_index_command(&[
             "ods".into(),
             "index".into(),
             path.clone(),
@@ -283,37 +290,49 @@ mod test_okf_extra {
             "--format".into(),
             "json".into(),
         ]);
-        let _ = run_okf_index_command(&[
+        assert!(res.is_ok());
+
+        let res = run_okf_index_command(&[
             "ods".into(),
             "index".into(),
             path.clone(),
             "--okf".into(),
             "--check".into(),
         ]);
-        let _ = run_okf_context_command(&[
+        assert!(res.is_ok());
+
+        let res = run_okf_context_command(&[
             "ods".into(),
             "context".into(),
+            "--root".into(),
             path.clone(),
             "metric".into(),
             "--okf".into(),
             "--format".into(),
             "json".into(),
         ]);
-        let _ = run_okf_context_command(&[
+        assert!(res.is_ok());
+
+        let res = run_okf_context_command(&[
             "ods".into(),
             "context".into(),
+            "--root".into(),
             path.clone(),
             "metric".into(),
             "--okf".into(),
         ]);
-        let _ = run_okf_context_command(&[
+        assert!(res.is_ok());
+
+        let res = run_okf_context_command(&[
             "ods".into(),
             "context".into(),
             path.clone(),
             "missing-id".into(),
             "--okf".into(),
         ]);
-        let _ = run_okf_export_command(&[
+        assert!(res.is_err());
+
+        let res = run_okf_export_command(&[
             "ods".into(),
             "export".into(),
             path.clone(),
@@ -323,7 +342,10 @@ mod test_okf_extra {
             "--format".into(),
             "json".into(),
         ]);
-        let _ = run_okf_fmt_command(&[
+        assert!(res.is_ok());
+        assert!(out.exists());
+
+        let res = run_okf_fmt_command(&[
             "ods".into(),
             "fmt".into(),
             path.clone(),
@@ -331,6 +353,10 @@ mod test_okf_extra {
             "--format".into(),
             "json".into(),
         ]);
-        let _ = run_okf_fmt_command(&["ods".into(), "fmt".into(), path, "--okf".into()]);
+        assert!(res.is_ok());
+
+        let res = run_okf_fmt_command(&["ods".into(), "fmt".into(), path, "--okf".into()]);
+        assert!(res.is_ok());
     }
 }
+

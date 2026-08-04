@@ -269,4 +269,30 @@ fn extract_title_and_meta(
     ))
 }
 
+#[cfg(test)]
+mod test_checker {
+    use super::*;
+    use crate::fs::load_workspace;
+    use tempfile::tempdir;
+
+    #[test]
+    fn test_checker_helpers() {
+        let text = "---\nprofile: index\nods: 0.1\ncustom-profiles:\n  - custom.yaml\npacks:\n  - my-pack\nignore:\n  - build/\n---\n\n# Custom Title\n";
+        let meta = extract_title_and_meta(text).unwrap();
+        assert_eq!(meta.0, "Custom Title");
+        assert_eq!(meta.1, "index");
+        assert_eq!(meta.2, Some("0.1".into()));
+        assert_eq!(meta.3, vec!["custom.yaml"]);
+        assert_eq!(meta.4, vec!["my-pack"]);
+        assert_eq!(meta.5, vec!["build"]);
+
+        let td = tempdir().unwrap();
+        let root = td.path();
+        std::fs::write(root.join("index.md"), text).unwrap();
+        let ws = load_workspace(root).unwrap();
+        let rendered = render_index(&ws, root, Some(text));
+        assert!(rendered.contains("# Custom Title"));
+    }
+}
+
 

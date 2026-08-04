@@ -288,3 +288,41 @@ fn rewrite_document_body(
     }
     rewritten
 }
+
+#[cfg(test)]
+mod test_applier {
+    use super::*;
+
+    #[test]
+    fn test_applier_helpers() {
+        let root = Path::new("/tmp/root");
+        let doc_dir = Path::new("/tmp/root");
+        let resolve_dir = Path::new("/tmp/root");
+
+        let text = "---\nresources:\n  - path: ./image.png\n---\n";
+        let path_pairs = vec![("image.png".to_string(), "new_image.png".to_string())];
+        let abs_moves = vec![(
+            PathBuf::from("/tmp/root/image.png"),
+            PathBuf::from("/tmp/root/new_image.png"),
+        )];
+
+        let out = rewrite_resource_paths_in_text(text, doc_dir, resolve_dir, root, &path_pairs, &abs_moves);
+        assert!(!out.is_empty());
+
+        let fm_text = "---\ndepends:\n  - old.md\ncontext:\n  load:\n    - old.md\n---\n\n# Body\n[Link](old.md)\n";
+        let pairs = vec![("old.md".into(), "new.md".into())];
+        let fm_out = rewrite_frontmatter_document_ref_paths_in_text(fm_text, doc_dir, root, &pairs);
+        assert!(fm_out.contains("new.md"));
+
+        let rel = relative_path(Path::new("/a/b"), Path::new("/a/b/c/d.md"));
+        assert_eq!(rel, "c/d.md");
+
+        let rel_up = relative_path(Path::new("/a/b/c"), Path::new("/a/x.md"));
+        assert_eq!(rel_up, "../../x.md");
+
+        let body = "# Test\nSee [Old](old-id.md)";
+        let body_rewritten = rewrite_document_body(body, "old-id", "new-id", "old-id.md", "new-id.md");
+        assert!(body_rewritten.contains("new-id.md"));
+    }
+}
+

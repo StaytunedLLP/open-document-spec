@@ -79,3 +79,52 @@ fn run_disable_command(args: &[String]) -> Result<ExitCode, CliError> {
     }
     Ok(ExitCode::from(0))
 }
+
+#[cfg(test)]
+mod test_disable_command {
+    use super::*;
+    use std::fs;
+    use tempfile::tempdir;
+
+    #[test]
+    fn test_disable_command_text_and_json() {
+        let td = tempdir().unwrap();
+        let root = td.path();
+
+        // help
+        let res = run_disable_command(&["ods".into(), "disable".into(), "--help".into()]);
+        assert!(res.is_ok());
+
+        // create valid workspace
+        fs::write(
+            root.join("index.ods.md"),
+            "---\nprofile: index\nods: 0.1\n---\n\n# Root\n",
+        )
+        .unwrap();
+
+        // dry-run text
+        let res = run_disable_command(&["ods".into(), "disable".into(), root.to_str().unwrap().into()]);
+        assert!(res.is_ok());
+
+        // dry-run json
+        let res = run_disable_command(&[
+            "ods".into(),
+            "disable".into(),
+            root.to_str().unwrap().into(),
+            "--format".into(),
+            "json".into(),
+        ]);
+        assert!(res.is_ok());
+
+        // real disable with --write
+        let res = run_disable_command(&[
+            "ods".into(),
+            "disable".into(),
+            root.to_str().unwrap().into(),
+            "--write".into(),
+            "--keep-frontmatter".into(),
+        ]);
+        assert!(res.is_ok());
+    }
+}
+

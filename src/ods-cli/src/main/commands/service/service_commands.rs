@@ -168,3 +168,69 @@ fn run_stop_command(args: &[String]) -> Result<ExitCode, CliError> {
     println!("{msg}");
     Ok(ExitCode::from(0))
 }
+
+#[cfg(test)]
+mod test_service_commands {
+    use super::*;
+    use tempfile::tempdir;
+
+    #[test]
+    fn test_doctor_export_start_stop_commands() {
+        let td = tempdir().unwrap();
+        let root = td.path();
+        let path = root.to_str().unwrap().to_string();
+
+        // 1. non-ODS workspace doctor error / skills hint
+        let res = run_doctor_command(&["ods".into(), "doctor".into(), path.clone()]);
+        assert!(res.is_err());
+
+        // 2. non-ODS workspace export error
+        let err = run_export_command(&["ods".into(), "export".into(), path.clone()]).unwrap_err();
+        assert!(err.message().contains("ODS workspace") || err.message().contains("export"));
+
+        // Setup ODS workspace
+        std::fs::write(
+            root.join("index.ods.md"),
+            "---\nprofile: index\nods: 0.1\n---\n\n# Root\n",
+        )
+        .unwrap();
+
+        // 3. doctor command text & json
+        let res = run_doctor_command(&["ods".into(), "doctor".into(), path.clone()]);
+        assert!(res.is_ok());
+
+        let res = run_doctor_command(&[
+            "ods".into(),
+            "doctor".into(),
+            path.clone(),
+            "--format".into(),
+            "json".into(),
+        ]);
+        assert!(res.is_ok());
+
+        // 4. export command text, json, include-private
+        let out_graph = root.join("graph.md");
+        let res = run_export_command(&[
+            "ods".into(),
+            "export".into(),
+            path.clone(),
+            "--out".into(),
+            out_graph.to_str().unwrap().into(),
+        ]);
+        assert!(res.is_ok());
+        assert!(out_graph.exists());
+
+        let res = run_export_command(&[
+            "ods".into(),
+            "export".into(),
+            path.clone(),
+            "--format".into(),
+            "json".into(),
+            "--include-private".into(),
+        ]);
+        assert!(res.is_ok());
+
+        // 5. sync command (non-git repo returns Err)
+        let _ = run_sync_command(&["ods".into(), "sync".into(), path.clone()]);
+    }
+}

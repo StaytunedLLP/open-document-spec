@@ -87,8 +87,7 @@ mod test_diagnostics_formatter {
         let err2 = run_update_command(&["ods".into(), "update".into(), "--version".into()]);
         assert!(err2.is_err());
 
-        let res = run_update_command(&["ods".into(), "update".into(), "--check".into()]);
-        assert!(res.is_ok() || res.is_err());
+        let _ = run_update_command(&["ods".into(), "update".into(), "--check".into()]);
     }
 
     #[test]
@@ -96,4 +95,5 @@ mod test_diagnostics_formatter {
         restart_service_if_active();
     }
 }
+
 

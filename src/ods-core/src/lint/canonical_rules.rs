@@ -169,3 +169,31 @@ pub(super) fn lint_alias_scope(
         message: crate::error::lint_aliases_root_only(),
     }]
 }
+
+#[cfg(test)]
+mod test_canonical_rules {
+    use super::*;
+    use crate::fs::load_workspace;
+    use tempfile::tempdir;
+
+    #[test]
+    fn test_canonical_rules_helpers() {
+        let td = tempdir().unwrap();
+        let root = td.path();
+        std::fs::write(
+            root.join("index.md"),
+            "---\nprofile: index\nods: 0.999\n---\n\n# Root\n",
+        )
+        .unwrap();
+
+        let ws = load_workspace(root).unwrap();
+        let doc = ws.documents.first().unwrap();
+        if let crate::model::FrontmatterState::Parsed(fm) = &doc.frontmatter {
+            let diags = lint_root_spec(doc, fm);
+            assert!(!diags.is_empty());
+
+            let alias_diags = lint_alias_scope(&ws, doc, fm);
+            assert!(alias_diags.is_empty());
+        }
+    }
+}
