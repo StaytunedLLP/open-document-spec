@@ -102,5 +102,49 @@ mod test_archive_extractor {
         assert!(extract_tar_gz(&invalid_file, td.path()).is_err());
         assert!(extract_zip(&invalid_file, td.path()).is_err());
     }
+
+    #[test]
+    fn test_extract_zip_and_find_nested_binary() {
+        let td = tempfile::tempdir().unwrap();
+        let zip_path = td.path().join("rel.zip");
+        {
+            let file = fs::File::create(&zip_path).unwrap();
+            let mut zip = zip::ZipWriter::new(file);
+            let opts = zip::write::SimpleFileOptions::default();
+            zip.add_directory("nested/", opts).unwrap();
+            zip.start_file("nested/ods", opts).unwrap();
+            use std::io::Write;
+            zip.write_all(b"#!/bin/sh\necho ods\n").unwrap();
+            zip.finish().unwrap();
+        }
+        let dest = td.path().join("out");
+        fs::create_dir_all(&dest).unwrap();
+        extract_zip(&zip_path, &dest).expect("extract zip");
+        assert!(dest.join("nested/ods").is_file());
+        assert_eq!(find_ods_binary(&dest, false).unwrap(), dest.join("nested/ods"));
+    }
+
+    #[test]
+    fn test_extract_tar_gz_roundtrip() {
+        let td = tempfile::tempdir().unwrap();
+        let tar_path = td.path().join("rel.tar.gz");
+        {
+            let file = fs::File::create(&tar_path).unwrap();
+            let enc = flate2::write::GzEncoder::new(file, flate2::Compression::default());
+            let mut tar = tar::Builder::new(enc);
+            let mut header = tar::Header::new_gnu();
+            let data = b"binary-bytes";
+            header.set_size(data.len() as u64);
+            header.set_mode(0o755);
+            header.set_cksum();
+            tar.append_data(&mut header, "ods", &data[..]).unwrap();
+            tar.finish().unwrap();
+        }
+        let dest = td.path().join("out");
+        fs::create_dir_all(&dest).unwrap();
+        extract_tar_gz(&tar_path, &dest).expect("extract tar.gz");
+        assert!(dest.join("ods").is_file());
+        assert_eq!(find_cli_binary(&dest, false).unwrap(), dest.join("ods"));
+    }
 }
 

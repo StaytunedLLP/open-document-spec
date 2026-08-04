@@ -9,9 +9,8 @@ use ods_core::{
     profile_catalog_roots,
     migrate_workspace_frontmatter_with_workspace, move_document_and_rewrite_refs_report,
     normalize_workspace_frontmatter_spacing_with_workspace, observe_renames, paired_from_paths,
-    parse_paths_parallel, rename_tag_in_workspace, resolve_context,
-    scan_markdown_tree_with_code_paths, tag_usage_with_builtins, workspace_alias_suggestions,
-    workspace_aliases,
+    parse_paths_parallel, rename_tag_in_workspace, scan_markdown_tree_with_code_paths,
+    tag_usage_with_builtins, workspace_alias_suggestions, workspace_aliases,
 };
 use std::env;
 use std::fs;

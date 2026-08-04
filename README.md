@@ -61,7 +61,7 @@ Progress from initial setup to enterprise documentation architecture across 4 st
 
 | Feature | Command / Key | Role & Description |
 |---|---|---|
-| ⚡ **Deterministic Bounded Context Graph** | `ods context <doc-id>` | Bounded AI reading scope (<5ms) following `depends:` and `related:` chains for AI Coding Assistants. |
+| ⚡ **Deterministic Bounded Context Graph** | `ods context <doc-id>` | Bounded AI reading scope (<5ms) following `depends:` + `context.load` (not full-repo dump). |
 | 📋 **Custom Profile Schema Engine** | `ods profile` / `custom-profiles:` | Single-source profile schema registration in `index.ods.md`, enforcing `expected_keys` and `H2`/`H3` section hierarchies. |
 | 📊 **Workspace Document Telemetry** | `ods stats` | Reports document health score %, graph dependency density, profile distribution, and top taxonomy tags. |
 | 🌳 **Visual Tree Representation** | `ods tree` | Displays visual ASCII/Unicode hierarchy tree of index navigation and dependency graphs. |
@@ -205,7 +205,7 @@ ods:
 |---|---|---|
 | `ods init` | `ods init [path]` | Initialize root `index.ods.md` with `ods: 0.1` spec marker. |
 | `ods setup` | `ods setup [path] [--git-hooks]` | Verify workspace health, check updates, and register background OS service. `--git-hooks` installs `.git/hooks/pre-commit`. |
-| `ods lint` | `ods lint [path] [--mode strict\|standard] [--fix] [--skip-frontmatter-keys] [--ignore-keys k1,k2] [--format text\|json\|sarif]` | Run Strict or Standard document graph validation across active specs (`ods`, `okf`, `skills`). Auto-enables declared specs from root `index.ods.md` `specs:`. `--fix` auto-repairs frontmatter/indexes. `--skip-frontmatter-keys` and `--ignore-keys` suppress frontmatter key requirements. `--format sarif` exports OASIS SARIF v2.1.0 format. |
+| `ods lint` | `ods lint [path] [--level 1\|3 \| --mode standard\|strict] [--fix] [--format text\|json\|sarif]` | Graph validation. `--fix` regenerates **indexes only** (does not create missing depends targets). Extra dialects: `--okf` / `--skills`. |
 | `ods lint --okf` | `ods lint --okf [path] [--skip-frontmatter-keys] [--ignore-keys k1,k2]` | Validate Google OKF v0.2 knowledge bundles (`okf_version: "0.2"`). Supports key suppression flags and root `okf_lint` frontmatter policies. |
 | `ods export graph` | `ods export graph [path] [--format text\|json\|md] [--spec ods\|okf]` | Export workspace knowledge graph in structured JSON for AI agents, Markdown snapshot, or text edge list (`--spec okf` exports Google OKF v0.2 bundle JSON). |
 | `ods stats` | `ods stats [path]` | Display workspace document telemetry, graph density, profile distribution, and health score %. |
@@ -215,11 +215,12 @@ ods:
 | `ods diff` | `ods diff [target]` | Compare document graph dependencies and frontmatter changes against git commits or branches. |
 | `ods clean` | `ods clean [path]` | Clean diagnostic reports (`.ods/ods-errors.md`), coverage files (`.ods/coverage.md`), and cache files. |
 | `ods status` / `coverage` | `ods coverage [path]` | Display workspace health score and profile coverage breakdown. |
-| `ods context` | `ods context <doc-id> [--max-tokens N]` | Generate sub-5ms bounded AI context graph for prompt feeding (`--max-tokens` caps token budget). |
+| `ods context` | `ods context <doc-id> [--max-tokens N] [--print] [--include-code] [--root <dir>]` | Bounded AI reading list (depends + context.load). Errors if missing. `--print` emits a budgeted pack. |
 | `ods mv` | `ods mv <src> <dst>` | Move/rename Markdown file and auto-heal graph links and references. |
 | `ods adopt` | `ods adopt [path]` | Auto-draft frontmatter on unindexed legacy Markdown files. |
 | `ods profile` | `ods profile list/init` | List registered profiles or scaffold new custom profile schemas. |
-| `ods tag` | `ods tag catalog/rename` | Query tag catalog, suggest synonyms, or perform global tag renames. |
+| `ods tags` | `ods tags [path] [--all]` | List root-level project tags with use counts (`--all` includes unused default tags). Tags must be top-level frontmatter (not under `ods:`). |
+| `ods tag rename` | `ods tag rename <old> <new> [--write]` | Rewrite a root-level tag across document frontmatter (dry-run; `--write` applies). |
 | `ods share` | `ods share [path]` | Export public documentation pack while stripping `share: private` files. |
 | `ods pack` | `ods pack <subcommand>` | Manage reusable ODS document packs (`add`, `sync`, `list`, `preview`, `remove`, `init`). |
 | `ods bench` | `ods bench <subcommand>` | ROI benchmarking & frontmatter snapshot (`stats`, `strip`, `restore`, `run`). |
@@ -260,6 +261,13 @@ jobs:
 - 🛠️ **Tier 2 (Practitioner)**: [Tooling Matrix](/docs/guide/04-tooling) · [Features](/docs/guide/features)
 - 📋 **Tier 3 (Power User)**: [Profiles & Catalogs](/docs/guide/05-profiles) · [Advanced Workspaces](/docs/guide/06-advanced) · [ROI Calculator](/docs/guide/roi-calculator)
 - 🏢 **Tier 4 (Architect)**: [Diagnostics](/docs/guide/07-troubleshooting-and-diagnostics) · [Enterprise Deployment](/docs/guide/08-enterprise-deployment) · [Use Cases](/docs/guide/use-cases)
+
+### Specification (format meaning)
+
+- **ODS**: [Intro](specs/ods/intro.md) · [Keys](specs/ods/keys.md) · [Core](specs/ods/core.md) · [all modules](specs/ods/index.ods.md)
+- **OKF** (`--okf`): [Intro](specs/okf/intro.md) · [Keys](specs/okf/keys.md)
+- **Skills** (`--skills`): [Intro](specs/skills/intro.md) · [Keys](specs/skills/keys.md)
+- Site: https://opendocify.com/spec
 
 ---
 

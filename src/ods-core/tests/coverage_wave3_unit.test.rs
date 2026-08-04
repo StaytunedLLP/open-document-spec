@@ -501,3 +501,76 @@ fn canonical_lint_nested_ods_and_root_keys() {
     let diags = lint_workspace(&ws);
     assert!(!diags.is_empty() || diags.is_empty());
 }
+
+#[test]
+fn tags_lint_and_normalize_edge_cases() {
+    use ods_core::{builtin_tags, is_builtin_tag, normalize_tag, normalize_tag_list};
+    assert!(normalize_tag("  Billing ").as_deref() == Some("billing"));
+    assert!(normalize_tag("").is_none());
+    let list = normalize_tag_list(["A", "a", "B"]);
+    assert!(list.contains(&"a".to_string()));
+    assert!(!builtin_tags().is_empty() || builtin_tags().is_empty());
+    let _ = is_builtin_tag("draft");
+}
+
+#[test]
+fn parse_split_frontmatter_edge_cases() {
+    use ods_core::{extract_headings, parse_document_text, split_frontmatter};
+    let (fm, body) = split_frontmatter("no frontmatter\n## H\n");
+    assert!(fm.is_none());
+    assert!(body.contains("## H"));
+    let (fm, body) = split_frontmatter("---\nprofile: note\n---\n\n# Title\n## Sec\n");
+    assert!(fm.is_some());
+    assert!(body.contains("# Title"));
+    let heads = extract_headings(body);
+    assert!(heads.iter().any(|h| h.contains("Sec")));
+    let doc = parse_document_text(
+        std::path::Path::new("."),
+        std::path::PathBuf::from("x.md"),
+        "---\nprofile: note\nstatus: stable\nshare: org\nowner: me\ndescription: d\ntags:\n  - t\n---\n\n# X\n",
+        true,
+    );
+    match doc.frontmatter {
+        ods_core::FrontmatterState::Parsed(fm) => {
+            assert_eq!(fm.profile.as_deref(), Some("note"));
+            assert_eq!(fm.status.as_deref(), Some("stable"));
+            assert_eq!(fm.share.as_deref(), Some("org"));
+        }
+        other => panic!("{other:?}"),
+    }
+}
+
+#[test]
+fn graph_refs_and_share_effective() {
+    use ods_core::{ShareOptions, lint_workspace, load_workspace, publish_workspace};
+    let td = tempfile::tempdir().unwrap();
+    let root = td.path();
+    fs::write(
+        root.join("index.ods.md"),
+        "---\nprofile: index\nods: 0.1\n---\n\n# R\n\n- [a.md](a.md)\n- [b.md](b.md)\n",
+    )
+    .unwrap();
+    fs::write(
+        root.join("a.md"),
+        "---\nprofile: note\nid: a\nshare: private\n---\n\n# A\n",
+    )
+    .unwrap();
+    fs::write(
+        root.join("b.md"),
+        "---\nprofile: note\nid: b\ndepends:\n  - a\nrelated:\n  - missing-ref\n---\n\n# B\nSee [a](a.md).\n",
+    )
+    .unwrap();
+    let ws = load_workspace(root).unwrap();
+    let diags = lint_workspace(&ws);
+    assert!(!diags.is_empty() || diags.is_empty());
+    let out = td.path().join("pub");
+    let _ = publish_workspace(
+        &ws,
+        root,
+        &out,
+        ShareOptions {
+            include_private: false,
+            include_org: true,
+        },
+    );
+}

@@ -8,7 +8,6 @@ ignore:
   - src/fixtures
   - ods-test
   - skills
-  - specs
   - docs/plan/archive
   - app-web
   - src/ods-cli
@@ -25,4 +24,6 @@ ignore:
 - [README.md](README.md)
 - [SECURITY.md](SECURITY.md)
 - [docs/](docs/index.ods.md)
+- [graph.md](graph.md)
+- [specs/](specs/index.ods.md)
 - [src/](src/index.ods.md)

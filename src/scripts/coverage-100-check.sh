@@ -5,6 +5,7 @@
 set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
 cd "$ROOT"
+# ODS_COVERAGE_DIR preferred; ODC_COVERAGE_DIR is legacy fallback
 OUT="${ODS_COVERAGE_DIR:-${ODC_COVERAGE_DIR:-$ROOT/.artifacts/coverage}}"
 mkdir -p "$OUT"
 

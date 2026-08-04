@@ -29,4 +29,4 @@ ods setup --editor zed
 ods lsp
 ```
 
-See also: [frontmatter-keys-ods-vs-okf.md](./frontmatter-keys-ods-vs-okf.md), [agentskills.md](./agentskills.md), [../guide/04-tooling.md](../guide/04-tooling.md).
+See also: [frontmatter-keys-ods-vs-okf.md](./frontmatter-keys-ods-vs-okf.md), [agentskills.md](./agentskills.md), [../guide/04-tooling.md](../guide/04-tooling.md), normative trees [`specs/ods/`](../../specs/ods/), [`specs/okf/`](../../specs/okf/), [`specs/skills/`](../../specs/skills/).

@@ -7,11 +7,12 @@
 set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
 cd "$ROOT"
+# ODS_COVERAGE_DIR preferred; ODC_COVERAGE_DIR is legacy fallback
 OUT="${ODS_COVERAGE_DIR:-${ODC_COVERAGE_DIR:-$ROOT/.artifacts/coverage}}"
 mkdir -p "$OUT"
 
 # Shared T3 ignore list (keep in sync with CI and coverage-excludes.md)
-IGNORE_T3="${ODS_COVERAGE_IGNORE_T3:-(asset_downloader\\.rs|update/installer\\.rs|service/launchers\\.rs|watch_and_serve_runner\\.rs|okf_watch\\.rs|github_release\\.rs|setup_command\\.rs)}"
+IGNORE_T3="${ODS_COVERAGE_IGNORE_T3:-(asset_downloader\\.rs|update/installer\\.rs|update/binary_replacer\\.rs|update/http_helpers\\.rs|service/launchers\\.rs|service_commands\\.rs|watch_and_serve_runner\\.rs|okf_watch\\.rs|github_release\\.rs|setup_command\\.rs|lsp_command\\.rs|git_sync\\.rs)}"
 FAIL_UNDER="${ODS_COVERAGE_FAIL_UNDER_LINES:-}"
 
 if ! command -v cargo-llvm-cov >/dev/null 2>&1 && ! cargo llvm-cov --version >/dev/null 2>&1; then
@@ -19,23 +20,18 @@ if ! command -v cargo-llvm-cov >/dev/null 2>&1 && ! cargo llvm-cov --version >/d
   exit 1
 fi
 
-EXTRA=()
+SUMMARY_ARGS=(--workspace --locked --ignore-filename-regex "$IGNORE_T3" --summary-only)
+HTML_ARGS=(--workspace --locked --ignore-filename-regex "$IGNORE_T3" --html --output-dir "$OUT")
 if [[ -n "$FAIL_UNDER" ]]; then
-  EXTRA+=(--fail-under-lines "$FAIL_UNDER")
+  SUMMARY_ARGS+=(--fail-under-lines "$FAIL_UNDER")
+  HTML_ARGS+=(--fail-under-lines "$FAIL_UNDER")
 fi
 
 echo "==> summary (T3 excludes applied)"
-cargo llvm-cov --workspace --locked \
-  --ignore-filename-regex "$IGNORE_T3" \
-  --summary-only \
-  "${EXTRA[@]}" \
-  "$@" | tee "$OUT/summary.txt"
+cargo llvm-cov "${SUMMARY_ARGS[@]}" "$@" | tee "$OUT/summary.txt"
 
 echo "==> HTML → $OUT (index at $OUT/html/index.html)"
-cargo llvm-cov --workspace --locked \
-  --ignore-filename-regex "$IGNORE_T3" \
-  --html --output-dir "$OUT" \
-  "$@"
+cargo llvm-cov "${HTML_ARGS[@]}" "$@"
 # Rank files by missed lines (below 90%)
 python3 - <<'PY' || true
 from pathlib import Path

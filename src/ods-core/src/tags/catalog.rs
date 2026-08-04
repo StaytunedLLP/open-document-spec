@@ -140,13 +140,27 @@ pub fn tag_usage_with_builtins(
 }
 
 /// Hygiene diagnostics for one document's tags (Level 1+).
-pub fn lint_document_tags(document: &Document) -> Vec<Diagnostic> {
+///
+/// Tags are **root-level only**. Nested `tags` under `ods:` sets
+/// [`Frontmatter::tags_misplaced`] and yields a placement warning; run
+/// `ods fmt --migrate` to hoist them to top-level for SSG/tool interop.
+///
+/// Profile-name collisions use the workspace catalog (standard ∪ custom).
+pub fn lint_document_tags(document: &Document, workspace: &Workspace) -> Vec<Diagnostic> {
     let FrontmatterState::Parsed(fm) = &document.frontmatter else {
         return Vec::new();
     };
-    // Tags are already normalized on parse; detect issues from raw is hard.
-    // We re-check for reserved tokens and space-containing forms if present.
     let mut diagnostics = Vec::new();
+
+    if fm.tags_misplaced {
+        diagnostics.push(Diagnostic {
+            path: document.path.clone(),
+            severity: Severity::Warning,
+            message: "tags must be top-level frontmatter (not under ods:) so other tools can read them; run: ods fmt --migrate".to_string(),
+        });
+    }
+
+    // Tags are already normalized on parse; detect issues from stored values.
     let mut seen = BTreeSet::new();
     for tag in &fm.tags {
         if !seen.insert(tag.clone()) {
@@ -171,7 +185,7 @@ pub fn lint_document_tags(document: &Document) -> Vec<Diagnostic> {
                 message: format!("tag collides with status value: {tag} (use status: field)"),
             });
         }
-        if is_standard_profile_name(tag) {
+        if is_profile_name(tag, workspace) {
             diagnostics.push(Diagnostic {
                 path: document.path.clone(),
                 severity: Severity::Warning,
@@ -202,4 +216,12 @@ fn is_standard_profile_name(tag: &str) -> bool {
             | "checklist"
             | "index"
     )
+}
+
+/// True if `tag` matches a standard profile name or a workspace-registered custom profile.
+fn is_profile_name(tag: &str, workspace: &Workspace) -> bool {
+    if is_standard_profile_name(tag) {
+        return true;
+    }
+    workspace.profiles.definitions.contains_key(tag)
 }

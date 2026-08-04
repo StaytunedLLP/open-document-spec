@@ -24,7 +24,10 @@ pub mod adopt {
     pub use crate::mutate::{AdoptOptions, AdoptReport, adopt_workspace};
 }
 pub mod context {
-    pub use crate::graph::resolve_context;
+    pub use crate::graph::{
+        ContextOptions, ContextResult, estimate_path_tokens, render_context_pack, resolve_context,
+        resolve_context_start, resolve_context_with_options,
+    };
 }
 pub mod export {
     pub use crate::graph::{export_workspace_graph, render_graph_json, render_graph_markdown};
@@ -48,9 +51,10 @@ pub use fs::{
     rebuild_indexes, remove_document, upsert_document,
 };
 pub use graph::{
-    canonical_document_ref, canonical_document_ref_for_reference, document_ref_to_id,
-    document_ref_to_path, export_workspace_graph, is_file_like_ref, is_markdown_ref,
-    render_graph_json, render_graph_markdown, resolve_context,
+    ContextOptions, ContextResult, canonical_document_ref, canonical_document_ref_for_reference,
+    document_ref_to_id, document_ref_to_path, estimate_path_tokens, export_workspace_graph,
+    is_file_like_ref, is_markdown_ref, render_context_pack, render_graph_json,
+    render_graph_markdown, resolve_context, resolve_context_start, resolve_context_with_options,
 };
 pub use lifecycle::{
     DisableOptions, DisableReport, InitOptions, InitReport, NewDocumentOptions, NewDocumentReport,
@@ -101,7 +105,10 @@ pub use profiles::{
     standard_profile_catalog,
 };
 pub use share::{ShareLevel, ShareOptions, SharePublishReport, effective_share, publish_workspace};
-pub use spec::{KeyDefinition, KeyPlacement, SpecKind, SpecSchema, SpecSchemaRegistry};
+pub use spec::{
+    KeyDefinition, KeyPlacement, KeyType, SchemaIssue, SpecKind, SpecSchema, SpecSchemaRegistry,
+    generate_ods_json_schema, validate_ods_frontmatter,
+};
 pub use tags::{
     TagRenameReport, builtin_tags, completion_tags, docs_with_any_tag, docs_with_tag,
     is_builtin_tag, normalize_tag, normalize_tag_list, observed_tags, rename_tag_in_workspace,

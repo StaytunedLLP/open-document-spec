@@ -1,5 +1,5 @@
 /// Canonical order of ODS engine keys inside the nested `ods:` map
-/// (specs/SPEC.md "Canonical Key Sequence Rule").
+/// (specs/ods/keys.md "Canonical Key Sequence Rule").
 const CANONICAL_ODS_KEY_ORDER: [&str; 9] = [
     "profile",
     "status",
@@ -12,12 +12,19 @@ const CANONICAL_ODS_KEY_ORDER: [&str; 9] = [
     "context",
 ];
 
+/// Universal top-level keys that must never live under `ods:`.
+/// When found nested, migrate hoists them to root (SSG / multi-tool interop).
+const UNIVERSAL_TOP_LEVEL_KEYS: [&str; 1] = ["tags"];
+
 /// Migrate one document's raw frontmatter text into canonical Pattern B
 /// shape: universal top-level keys (`description`, `tags`, `owner`, and any
 /// other non-engine top-level key) in their existing relative order,
 /// followed by a single `ods:` block with engine keys
 /// (`profile`/`status`/`id`/`share`/`depends`/`related`/`resources`/`code`/`context`)
 /// in canonical order.
+///
+/// Nested `tags` under `ods:` are **hoisted** to root (never dropped). Tags are
+/// universal domain metadata and must remain top-level for any tool to read.
 ///
 /// Operates on raw text/lines, never on the parsed [`crate::model::Frontmatter`]
 /// struct, because that struct is lossy for `owner` and `code[].symbol`
@@ -43,11 +50,17 @@ pub fn migrate_frontmatter_to_canonical(text: &str) -> Option<String> {
 
     let mut engine: std::collections::BTreeMap<&str, (usize, Vec<String>)> =
         std::collections::BTreeMap::new();
+    // Universal keys found under nested `ods:` (e.g. tags) — hoist to root.
+    let mut hoisted_universal: Vec<(String, Vec<String>)> = Vec::new();
+    let mut had_nested_ods = false;
+    let mut had_flat_engine = false;
 
     for (position, block) in blocks.iter().enumerate() {
         if let Some(&canonical_key) = CANONICAL_ODS_KEY_ORDER.iter().find(|k| **k == block.key) {
+            had_flat_engine = true;
             engine.insert(canonical_key, (position, reindent(&block.lines, 2)));
         } else if block.key == "ods" {
+            had_nested_ods = true;
             for sub in group_sub_blocks(&block.lines[1..], 2) {
                 if let Some(&canonical_key) =
                     CANONICAL_ODS_KEY_ORDER.iter().find(|k| **k == sub.key)
@@ -59,28 +72,58 @@ pub fn migrate_frontmatter_to_canonical(text: &str) -> Option<String> {
                     if candidate_wins {
                         engine.insert(canonical_key, (position, sub.lines));
                     }
+                } else if UNIVERSAL_TOP_LEVEL_KEYS.contains(&sub.key.as_str()) {
+                    // Hoist nested universal keys (tags) to root; de-indent from ods nesting.
+                    let root_lines = deindent(&sub.lines, 2);
+                    hoisted_universal.push((sub.key.clone(), root_lines));
                 }
+                // Other unknown nested keys under ods: are intentionally not re-emitted
+                // as engine keys (same as before for non-engine unknowns).
             }
         }
     }
 
-    if engine.is_empty() {
+    // Need engine keys and/or nested tags to hoist; otherwise nothing to do.
+    if engine.is_empty() && hoisted_universal.is_empty() {
+        return None;
+    }
+    // Pure hoist of nested tags without any engine keys still rewrites.
+    if engine.is_empty() && !had_nested_ods && !had_flat_engine {
         return None;
     }
 
     let mut new_frontmatter_lines: Vec<String> = Vec::new();
+    let mut root_tags_emitted = false;
     for block in &blocks {
         let is_engine_key = CANONICAL_ODS_KEY_ORDER.contains(&block.key.as_str());
         if is_engine_key || block.key == "ods" {
             continue;
         }
+        if block.key == "tags" {
+            // Merge root tags with any nested tags being hoisted.
+            let merged = merge_tag_blocks(&block.lines, &hoisted_universal);
+            new_frontmatter_lines.extend(merged);
+            root_tags_emitted = true;
+            continue;
+        }
         new_frontmatter_lines.extend(block.lines.iter().cloned());
     }
 
-    new_frontmatter_lines.push("ods:".to_string());
-    for key in CANONICAL_ODS_KEY_ORDER {
-        if let Some((_, lines)) = engine.get(key) {
-            new_frontmatter_lines.extend(lines.iter().cloned());
+    // No root tags block yet: emit hoisted tags before the ods: engine map.
+    if !root_tags_emitted {
+        for (key, lines) in &hoisted_universal {
+            if key == "tags" {
+                new_frontmatter_lines.extend(lines.iter().cloned());
+            }
+        }
+    }
+
+    if !engine.is_empty() {
+        new_frontmatter_lines.push("ods:".to_string());
+        for key in CANONICAL_ODS_KEY_ORDER {
+            if let Some((_, lines)) = engine.get(key) {
+                new_frontmatter_lines.extend(lines.iter().cloned());
+            }
         }
     }
 
@@ -97,6 +140,102 @@ pub fn migrate_frontmatter_to_canonical(text: &str) -> Option<String> {
     } else {
         Some(out)
     }
+}
+
+/// Remove up to `spaces` leading spaces from each line (for hoisting nested blocks).
+fn deindent(lines: &[String], spaces: usize) -> Vec<String> {
+    lines
+        .iter()
+        .map(|line| {
+            let mut drop = 0usize;
+            for ch in line.chars() {
+                if ch == ' ' && drop < spaces {
+                    drop += 1;
+                } else {
+                    break;
+                }
+            }
+            line[drop..].to_string()
+        })
+        .collect()
+}
+
+/// Merge an existing root `tags:` block with hoisted nested tag blocks.
+/// Prefers list form; appends unique normalized values from nested lists.
+fn merge_tag_blocks(
+    root_tags_lines: &[String],
+    hoisted: &[(String, Vec<String>)],
+) -> Vec<String> {
+    let nested_tag_lines: Vec<&[String]> = hoisted
+        .iter()
+        .filter(|(k, _)| k == "tags")
+        .map(|(_, lines)| lines.as_slice())
+        .collect();
+    if nested_tag_lines.is_empty() {
+        return root_tags_lines.to_vec();
+    }
+
+    // Collect all tag values from root + nested (list items or inline).
+    let mut values: Vec<String> = Vec::new();
+    let mut seen = std::collections::BTreeSet::new();
+    for lines in std::iter::once(root_tags_lines).chain(nested_tag_lines) {
+        for v in extract_tag_values_from_block(lines) {
+            if let Some(n) = crate::tags::normalize_tag(&v)
+                && seen.insert(n.clone())
+            {
+                values.push(n);
+            }
+        }
+    }
+
+    if values.is_empty() {
+        return root_tags_lines.to_vec();
+    }
+
+    // Emit canonical list form at root.
+    let mut out = vec!["tags:".to_string()];
+    for v in values {
+        out.push(format!("  - {v}"));
+    }
+    out
+}
+
+fn extract_tag_values_from_block(lines: &[String]) -> Vec<String> {
+    let mut out = Vec::new();
+    if lines.is_empty() {
+        return out;
+    }
+    let first = lines[0].trim_start();
+    if let Some(rest) = first.strip_prefix("tags:") {
+        let rest = rest.trim();
+        if !rest.is_empty() && !rest.starts_with('#') {
+            if rest.starts_with('[') && rest.ends_with(']') {
+                let inner = &rest[1..rest.len() - 1];
+                for p in inner.split(',') {
+                    let p = p.trim().trim_matches(|c| c == '"' || c == '\'');
+                    if !p.is_empty() {
+                        out.push(p.to_string());
+                    }
+                }
+            } else {
+                let p = rest.trim_matches(|c| c == '"' || c == '\'');
+                if !p.is_empty() {
+                    out.push(p.to_string());
+                }
+            }
+            return out;
+        }
+    }
+    for line in lines.iter().skip(1) {
+        let t = line.trim();
+        if let Some(rest) = t.strip_prefix('-') {
+            let rest = rest.trim().trim_matches(|c| c == '"' || c == '\'');
+            if !rest.is_empty() {
+                out.push(rest.to_string());
+            }
+        }
+    }
+    out
 }
 
 /// Rewrite every document under `root` into canonical Pattern B frontmatter

@@ -211,6 +211,12 @@ fn parse_frontmatter(block: &str) -> Result<Frontmatter, String> {
                     if nested_fm.context.is_some() {
                         frontmatter.context = nested_fm.context;
                     }
+                    // Nested tags under ods: are invalid (root-only contract). Merge into the
+                    // model so lint/find can surface them; migrate must hoist to top-level.
+                    if !nested_fm.tags.is_empty() || nested_fm.tags_misplaced {
+                        frontmatter.tags.extend(nested_fm.tags);
+                        frontmatter.tags_misplaced = true;
+                    }
                     index = next;
                 }
             }

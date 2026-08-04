@@ -9,7 +9,7 @@ fn tags_normalize_find_and_rename() {
     let dir = tempfile::tempdir().unwrap();
     fs::write(
         dir.path().join("index.ods.md"),
-        "---\nods: 0.1\nodc: \">=0.0.1\"\n---\n\n# R\n",
+        "---\nods: 0.1\n---\n\n# R\n",
     )
     .unwrap();
     fs::write(
@@ -48,7 +48,7 @@ fn rename_tag_edge_cases() {
     let dir = tempfile::tempdir().unwrap();
     fs::write(
         dir.path().join("index.ods.md"),
-        "---\nods: 0.1\nodc: \">=0.0.1\"\n---\n\n# R\n",
+        "---\nods: 0.1\n---\n\n# R\n",
     )
     .unwrap();
     fs::write(dir.path().join("plain.md"), "# Plain Doc No FM\n").unwrap();

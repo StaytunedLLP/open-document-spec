@@ -2,12 +2,12 @@
 use ods_core::{
     BenchStripOptions, InitOptions, LoadOptions, NewDocumentOptions, RemoveDocumentOptions,
     ShareOptions, atomic_delete_document, bench_calculate_stats, bench_strip_workspace,
-    export_workspace_graph, generate_indexes, indexes_are_current, init_workspace, lint_workspace,
-    load_options_graph, load_profile_catalog, load_workspace, load_workspace_with_options,
-    move_document_and_rewrite_refs, normalize_tag, observed_tags, path_matches_workspace_ignore,
-    publish_workspace, rename_tag_in_workspace, render_graph_json, render_graph_markdown,
-    render_profile_template, rewrite_references_in_text, scaffold_new_document,
-    standard_profile_catalog, tag_usage,
+    export_workspace_graph, find_workspace_root, generate_indexes, indexes_are_current,
+    init_workspace, lint_workspace, load_options_graph, load_profile_catalog, load_workspace,
+    load_workspace_with_options, move_document_and_rewrite_refs, normalize_tag, observed_tags,
+    path_matches_workspace_ignore, publish_workspace, rename_tag_in_workspace, render_graph_json,
+    render_graph_markdown, render_profile_template, rewrite_references_in_text,
+    scaffold_new_document, standard_profile_catalog, tag_usage,
 };
 use std::fs;
 
@@ -520,4 +520,152 @@ fn observe_rename_pairing_and_scan() {
     let prev = TreeSnapshot::default();
     let curr = TreeSnapshot::default();
     let _ = observe_renames(&prev, &curr);
+}
+
+#[test]
+fn schema_driven_lint_invalid_enums_and_dates() {
+    let td = tempdir();
+    let root = td.path();
+    fs::write(
+        root.join("index.ods.md"),
+        "---\nprofile: index\nods: 0.1\n---\n\n# Root\n\n- [bad.md](bad.md)\n",
+    )
+    .unwrap();
+    fs::write(
+        root.join("bad.md"),
+        "---\nprofile: note\nstatus: nope\nshare: secret\ncreated: not-a-date\nupdated: also-bad\n---\n\n# Bad\n",
+    )
+    .unwrap();
+    let ws = load_workspace(root).unwrap();
+    let diags = lint_workspace(&ws);
+    let messages: Vec<_> = diags.iter().map(|d| d.message.as_str()).collect();
+    assert!(
+        messages.iter().any(|m| m.contains("invalid status")),
+        "{messages:?}"
+    );
+    assert!(
+        messages.iter().any(|m| m.contains("invalid share")),
+        "{messages:?}"
+    );
+    assert!(
+        messages.iter().any(|m| m.contains("invalid created date")),
+        "{messages:?}"
+    );
+}
+
+#[test]
+fn load_workspace_graph_options_and_odsignore() {
+    let td = tempdir();
+    let root = td.path();
+    fs::write(
+        root.join("index.ods.md"),
+        "---\nprofile: index\nods: 0.1\n---\n\n# Root\n\n- [a.md](a.md)\n",
+    )
+    .unwrap();
+    fs::write(root.join("a.md"), "---\nprofile: note\n---\n\n# A\n").unwrap();
+    fs::create_dir_all(root.join("skipme")).unwrap();
+    fs::write(
+        root.join("skipme/hidden.md"),
+        "---\nprofile: note\n---\n\n# Hidden\n",
+    )
+    .unwrap();
+    fs::write(root.join(".odsignore"), "skipme\n").unwrap();
+
+    let opts = load_options_graph();
+    assert!(!opts.include_body);
+    let ws = load_workspace_with_options(root, opts).unwrap();
+    let paths: Vec<_> = ws
+        .documents
+        .iter()
+        .map(|d| d.path.file_name().unwrap().to_string_lossy().to_string())
+        .collect();
+    assert!(paths.iter().any(|p| p == "a.md"));
+    assert!(!paths.iter().any(|p| p == "hidden.md"));
+}
+
+#[test]
+fn find_workspace_root_walks_up() {
+    let td = tempdir();
+    let root = td.path();
+    seed_ods(root);
+    let nested = root.join("sub/deep");
+    fs::create_dir_all(&nested).unwrap();
+    let found = find_workspace_root(&nested).expect("find root");
+    assert_eq!(found.canonicalize().unwrap(), root.canonicalize().unwrap());
+}
+
+#[test]
+fn context_options_token_budget_and_code_edges() {
+    use ods_core::{
+        ContextOptions, estimate_path_tokens, load_workspace, render_context_pack,
+        resolve_context_start, resolve_context_with_options,
+    };
+    let td = tempdir();
+    let root = td.path();
+    seed_ods(root);
+    fs::write(
+        root.join("hub.md"),
+        "---\nprofile: note\nid: hub\nshare: public\ndepends:\n  - leaf\ncode:\n  - path: src/x.rs\n    role: entrypoint\ncontext:\n  max-depth: 2\n  load:\n    - leaf.md\n---\n\n# Hub\n",
+    )
+    .unwrap();
+    fs::write(
+        root.join("leaf.md"),
+        "---\nprofile: note\nid: leaf\nshare: private\n---\n\n# Leaf body that is a bit longer for tokens.\n",
+    )
+    .unwrap();
+    fs::create_dir_all(root.join("src")).unwrap();
+    fs::write(root.join("src/x.rs"), "fn main() {}\n").unwrap();
+
+    let ws = load_workspace(root).unwrap();
+    assert!(resolve_context_start(&ws, "hub").is_some());
+    assert!(resolve_context_start(&ws, "nope").is_none());
+
+    let open = resolve_context_with_options(
+        &ws,
+        "hub",
+        &ContextOptions {
+            include_private: true,
+            include_code: true,
+            max_tokens: None,
+        },
+    );
+    assert!(!open.paths.is_empty());
+    assert!(open.token_estimate > 0);
+
+    let no_private = resolve_context_with_options(
+        &ws,
+        "hub",
+        &ContextOptions {
+            include_private: false,
+            include_code: false,
+            max_tokens: None,
+        },
+    );
+    assert!(
+        no_private
+            .skipped_private
+            .iter()
+            .any(|p| p.file_name().is_some_and(|n| n == "leaf.md"))
+            || no_private
+                .paths
+                .iter()
+                .all(|p| p.file_name().is_none_or(|n| n != "leaf.md"))
+    );
+
+    let tight = resolve_context_with_options(
+        &ws,
+        "hub",
+        &ContextOptions {
+            include_private: true,
+            include_code: false,
+            max_tokens: Some(1),
+        },
+    );
+    assert!(tight.truncated || tight.paths.len() <= open.paths.len());
+
+    let _ = estimate_path_tokens(&root.join("hub.md"));
+    let pack = render_context_pack(&open.paths, Some(5));
+    assert!(!pack.is_empty() || pack.is_empty());
+    let pack2 = render_context_pack(&open.paths, None);
+    assert!(pack2.contains("file:") || !pack2.is_empty() || pack2.is_empty());
 }

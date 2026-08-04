@@ -1,0 +1,15 @@
+{
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Write|Edit|search_replace",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash \"${CLAUDE_PROJECT_DIR:-.}/.agents/hooks/scripts/post-edit.sh\" \"${TOOL_INPUT_PATH:-${TOOL_INPUT_file_path:-}}\""
+          }
+        ]
+      }
+    ]
+  }
+}

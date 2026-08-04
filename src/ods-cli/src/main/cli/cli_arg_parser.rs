@@ -153,7 +153,9 @@ fn parse_export_args(args: &[String]) -> Result<(PathBuf, PathBuf, OutputFormat,
     let root = resolve_root_path(
         path.unwrap_or_else(|| env::current_dir().unwrap_or_else(|_| PathBuf::from("."))),
     );
-    let out = out.unwrap_or_else(|| root.join("graph.md"));
+    // Default under `.ods/` so routine export does not pollute the workspace root
+    // (agents reading root graph.md reintroduce full-workspace token burn).
+    let out = out.unwrap_or_else(|| root.join(".ods").join("graph.md"));
     Ok((root, out, format, spec))
 }
 
@@ -291,6 +293,13 @@ fn parse_common_flags(
             "--refs" | "--ignore-keys" | "--ignore-key" => {
                 i += 2;
             }
+            "--root" | "--max-tokens" => {
+                // value consumed by context/mv/rm; do not treat as workspace path positional
+                i += 2;
+            }
+            "--include-code" | "--print" | "--help" | "-h" => {
+                i += 1;
+            }
             "--tag" | "--prompt" | "--llm" | "--agent" | "--snapshot" | "--path" | "--name" => {
                 // value consumed by find/bench/skills init; skip so path parsing still works
                 i += 2;
@@ -350,9 +359,17 @@ fn positional_args(args: &[String], start: usize) -> Vec<String> {
     let mut i = start;
     while i < args.len() {
         match args[i].as_str() {
-            "--level" | "--format" | "--version" => i += 2,
-            "--check" | "--write" | "--force" | "--canonical-refs" | "--include-private" => i += 1,
-            "--refs" => i += 2,
+            "--level" | "--format" | "--version" | "--root" | "--refs" | "--max-tokens"
+            | "--mode" | "--tag" => i += 2,
+            "--check"
+            | "--write"
+            | "--force"
+            | "--canonical-refs"
+            | "--include-private"
+            | "--include-code"
+            | "--print"
+            | "--help"
+            | "-h" => i += 1,
             flag if flag.starts_with('-') => i += 1,
             other => {
                 out.push(other.to_string());

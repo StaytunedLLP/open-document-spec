@@ -98,7 +98,7 @@ import { REPO_URL } from "../lib/releases";
           <div class="cli-tree">
             Smart Reading List for [01-introduction.md]:<br/>
             ├── docs/guide/01-introduction.md <span class="tree-tag">(Main page)</span><br/>
-            ├── specs/SPEC.md <span class="tree-tag">(linked page)</span><br/>
+            ├── specs/ods/intro.md <span class="tree-tag">(linked page)</span><br/>
             ├── docs/guide/05-profiles.md <span class="tree-tag">(related page)</span><br/>
             └── src/crates/ods-core/src/graph.rs <span class="tree-tag">(connected code)</span>
           </div>
@@ -4199,7 +4199,7 @@ import { REPO_URL } from "../lib/releases";
         mode: "Native Skill",
         data: {
           install: '<span class="t-cmd-line"><span class="t-prompt">$</span> <span class="t-cmd">ods install</span></span>\n<span class="t-success">✓ Installing ODS...</span>\n<span class="t-success">✓ Reading list enabled</span>\n<span class="t-success">✓ Connected to your AI assistant</span>\n<span class="t-success">✓ Ready to go!</span>\n<hr class="t-hr"/>\n<span class="t-next">&gt; Ask your AI anything.</span>',
-          query: '<span class="t-cmd-line"><span class="t-prompt">&gt;</span> <span class="t-cmd">/ods context</span> <span class="t-arg">specs/SPEC.md</span></span>\n<span class="t-success">✓ Scanned document connections in 2.8ms</span>\n<span class="t-success">✓ Loaded reading list: 3 files, 4,120 tokens (saves 94.97% AI costs)</span>\n<span class="t-json">├── specs/SPEC.md (Main page)</span>\n<span class="t-json">├── docs/guide/01-introduction.md (linked page)</span>\n<span class="t-json">└── src/crates/ods-core/src/graph.rs (connected code)</span>',
+          query: '<span class="t-cmd-line"><span class="t-prompt">&gt;</span> <span class="t-cmd">/ods context</span> <span class="t-arg">specs/ods/intro.md</span></span>\n<span class="t-success">✓ Scanned document connections in 2.8ms</span>\n<span class="t-success">✓ Loaded reading list: 3 files, 4,120 tokens (saves 94.97% AI costs)</span>\n<span class="t-json">├── specs/ods/intro.md (Main page)</span>\n<span class="t-json">├── docs/guide/01-introduction.md (linked page)</span>\n<span class="t-json">└── src/crates/ods-core/src/graph.rs (connected code)</span>',
           mcp: '<span class="t-cmd-line"><span class="t-prompt">$</span> <span class="t-cmd">ods</span> <span class="t-sub">mcp enable</span> <span class="t-flag">--assistant</span> <span class="t-arg">claude</span></span>\n<span class="t-success">✓ Added ODS MCP Server to ~/.claude/claude_desktop_config.json</span>\n<span class="t-success">✓ Tools available: ods_get_context, ods_verify_graph, ods_list_deps</span>'
         }
       },
@@ -4223,7 +4223,7 @@ import { REPO_URL } from "../lib/releases";
         mode: "Built-in Skill",
         data: {
           install: '<span class="t-cmd-line"><span class="t-prompt">$</span> <span class="t-cmd">ods</span> <span class="t-sub">skill install</span> <span class="t-flag">--target</span> <span class="t-arg">antigravity</span></span>\n<span class="t-success">✓ Installed ODS skill to ~/.gemini/config/skills/ods/SKILL.md</span>\n<span class="t-success">✓ Direct terminal execution enabled</span>\n<span class="t-next">&gt; Ask Antigravity: <span class="t-arg">"Audit doc graph references"</span></span>',
-          query: '<span class="t-cmd-line"><span class="t-prompt">&gt;</span> <span class="t-cmd">/ods context</span> <span class="t-arg">specs/SPEC.md</span></span>\n<span class="t-success">✓ Document scan completed in 1.9ms</span>\n<span class="t-success">✓ Smart reading list injected into prompt window</span>',
+          query: '<span class="t-cmd-line"><span class="t-prompt">&gt;</span> <span class="t-cmd">/ods context</span> <span class="t-arg">specs/ods/intro.md</span></span>\n<span class="t-success">✓ Document scan completed in 1.9ms</span>\n<span class="t-success">✓ Smart reading list injected into prompt window</span>',
           mcp: '<span class="t-cmd-line"><span class="t-prompt">$</span> <span class="t-cmd">ods</span> <span class="t-sub">mcp enable</span> <span class="t-flag">--target</span> <span class="t-arg">antigravity</span></span>\n<span class="t-success">✓ Added ODS server entry to Antigravity MCP registry</span>'
         }
       },
@@ -4263,7 +4263,7 @@ import { REPO_URL } from "../lib/releases";
         mode: "Direct CLI Binary",
         data: {
           install: '<span class="t-cmd-line"><span class="t-prompt">$</span> <span class="t-cmd">cargo</span> <span class="t-sub">install</span> <span class="t-arg">ods</span></span>\n<span class="t-comment"># Or via 1-line shell script:</span>\n<span class="t-cmd-line"><span class="t-prompt">$</span> <span class="t-cmd">curl</span> <span class="t-flag">-fsSL</span> <span class="t-arg">https://opendocify.com/install.sh</span> | <span class="t-cmd">bash</span></span>\n<span class="t-success">✓ Installed ods v0.1.0 to /usr/local/bin/ods</span>',
-          query: '<span class="t-cmd-line"><span class="t-prompt">$</span> <span class="t-cmd">ods</span> <span class="t-sub">context</span> <span class="t-arg">docs/guide/01-introduction.md</span> <span class="t-flag">--format</span> <span class="t-arg">json</span></span>\n<span class="t-json">{</span>\n<span class="t-json">&nbsp;&nbsp;<span class="t-arg">"root"</span>: <span class="t-sub">"docs/guide/01-introduction.md"</span>,</span>\n<span class="t-json">&nbsp;&nbsp;<span class="t-arg">"cost_savings_pct"</span>: <span class="t-flag">94.97</span>,</span>\n<span class="t-json">&nbsp;&nbsp;<span class="t-arg">"nodes"</span>: [<span class="t-sub">"specs/SPEC.md"</span>, <span class="t-sub">"src/crates/ods-core/src/graph.rs"</span>]</span>\n<span class="t-json">}</span>',
+          query: '<span class="t-cmd-line"><span class="t-prompt">$</span> <span class="t-cmd">ods</span> <span class="t-sub">context</span> <span class="t-arg">docs/guide/01-introduction.md</span> <span class="t-flag">--format</span> <span class="t-arg">json</span></span>\n<span class="t-json">{</span>\n<span class="t-json">&nbsp;&nbsp;<span class="t-arg">"root"</span>: <span class="t-sub">"docs/guide/01-introduction.md"</span>,</span>\n<span class="t-json">&nbsp;&nbsp;<span class="t-arg">"cost_savings_pct"</span>: <span class="t-flag">94.97</span>,</span>\n<span class="t-json">&nbsp;&nbsp;<span class="t-arg">"nodes"</span>: [<span class="t-sub">"specs/ods/intro.md"</span>, <span class="t-sub">"src/crates/ods-core/src/graph.rs"</span>]</span>\n<span class="t-json">}</span>',
           mcp: '<span class="t-cmd-line"><span class="t-prompt">$</span> <span class="t-cmd">ods</span> <span class="t-sub">serve</span> <span class="t-flag">--daemon</span></span>\n<span class="t-success">✓ Smart background link repair started (pid 84210)</span>\n<span class="t-success">✓ Automatically repairing links and checking for errors</span>'
         }
       }

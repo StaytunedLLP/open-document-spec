@@ -44,14 +44,18 @@ const docsSubItems = [
 ];
 
 const specSubItems = [
-  { label: "ODS Core Specification", href: "/spec/spec" },
-  { label: "Profiles and Catalogs", href: "/spec/profiles" },
-  { label: "Graph Specification", href: "/spec/graph" },
-  { label: "Context Specification", href: "/spec/context" },
-  { label: "Indexes & Scanning", href: "/spec/indexes" },
-  { label: "Resources & Code", href: "/spec/resources-and-code" },
-  { label: "Validation & Rules", href: "/spec/validation" },
-  { label: "Non-Goals & Scope", href: "/spec/non-goals" },
+  { label: "ODS · Intro", href: "/spec/ods/intro" },
+  { label: "ODS · Keys", href: "/spec/ods/keys" },
+  { label: "ODS · Core", href: "/spec/ods/core" },
+  { label: "ODS · Profiles", href: "/spec/ods/profiles" },
+  { label: "ODS · Graph", href: "/spec/ods/graph" },
+  { label: "ODS · Context", href: "/spec/ods/context" },
+  { label: "ODS · Indexes", href: "/spec/ods/indexes" },
+  { label: "ODS · Assets", href: "/spec/ods/assets" },
+  { label: "ODS · Validation", href: "/spec/ods/validation" },
+  { label: "ODS · Scope", href: "/spec/ods/scope" },
+  { label: "OKF · Intro", href: "/spec/okf/intro" },
+  { label: "Skills · Intro", href: "/spec/skills/intro" },
 ];
 
 const canonicalURL = new URL(Astro.url.pathname, "https://opendocify.com").href;
@@ -304,7 +308,7 @@ const jsonLdApp = {
               <li><a href="/docs/04-tooling">CLI Commands Reference</a></li>
               <li><a href="/examples">Industry Use Cases</a></li>
               <li><a href="/docs/02-quickstart">Claude Code AI Skill</a></li>
-              <li><a href="/spec/profiles">Frontmatter Schemas</a></li>
+              <li><a href="/spec/ods/keys">Frontmatter Keys</a></li>
             </ul>
           </div>
 

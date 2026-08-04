@@ -66,6 +66,112 @@ fn init_lint_index_graph_context() {
         .output()
         .unwrap();
     assert!(out.status.success(), "{:?}", out);
+
+    // Single-arg id from inside the workspace must work (not treat id as root).
+    let out = Command::new(ods_bin())
+        .current_dir(&dir)
+        .args(["context", "doc"])
+        .output()
+        .unwrap();
+    assert!(
+        out.status.success(),
+        "context single-arg id failed: {:?}",
+        String::from_utf8_lossy(&out.stderr)
+    );
+    let stdout = String::from_utf8_lossy(&out.stdout);
+    assert!(
+        stdout.contains("doc.md"),
+        "expected doc.md in context output: {stdout}"
+    );
+
+    // Missing id must fail (not silent empty success — agents dump the tree otherwise).
+    let out = Command::new(ods_bin())
+        .current_dir(&dir)
+        .args(["context", "does-not-exist-xyz"])
+        .output()
+        .unwrap();
+    assert!(
+        !out.status.success(),
+        "missing context id should be non-zero"
+    );
+}
+
+#[test]
+fn context_path_shaped_id_from_cwd() {
+    let dir = temp_workspace();
+    assert!(
+        Command::new(ods_bin())
+            .args(["init", dir.to_str().unwrap()])
+            .status()
+            .unwrap()
+            .success()
+    );
+    fs::create_dir_all(dir.join("specs/ods")).unwrap();
+    fs::write(
+        dir.join("specs/ods/core.md"),
+        "---\nprofile: note\nstatus: draft\ndepends:\n  - specs/ods/intro.md\n---\n\n# Core\n",
+    )
+    .unwrap();
+    fs::write(
+        dir.join("specs/ods/intro.md"),
+        "---\nprofile: note\nstatus: draft\n---\n\n# Intro\n",
+    )
+    .unwrap();
+
+    let out = Command::new(ods_bin())
+        .current_dir(&dir)
+        .args(["context", "specs/ods/core"])
+        .output()
+        .unwrap();
+    assert!(
+        out.status.success(),
+        "path-shaped context id failed: status={:?} stderr={} stdout={}",
+        out.status,
+        String::from_utf8_lossy(&out.stderr),
+        String::from_utf8_lossy(&out.stdout)
+    );
+    let stdout = String::from_utf8_lossy(&out.stdout);
+    assert!(stdout.contains("core.md"), "{stdout}");
+    assert!(stdout.contains("intro.md"), "{stdout}");
+
+    let out = Command::new(ods_bin())
+        .current_dir(&dir)
+        .args([
+            "context",
+            "specs/ods/core",
+            "--max-tokens",
+            "1",
+            "--format",
+            "json",
+        ])
+        .output()
+        .unwrap();
+    assert!(out.status.success(), "{:?}", out);
+    assert!(
+        String::from_utf8_lossy(&out.stdout).contains("truncated"),
+        "{:?}",
+        out
+    );
+
+    let out = Command::new(ods_bin())
+        .current_dir(&dir)
+        .args(["find", "specs/ods/core"])
+        .output()
+        .unwrap();
+    assert!(out.status.success(), "{:?}", out);
+    assert!(
+        String::from_utf8_lossy(&out.stdout).contains("specs/ods/core"),
+        "{:?}",
+        out
+    );
+
+    let out = Command::new(ods_bin())
+        .current_dir(&dir)
+        .args(["context", "--help"])
+        .output()
+        .unwrap();
+    assert!(out.status.success());
+    assert!(String::from_utf8_lossy(&out.stdout).contains("--max-tokens"));
 }
 
 #[test]

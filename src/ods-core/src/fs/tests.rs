@@ -48,19 +48,20 @@ mod tests {
         fs::create_dir_all(nested.join("products")).expect("dirs");
         fs::write(
             root.join("index.ods.md"),
-            "---\nprofile: index\nods: 0.1\nodc: \">=0.0.1\"\n---\n\n# Root\n",
+            "---\nprofile: index\nods: 0.1\n---\n\n# Root\n",
         )
         .expect("root index");
         fs::write(
             nested.join("index.ods.md"),
-            "---\nprofile: index\nods: 0.1\nodc: \">=0.0.1\"\n---\n\n# Nested\n",
+            "---\nprofile: index\nods: 0.1\n---\n\n# Nested\n",
         )
         .expect("nested index");
         let file = nested.join("products/item.md");
         fs::write(&file, "# Item\n").expect("file");
 
         let found = find_workspace_root(&file).expect("root");
-        assert_eq!(found, nested);
+        let expected_nested = nested.canonicalize().unwrap_or_else(|_| nested.clone());
+        assert_eq!(found, expected_nested);
 
         let _ = fs::remove_dir_all(root);
     }
@@ -111,5 +112,54 @@ mod tests {
         assert!(found.is_some());
 
         let _ = fs::remove_dir_all(dir);
+    }
+
+    #[test]
+    fn find_workspace_root_relative_path_never_returns_empty() {
+        let nonce = SystemTime::now()
+            .duration_since(UNIX_EPOCH)
+            .expect("time")
+            .as_nanos();
+        let root = std::env::temp_dir().join(format!("ods-rel-root-{nonce}"));
+        let nested = root.join("specs").join("ods");
+        fs::create_dir_all(&nested).expect("dirs");
+        fs::write(
+            root.join("index.ods.md"),
+            "---\nprofile: index\nods: 0.1\n---\n\n# Root\n",
+        )
+        .expect("root index");
+        fs::write(
+            nested.join("index.ods.md"),
+            "---\nprofile: index\n---\n\n# Nested index without ods key\n",
+        )
+        .expect("nested index");
+        fs::write(nested.join("core.md"), "# Core\n").expect("core");
+
+        let prev = std::env::current_dir().expect("cwd");
+        std::env::set_current_dir(&root).expect("chdir");
+
+        // Document-id shaped relative probes must resolve to the real absolute root,
+        // never Some("") (the historical token-waste bug for `ods context specs/ods/core`).
+        for probe in [
+            "specs/ods/core",
+            "specs/ods/core.md",
+            "specs/ods",
+            "core",
+        ] {
+            let found = find_workspace_root(Path::new(probe)).expect("root");
+            assert!(
+                !found.as_os_str().is_empty(),
+                "probe {probe:?} returned empty path"
+            );
+            let found_canon = found.canonicalize().unwrap_or(found.clone());
+            let root_canon = root.canonicalize().expect("root canon");
+            assert_eq!(
+                found_canon, root_canon,
+                "probe {probe:?} => {found_canon:?}"
+            );
+        }
+
+        std::env::set_current_dir(prev).expect("restore cwd");
+        let _ = fs::remove_dir_all(root);
     }
 }

@@ -22,7 +22,7 @@ fn large_workspace_with_10k_documents_lints() {
         }
     }
 
-    let root_index = "---\nprofile: index\nods: 0.1\nodc: \">=0.0.1\"\n---\n\n# Large Workspace\n";
+    let root_index = "---\nprofile: index\nods: 0.1\n---\n\n# Large Workspace\n";
     fs::write(temp.join("index.ods.md"), root_index).expect("root index");
 
     // Generate indexes first (root + every group directory) so the hand-written
@@ -48,7 +48,7 @@ fn test_case_insensitive_ids() {
     let temp = temp_workspace();
     fs::write(
         temp.join("index.ods.md"),
-        "---\nprofile: index\nods: 0.1\nodc: \">=0.0.1\"\n---\n\n# Root\n\n- [Auth/](Auth/index.ods.md)\n- [login.md](login.md)\n",
+        "---\nprofile: index\nods: 0.1\n---\n\n# Root\n\n- [Auth/](Auth/index.ods.md)\n- [login.md](login.md)\n",
     )
     .expect("root index");
 
@@ -81,7 +81,7 @@ fn test_index_generation_with_description() {
     let temp = temp_workspace();
     fs::write(
         temp.join("index.ods.md"),
-        "---\nprofile: index\nods: 0.1\nodc: \">=0.0.1\"\n---\n\n# Root\n\n- [doc.md](doc.md)\n",
+        "---\nprofile: index\nods: 0.1\n---\n\n# Root\n\n- [doc.md](doc.md)\n",
     )
     .expect("root index");
 
@@ -104,7 +104,7 @@ fn test_case_insensitive_relative_reference() {
     let temp = temp_workspace();
     fs::write(
         temp.join("index.ods.md"),
-        "---\nprofile: index\nods: 0.1\nodc: \">=0.0.1\"\n---\n\n# Root\n\n- [README.md](README.md)\n- [child.md](child.md)\n",
+        "---\nprofile: index\nods: 0.1\n---\n\n# Root\n\n- [README.md](README.md)\n- [child.md](child.md)\n",
     )
     .expect("root index");
 

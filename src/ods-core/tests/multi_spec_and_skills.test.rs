@@ -267,3 +267,54 @@ fn resolve_engines_auto_activation_from_root_config() {
     assert!(e.okf);
     assert!(e.skills);
 }
+
+#[test]
+fn schema_registry_lists_all_three_dialects() {
+    use ods_core::SpecSchemaRegistry;
+    let reg = SpecSchemaRegistry::with_defaults();
+    let names = reg.dialect_names();
+    assert!(names.contains(&"ods"));
+    assert!(names.contains(&"okf"));
+    assert!(names.contains(&"skills"));
+    let ods = reg.get("ods").unwrap();
+    assert!(
+        ods.keys_with_placement(ods_core::KeyPlacement::NestedEngineMap)
+            .len()
+            >= 8
+    );
+    assert!(
+        ods.keys_with_placement(ods_core::KeyPlacement::TopLevel)
+            .len()
+            >= 4
+    );
+}
+
+#[test]
+fn legacy_odc_frontmatter_pin_is_preserved_as_unknown() {
+    // legacy_odc_ preserve-unknown: product does not parse odc: as a pin; must not hard-fail.
+    let text = "---\nprofile: note\nods: 0.1\nodc: \">=0.0.1\"\n---\n\n# Doc\n";
+    let doc = ods_core::parse_document_text(
+        std::path::Path::new("."),
+        std::path::PathBuf::from("doc.md"),
+        text,
+        true,
+    );
+    match doc.frontmatter {
+        ods_core::FrontmatterState::Parsed(fm) => {
+            assert_eq!(fm.ods.as_deref(), Some("0.1"));
+            assert_eq!(fm.profile.as_deref(), Some("note"));
+        }
+        other => panic!("expected parsed frontmatter, got {other:?}"),
+    }
+}
+
+#[test]
+fn validate_ods_frontmatter_accepts_canonical_enums() {
+    let fm = ods_core::Frontmatter {
+        status: Some("stable".into()),
+        share: Some("private".into()),
+        ..Default::default()
+    };
+    let issues = ods_core::validate_ods_frontmatter(&fm);
+    assert!(issues.is_empty(), "{issues:?}");
+}

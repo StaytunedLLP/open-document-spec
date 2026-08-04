@@ -179,7 +179,7 @@ mod tests {
         write(
             dir.as_path(),
             "index.ods.md",
-            "---\nprofile: index\nods: 0.1\nodc: \">=0.0.1\"\n---\n\n# R\n",
+            "---\nprofile: index\nods: 0.1\n---\n\n# R\n",
         );
         write(
             dir.as_path(),

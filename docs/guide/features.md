@@ -15,20 +15,24 @@ Open Document Specs (ODS) is a lightweight, graph-native Markdown convention lay
 
 ## 1. Core Frontmatter Features
 
-| Field | Type | Level | Purpose & Usage |
-| :--- | :--- | :---: | :--- |
-| **`profile`** | string | 1+ | **Document Classification**: Defines document kind (`guide`, `decision`, `feature`, `sop`, etc.). Defaults to `note`. |
-| **`status`** | string | 1+ | **Document Lifecycle**: Maturity state (`draft`, `stable`, `deprecated`, `archived`). Defaults to `draft`. |
-| **`share`** | string | 1+ | **Visibility Control**: `public` (default), `org`, or `private`. |
-| **`id`** | string | 2+ | **Explicit Identity**: Override the path-derived default ID (`docs/setup`). |
-| **`description`** | string | 1+ | **Summary**: One-line summary used to populate generated `index.md` lockfiles. |
-| **`depends`** | list of refs | 2+ | **Prerequisite Edges**: Graph prerequisite links to other documents (`- ../auth/sessions.md`). |
-| **`related`** | list of refs | 2+ | **Association Edges**: Non-binding reference links (`- ../products/glow.md`). |
-| **`resources`** | list | 2+ | **Native Asset Links**: Non-Markdown files attached to the document (`- path: docs/diagram.pdf`). |
-| **`code`** | list | 2+ | **Implementation Map**: Fixed-role source code mappings (`path`, `symbol`, `role: entrypoint\|implementation\|test\|...`). |
-| **`context`** | map | 2+ | **Bounded AI Reading Scope**: Directives for AI agents (`load: [...]`, `ignore: [...]`, `max-depth: 2`). |
-| **`owner`** | string | 1+ | **Maintainer**: Responsible individual or team (`support-team`). |
-| **`tags`** | list of strings | 1+ | **Search Facets**: Free-form lowercase facets (`- customer-care`). |
+Frontmatter is split into **universal top-level** keys (any tool can read them) and **engine keys under `ods:`** (ODS-only). See the key dictionary [ods/keys.md](../../specs/ods/keys.md).
+
+| Field | Type | Placement | Level | Purpose & Usage |
+| :--- | :--- | :--- | :---: | :--- |
+| **`description`** | string | **Top-level** | 1+ | **Summary**: One-line summary used for indexes and SSG meta. |
+| **`tags`** | list of strings | **Top-level only** | 1+ | **Search Facets**: Free-form lowercase facets (`- customer-care`). Never under `ods:`. |
+| **`owner`** | string \| list | **Top-level** | 1+ | **Maintainer**: Responsible individual or team (`support-team`). |
+| **`profile`** | string | **Under `ods:`** | 1+ | **Document Classification**: Document kind (`guide`, `decision`, `feature`, `sop`, etc.). Defaults to `note`. |
+| **`status`** | string | **Under `ods:`** | 1+ | **Document Lifecycle**: Maturity (`draft`, `stable`, `deprecated`, `archived`). Defaults to `draft`. |
+| **`share`** | string | **Under `ods:`** | 1+ | **Visibility Control**: `public` (default), `org`, or `private`. |
+| **`id`** | string | **Under `ods:`** | 2+ | **Explicit Identity**: Override the path-derived default ID. |
+| **`depends`** | list of refs | **Under `ods:`** | 2+ | **Prerequisite Edges**: Graph prerequisite links to other documents. |
+| **`related`** | list of refs | **Under `ods:`** | 2+ | **Association Edges**: Non-binding reference links. |
+| **`resources`** | list | **Under `ods:`** | 2+ | **Native Asset Links**: Non-Markdown files attached to the document. |
+| **`code`** | list | **Under `ods:`** | 2+ | **Implementation Map**: Fixed-role source code mappings (`path`, `symbol`, `role`). |
+| **`context`** | map | **Under `ods:`** | 2+ | **Bounded AI Reading Scope**: `load`, `ignore`, `max-depth`. |
+
+Misplaced nested `tags` under `ods:`: `ods lint` warns; repair with `ods fmt --migrate`.
 
 ---
 

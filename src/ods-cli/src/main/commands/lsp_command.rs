@@ -367,10 +367,12 @@ impl<R: BufRead, W: Write> LspSession<R, W> {
             "**related**: Soft contextual relation documents associated with this document."
         } else if line.contains("share:") {
             "**share**: Visibility filter (`public`, `org`, `private`)."
+        } else if line.trim_start().starts_with("tags:") || line.contains("tags:") {
+            "**tags**: Free-form taxonomy facets. MUST be top-level frontmatter (not under `ods:`) so SSGs and other tools can read them."
         } else if line.contains("custom-profiles:") {
             "**custom-profiles**: Workspace-wide array of custom profile schema definition paths."
         } else if line.contains("ods:") {
-            "**ods**: Open Document Spec nested engine key block or root version marker."
+            "**ods**: Open Document Spec nested engine key block or root version marker. Engine keys only — never put `tags` here."
         } else {
             return Value::Null;
         };
@@ -427,10 +429,11 @@ impl<R: BufRead, W: Write> LspSession<R, W> {
             { "label": "share: public", "kind": 12, "detail": "Public visibility" },
             { "label": "share: org", "kind": 12, "detail": "Organization visibility" },
             { "label": "share: private", "kind": 12, "detail": "Private visibility" },
+            { "label": "tags:", "kind": 14, "detail": "Top-level taxonomy tags (never under ods:)" },
+            { "label": "description:", "kind": 14, "detail": "Universal top-level description" },
             { "label": "okf_version: \"0.2\"", "kind": 12, "detail": "OKF root marker" },
             { "label": "type:", "kind": 14, "detail": "OKF required concept type" },
             { "label": "name:", "kind": 14, "detail": "Agent Skills required name" },
-            { "label": "description:", "kind": 14, "detail": "Agent Skills / universal description" },
             { "label": "allowed-tools:", "kind": 14, "detail": "Agent Skills tools" }
         ])
     }

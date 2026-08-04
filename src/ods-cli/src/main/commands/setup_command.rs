@@ -16,21 +16,22 @@ Platform & Service:
 Root markers: ods: (spec) · okf_version: (OKF)
 
 Commands:
-  init [path]              Make folder/repo ODS-compliant (add root index.md + ods: spec, generate indexes)
+  init [path]              Make folder/repo ODS-compliant (root index.ods.md + ods: marker)
   disable [path]           Opt-out dry-run: strip ODS metadata (alias: revert)
   disable --write [path]   Apply disable / revert to plain Markdown
   lint [path]              Validate workspace (green message when clean)
-  index [path]             Generate index.md files
+  index [path]             Generate index.ods.md navigation lockfiles
   index --check [path]     Exit 1 if indexes are stale
   profiles [path]          List loaded profiles
-  tags [path]              List project tags (observed) with use counts
+  tags [path]              List root-level project tags (observed) with use counts
   tags --all [path]        Include unused default ODS tags
-  find [path] --tag <t>    List document ids with tag (repeat --tag = OR)
-  tag rename <old> <new>   Rewrite a tag across frontmatter (dry-run; --write)
+  find [path] [--tag t] [q]  Find docs by tag and/or id/path/stem query
+  tag rename <old> <new>   Rewrite a root-level tag across frontmatter (dry-run; --write)
+                           Nested tags under ods: are invalid — run: ods fmt --migrate
   setup [path]             Set up machine service for workspace + check updates and workspace health
-  context [path] <id>      Resolve reading list for a document
+  context <id>             Bounded reading list (depends + context.load; see --help)
   graph [path]             Print depends/related edges
-  export [path]            Write graph.md for AI (optional --out PATH, --include-private)
+  export [path]            Write graph under .ods/graph.md (optional --out PATH, --include-private)
   share [path] --out DIR   Publish a share-filtered copy of a workspace/subtree
   new <path>               Scaffold new document with inferred profile and valid frontmatter
   rm <path-or-id>          Atomically delete document and scrub graph references workspace-wide
@@ -74,7 +75,7 @@ Flags:
   --write                  With adopt / tag rename / disable: apply changes
   --adopt                  With init: also draft frontmatter on plain files
   --keep-frontmatter       With disable: only drop ods: / root policy keys
-  --remove-indexes         With disable: delete non-root index.md files
+  --remove-indexes         With disable: delete non-root index.ods.md files
   --all                    With tags: include unused default ODS tags
   --tag <name>             With find: filter by tag (repeatable, OR)
   --check                  With index / update: check only
@@ -85,6 +86,10 @@ Flags:
   --force                  With update: reinstall even if current
   --version <tag>          With update: install exact release tag (e.g. v0.0.13)
   --mode auto|watch|poll   With serve: choose watcher strategy
+  --max-tokens N           With context: cap estimated tokens
+  --print                  With context: emit budgeted file contents
+  --include-code           With context: expand code: edges
+  --help / -h              Command usage (most subcommands)
 
 Environment:
   ODS_AUTO_UPDATE=0        Disable auto-update (default: on)

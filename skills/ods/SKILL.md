@@ -17,8 +17,8 @@ description: >-
 | **`ods lsp`** | Native JSON-RPC 2.0 Language Server built into `ods` for Zed, VS Code, Neovim, Cursor |
 | **`ods:` frontmatter** | ODS format root/nested engine keys (`ods: { profile: rfc, status: draft }`) |
 | **`custom-profiles:`** | Root `index.ods.md` array declaring custom profile schema definitions |
-| **`ods context`** | Sub-5ms bounded AI context reader following graph `depends` / `related` chains |
-| **`ods export graph`** | Single canonical graph exporter returning structured JSON (`--format json`), Markdown (`--format md`), or text (`--format text`) for `--spec ods` and `--spec okf` |
+| **`ods context`** | Sub-5ms bounded AI reading list: target doc + `depends` + `context.load` (not full-repo, not full graph export) |
+| **`ods export graph`** | Full-workspace graph snapshot — use rarely for audits, **not** for routine AI prompts |
 
 ODS is plain Markdown with **permissive** YAML frontmatter (`title:` and `name:` both supported), powered by a native Rust engine binary named **`ods`**. A **workspace** is any directory tree whose **root `index.ods.md` carries an `ods:` key** (e.g. `ods: 0.1`).
 
@@ -40,13 +40,13 @@ There is **no** `--ods` flag and **no** `ods okf` / `ods ods` namespaces (`ods o
 
 When assisting users inside an ODS workspace, follow these operational directives:
 
-- ❓ **WHAT**: Recognize ODS workspaces by checking for `ods:` in root `index.ods.md`. Keep files as `.md`. Permissively accept `title:` or `name:` at top-level frontmatter.
-- 💡 **WHY**: Use `ods context <doc-id-or-path>` or `ods export graph --format json` whenever responding to complex requests to retrieve a sub-5ms bounded context graph or full JSON graph without token bloat.
+- ❓ **WHAT**: Recognize ODS workspaces by checking for `ods:` in root `index.ods.md`. Keep files as `.md`. Title is H1 only (no FM `title:`); optional top-level `name:` is fine.
+- 💡 **WHY (token discipline)**: Prefer `ods context <id> [--max-tokens N] [--print]` for a **bounded** list (depends + `context.load` only — **not** `related`). Read only those paths. Never dump the repo or use full graph export for routine Q&A. On “document not found”, run `ods find <query>` — do not load all markdown.
 - 👥 **WHO**: Operate seamlessly on behalf of non-technical or developer users without requiring manual terminal commands.
-- 📍 **WHERE**: Inspect custom profiles (`ods.profile: custom-profile`) and `SKILL.md` packages, which are automatically auto-discovered anywhere in the workspace directory tree.
-- ⏰ **WHEN**: Always run `ods lint` (or `ods lint --fix` to auto-repair missing keys) after creating/editing documents to ensure zero broken links. Use `ods mv <src> <dst>` when moving files to auto-heal graph dependencies and asset links.
-- 🛡️ **SAFETY**: `ods adopt` non-destructively preserves all existing YAML frontmatter keys while appending `ods:`. Navigation indexes use `index.ods.md` sidecar files to leave SSG `index.md` files 100% untouched. Use `ods undo` to revert bulk file modifications if needed.
-- 🛠️ **HOW**: Execute `ods` commands directly via shell or scripts. Use `ods update` to ensure end-user CLI freshness.
+- 📍 **WHERE**: Open `references/keys.md` only when authoring frontmatter; do not preload all references every turn.
+- ⏰ **WHEN**: Run `ods lint` after structural edits (`--fix` only regenerates indexes — it does not invent missing docs). Use `ods mv` for renames.
+- 🛡️ **SAFETY**: Prefer H1 for titles (FM `title:` is a lint **warning**, value kept). Navigation uses `index.ods.md` sidecars.
+- 🛠️ **HOW**: `ods context <id>` from workspace root; optional `--include-code`, `--include-private`, `--root <dir>`.
 
 ---
 
@@ -63,19 +63,25 @@ The primary method to run ODS is via the single native `ods` CLI binary:
 
 ## 3. Core Frontmatter & Key Placement Rules
 
-1. **Custom Domain Keys (`title`, `name`, `author`, `reviewer`, `target_release`, `service`, `team`, `tags`)**:
-   - Placed at the **top-level** of frontmatter (outside `ods:`). Permissively supports both `title:` and `name:`.
-   - Keeps custom metadata clean, human-readable, and compatible with Static Site Generators (Docusaurus, Astro, Hugo, Next.js).
-2. **ODS Engine Keys (`profile`, `status`, `id`, `share`, `depends`, `related`, `code`, `resources`)**:
+1. **Custom / universal keys (`description`, `name`, `author`, `reviewer`, `target_release`, `service`, `team`, `tags`)**:
+   - Placed at the **top-level** of frontmatter (outside `ods:`).
+   - **Document title is the first `# H1` only** — do **not** put `title:` in ODS frontmatter (lint error). Optional `name:` is allowed for tooling labels.
+   - **`tags` MUST be top-level only** — never under `ods:` — so Obsidian, Hugo, Docusaurus, Astro, and any YAML consumer can read them without knowing ODS.
+   - Misplaced nested `tags` under `ods:` produce a lint warning; repair with `ods fmt --migrate` (hoists tags to root; never drops values).
+2. **ODS Engine Keys (`profile`, `status`, `id`, `share`, `depends`, `related`, `code`, `resources`, `context`)**:
    - Nested inside the **`ods:` map** (`ods.profile: rfc`, `ods.status: draft`).
+   - Full dictionary: `specs/ods/keys.md` (also skill `references/keys.md`).
 
 ```yaml
 ---
-title: "Distributed Redis Caching Strategy"
+description: "Distributed Redis caching strategy"
 name: "cache_strategy"
 author: "Alice Smith"
 reviewer: "Bob Jones"
 target_release: "v2.4"
+tags:
+  - caching
+  - redis
 ods:
   profile: rfc
   status: draft
@@ -84,6 +90,8 @@ ods:
   related:
     - docs/specs/api_endpoint.md
 ---
+
+# Distributed Redis Caching Strategy
 ```
 
 ---
@@ -158,11 +166,12 @@ custom-profiles:
 | **`ods fmt [path]`** | 🛠️ Tier 2 (Practitioner) | Reformat YAML frontmatter and body spacing (`--refs md-paths` converts IDs to relative `.md` paths). |
 | **`ods stats [path]`** | 🛠️ Tier 2 (Practitioner) | Workspace document telemetry, graph density, profile distribution, and health score %. |
 | **`ods tree [path]`** | 🛠️ Tier 2 (Practitioner) | Visual ASCII/Unicode hierarchy tree of index navigation and dependency graphs. |
-| **`ods context <id>`** | 📋 Tier 3 (Power User) | Sub-5ms bounded AI context reading list following `depends` / `related` chains (`--max-tokens N` caps budget). |
-| **`ods profile list/init`** | 📋 Tier 3 (Power User) | List registered profiles or scaffold new custom profile schemas in `.ods/profiles/`. |
+| **`ods context <id>`** | 📋 Tier 3 (Power User) | Bounded list (depends + context.load). `--max-tokens N`, `--print`, `--include-code`, `--root`. |
+| **`ods profiles` / `ods profile list`** | 📋 Tier 3 (Power User) | List registered profile catalog (text or `--format json`). |
 | **`ods tags [path]`** | 📋 Tier 3 (Power User) | Workspace-wide tag catalog and document count breakdown. |
 | **`ods tag rename`** | 📋 Tier 3 (Power User) | Perform workspace-wide tag renaming (dry-run; `--write`). |
-| **`ods schema [path]`** | 📋 Tier 3 (Power User) | Export official JSON Schema (`ods.schema.json`) for IDE frontmatter validation (`--write`, `--out`). |
+| **`ods schema`** | 📋 Tier 3 (Power User) | Emit registry-driven JSON Schema (`--write`, `--out`; optional `--okf` / `--skills` for dialect key lists). |
+| **`ods profile init <name>`** | 📋 Tier 3 (Power User) | Scaffold `.ods/profiles/<name>.md` (name is after `init`, e.g. `ods profile init rfc`). |
 | **`ods diff [target]`** | 📋 Tier 3 (Power User) | Compare document graph dependencies and frontmatter changes against git commits or branches. |
 | **`ods share [path]`** | 📋 Tier 3 (Power User) | Publish share-filtered workspace/subtree directory (`--out DIR`). |
 | **`ods pack`** | 📋 Tier 3 (Power User) | Manage reusable ODS Packs (`add`, `sync`, `list`, `preview`, `remove`, `init`). |

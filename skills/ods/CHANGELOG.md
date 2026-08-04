@@ -14,7 +14,7 @@
   background service running with zero manual release/download work. `check`
   probes workspace compliance (root `index.md` with `ods:`) and git tracking.
 - `scripts/install-from-release.sh`: vendored, self-contained release installer.
-- `references/spec.md`, `references/non-goals.md`: verbatim normative sources.
+- `references/intro.md`, `keys.md`, `core.md`, `scope.md`: synced from `specs/ods/` (legacy `spec.md` / `non-goals.md` are pointers).
 - `evals/evals.json`: 8 starter cases (activation ±, authoring correctness,
   guardrail/non-goal enforcement, command choice, service model, output format,
   git-rename workflow).
