@@ -60,7 +60,8 @@ mod tests {
         fs::write(&file, "# Item\n").expect("file");
 
         let found = find_workspace_root(&file).expect("root");
-        assert_eq!(found, nested);
+        let expected_nested = nested.canonicalize().unwrap_or_else(|_| nested.clone());
+        assert_eq!(found, expected_nested);
 
         let _ = fs::remove_dir_all(root);
     }
