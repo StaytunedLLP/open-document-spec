@@ -1,28 +1,38 @@
 fn extract_tar_gz(archive: &Path, dest: &Path) -> Result<(), String> {
-    let file = fs::File::open(archive).map_err(|e| e.to_string())?;
+    let file =
+        fs::File::open(archive).map_err(|e| ods_core::error::detail("open archive", e))?;
     let dec = flate2::read::GzDecoder::new(file);
     let mut tar = tar::Archive::new(dec);
-    tar.unpack(dest).map_err(|e| format!("extract tar.gz: {e}"))
+    tar.unpack(dest)
+        .map_err(|e| ods_core::error::detail("extract tar.gz", e))
 }
 
 fn extract_zip(archive: &Path, dest: &Path) -> Result<(), String> {
-    let file = fs::File::open(archive).map_err(|e| e.to_string())?;
-    let mut zip = zip::ZipArchive::new(file).map_err(|e| format!("open zip: {e}"))?;
+    let file =
+        fs::File::open(archive).map_err(|e| ods_core::error::detail("open archive", e))?;
+    let mut zip = zip::ZipArchive::new(file)
+        .map_err(|e| ods_core::error::detail("open zip", e))?;
     for i in 0..zip.len() {
-        let mut file = zip.by_index(i).map_err(|e| e.to_string())?;
+        let mut file = zip
+            .by_index(i)
+            .map_err(|e| ods_core::error::detail("read zip entry", e))?;
         let name = file
             .enclosed_name()
             .ok_or_else(|| "unsafe zip path".to_string())?
             .to_path_buf();
         let out = dest.join(name);
         if file.is_dir() {
-            fs::create_dir_all(&out).map_err(|e| e.to_string())?;
+            fs::create_dir_all(&out)
+                .map_err(|e| ods_core::error::detail("create zip dir", e))?;
         } else {
             if let Some(parent) = out.parent() {
-                fs::create_dir_all(parent).map_err(|e| e.to_string())?;
+                fs::create_dir_all(parent)
+                    .map_err(|e| ods_core::error::detail("create zip parent", e))?;
             }
-            let mut target = fs::File::create(&out).map_err(|e| e.to_string())?;
-            io::copy(&mut file, &mut target).map_err(|e| e.to_string())?;
+            let mut target = fs::File::create(&out)
+                .map_err(|e| ods_core::error::detail("create zip file", e))?;
+            io::copy(&mut file, &mut target)
+                .map_err(|e| ods_core::error::detail("write zip file", e))?;
         }
     }
     Ok(())
@@ -47,7 +57,7 @@ fn find_cli_binary(root: &Path, windows: bool) -> Result<PathBuf, String> {
     });
     prefer
         .or(found)
-        .ok_or_else(|| format!("archive missing ods/ods under {}", root.display()))
+        .ok_or_else(|| ods_core::error::update_archive_missing_binary(root.display()))
 }
 
 /// Legacy name used by install_release.

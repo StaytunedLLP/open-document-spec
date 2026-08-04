@@ -192,3 +192,50 @@ fn test_friction_free_ods_mv_and_rm_dry_run() {
     assert!(stdout_rm.contains("\"dry_run\":true"));
     assert!(root.join("doc_a.md").exists());
 }
+
+/// Directive CLI errors: short summary + Next line from central catalog.
+#[test]
+fn directive_error_messages_unknown_command_and_not_workspace() {
+    let dir = tempdir().unwrap();
+
+    // Unknown command → usage + Next (+ optional did-you-mean)
+    let out = Command::new(ods_bin())
+        .current_dir(dir.path())
+        .args(["lintt"])
+        .output()
+        .unwrap();
+    assert!(!out.status.success());
+    let err = String::from_utf8_lossy(&out.stderr);
+    assert!(err.contains("unknown command"), "{err}");
+    assert!(err.contains("Next:"), "{err}");
+    assert!(
+        err.contains("did you mean `lint`?") || err.contains("ods help"),
+        "{err}"
+    );
+
+    // Lint outside workspace → error + Next (ods init)
+    let out2 = Command::new(ods_bin())
+        .current_dir(dir.path())
+        .args(["lint"])
+        .output()
+        .unwrap();
+    assert!(!out2.status.success());
+    let err2 = String::from_utf8_lossy(&out2.stderr);
+    assert!(
+        err2.contains("not an ODS workspace") || err2.contains("error:"),
+        "{err2}"
+    );
+    assert!(err2.contains("Next:"), "{err2}");
+    assert!(err2.contains("ods init"), "{err2}");
+
+    // Forbidden --ods flag
+    let out3 = Command::new(ods_bin())
+        .current_dir(dir.path())
+        .args(["lint", "--ods"])
+        .output()
+        .unwrap();
+    assert!(!out3.status.success());
+    let err3 = String::from_utf8_lossy(&out3.stderr);
+    assert!(err3.contains("--ods"), "{err3}");
+    assert!(err3.contains("Next:"), "{err3}");
+}

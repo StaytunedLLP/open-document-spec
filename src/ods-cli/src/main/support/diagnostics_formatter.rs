@@ -16,12 +16,12 @@ fn run_update_command(args: &[String]) -> Result<ExitCode, CliError> {
             "--version" => {
                 let v = args
                     .get(i + 1)
-                    .ok_or_else(|| usage("missing value for update --version <tag>"))?;
+                    .ok_or_else(|| usage_msg(ods_core::missing_flag_value("--version", "`ods update --version v0.1.0`")))?;
                 version = Some(v.clone());
                 i += 2;
             }
             other if other.starts_with('-') => {
-                return Err(usage(format!("unknown update flag: {other}")));
+                return Err(usage_msg(ods_core::unknown_flag(other, "ods update --help")));
             }
             other => {
                 // bare tag: ods update v0.1.5
@@ -36,7 +36,7 @@ fn run_update_command(args: &[String]) -> Result<ExitCode, CliError> {
         force,
         version,
     })
-    .map_err(failure)?;
+    .map_err(|e| fail_msg(ods_core::update_failed(e)))?;
 
     match outcome {
         UpdateOutcome::UpToDate { current, remote } => {

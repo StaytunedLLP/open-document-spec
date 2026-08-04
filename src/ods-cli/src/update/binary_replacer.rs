@@ -1,17 +1,20 @@
 fn replace_binary(src: &Path, dest: &Path) -> Result<(), String> {
-    let bytes = fs::read(src).map_err(|e| format!("read {}: {e}", src.display()))?;
+    let bytes =
+        fs::read(src).map_err(|e| ods_core::error::detail(&format!("read {}", src.display()), e))?;
     let parent = dest
         .parent()
         .ok_or_else(|| "invalid install path".to_string())?;
-    fs::create_dir_all(parent).map_err(|e| e.to_string())?;
+    fs::create_dir_all(parent)
+        .map_err(|e| ods_core::error::detail("create install parent", e))?;
 
     #[cfg(unix)]
     {
         use std::os::unix::fs::PermissionsExt;
         let tmp = dest.with_extension("ods-new");
-        fs::write(&tmp, &bytes).map_err(|e| format!("write {}: {e}", tmp.display()))?;
+        fs::write(&tmp, &bytes)
+            .map_err(|e| ods_core::error::detail(&format!("write {}", tmp.display()), e))?;
         fs::set_permissions(&tmp, fs::Permissions::from_mode(0o755))
-            .map_err(|e| format!("chmod {}: {e}", tmp.display()))?;
+            .map_err(|e| ods_core::error::detail(&format!("chmod {}", tmp.display()), e))?;
         fs::rename(&tmp, dest).map_err(|e| {
             format!(
                 "install {}: {e} (is the directory writable?)",
@@ -24,7 +27,8 @@ fn replace_binary(src: &Path, dest: &Path) -> Result<(), String> {
     {
         let tmp = dest.with_extension("ods-new");
         let old = dest.with_extension("ods-old");
-        fs::write(&tmp, &bytes).map_err(|e| format!("write {}: {e}", tmp.display()))?;
+        fs::write(&tmp, &bytes)
+            .map_err(|e| ods_core::error::detail(&format!("write {}", tmp.display()), e))?;
         let _ = fs::remove_file(&old);
         if dest.exists() {
             fs::rename(dest, &old).map_err(|e| {
@@ -34,20 +38,23 @@ fn replace_binary(src: &Path, dest: &Path) -> Result<(), String> {
                 )
             })?;
         }
-        fs::rename(&tmp, dest).map_err(|e| format!("install {}: {e}", dest.display()))?;
+        fs::rename(&tmp, dest)
+            .map_err(|e| ods_core::error::detail(&format!("install {}", dest.display()), e))?;
         let _ = fs::remove_file(&old);
     }
 
     #[cfg(not(any(unix, windows)))]
     {
-        fs::write(dest, &bytes).map_err(|e| e.to_string())?;
+        fs::write(dest, &bytes)
+            .map_err(|e| ods_core::error::detail("write binary", e))?;
     }
 
     Ok(())
 }
 
 fn install_prefix() -> Result<PathBuf, String> {
-    let exe = env::current_exe().map_err(|e| format!("current_exe: {e}"))?;
+    let exe =
+        env::current_exe().map_err(|e| ods_core::error::detail("current_exe", e))?;
     let exe = fs::canonicalize(&exe).unwrap_or(exe);
     exe.parent()
         .map(|p| p.to_path_buf())

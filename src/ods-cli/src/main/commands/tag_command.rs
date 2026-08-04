@@ -2,7 +2,7 @@ fn run_tag_command(args: &[String]) -> Result<ExitCode, CliError> {
     let sub = args
         .get(2)
         .map(String::as_str)
-        .ok_or_else(|| usage("usage: ods tag rename <old> <new> [--write] [path]"))?;
+        .ok_or_else(|| usage_msg(ods_core::missing_required_arg("old/new tags", "ods tag rename <old> <new> [--write]")))?;
     match sub {
         "rename" => {
             let write = args.iter().any(|a| a == "--write");
@@ -16,13 +16,15 @@ fn run_tag_command(args: &[String]) -> Result<ExitCode, CliError> {
                     "--format" => {
                         let value = args
                             .get(i + 1)
-                            .ok_or_else(|| usage("missing value for --format"))?;
+                            .ok_or_else(|| usage_msg(ods_core::missing_flag_value("--format", "`--format text|json|sarif`")))?;
                         format = match value.as_str() {
                             "text" => OutputFormat::Text,
                             "json" => OutputFormat::Json,
                             other => {
-                                return Err(usage(format!(
-                                    "invalid --format {other} (use text or json)"
+                                return Err(usage_msg(ods_core::invalid_choice(
+                                    "--format",
+                                    other,
+                                    "text|json",
                                 )));
                             }
                         };
@@ -30,7 +32,7 @@ fn run_tag_command(args: &[String]) -> Result<ExitCode, CliError> {
                     }
                     "--level" => i += 2,
                     flag if flag.starts_with('-') => {
-                        return Err(usage(format!("unknown flag: {flag}")));
+                        return Err(usage_msg(ods_core::unknown_flag(flag, "ods help")));
                     }
                     other => {
                         bare.push(other.to_string());
@@ -52,15 +54,16 @@ fn run_tag_command(args: &[String]) -> Result<ExitCode, CliError> {
                     to.clone(),
                 ),
                 _ => {
-                    return Err(usage(
-                        "usage: ods tag rename [path] <old> <new> [--write]",
-                    ));
+                    return Err(usage_msg(ods_core::missing_required_arg(
+                        "old/new tags",
+                        "ods tag rename [path] <old> <new> [--write]",
+                    )));
                 }
             };
             let workspace =
-                load_workspace(&root).map_err(|err| failure(err.to_string()))?;
+                load_workspace(&root).map_err(|err| fail_load(&root, err))?;
             let report = rename_tag_in_workspace(&workspace, &from, &to, write)
-                .map_err(|err| failure(err.to_string()))?;
+                .map_err(|err| fail_io("tag rename", err))?;
             match format {
                 OutputFormat::Text => {
                     let mode = if report.dry_run { "dry-run" } else { "wrote" };
@@ -100,8 +103,10 @@ fn run_tag_command(args: &[String]) -> Result<ExitCode, CliError> {
             }
             Ok(ExitCode::from(0))
         }
-        other => Err(usage(format!(
-            "unknown tag subcommand: {other} (try: rename)"
+        other => Err(usage_msg(ods_core::unknown_subcommand(
+            "tag",
+            other,
+            "ods tag rename <old> <new> [--write]",
         ))),
     }
 }

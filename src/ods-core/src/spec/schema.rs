@@ -590,13 +590,7 @@ pub fn validate_ods_frontmatter(frontmatter: &Frontmatter) -> Vec<SchemaIssue> {
         let hint = status_alias_hint(status);
         issues.push(SchemaIssue {
             severity: Severity::Error,
-            message: if let Some(h) = hint {
-                format!("invalid status: {status} (did you mean `{h}`? allowed: draft|stable|deprecated|archived)")
-            } else {
-                format!(
-                    "invalid status: {status} (allowed: draft|stable|deprecated|archived)"
-                )
-            },
+            message: crate::error::lint_invalid_status(status, hint),
         });
     }
 
@@ -607,7 +601,7 @@ pub fn validate_ods_frontmatter(frontmatter: &Frontmatter) -> Vec<SchemaIssue> {
     {
         issues.push(SchemaIssue {
             severity: Severity::Error,
-            message: format!("invalid share value: {share} (allowed: public|org|private)"),
+            message: crate::error::lint_invalid_share(share),
         });
     }
 
@@ -615,7 +609,7 @@ pub fn validate_ods_frontmatter(frontmatter: &Frontmatter) -> Vec<SchemaIssue> {
     if frontmatter.title.is_some() {
         issues.push(SchemaIssue {
             severity: Severity::Warning,
-            message: "frontmatter `title:` is discouraged for ODS docs — use the first `# H1` as the document title (value is preserved)".into(),
+            message: crate::error::lint_title_discouraged(),
         });
     }
 

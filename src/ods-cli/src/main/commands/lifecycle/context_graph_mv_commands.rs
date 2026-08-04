@@ -23,7 +23,7 @@ fn run_context_command(args: &[String]) -> Result<ExitCode, CliError> {
     let positionals = positional_args(args, 2);
     let root_flag = parse_flag_val(args, "--root").map(PathBuf::from);
     let (root_dir, query) = match (root_flag, positionals.as_slice()) {
-        (_, []) => return Err(usage("missing document id (usage: ods context <id-or-path>)")),
+        (_, []) => return Err(usage_msg(ods_core::missing_context_id())),
         (Some(rf), [id]) => (rf, id.clone()),
         (Some(rf), [_, id]) => (rf, id.clone()),
         (Some(rf), rest) => (rf, rest.last().cloned().unwrap()),
@@ -31,9 +31,7 @@ fn run_context_command(args: &[String]) -> Result<ExitCode, CliError> {
             (PathBuf::from(maybe_root), id.clone())
         }
         (None, [only]) if PathBuf::from(only).is_dir() => {
-            return Err(usage(
-                "missing document id (usage: ods context <id-or-path> or ods context <workspace-dir> <id>)",
-            ));
+            return Err(usage_msg(ods_core::missing_context_id()));
         }
         (None, [only]) => (
             env::current_dir().unwrap_or_else(|_| PathBuf::from(".")),
@@ -53,9 +51,7 @@ fn run_context_command(args: &[String]) -> Result<ExitCode, CliError> {
         return run_okf_context_command(args);
     }
     if !engines.ods {
-        return Err(failure(
-            "context requires an ODS workspace (or pass `--okf` for OKF context)",
-        ));
+        return Err(fail_msg(ods_core::context_requires_ods_or_okf()));
     }
 
     let include_private = args.iter().any(|arg| arg == "--include-private");
@@ -64,12 +60,12 @@ fn run_context_command(args: &[String]) -> Result<ExitCode, CliError> {
     let max_tokens = parse_flag_val(args, "--max-tokens")
         .map(|v| {
             v.parse::<usize>()
-                .map_err(|_| usage("--max-tokens requires a positive integer"))
+                .map_err(|_| usage_msg(ods_core::missing_flag_value("--max-tokens", "`ods context id --max-tokens 4000`")))
         })
         .transpose()?;
 
     let workspace = load_workspace_with_options(&root, load_options_graph())
-        .map_err(|err| failure(err.to_string()))?;
+        .map_err(|err| fail_load(&root, err))?;
     let result = ods_core::resolve_context_with_options(
         &workspace,
         &query,
@@ -80,11 +76,7 @@ fn run_context_command(args: &[String]) -> Result<ExitCode, CliError> {
         },
     );
     if result.paths.is_empty() {
-        return Err(failure(format!(
-            "document not found for context query `{query}` in workspace {} \
-             (try a path-shaped id like `specs/ods/core`, a relative `.md` path, or `ods find <query>`)",
-            root.display()
-        )));
+        return Err(fail_msg(ods_core::document_not_found_context(&query)));
     }
 
     if !result.skipped_private.is_empty() && matches!(format, OutputFormat::Text) {
@@ -141,7 +133,7 @@ fn run_graph_command(args: &[String]) -> Result<ExitCode, CliError> {
     let (root, _level, format) = parse_common_flags(args, 2)?;
     require_ods_workspace(&root)?;
     let workspace = load_workspace_with_options(&root, load_options_graph())
-        .map_err(|err| failure(err.to_string()))?;
+        .map_err(|err| fail_load(&root, err))?;
     let lines = graph_lines(&workspace);
     match format {
         OutputFormat::Text => {
@@ -167,14 +159,14 @@ fn run_mv_command(args: &[String]) -> Result<ExitCode, CliError> {
         if positionals.len() >= 2 {
             (rf, positionals[0].clone(), positionals[1].clone())
         } else {
-            return Err(usage("usage: ods mv --root <dir> <from> <to>"));
+            return Err(usage_msg(ods_core::missing_required_arg("from/to", "ods mv --root <dir> <from> <to>")));
         }
     } else if positionals.len() >= 3 && PathBuf::from(&positionals[0]).is_dir() {
         (PathBuf::from(&positionals[0]), positionals[1].clone(), positionals[2].clone())
     } else if positionals.len() == 2 {
         (env::current_dir().unwrap_or_else(|_| PathBuf::from(".")), positionals[0].clone(), positionals[1].clone())
     } else {
-        return Err(usage("usage: ods mv [root] <from> <to> [--dry-run]"));
+        return Err(usage_msg(ods_core::missing_required_arg("from/to", "ods mv [root] <from> <to> [--dry-run]")));
     };
 
     let root = resolve_root_path(root_dir);
@@ -198,7 +190,7 @@ fn run_mv_command(args: &[String]) -> Result<ExitCode, CliError> {
     }
 
     let report = move_document_and_rewrite_refs_report(&root, &from, &to)
-        .map_err(|err| failure(err.to_string()))?;
+        .map_err(|err| fail_io("mv/graph", err))?;
     print_path_change_report(&root, &from, &to, &report, format, "moved");
     Ok(ExitCode::from(if report.errors.is_empty() { 0 } else { 1 }))
 }

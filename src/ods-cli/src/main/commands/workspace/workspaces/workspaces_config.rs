@@ -38,7 +38,7 @@ fn parse_iso_timestamp(text: &str) -> Result<u64, ()> {
 pub(crate) fn get_config_path() -> Result<PathBuf, CliError> {
     let home = env::var("HOME")
         .or_else(|_| env::var("USERPROFILE"))
-        .map_err(|_| failure("could not determine home directory"))?;
+        .map_err(|_| fail_msg(ods_core::home_dir_unresolved()))?;
 
     Ok(PathBuf::from(&home).join(".ods/odsconfig.toml"))
 }
@@ -126,7 +126,7 @@ pub(crate) fn save_config_with_packs(paths: &[String], packs: &[PackEntry]) -> R
     let reg_path = PathBuf::from(&home).join(".ods/odsconfig.toml");
     if let Some(parent) = reg_path.parent() {
         fs::create_dir_all(parent)
-            .map_err(|e| failure(format!("failed to create registry directory: {e}")))?;
+            .map_err(|e| fail_msg(ods_core::io_failed("create registry directory", e)))?;
     }
     let mut content = String::from(
         "# Open Document Spec global machine configuration (~/.ods/odsconfig.toml)\n\
@@ -150,7 +150,7 @@ pub(crate) fn save_config_with_packs(paths: &[String], packs: &[PackEntry]) -> R
     }
 
     fs::write(&reg_path, content)
-        .map_err(|e| failure(format!("failed to save config file: {e}")))
+        .map_err(|e| fail_msg(ods_core::io_failed("save config", e)))
 }
 
 pub(crate) fn load_registered_packs() -> Vec<PackEntry> {

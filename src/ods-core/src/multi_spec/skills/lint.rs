@@ -19,32 +19,23 @@ pub fn lint_skill_package_with_config(
         match fm.name.as_deref().map(str::trim).filter(|s| !s.is_empty()) {
             None => {
                 if !config.ignore_keys.contains("name") {
-                    out.push(err(
-                        path.clone(),
-                        "missing required frontmatter field: name",
-                    ));
+                    out.push(diag_msg(path.clone(), crate::error::skills_missing_name()));
                 }
             }
             Some(name) => {
                 if name.len() > 64 {
-                    out.push(err(
+                    out.push(diag_msg(
                         path.clone(),
-                        format!("name must be at most 64 characters (got {})", name.len()),
+                        crate::error::skills_name_too_long(name.len()),
                     ));
                 }
                 if !is_valid_skill_name(name) {
-                    out.push(err(
-                        path.clone(),
-                        "name must be lowercase alphanumeric and hyphens only, must not start/end with hyphen, and must not contain consecutive hyphens",
-                    ));
+                    out.push(diag_msg(path.clone(), crate::error::skills_name_invalid()));
                 }
                 if !pkg.dir_name.is_empty() && name != pkg.dir_name {
-                    out.push(err(
+                    out.push(diag_msg(
                         path.clone(),
-                        format!(
-                            "name `{name}` must match parent directory name `{}`",
-                            pkg.dir_name
-                        ),
+                        crate::error::skills_name_dir_mismatch(name, &pkg.dir_name),
                     ));
                 }
             }
@@ -58,20 +49,17 @@ pub fn lint_skill_package_with_config(
         {
             None => {
                 if !config.ignore_keys.contains("description") {
-                    out.push(err(
+                    out.push(diag_msg(
                         path.clone(),
-                        "missing required frontmatter field: description",
+                        crate::error::skills_missing_description(),
                     ));
                 }
             }
             Some(desc) => {
                 if desc.len() > 1024 {
-                    out.push(err(
+                    out.push(diag_msg(
                         path.clone(),
-                        format!(
-                            "description must be at most 1024 characters (got {})",
-                            desc.len()
-                        ),
+                        crate::error::skills_description_too_long(desc.len()),
                     ));
                 }
             }
@@ -80,12 +68,9 @@ pub fn lint_skill_package_with_config(
 
     if let Some(c) = fm.compatibility.as_deref() {
         if c.len() > 500 {
-            out.push(err(
+            out.push(diag_msg(
                 path.clone(),
-                format!(
-                    "compatibility must be at most 500 characters (got {})",
-                    c.len()
-                ),
+                crate::error::skills_compatibility_too_long(c.len()),
             ));
         }
     }
@@ -96,9 +81,7 @@ pub fn lint_skill_package_with_config(
         out.push(Diagnostic {
             path: path.clone(),
             severity: Severity::Warning,
-            message: format!(
-                "[skills] SKILL.md body has {body_lines} lines; recommend under 500 (progressive disclosure)"
-            ),
+            message: crate::error::skills_body_too_long(body_lines),
         });
     }
 
@@ -116,11 +99,11 @@ fn is_valid_skill_name(name: &str) -> bool {
         .all(|c| c.is_ascii_lowercase() || c.is_ascii_digit() || c == '-')
 }
 
-fn err(path: PathBuf, message: impl Into<String>) -> Diagnostic {
+fn diag_msg(path: PathBuf, message: String) -> Diagnostic {
     Diagnostic {
         path,
         severity: Severity::Error,
-        message: format!("[skills] {}", message.into()),
+        message,
     }
 }
 

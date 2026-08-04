@@ -35,44 +35,19 @@ pub enum ScopeResolveError {
 }
 
 impl ScopeResolveError {
+    /// User-facing message from the central catalog (`crate::error::messages`).
     pub fn message(&self) -> String {
         match self {
             ScopeResolveError::NotOdsWorkspace {
                 hint_okf,
                 hint_skills,
-            } => {
-                let mut msg = String::from(
-                    "not an ODS workspace (no root index.ods.md with 'ods:' marker).\n\n\
-                     To fix:\n\
-                     • Run `ods init` here to make this folder ODS-compliant",
-                );
-                if *hint_okf {
-                    msg.push_str(
-                        "\n• Or pass `--okf` for a Google OKF v0.2 bundle (`ods init --okf`, then `ods lint --okf`)",
-                    );
-                }
-                if *hint_skills {
-                    msg.push_str(
-                        "\n• Or pass `--skills` for Agent Skills packages (`ods init --skills`, then `ods lint --skills`)",
-                    );
-                }
-                msg
+            } => crate::error::not_ods_workspace(*hint_okf, *hint_skills).render_error(),
+            ScopeResolveError::NotOkfBundle => crate::error::not_okf_bundle().render_error(),
+            ScopeResolveError::NoSkillsPackage => crate::error::no_skills_package().render_error(),
+            // Flag parse error → usage-style text (CLI maps this to exit 2).
+            ScopeResolveError::ForbiddenOdsFlag => {
+                crate::error::forbidden_ods_flag().render_usage()
             }
-            ScopeResolveError::NotOkfBundle => {
-                "not an OKF bundle: no root index.md with okf_version.\n\
-                 Run `ods init --okf` to create an OKF v0.2 bundle."
-                    .into()
-            }
-            ScopeResolveError::NoSkillsPackage => {
-                "no Agent Skills package found (expected SKILL.md at root or under skills/).\n\
-                 Run `ods init --skills` to scaffold a skill package."
-                    .into()
-            }
-            ScopeResolveError::ForbiddenOdsFlag => "unknown flag: --ods\n\n\
-                 ODS is the default native engine of this CLI — no flag is needed.\n\
-                 Use bare `ods <cmd>` for ODS.\n\
-                 Use `--okf` or `--skills` only for other specs."
-                .into(),
         }
     }
 }

@@ -10,6 +10,7 @@ GitHub Releases use GitHub’s auto-generated notes. Edit this file by hand when
 ## [Unreleased]
 
 ### Changed
+- **Directive CLI errors (catalog):** user-facing failures live in `src/ods-core/src/error/messages.rs`. First-call shape is `error:`/`usage:` + `Next:` (optional `Hint:`). Full CLI long-tail (argv/load/mutate/service/pack/bench/update/…), ODS **+ OKF + Skills** lint diagnostics, and service/update failures use the catalog; bare `failure(e.to_string())` / free-form usage dumps removed from command paths. Guide `07-troubleshooting`, skill, and agent rules updated.
 - **Agent instructions:** root `AGENTS.md` (hand-maintained; `ods agents sync` will not clobber when `.agents/rules/` exists), rules `30-schema-keys` / `40-quality-gates`, skill `quality-gate`, pre-handoff hooks, and `check-schema-keys` smoke for reliable future iterations.
 - **Schema-driven keys:** `SpecSchemaRegistry` now registers full **ODS + OKF + Skills** key catalogs (aligned with `specs/*/keys.md`). Lint enum checks (`status`/`share`) and `ods schema` JSON emission are driven from the registry so adding/updating dialect keys is a schema change + tests.
 - **CI coverage floor** raised **88 → 90** lines (T3 excludes unchanged). Local: `ODS_COVERAGE_FAIL_UNDER_LINES=90 ./src/scripts/coverage.sh`.

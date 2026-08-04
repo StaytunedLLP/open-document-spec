@@ -24,7 +24,7 @@ fn dispatch_platform_command(args: &[String]) -> Result<ExitCode, CliError> {
         "diff" => run_diff_command(args),
         "clean" => run_clean_command(args),
         "lsp" => run_lsp_command(args),
-        other => Err(usage(format!("unknown platform command: {other}"))),
+        other => Err(usage_msg(ods_core::unknown_platform_command(other))),
     }
 }
 
@@ -84,6 +84,9 @@ fn dispatch_ods_command(args: &[String]) -> Result<ExitCode, CliError> {
         "undo" => run_undo_command(args),
         "update" => run_update_command(args),
         "upgrade" => run_upgrade_command(args),
-        other => Err(usage(format!("unknown ods command: {other}"))),
+        other => {
+            let suggestion = ods_core::suggest_command(other);
+            Err(usage_msg(ods_core::unknown_ods_command(other, suggestion)))
+        }
     }
 }

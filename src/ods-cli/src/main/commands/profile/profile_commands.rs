@@ -5,7 +5,7 @@ fn run_profile_list_command(args: &[String]) -> Result<ExitCode, CliError> {
         .as_ref()
         .map(|ws| profile_catalog_roots(&root, ws.document_by_path(&root.join("index.ods.md"))))
         .unwrap_or_else(|| profile_catalog_roots(&root, None));
-    let catalog = load_profile_catalog(&root, &roots).map_err(|err| failure(err.to_string()))?;
+    let catalog = load_profile_catalog(&root, &roots).map_err(|err| fail_io("profile", err))?;
 
     match format {
         OutputFormat::Text => {
@@ -60,7 +60,7 @@ fn run_profile_init_command(args: &[String]) -> Result<ExitCode, CliError> {
                 .filter(|a| a.as_str() != "init" && !a.starts_with('-'))
         })
         .ok_or_else(|| {
-            usage("profile init requires a profile name argument (e.g. `ods profile init rfc`)")
+            usage_msg(ods_core::missing_required_arg("name", "ods profile init <name>"))
         })?;
 
     // Optional root path after name: ods profile init rfc /path
@@ -70,7 +70,7 @@ fn run_profile_init_command(args: &[String]) -> Result<ExitCode, CliError> {
         .map(PathBuf::from)
         .unwrap_or_else(|| env::current_dir().unwrap_or_else(|_| PathBuf::from(".")));
     let profiles_dir = root.join(".ods").join("profiles");
-    fs::create_dir_all(&profiles_dir).map_err(|err| failure(err.to_string()))?;
+    fs::create_dir_all(&profiles_dir).map_err(|err| fail_io("profile", err))?;
 
     let file_path = profiles_dir.join(format!("{profile_name}.md"));
     if file_path.exists() {
@@ -101,7 +101,7 @@ ods:
 "
     );
 
-    fs::write(&file_path, template).map_err(|err| failure(err.to_string()))?;
+    fs::write(&file_path, template).map_err(|err| fail_io("profile", err))?;
     println!("scaffolded custom profile definition at {}", file_path.display());
     println!("remember to register it in root index.ods.md under custom-profiles:\n  - .ods/profiles/{profile_name}.md");
 

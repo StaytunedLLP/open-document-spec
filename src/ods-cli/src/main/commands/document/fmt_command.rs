@@ -14,8 +14,13 @@ fn run_fmt_command(args: &[String]) -> Result<ExitCode, CliError> {
         return Ok(code);
     }
     if !engines.ods {
-        return Err(failure(
-            "fmt requires an ODS workspace (or pass `--okf` for OKF fmt)",
+        return Err(fail_msg(
+            ods_core::UserMsg::new(
+                "fmt_requires_ods",
+                ods_core::ErrorStage::Scope,
+                "fmt requires an ODS workspace",
+            )
+            .next("run `ods init`, or pass `--okf` for OKF fmt"),
         ));
     }
     run_ods_fmt_body(&root, args, format)
@@ -28,16 +33,16 @@ fn run_ods_fmt_body(
 ) -> Result<ExitCode, CliError> {
     let refs_mode = parse_refs_mode(args)?;
     let migrate = wants_migrate(args);
-    let workspace = load_workspace(root).map_err(|err| failure(err.to_string()))?;
+    let workspace = load_workspace(root).map_err(|err| fail_load(root, err))?;
 
     let mut actions: Vec<&str> = vec!["frontmatter spacing"];
     let mut changed = normalize_workspace_frontmatter_spacing_with_workspace(&workspace)
-        .map_err(|err| failure(err.to_string()))?;
+        .map_err(|err| fail_io("fmt", err))?;
 
     if refs_mode == Some("md-paths") {
         actions.push("document refs");
         for path in canonicalize_workspace_document_refs_with_workspace(&workspace)
-            .map_err(|err| failure(err.to_string()))?
+            .map_err(|err| fail_io("fmt", err))?
         {
             if !changed.iter().any(|existing| existing == &path) {
                 changed.push(path);
@@ -48,7 +53,7 @@ fn run_ods_fmt_body(
     if migrate {
         actions.push("ods: key layout");
         for path in migrate_workspace_frontmatter_with_workspace(&workspace)
-            .map_err(|err| failure(err.to_string()))?
+            .map_err(|err| fail_io("fmt", err))?
         {
             if !changed.iter().any(|existing| existing == &path) {
                 changed.push(path);
@@ -100,11 +105,13 @@ fn parse_refs_mode(args: &[String]) -> Result<Option<&'static str>, CliError> {
             "--refs" => {
                 let value = args
                     .get(i + 1)
-                    .ok_or_else(|| usage("fmt --refs requires md-paths"))?;
+                    .ok_or_else(|| usage_msg(ods_core::missing_flag_value("--refs", "`ods fmt --refs md-paths`")))?;
                 return match value.as_str() {
                     "md-paths" => Ok(Some("md-paths")),
-                    other => Err(usage(format!(
-                        "invalid fmt --refs {other} (use md-paths)"
+                    other => Err(usage_msg(ods_core::invalid_choice(
+                        "--refs",
+                        other,
+                        "md-paths",
                     ))),
                 };
             }

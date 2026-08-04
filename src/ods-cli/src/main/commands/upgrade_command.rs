@@ -78,9 +78,9 @@ fn run_upgrade_command(args: &[String]) -> Result<ExitCode, CliError> {
     if migrate_fm && ods {
         if write {
             let workspace =
-                load_workspace(&root).map_err(|err| failure(err.to_string()))?;
+                load_workspace(&root).map_err(|err| fail_load(&root, err))?;
             let changed = migrate_workspace_frontmatter_with_workspace(&workspace)
-                .map_err(|err| failure(err.to_string()))?;
+                .map_err(|err| fail_io("upgrade/audit", err))?;
             actions.push(format!(
                 "migrated canonical ods: layout in {} file(s)",
                 changed.len()
@@ -156,13 +156,18 @@ fn run_ods_audit_command(args: &[String]) -> Result<ExitCode, CliError> {
         return run_okf_audit_command(args);
     }
     if !engines.ods {
-        return Err(failure(
-            "audit requires an ODS workspace (or pass `--okf` for OKF-only audit)",
+        return Err(fail_msg(
+            ods_core::UserMsg::new(
+                "audit_requires_ods",
+                ods_core::ErrorStage::Scope,
+                "audit requires an ODS workspace",
+            )
+            .next("run `ods init`, or pass `--okf` for OKF-only audit"),
         ));
     }
     let report_path = report_path_opt.unwrap_or_else(|| root.join(".ods/ods-errors.md"));
 
-    let workspace = load_workspace(&root).map_err(|err| failure(err.to_string()))?;
+    let workspace = load_workspace(&root).map_err(|err| fail_load(&root, err))?;
     let mut plain = 0usize;
     let mut invalid = 0usize;
     let mut partial = 0usize;
@@ -220,7 +225,7 @@ fn run_ods_audit_command(args: &[String]) -> Result<ExitCode, CliError> {
 
     if write_report {
         if let Some(parent) = report_path.parent() {
-            fs::create_dir_all(parent).map_err(|e| failure(e.to_string()))?;
+            fs::create_dir_all(parent).map_err(|e| fail_io("upgrade/audit", e))?;
         }
         let mut md = String::new();
         md.push_str("---\ngenerated_by: ods audit\n");
@@ -238,7 +243,7 @@ fn run_ods_audit_command(args: &[String]) -> Result<ExitCode, CliError> {
             }
         }
         md.push_str("\n## Suggested next commands\n\n```bash\nods adopt --write\nods fmt --migrate\nods lint\n```\n");
-        fs::write(&report_path, md).map_err(|e| failure(e.to_string()))?;
+        fs::write(&report_path, md).map_err(|e| fail_io("upgrade/audit", e))?;
         if matches!(format, OutputFormat::Text) {
             println!("wrote {}", report_path.display());
         }
@@ -250,8 +255,10 @@ fn run_ods_audit_command(args: &[String]) -> Result<ExitCode, CliError> {
         Some("invalid") => invalid > 0,
         Some("any") => plain + invalid + partial > 0,
         Some(other) => {
-            return Err(usage(format!(
-                "invalid --fail-on {other} (use plain|invalid|any)"
+            return Err(usage_msg(ods_core::invalid_choice(
+                "--fail-on",
+                other,
+                "plain|invalid|any",
             )));
         }
     };

@@ -18,6 +18,10 @@ ods:
 
 Conformance for metadata is defined by **validation, not intention**. Key placement details: [keys.md](keys.md). Levels: [core.md](core.md).
 
+### CLI / diagnostic presentation
+
+The `ods` CLI surfaces failures as short, directive messages (`error:` or `usage:` plus a `Next:` line). Lint diagnostic text is catalogued in the engine (`src/ods-core/src/error/messages.rs`) so tooling and the end-user guide stay aligned. Authors should fix issues listed by `ods lint` (and `.ods/ods-errors.md` when present), then re-run lint.
+
 ---
 
 ## 1. Lint rules

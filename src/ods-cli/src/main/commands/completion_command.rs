@@ -2,7 +2,7 @@ fn run_completion_command(args: &[String]) -> Result<ExitCode, CliError> {
     let shell = args
         .get(2)
         .map(|s| s.to_lowercase())
-        .ok_or_else(|| usage("ods completion <bash|zsh|fish|powershell>"))?;
+        .ok_or_else(|| usage_msg(ods_core::missing_required_arg("shell", "ods completion <bash|zsh|fish|powershell>")))?;
 
     match shell.as_str() {
         "bash" => {
@@ -18,8 +18,10 @@ fn run_completion_command(args: &[String]) -> Result<ExitCode, CliError> {
             println!("{}", POWERSHELL_COMPLETION);
         }
         other => {
-            return Err(usage(format!(
-                "unsupported shell '{other}' (use bash, zsh, fish, or powershell)"
+            return Err(usage_msg(ods_core::invalid_choice(
+                "shell",
+                other,
+                "bash|zsh|fish|powershell",
             )));
         }
     }

@@ -42,7 +42,7 @@ pub fn scaffold_new_document(
     if target_path.exists() {
         return Err(io::Error::new(
             io::ErrorKind::AlreadyExists,
-            format!("document already exists: {}", target_path.display()),
+            crate::error::lifecycle_document_exists(target_path.display()),
         ));
     }
 
@@ -143,7 +143,7 @@ pub fn atomic_delete_document(
     } else {
         return Err(io::Error::new(
             io::ErrorKind::NotFound,
-            format!("document not found: {}", target.display()),
+            crate::error::lifecycle_document_not_found(target.display()),
         ));
     };
 

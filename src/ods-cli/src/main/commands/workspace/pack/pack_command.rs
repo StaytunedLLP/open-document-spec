@@ -9,8 +9,10 @@ pub(crate) fn run_pack_command(args: &[String]) -> Result<ExitCode, CliError> {
         "init" => run_pack_init(args),
         "preview" => run_pack_preview(args),
         other if other.starts_with('-') => run_pack_list(args),
-        other => Err(usage(format!(
-            "unknown subcommand 'ods pack {other}'. Available: add, sync, list, preview, remove, init"
+        other => Err(usage_msg(ods_core::unknown_subcommand(
+            "pack",
+            other,
+            "ods pack add|sync|list|preview|remove|init",
         ))),
     }
 }
@@ -27,7 +29,7 @@ fn extract_pack_path(args: &[String], skip_idx: usize) -> PathBuf {
 fn run_pack_list(args: &[String]) -> Result<ExitCode, CliError> {
     let path = extract_pack_path(args, 3);
     let root = resolve_root_path(path);
-    let workspace = load_workspace(&root).map_err(|e| failure(e.to_string()))?;
+    let workspace = load_workspace(&root).map_err(|e| fail_load(&root, e))?;
 
     let root_index_doc = workspace
         .documents
@@ -69,7 +71,7 @@ fn run_pack_add(args: &[String]) -> Result<ExitCode, CliError> {
     let (root_path, source) = match positionals.as_slice() {
         [ws, src] => (PathBuf::from(ws), src.clone()),
         [src] => (env::current_dir().unwrap_or_else(|_| PathBuf::from(".")), src.clone()),
-        _ => return Err(usage("ods pack add [root] <source>")),
+        _ => return Err(usage_msg(ods_core::missing_required_arg("source", "ods pack add [root] <source>"))),
     };
 
     let auto_update = args
@@ -86,9 +88,7 @@ fn run_pack_add(args: &[String]) -> Result<ExitCode, CliError> {
     };
 
     if !root_index_path.exists() {
-        return Err(failure(
-            "root index.md not found. Run 'ods init' to make this workspace ODS-compliant first.",
-        ));
+        return Err(fail_msg(ods_core::root_index_missing()));
     }
 
     let mut pack_entry = source.clone();
@@ -145,14 +145,14 @@ fn run_pack_add(args: &[String]) -> Result<ExitCode, CliError> {
     let _ = save_pack_entry(entry);
 
     // Append pack_entry to root index.md frontmatter
-    let text = fs::read_to_string(&root_index_path).map_err(|e| failure(e.to_string()))?;
+    let text = fs::read_to_string(&root_index_path).map_err(|e| fail_io("pack", e))?;
     if text.contains(&format!("- {pack_entry}")) || text.contains(&format!("- \"{pack_entry}\"")) {
         println!("Pack '{}' is already registered in root index.md.", pack_entry);
         return Ok(ExitCode::from(0));
     }
 
     let updated_text = insert_pack_into_root_index(&text, &pack_entry);
-    fs::write(&root_index_path, updated_text).map_err(|e| failure(e.to_string()))?;
+    fs::write(&root_index_path, updated_text).map_err(|e| fail_io("pack", e))?;
 
     println!("Added ODS Pack '{}' to root index.md frontmatter.", pack_entry);
     Ok(ExitCode::from(0))
@@ -171,7 +171,7 @@ fn insert_pack_into_root_index(text: &str, pack_entry: &str) -> String {
 fn run_pack_sync(args: &[String]) -> Result<ExitCode, CliError> {
     let force = args.iter().any(|a| a == "--force" || a == "-f");
     let root = resolve_root_path(env::current_dir().unwrap_or_else(|_| PathBuf::from(".")));
-    let workspace = load_workspace(&root).map_err(|e| failure(e.to_string()))?;
+    let workspace = load_workspace(&root).map_err(|e| fail_load(&root, e))?;
 
     let root_index_doc = workspace
         .documents

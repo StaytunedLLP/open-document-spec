@@ -34,7 +34,7 @@ fn run_lint_command(args: &[String]) -> Result<ExitCode, CliError> {
     if engines.ods {
         let canonical_refs = args.iter().any(|arg| arg == "--canonical-refs");
         let workspace = load_workspace_with_options(&root, load_options_graph())
-            .map_err(|err| failure(err.to_string()))?;
+            .map_err(|err| fail_load(&root, err))?;
         let fix = args.iter().any(|arg| arg == "--fix");
         if fix {
             let n = generate_indexes(&workspace).map(|v| v.len()).unwrap_or(0);
@@ -53,7 +53,8 @@ fn run_lint_command(args: &[String]) -> Result<ExitCode, CliError> {
     }
 
     if engines.okf {
-        let bundle = ods_core::load_okf_bundle(&root).map_err(|e| failure(e.to_string()))?;
+        let bundle = ods_core::load_okf_bundle(&root)
+            .map_err(|e| fail_msg(ods_core::load_okf_bundle_failed(&root, e)))?;
         let okf_level = match level {
             LintLevel::Level1 => ods_core::OkfLintLevel::Level1,
             LintLevel::Level3 => ods_core::OkfLintLevel::Level3,
@@ -74,7 +75,7 @@ fn run_lint_command(args: &[String]) -> Result<ExitCode, CliError> {
             diagnostics.push(ods_core::Diagnostic {
                 path: root.clone(),
                 severity: ods_core::Severity::Error,
-                message: "[skills] no SKILL.md package found (root or skills/*/)".into(),
+                message: ods_core::error::skills_no_package(),
             });
         }
         for pkg_root in packages {
@@ -126,8 +127,13 @@ fn run_index_command(args: &[String]) -> Result<ExitCode, CliError> {
         return Ok(code);
     }
     if !engines.ods {
-        return Err(failure(
-            "index requires an ODS workspace (or pass `--okf` for OKF indexes)",
+        return Err(fail_msg(
+            ods_core::UserMsg::new(
+                "index_requires_ods",
+                ods_core::ErrorStage::Scope,
+                "index requires an ODS workspace",
+            )
+            .next("run `ods init`, or pass `--okf` for OKF indexes"),
         ));
     }
     run_ods_index_only(&root, args, format)
@@ -140,10 +146,10 @@ fn run_ods_index_only(
 ) -> Result<ExitCode, CliError> {
     let check = args.iter().any(|a| a == "--check");
     let workspace = load_workspace_with_options(root, load_options_graph())
-        .map_err(|err| failure(err.to_string()))?;
+        .map_err(|err| fail_load(root, err))?;
     if check {
         let current =
-            indexes_are_current(&workspace).map_err(|err| failure(err.to_string()))?;
+            indexes_are_current(&workspace).map_err(|err| fail_msg(ods_core::io_failed("index check", err)))?;
         match format {
             OutputFormat::Text => {
                 if current {
@@ -162,7 +168,7 @@ fn run_ods_index_only(
         }
         Ok(ExitCode::from(if current { 0 } else { 1 }))
     } else {
-        let paths = generate_indexes(&workspace).map_err(|err| failure(err.to_string()))?;
+        let paths = generate_indexes(&workspace).map_err(|err| fail_msg(ods_core::io_failed("generate indexes", err)))?;
         match format {
             OutputFormat::Text => {
                 for path in &paths {
@@ -190,7 +196,7 @@ fn run_tags_command(args: &[String]) -> Result<ExitCode, CliError> {
     require_ods_workspace(&root)?;
     let include_all = args.iter().any(|a| a == "--all");
     let workspace = load_workspace_with_options(&root, load_options_graph())
-        .map_err(|err| failure(err.to_string()))?;
+        .map_err(|err| fail_io("index/lint io", err))?;
     print_tags(&workspace, include_all, format);
     Ok(ExitCode::from(0))
 }
@@ -201,7 +207,7 @@ fn run_coverage_command(args: &[String]) -> Result<ExitCode, CliError> {
     let write_report = args.iter().any(|a| a == "--write-report");
     let summary_only = args.iter().any(|a| a == "--summary");
     let workspace = load_workspace_with_options(&root, load_options_graph())
-        .map_err(|err| failure(err.to_string()))?;
+        .map_err(|err| fail_io("index/lint io", err))?;
 
     let total = workspace.documents.len();
     let mut compliant = 0usize;
@@ -297,7 +303,7 @@ fn run_coverage_command(args: &[String]) -> Result<ExitCode, CliError> {
         let _ = std::fs::create_dir_all(&ods_dir);
         let report_path = ods_dir.join("coverage.md");
         std::fs::write(&report_path, report_content)
-            .map_err(|e| failure(format!("write {}: {e}", report_path.display())))?;
+            .map_err(|e| fail_msg(ods_core::io_failed("write report", e)))?;
         if matches!(format, OutputFormat::Text) {
             println!("wrote {}", report_path.display());
         }

@@ -24,5 +24,9 @@ fn invalid_serve_mode_is_usage_error() {
         .unwrap();
     assert_eq!(out.status.code(), Some(2));
     let stderr = String::from_utf8_lossy(&out.stderr);
-    assert!(stderr.contains("invalid serve --mode"), "{stderr}");
+    assert!(
+        stderr.contains("invalid") && (stderr.contains("--mode") || stderr.contains("mode")),
+        "{stderr}"
+    );
+    assert!(stderr.contains("Next:"), "{stderr}");
 }

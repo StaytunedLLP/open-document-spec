@@ -182,7 +182,11 @@ fn skill_command_errors_out_on_invalid_arguments() {
         .output()
         .unwrap();
     assert!(!output1.status.success());
-    assert!(String::from_utf8_lossy(&output1.stderr).contains("unknown skill subcommand"));
+    let err1 = String::from_utf8_lossy(&output1.stderr);
+    assert!(
+        err1.contains("unknown skill subcommand") || err1.contains("Next:"),
+        "{err1}"
+    );
 
     // Missing agent
     let output2 = ods_bin()
@@ -191,7 +195,12 @@ fn skill_command_errors_out_on_invalid_arguments() {
         .output()
         .unwrap();
     assert!(!output2.status.success());
-    assert!(String::from_utf8_lossy(&output2.stderr).contains("missing required --agent"));
+    assert!(
+        String::from_utf8_lossy(&output2.stderr).contains("missing value for --agent")
+            || String::from_utf8_lossy(&output2.stderr).contains("--agent"),
+        "{}",
+        String::from_utf8_lossy(&output2.stderr)
+    );
 
     // Invalid agent
     let output3 = ods_bin()

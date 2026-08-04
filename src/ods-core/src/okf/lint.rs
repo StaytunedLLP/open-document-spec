@@ -23,12 +23,12 @@ pub fn lint_okf_bundle_with_config(
         Some(other) => out.push(diag(
             bundle.root.join("index.md"),
             Severity::Warning,
-            format!("okf_version is {other:?}; engine targets 0.2"),
+            crate::error::okf_version_mismatch(other),
         )),
         None => out.push(diag(
             bundle.root.join("index.md"),
             Severity::Warning,
-            "root index.md missing okf_version: \"0.2\"",
+            crate::error::okf_missing_version(),
         )),
     }
 
@@ -52,14 +52,14 @@ fn lint_concept(
             out.push(diag(
                 doc.path.clone(),
                 Severity::Error,
-                "OKF concept missing YAML frontmatter",
+                crate::error::okf_missing_frontmatter(),
             ));
         }
         OkfFrontmatterState::Invalid(err) => {
             out.push(diag(
                 doc.path.clone(),
                 Severity::Error,
-                format!("invalid OKF frontmatter: {err}"),
+                crate::error::okf_invalid_frontmatter(err),
             ));
         }
         OkfFrontmatterState::Parsed(fm) => {
@@ -83,7 +83,7 @@ fn lint_parsed(
             out.push(diag(
                 doc.path.clone(),
                 Severity::Error,
-                "missing required frontmatter field: type",
+                crate::error::okf_missing_type(),
             ));
         }
 
@@ -94,7 +94,7 @@ fn lint_parsed(
             out.push(diag(
                 doc.path.clone(),
                 Severity::Error,
-                "Attested Computation requires runtime",
+                crate::error::okf_attested_requires_runtime(),
             ));
         }
     }
@@ -113,7 +113,7 @@ fn lint_parsed(
                 out.push(diag(
                     doc.path.clone(),
                     Severity::Error,
-                    "generated.by is required when generated is present",
+                    crate::error::okf_generated_by_required(),
                 ));
             }
         }
@@ -125,7 +125,7 @@ fn lint_parsed(
                 out.push(diag(
                     doc.path.clone(),
                     Severity::Error,
-                    format!("verified[{idx}].by is required"),
+                    crate::error::okf_verified_by_required(idx),
                 ));
             }
         }
@@ -137,7 +137,7 @@ fn lint_parsed(
                 out.push(diag(
                     doc.path.clone(),
                     Severity::Error,
-                    format!("sources[{idx}].resource is required within a sources entry"),
+                    crate::error::okf_sources_resource_required(idx),
                 ));
             }
         }
@@ -148,13 +148,13 @@ fn lint_parsed(
             out.push(diag(
                 doc.path.clone(),
                 Severity::Warning,
-                format!("stale_after should be YYYY-MM-DD, got {date:?}"),
+                crate::error::okf_stale_after_format(date),
             ));
         } else if is_stale(date) {
             out.push(diag(
                 doc.path.clone(),
                 Severity::Warning,
-                format!("concept is stale (stale_after: {date})"),
+                crate::error::okf_concept_stale(date),
             ));
         }
     }

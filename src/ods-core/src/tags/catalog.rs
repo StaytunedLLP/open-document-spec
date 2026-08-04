@@ -156,7 +156,7 @@ pub fn lint_document_tags(document: &Document, workspace: &Workspace) -> Vec<Dia
         diagnostics.push(Diagnostic {
             path: document.path.clone(),
             severity: Severity::Warning,
-            message: "tags must be top-level frontmatter (not under ods:) so other tools can read them; run: ods fmt --migrate".to_string(),
+            message: crate::error::lint_tags_misplaced(),
         });
     }
 
@@ -167,7 +167,7 @@ pub fn lint_document_tags(document: &Document, workspace: &Workspace) -> Vec<Dia
             diagnostics.push(Diagnostic {
                 path: document.path.clone(),
                 severity: Severity::Warning,
-                message: format!("duplicate tag: {tag}"),
+                message: crate::error::lint_duplicate_tag(tag),
             });
         }
         if tag.contains(' ') {
@@ -175,21 +175,21 @@ pub fn lint_document_tags(document: &Document, workspace: &Workspace) -> Vec<Dia
             diagnostics.push(Diagnostic {
                 path: document.path.clone(),
                 severity: Severity::Warning,
-                message: format!("tag has spaces: {tag} (prefer {suggested})"),
+                message: crate::error::lint_tag_has_spaces(tag, &suggested),
             });
         }
         if is_reserved_status_token(tag) {
             diagnostics.push(Diagnostic {
                 path: document.path.clone(),
                 severity: Severity::Warning,
-                message: format!("tag collides with status value: {tag} (use status: field)"),
+                message: crate::error::lint_tag_collides_status(tag),
             });
         }
         if is_profile_name(tag, workspace) {
             diagnostics.push(Diagnostic {
                 path: document.path.clone(),
                 severity: Severity::Warning,
-                message: format!("tag collides with profile name: {tag} (use profile: field)"),
+                message: crate::error::lint_tag_collides_profile(tag),
             });
         }
     }

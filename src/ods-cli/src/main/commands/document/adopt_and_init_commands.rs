@@ -9,17 +9,22 @@ fn run_adopt_command(args: &[String]) -> Result<ExitCode, CliError> {
         return run_okf_adopt_command(args);
     }
     if !engines.ods {
-        return Err(failure(
-            "adopt requires an ODS workspace (or pass `--okf` for OKF adopt)",
+        return Err(fail_msg(
+            ods_core::UserMsg::new(
+                "adopt_requires_ods",
+                ods_core::ErrorStage::Scope,
+                "adopt requires an ODS workspace",
+            )
+            .next("run `ods init`, or pass `--okf` for OKF adopt"),
         ));
     }
     let write = args.iter().any(|a| a == "--write");
-    let workspace = load_workspace(&root).map_err(|err| failure(err.to_string()))?;
+    let workspace = load_workspace(&root).map_err(|err| fail_load(&root, err))?;
     let report = adopt_workspace(&workspace, AdoptOptions { write })
-        .map_err(|err| failure(err.to_string()))?;
+        .map_err(|err| fail_msg(ods_core::io_failed("adopt", err)))?;
     // Re-load after writes for accurate lint
     let workspace = if write {
-        load_workspace(&root).map_err(|err| failure(err.to_string()))?
+        load_workspace(&root).map_err(|err| fail_load(&root, err))?
     } else {
         workspace
     };
@@ -60,7 +65,7 @@ fn run_init_command(args: &[String]) -> Result<ExitCode, CliError> {
     let (root, _level, format) = parse_common_flags(args, 2)?;
     let adopt = args.iter().any(|a| a == "--adopt");
     let report = init_workspace(&root, InitOptions { adopt })
-        .map_err(|err| failure(err.to_string()))?;
+        .map_err(|err| fail_io("init/adopt", err))?;
     match format {
         OutputFormat::Text => {
             if report.already_initialized && !report.initialized {
@@ -100,7 +105,7 @@ fn run_skills_init_command(args: &[String]) -> Result<ExitCode, CliError> {
         &root,
         ods_core::SkillsInitOptions { name },
     )
-    .map_err(|e| failure(e.to_string()))?;
+    .map_err(|e| fail_io("init/adopt", e))?;
     match format {
         OutputFormat::Text => {
             println!("initialized Agent Skills package at {}", report.root.display());

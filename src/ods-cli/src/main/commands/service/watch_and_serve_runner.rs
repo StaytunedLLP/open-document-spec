@@ -46,14 +46,14 @@ fn watch_workspace(
     // Long-lived workspace: parallel graph load once at start.
     let workspace = Rc::new(RefCell::new(
         load_workspace_with_options(root, load_options_graph())
-            .map_err(|err| failure(err.to_string()))?,
+            .map_err(|err| fail_io("watch/serve", err))?,
     ));
 
     let tree = {
         let ws = workspace.borrow();
         Rc::new(RefCell::new(WatchTree::from_scan(
             scan_markdown_tree_with_code_paths(root, &ws.ignore, &ws.code_paths)
-                .map_err(|err| failure(err.to_string()))?,
+                .map_err(|err| fail_io("watch/serve", err))?,
         )))
     };
 
@@ -66,12 +66,12 @@ fn watch_workspace(
             let _ = tx.send(res);
         },
     )
-    .map_err(|err| failure(format!("watch init failed: {err}")))?;
+    .map_err(|err| fail_msg(ods_core::io_failed("watch init", err)))?;
 
     debouncer
         .watcher()
         .watch(root, RecursiveMode::Recursive)
-        .map_err(|err| failure(format!("watch {}: {err}", root.display())))?;
+        .map_err(|err| fail_msg(ods_core::io_failed("watch", err)))?;
 
     if !headless {
         eprintln!(
@@ -123,13 +123,13 @@ fn poll_workspace(options: ServeOptions) -> Result<(), CliError> {
     let shutdown = install_shutdown_flag();
     let workspace = Rc::new(RefCell::new(
         load_workspace_with_options(&options.root, load_options_graph())
-            .map_err(|err| failure(err.to_string()))?,
+            .map_err(|err| fail_io("watch/serve", err))?,
     ));
     let tree = {
         let ws = workspace.borrow();
         Rc::new(RefCell::new(WatchTree::from_scan(
             scan_markdown_tree_with_code_paths(&options.root, &ws.ignore, &ws.code_paths)
-                .map_err(|err| failure(err.to_string()))?,
+                .map_err(|err| fail_io("watch/serve", err))?,
         )))
     };
     eprintln!("ods serve: polling {}", options.root.display());
@@ -169,14 +169,14 @@ fn run_watch_tick(
     };
 
     let current = scan_markdown_tree_with_code_paths(root, &ignore, &code_paths)
-        .map_err(|err| failure(err.to_string()))?;
+        .map_err(|err| fail_io("watch/serve", err))?;
     let changes = {
         let watch = tree.borrow();
         observe_renames(&watch.effective_previous(), &current)
     };
 
     if !changes.is_empty() {
-        let report = apply_path_changes(root, &changes).map_err(|err| failure(err.to_string()))?;
+        let report = apply_path_changes(root, &changes).map_err(|err| fail_io("watch/serve", err))?;
         if matches!(format, OutputFormat::Text) && !headless {
             eprintln!("path map: {}", report.summary());
             for (from, to) in &report.moves {
@@ -189,7 +189,7 @@ fn run_watch_tick(
             }
         }
     } else if !force_full {
-        let heal = heal_orphan_path_ids(root).map_err(|err| failure(err.to_string()))?;
+        let heal = heal_orphan_path_ids(root).map_err(|err| fail_io("watch/serve", err))?;
         if !heal.rewritten_files.is_empty() && matches!(format, OutputFormat::Text) && !headless {
             eprintln!("path id heal: {}", heal.summary());
         }
@@ -226,7 +226,7 @@ fn run_watch_tick(
 
     if need_full {
         let fresh = load_workspace_with_options(root, load_options_graph())
-            .map_err(|err| failure(err.to_string()))?;
+            .map_err(|err| fail_io("watch/serve", err))?;
         *workspace.borrow_mut() = fresh;
     } else {
         if !removed.is_empty() {
@@ -236,14 +236,14 @@ fn run_watch_tick(
         let existing: Vec<PathBuf> = dirty.into_iter().filter(|p| p.is_file()).collect();
         if !existing.is_empty() {
             let docs = parse_paths_parallel(root, &existing, false)
-                .map_err(|err| failure(err.to_string()))?;
+                .map_err(|err| fail_io("watch/serve", err))?;
             apply_document_upserts(&mut workspace.borrow_mut(), docs);
         }
     }
 
     {
         let ws = workspace.borrow();
-        let _ = generate_indexes(&ws).map_err(|err| failure(err.to_string()))?;
+        let _ = generate_indexes(&ws).map_err(|err| fail_io("watch/serve", err))?;
         let diagnostics = lint_workspace_with_level(&ws, level);
         if !headless {
             print_diagnostics(&diagnostics, format);
@@ -270,7 +270,7 @@ fn run_watch_tick(
         (ws.ignore.clone(), ws.code_paths.clone())
     };
     let after = scan_markdown_tree_with_code_paths(root, &ignore, &code_paths)
-        .map_err(|err| failure(err.to_string()))?;
+        .map_err(|err| fail_io("watch/serve", err))?;
     let paired = paired_from_paths(&changes);
     tree.borrow_mut().commit_scan(after, &paired);
     Ok(())

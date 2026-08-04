@@ -34,7 +34,7 @@ fn lint_profile_sections_with_aliases(
         .map(|group| Diagnostic {
             path: document.path.clone(),
             severity: Severity::Warning,
-            message: format!("missing expected section: {}", group[0]),
+            message: crate::error::lint_missing_expected_section(&group[0]),
         })
         .collect()
 }
@@ -48,7 +48,7 @@ fn lint_resources(document: &Document, frontmatter: &crate::model::Frontmatter) 
             (!path.exists()).then(|| Diagnostic {
                 path: document.path.clone(),
                 severity: Severity::Error,
-                message: format!("missing resource: {}", resource.path.display()),
+                message: crate::error::lint_missing_resource(resource.path.display()),
             })
         })
         .collect()
@@ -62,7 +62,7 @@ fn lint_code_refs(document: &Document, frontmatter: &crate::model::Frontmatter) 
             diagnostics.push(Diagnostic {
                 path: document.path.clone(),
                 severity: Severity::Error,
-                message: format!("code path must not contain line number suffix: {}", code.path.display()),
+                message: crate::error::lint_code_path_line_suffix(code.path.display()),
             });
             continue;
         }
@@ -71,7 +71,7 @@ fn lint_code_refs(document: &Document, frontmatter: &crate::model::Frontmatter) 
             diagnostics.push(Diagnostic {
                 path: document.path.clone(),
                 severity: Severity::Error,
-                message: format!("missing code path: {}", code.path.display()),
+                message: crate::error::lint_missing_code_path(code.path.display()),
             });
         }
     }
@@ -108,7 +108,7 @@ fn lint_index(workspace: &Workspace, document: &Document) -> Vec<Diagnostic> {
         diagnostics.push(Diagnostic {
             path: document.path.clone(),
             severity: Severity::Error,
-            message: format!("index missing children: {}", missing.join(", ")),
+            message: crate::error::lint_index_stale_missing(&missing.join(", ")),
         });
     }
 
@@ -116,7 +116,7 @@ fn lint_index(workspace: &Workspace, document: &Document) -> Vec<Diagnostic> {
         diagnostics.push(Diagnostic {
             path: document.path.clone(),
             severity: Severity::Error,
-            message: format!("index has extra entries: {}", extra.join(", ")),
+            message: crate::error::lint_index_stale_extra(&extra.join(", ")),
         });
     }
 
@@ -244,7 +244,7 @@ fn lint_body_links(document: &Document) -> Vec<Diagnostic> {
             diagnostics.push(Diagnostic {
                 path: document.path.clone(),
                 severity: Severity::Error,
-                message: format!("dangling markdown link in body: {link}"),
+                message: crate::error::lint_dangling_body_link(&link),
             });
         }
     }

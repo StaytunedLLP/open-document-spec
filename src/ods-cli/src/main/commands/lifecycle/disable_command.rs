@@ -15,7 +15,7 @@ fn run_disable_command(args: &[String]) -> Result<ExitCode, CliError> {
     // Prefer ODS root if path is inside one
     let root = ods_core::find_workspace_root(&root).unwrap_or(root);
     let report =
-        disable_workspace(&root, options).map_err(|err| failure(err.to_string()))?;
+        disable_workspace(&root, options).map_err(|err| fail_io("disable", err))?;
     match format {
         OutputFormat::Text => {
             if report.already_disabled {

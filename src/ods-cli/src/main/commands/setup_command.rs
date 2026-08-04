@@ -126,12 +126,12 @@ fn run_setup_command(args: &[String]) -> Result<ExitCode, CliError> {
             "--editor" => {
                 let v = args
                     .get(i + 1)
-                    .ok_or_else(|| usage("setup --editor requires zed|vscode|nvim|cursor"))?;
+                    .ok_or_else(|| usage_msg(ods_core::missing_flag_value("--editor", "`ods setup --editor zed|vscode|nvim|cursor`")))?;
                 editor = Some(v.to_lowercase());
                 i += 1;
             }
             flag if flag.starts_with('-') => {
-                return Err(usage(format!("unknown setup flag: {flag}")));
+                return Err(usage_msg(ods_core::unknown_flag(flag, "ods setup --help")));
             }
             other => {
                 if path.is_none() {
@@ -211,7 +211,7 @@ fn run_setup_command(args: &[String]) -> Result<ExitCode, CliError> {
     };
 
     let init = init_workspace(&root, ods_core::InitOptions { adopt: false })
-        .map_err(|err| failure(err.to_string()))?;
+        .map_err(|err| fail_io("setup", err))?;
     if init.initialized {
         println!(
             "setup: root index ensured with ods: {}",
@@ -236,7 +236,7 @@ fn run_setup_command(args: &[String]) -> Result<ExitCode, CliError> {
         {
             println!("setup: service start skipped by ODS_SETUP_NO_START");
         } else {
-            let msg = service::start_service(&root).map_err(|e| failure(e.to_string()))?;
+            let msg = service::start_service(&root).map_err(|e| fail_io("setup", e))?;
             println!("setup: {msg}");
         }
     }
@@ -283,7 +283,7 @@ fn write_editor_lsp_config(root: &Path, editor: &str) -> Result<(), CliError> {
     match editor {
         "zed" => {
             let dir = root.join(".zed");
-            fs::create_dir_all(&dir).map_err(|e| failure(e.to_string()))?;
+            fs::create_dir_all(&dir).map_err(|e| fail_io("setup", e))?;
             let path = dir.join("settings.json");
             let body = r#"{
   "languages": {
@@ -302,12 +302,12 @@ fn write_editor_lsp_config(root: &Path, editor: &str) -> Result<(), CliError> {
   }
 }
 "#;
-            fs::write(&path, body).map_err(|e| failure(e.to_string()))?;
+            fs::write(&path, body).map_err(|e| fail_io("setup", e))?;
             println!("setup: wrote {}", path.display());
         }
         "vscode" | "cursor" => {
             let dir = root.join(".vscode");
-            fs::create_dir_all(&dir).map_err(|e| failure(e.to_string()))?;
+            fs::create_dir_all(&dir).map_err(|e| fail_io("setup", e))?;
             let path = dir.join("settings.json");
             // Generic LSP client settings (extension may map these keys).
             let body = r#"{
@@ -315,12 +315,12 @@ fn write_editor_lsp_config(root: &Path, editor: &str) -> Result<(), CliError> {
   "ods.lsp.args": ["lsp"]
 }
 "#;
-            fs::write(&path, body).map_err(|e| failure(e.to_string()))?;
+            fs::write(&path, body).map_err(|e| fail_io("setup", e))?;
             println!("setup: wrote {} (configure your LSP client to use path/args)", path.display());
         }
         "nvim" => {
             let dir = root.join(".nvim");
-            fs::create_dir_all(&dir).map_err(|e| failure(e.to_string()))?;
+            fs::create_dir_all(&dir).map_err(|e| fail_io("setup", e))?;
             let path = dir.join("ods-lsp.lua");
             let body = r#"-- Open Document Spec LSP (ods lsp)
 -- Add to your Neovim config, e.g. require from this file:
@@ -336,12 +336,14 @@ vim.api.nvim_create_autocmd('FileType', {
   end,
 })
 "#;
-            fs::write(&path, body).map_err(|e| failure(e.to_string()))?;
+            fs::write(&path, body).map_err(|e| fail_io("setup", e))?;
             println!("setup: wrote {}", path.display());
         }
         other => {
-            return Err(usage(format!(
-                "unknown --editor {other} (use zed, vscode, nvim, or cursor)"
+            return Err(usage_msg(ods_core::invalid_choice(
+                "--editor",
+                other,
+                "zed|vscode|nvim|cursor",
             )));
         }
     }

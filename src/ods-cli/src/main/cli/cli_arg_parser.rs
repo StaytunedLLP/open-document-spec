@@ -31,14 +31,14 @@ fn serve_options_from_args(args: &[String]) -> Result<ServeOptions, CliError> {
             "--root" => {
                 let v = args
                     .get(i + 1)
-                    .ok_or_else(|| usage("serve --root requires a path"))?;
+                    .ok_or_else(|| usage_msg(ods_core::missing_flag_value("--root", "`ods serve --root .`")))?;
                 root = Some(PathBuf::from(v));
                 i += 2;
             }
             "--mode" => {
                 let v = args
                     .get(i + 1)
-                    .ok_or_else(|| usage("serve --mode requires auto, watch, or poll"))?;
+                    .ok_or_else(|| usage_msg(ods_core::missing_flag_value("--mode", "`ods serve --mode auto|watch|poll`")))?;
                 mode = parse_serve_mode(v)?;
                 i += 2;
             }
@@ -49,10 +49,10 @@ fn serve_options_from_args(args: &[String]) -> Result<ServeOptions, CliError> {
             "--poll-secs" => {
                 let v = args
                     .get(i + 1)
-                    .ok_or_else(|| usage("serve --poll-secs requires seconds"))?;
+                    .ok_or_else(|| usage_msg(ods_core::missing_flag_value("--poll-secs", "`ods serve --poll-secs 10`")))?;
                 poll_secs = v
                     .parse()
-                    .map_err(|_| usage("serve --poll-secs requires a positive integer"))?;
+                    .map_err(|_| usage_msg(ods_core::missing_flag_value("--poll-secs", "`ods serve --poll-secs 10`")))?;
                 i += 2;
             }
             other if !other.starts_with('-') => {
@@ -76,9 +76,7 @@ fn parse_serve_mode(value: &str) -> Result<ServeMode, CliError> {
         "auto" => Ok(ServeMode::Auto),
         "watch" => Ok(ServeMode::Watch),
         "poll" => Ok(ServeMode::Poll),
-        other => Err(usage(format!(
-            "invalid serve --mode {other} (use auto, watch, or poll)"
-        ))),
+        other => Err(usage_msg(ods_core::invalid_choice("--mode", other, "auto|watch|poll"))),
     }
 }
 
@@ -109,7 +107,7 @@ fn parse_export_args(args: &[String]) -> Result<(PathBuf, PathBuf, OutputFormat,
             "--out" => {
                 let v = args
                     .get(i + 1)
-                    .ok_or_else(|| usage("export --out requires a path"))?;
+                    .ok_or_else(|| usage_msg(ods_core::missing_flag_value("--out", "`ods export graph --out .ods/graph.md`")))?;
                 out = Some(PathBuf::from(v));
                 i += 2;
             }
@@ -120,19 +118,25 @@ fn parse_export_args(args: &[String]) -> Result<(PathBuf, PathBuf, OutputFormat,
             "--format" => {
                 let v = args
                     .get(i + 1)
-                    .ok_or_else(|| usage("export --format requires text, json, or md"))?;
+                    .ok_or_else(|| usage_msg(ods_core::missing_flag_value("--format", "`--format text|json|md`")))?;
                 format = match v.as_str() {
                     "text" => OutputFormat::Text,
                     "json" => OutputFormat::Json,
                     "md" | "markdown" => OutputFormat::Text, // md triggers markdown file or text output
-                    other => return Err(usage(format!("invalid export --format {other} (use text, json, or md)"))),
+                    other => {
+                        return Err(usage_msg(ods_core::invalid_choice(
+                            "--format",
+                            other,
+                            "text|json|md",
+                        )));
+                    }
                 };
                 i += 2;
             }
             "--spec" => {
                 let v = args
                     .get(i + 1)
-                    .ok_or_else(|| usage("export --spec requires ods or okf"))?;
+                    .ok_or_else(|| usage_msg(ods_core::missing_flag_value("--spec", "`--spec ods` or `--spec okf`")))?;
                 spec = match v.to_lowercase().as_str() {
                     "okf" | "okf:0.2" => "okf:0.2".to_string(),
                     _ => "ods:0.1".to_string(),
@@ -178,7 +182,7 @@ fn parse_share_args(
             "--out" => {
                 let v = args
                     .get(i + 1)
-                    .ok_or_else(|| usage("share --out requires a path"))?;
+                    .ok_or_else(|| usage_msg(ods_core::missing_flag_value("--out", "`ods share --out ./public`")))?;
                 out = Some(PathBuf::from(v));
                 i += 2;
             }
@@ -206,7 +210,7 @@ fn parse_share_args(
             .unwrap_or_else(|| env::current_dir().unwrap_or_else(|_| PathBuf::from("."))),
     );
     let scope = path.unwrap_or_else(|| root.clone());
-    let out = out.ok_or_else(|| usage("share --out <dir> is required"))?;
+    let out = out.ok_or_else(|| usage_msg(ods_core::missing_flag_value("--out", "`ods share --out ./public`")))?;
     Ok((root, scope, out, include_org, include_private))
 }
 
@@ -231,37 +235,36 @@ fn parse_common_flags(
             "--mode" | "--level" => {
                 let value = args
                     .get(i + 1)
-                    .ok_or_else(|| usage("missing value for --mode / --level"))?;
+                    .ok_or_else(|| usage_msg(ods_core::missing_flag_value("--mode/--level", "`ods lint --mode strict`")))?;
                 level = match value.to_lowercase().as_str() {
                     "standard" | "1" => LintLevel::Standard,
                     "strict" | "3" => LintLevel::Strict,
-                    other => return Err(usage(format!("invalid compliance mode '{other}' (use standard or strict)"))),
+                    other => {
+                        return Err(usage_msg(ods_core::invalid_choice(
+                            "--mode/--level",
+                            other,
+                            "standard|strict|1|3",
+                        )));
+                    }
                 };
                 i += 2;
             }
             "--format" => {
                 let value = args
                     .get(i + 1)
-                    .ok_or_else(|| usage("missing value for --format"))?;
+                    .ok_or_else(|| usage_msg(ods_core::missing_flag_value("--format", "`--format text|json|sarif`")))?;
                 format = match value.as_str() {
                     "text" => OutputFormat::Text,
                     "json" => OutputFormat::Json,
                     "sarif" => OutputFormat::Sarif,
                     other => {
-                        return Err(usage(format!(
-                            "invalid --format {other} (use text, json, or sarif)"
-                        )));
+                        return Err(usage_msg(ods_core::invalid_choice("--format", other, "text|json|sarif")));
                     }
                 };
                 i += 2;
             }
             "--ods" => {
-                return Err(usage(
-                    "unknown flag: --ods\n\n\
-                     ODS is the default native engine of this CLI — no flag is needed.\n\
-                     Use bare `ods <cmd>` for ODS.\n\
-                     Use `--okf` or `--skills` only for other specs.",
-                ));
+                return Err(usage_msg(ods_core::forbidden_ods_flag()));
             }
             "--okf"
             | "--skills"
@@ -305,7 +308,7 @@ fn parse_common_flags(
                 i += 2;
             }
             flag if flag.starts_with('-') => {
-                return Err(usage(format!("unknown flag: {flag}")));
+                return Err(usage_msg(ods_core::unknown_flag(flag, "ods help")));
             }
             other => {
                 if path.is_none() {

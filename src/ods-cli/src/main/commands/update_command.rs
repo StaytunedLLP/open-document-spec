@@ -4,7 +4,7 @@ fn git_detect_renames(root: &Path) -> Result<Option<Vec<(PathBuf, PathBuf)>>, Cl
         .arg(root)
         .args(["rev-parse", "--is-inside-work-tree"])
         .output()
-        .map_err(|err| failure(format!("git unavailable: {err}")))?;
+        .map_err(|err| fail_msg(ods_core::io_failed("git", err)))?;
     if !probe.status.success() {
         return Ok(None);
     }
@@ -13,9 +13,9 @@ fn git_detect_renames(root: &Path) -> Result<Option<Vec<(PathBuf, PathBuf)>>, Cl
         .arg(root)
         .args(["status", "--porcelain=v1", "-z", "--untracked-files=no"])
         .output()
-        .map_err(|err| failure(format!("git status failed: {err}")))?;
+        .map_err(|err| fail_msg(ods_core::io_failed("git status", err)))?;
     if !output.status.success() {
-        return Err(failure(format!("git status exited with {}", output.status)));
+        return Err(fail_msg(ods_core::io_failed("git status", output.status)));
     }
     // Porcelain -z rename: first NUL field is "R[score] newpath" (or "R  newpath"),
     // second field is the original path (verified against git status --porcelain -z).

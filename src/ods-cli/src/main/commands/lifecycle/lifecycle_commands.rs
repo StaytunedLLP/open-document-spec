@@ -5,7 +5,10 @@ use ods_core::{
 
 fn run_new_command(args: &[String]) -> Result<ExitCode, CliError> {
     if args.len() < 3 {
-        return Err(usage("ods new <path> [--profile <p>] [--title \"<t>\"]"));
+        return Err(usage_msg(ods_core::missing_required_arg(
+            "path",
+            "ods new <path> [--profile <p>] [--title \"<t>\"]",
+        )));
     }
 
     let mut target_path = None;
@@ -16,12 +19,12 @@ fn run_new_command(args: &[String]) -> Result<ExitCode, CliError> {
     while i < args.len() {
         match args[i].as_str() {
             "--profile" | "-p" => {
-                let v = args.get(i + 1).ok_or_else(|| usage("--profile requires a profile name"))?;
+                let v = args.get(i + 1).ok_or_else(|| usage_msg(ods_core::missing_flag_value("--profile", "`ods new path.md --profile note`")))?;
                 profile = Some(v.clone());
                 i += 2;
             }
             "--title" | "-t" => {
-                let v = args.get(i + 1).ok_or_else(|| usage("--title requires a title string"))?;
+                let v = args.get(i + 1).ok_or_else(|| usage_msg(ods_core::missing_flag_value("--title", "`ods new path.md --title \"My Doc\"`")))?;
                 title = Some(v.clone());
                 i += 2;
             }
@@ -36,12 +39,12 @@ fn run_new_command(args: &[String]) -> Result<ExitCode, CliError> {
     }
 
     let Some(path) = target_path else {
-        return Err(usage("ods new requires a file path (e.g. ods new docs/guides/oauth.md)"));
+        return Err(usage_msg(ods_core::missing_required_arg("path", "ods new <path> [--profile <p>]")));
     };
 
     let root = env::current_dir().unwrap_or_else(|_| PathBuf::from("."));
     let report = scaffold_new_document(&root, &path, NewDocumentOptions { profile, title })
-        .map_err(|e| failure(format!("failed to scaffold document: {e}")))?;
+        .map_err(|e| fail_msg(ods_core::scaffold_failed(e)))?;
 
     println!(
         "created document {}\n  id: {}\n  profile: {}\n  indexes updated: {}",
@@ -61,14 +64,14 @@ fn run_rm_command(args: &[String]) -> Result<ExitCode, CliError> {
 
     let root_flag = parse_flag_val(args, "--root").map(PathBuf::from);
     let (root_dir, target_str) = if let Some(rf) = root_flag {
-        let t = positionals.first().ok_or_else(|| usage("ods rm --root <dir> <path-or-id>"))?;
+        let t = positionals.first().ok_or_else(|| usage_msg(ods_core::missing_required_arg("path-or-id", "ods rm --root <dir> <path-or-id>")))?;
         (rf, t.clone())
     } else if positionals.len() >= 2 && PathBuf::from(&positionals[0]).is_dir() {
         (PathBuf::from(&positionals[0]), positionals[1].clone())
     } else if !positionals.is_empty() {
         (env::current_dir().unwrap_or_else(|_| PathBuf::from(".")), positionals[0].clone())
     } else {
-        return Err(usage("ods rm [root] <path-or-id> [--dry-run]"));
+        return Err(usage_msg(ods_core::missing_required_arg("path-or-id", "ods rm [root] <path-or-id> [--dry-run]")));
     };
 
     let root = resolve_root_path(root_dir);
@@ -92,7 +95,7 @@ fn run_rm_command(args: &[String]) -> Result<ExitCode, CliError> {
     }
 
     let report = atomic_delete_document(&root, &target, RemoveDocumentOptions { scrub_dependencies: true })
-        .map_err(|e| failure(format!("failed to delete document: {e}")))?;
+        .map_err(|e| fail_msg(ods_core::io_failed("delete document", e)))?;
 
     match format {
         OutputFormat::Text => {
@@ -120,12 +123,12 @@ fn run_rm_command(args: &[String]) -> Result<ExitCode, CliError> {
 
 fn run_archive_command(args: &[String]) -> Result<ExitCode, CliError> {
     if args.len() < 3 {
-        return Err(usage("ods archive <path-or-id>"));
+        return Err(usage_msg(ods_core::missing_required_arg("path-or-id", "ods archive <path-or-id>")));
     }
 
     let target = PathBuf::from(&args[2]);
     let root = env::current_dir().unwrap_or_else(|_| PathBuf::from("."));
-    let workspace = load_workspace(&root).map_err(|e| failure(format!("load workspace error: {e}")))?;
+    let workspace = load_workspace(&root).map_err(|e| fail_load(&root, e))?;
 
     let target_abs = if target.is_absolute() {
         target.clone()
@@ -155,14 +158,16 @@ fn run_archive_command(args: &[String]) -> Result<ExitCode, CliError> {
                 || did == target_id_str
                 || target_stem.as_deref() == Some(did.as_str())
         })
-        .ok_or_else(|| failure(format!("document not found: {}", target.display())))?;
+        .ok_or_else(|| {
+            fail_msg(ods_core::document_not_found(&target.display().to_string()))
+        })?;
 
     let doc_id = document_id(&root, &doc.path, match &doc.frontmatter {
         FrontmatterState::Parsed(fm) => Some(fm),
         _ => None,
     });
 
-    let text = fs::read_to_string(&doc.path).map_err(|e| failure(format!("read error: {e}")))?;
+    let text = fs::read_to_string(&doc.path).map_err(|e| fail_msg(ods_core::io_failed("read file", e)))?;
     let (fm_opt, body) = ods_core::split_frontmatter(&text);
 
     let new_text = if let Some(fm) = fm_opt {
@@ -172,7 +177,7 @@ fn run_archive_command(args: &[String]) -> Result<ExitCode, CliError> {
         format!("---\nstatus: archived\n---\n\n{}", text.trim_start())
     };
 
-    fs::write(&doc.path, new_text).map_err(|e| failure(format!("write error: {e}")))?;
+    fs::write(&doc.path, new_text).map_err(|e| fail_msg(ods_core::io_failed("write file", e)))?;
 
     println!("archived document {}\n  id: {}\n  status: archived", doc.path.display(), doc_id);
     Ok(ExitCode::from(0))
@@ -278,7 +283,7 @@ fn run_logs_command(args: &[String]) -> Result<ExitCode, CliError> {
             }
             Ok(body) => print!("{body}"),
             Err(e) => {
-                return Err(failure(format!("read {}: {e}", log_path.display())));
+                return Err(fail_msg(ods_core::io_failed("read log", e)));
             }
         }
         Ok(())

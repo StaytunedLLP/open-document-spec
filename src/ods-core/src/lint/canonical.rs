@@ -54,7 +54,7 @@ fn dfs_cycles(
                         diagnostics.push(Diagnostic {
                             path: doc.path.clone(),
                             severity: Severity::Error,
-                            message: format!("depends cycle detected: {cycle}"),
+                            message: crate::error::lint_depends_cycle(&cycle),
                         });
                     }
                 }
@@ -107,7 +107,7 @@ fn lint_document(
             diagnostics.push(Diagnostic {
                 path: document.path.clone(),
                 severity: Severity::Error,
-                message: format!("frontmatter parse error: {message}"),
+                message: crate::error::lint_frontmatter_parse(message),
             });
             return diagnostics;
         }
@@ -123,7 +123,7 @@ fn lint_document(
                     diagnostics.push(Diagnostic {
                         path: document.path.clone(),
                         severity: Severity::Warning,
-                        message: format!("invalid created date format: '{created}' (expected YYYY-MM-DD or ISO-8601)"),
+                        message: crate::error::lint_invalid_date("created", created),
                     });
                 }
             }
@@ -133,7 +133,7 @@ fn lint_document(
                     diagnostics.push(Diagnostic {
                         path: document.path.clone(),
                         severity: Severity::Warning,
-                        message: format!("invalid updated date format: '{updated}' (expected YYYY-MM-DD or ISO-8601)"),
+                        message: crate::error::lint_invalid_date("updated", updated),
                     });
                 }
             }
@@ -148,7 +148,7 @@ fn lint_document(
                         diagnostics.push(Diagnostic {
                             path: document.path.clone(),
                             severity: Severity::Warning,
-                            message: format!("missing expected key '{key}' for profile '{profile}'"),
+                            message: crate::error::lint_missing_expected_key(key, profile),
                         });
                     }
                 }
@@ -156,7 +156,7 @@ fn lint_document(
                 diagnostics.push(Diagnostic {
                     path: document.path.clone(),
                     severity: Severity::Warning,
-                    message: format!("unknown profile: {profile}"),
+                    message: crate::error::lint_unknown_profile(profile),
                 });
             }
 
@@ -197,9 +197,8 @@ fn lint_root_ods_metadata(workspace: &Workspace) -> Vec<Diagnostic> {
         return vec![Diagnostic {
             path: root_index_path,
             severity: Severity::Error,
-            message: format!(
-                "missing root index.ods.md with ods: {}",
-                crate::model::current_ods_spec_version()
+            message: crate::error::lint_missing_root_index(
+                crate::model::current_ods_spec_version(),
             ),
         }];
     };

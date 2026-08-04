@@ -17,6 +17,14 @@ Rules for coding agents in the **Open Document Spec** monorepo.
 
 Engine SoT: `src/ods-core/src/spec/schema.rs`. Details: `.agents/rules/30-schema-keys.md`.
 
+## User-facing errors are catalog-driven
+
+CLI/engine user copy lives in **`src/ods-core/src/error/messages.rs`** (not ad-hoc `failure("…")` strings in commands).
+
+- Shape: `error:` / `usage:` one-liner + `Next:` directive (optional `Hint:`)
+- Exit: usage **2**, failure **1**
+- When adding a failure path: add/reuse a catalog builder, then call `fail_msg` / `usage_msg` from the CLI
+
 ## Token & context reliability
 
 - Prefer `ods context <id>` (`--max-tokens N`, `--print`). Read **only** returned paths.

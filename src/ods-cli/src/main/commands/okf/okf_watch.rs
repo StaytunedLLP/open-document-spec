@@ -11,7 +11,7 @@ fn run_okf_watch_command(args: &[String], headless: bool) -> Result<ExitCode, Cl
     let poll = Duration::from_secs(2);
 
     let tick = |root: &Path| -> Result<(), CliError> {
-        let bundle = ods_core::load_okf_bundle(root).map_err(|e| failure(e.to_string()))?;
+        let bundle = ods_core::load_okf_bundle(root).map_err(|e| fail_io("okf watch", e))?;
         let diagnostics = ods_core::lint_okf_bundle_with_level(&bundle, okf_level);
         if !headless || !diagnostics.is_empty() {
             print_diagnostics(&diagnostics, format);
