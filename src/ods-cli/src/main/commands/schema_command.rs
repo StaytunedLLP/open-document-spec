@@ -39,61 +39,97 @@ fn run_schema_command(args: &[String]) -> Result<ExitCode, CliError> {
 }
 
 fn generate_ods_json_schema() -> String {
+    // Universal keys (tags, description, owner, …) are top-level only so any
+    // SSG/CMS/tool can read them. Engine keys nest under `ods:` and must not
+    // include `tags`.
     r#"{
   "$schema": "http://json-schema.org/draft-07/schema#",
   "$id": "https://opendocspec.org/schemas/v0.1/ods.schema.json",
   "title": "Open Document Spec (ODS) Frontmatter Schema",
-  "description": "Frontmatter metadata validation schema for Open Document Spec Markdown files.",
+  "description": "Frontmatter metadata validation schema for Open Document Spec Markdown files. Universal keys (tags, description, owner) are top-level; engine keys nest under ods:.",
   "type": "object",
-  "required": ["profile"],
   "properties": {
-    "ods": {
+    "description": {
       "type": "string",
-      "description": "Spec version marker (e.g. '0.1'). Required on workspace root index.md."
+      "description": "Single-line summary (universal top-level; SSG meta / indexes)."
     },
-    "profile": {
-      "type": "string",
-      "description": "Document profile catalog schema (e.g. index, note, feature, guide, policy, rfc, postmortem)."
+    "tags": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "Free-form taxonomy tags. MUST be top-level (never under ods:) so Obsidian, Hugo, Docusaurus, Astro, and other tools can read them."
     },
-    "id": {
-      "type": "string",
-      "description": "Stable unique document identifier."
+    "owner": {
+      "oneOf": [
+        { "type": "string" },
+        { "type": "array", "items": { "type": "string" } }
+      ],
+      "description": "Responsible person or team (universal top-level)."
     },
     "title": {
       "type": "string",
       "description": "Document title override (optional; H1 heading preferred)."
     },
-    "status": {
-      "type": "string",
-      "enum": ["draft", "stable", "deprecated", "archived"],
-      "default": "draft",
-      "description": "Lifecycle status of the document."
-    },
-    "tags": {
-      "type": "array",
-      "items": { "type": "string" },
-      "description": "Taxonomy tags associated with this document."
-    },
-    "depends": {
-      "type": "array",
-      "items": { "type": "string" },
-      "description": "Explicit prerequisite document dependency IDs."
-    },
-    "related": {
-      "type": "array",
-      "items": { "type": "string" },
-      "description": "Related document IDs for context expansion."
-    },
-    "share": {
-      "type": "string",
-      "enum": ["public", "org", "private"],
-      "default": "public",
-      "description": "Access control and pack export visibility."
+    "ods": {
+      "oneOf": [
+        {
+          "type": "string",
+          "description": "Root index only: ODS spec version marker (e.g. '0.1')."
+        },
+        {
+          "type": "object",
+          "description": "ODS engine metadata map. Do not put tags here — tags are top-level only.",
+          "properties": {
+            "profile": {
+              "type": "string",
+              "description": "Document profile (note, feature, guide, api, …)."
+            },
+            "status": {
+              "type": "string",
+              "enum": ["draft", "stable", "deprecated", "archived"],
+              "default": "draft",
+              "description": "Lifecycle status."
+            },
+            "id": {
+              "type": "string",
+              "description": "Stable unique document identifier override."
+            },
+            "share": {
+              "type": "string",
+              "enum": ["public", "org", "private"],
+              "default": "public",
+              "description": "Access control and pack export visibility."
+            },
+            "depends": {
+              "type": "array",
+              "items": { "type": "string" },
+              "description": "Hard dependency document refs."
+            },
+            "related": {
+              "type": "array",
+              "items": { "type": "string" },
+              "description": "Soft related document refs."
+            },
+            "resources": {
+              "type": "array",
+              "description": "Non-Markdown resource refs."
+            },
+            "code": {
+              "type": "array",
+              "description": "Code path bindings."
+            },
+            "context": {
+              "type": "object",
+              "description": "AI context pack directives."
+            }
+          },
+          "additionalProperties": false
+        }
+      ]
     },
     "custom-profiles": {
       "type": "array",
       "items": { "type": "string" },
-      "description": "Custom profile catalog files registered on root index.md."
+      "description": "Custom profile catalog files registered on root index."
     },
     "packs": {
       "type": "array",

@@ -128,3 +128,51 @@ fn migrate_workspace_frontmatter_helper_and_edge_cases() {
     let no_colon_fm = "---\nno_colon_raw_line\n---\n";
     assert!(migrate_frontmatter_to_canonical(no_colon_fm).is_none());
 }
+
+#[test]
+fn migrate_hoists_nested_tags_under_ods_to_root() {
+    let text = "---\ndescription: Nested tags bug\nods:\n  profile: note\n  status: draft\n  tags:\n    - block\n    - action\n---\n\n# Doc\n";
+    let migrated = migrate_frontmatter_to_canonical(text).expect("should hoist tags");
+    assert!(
+        migrated.starts_with("---\ndescription: Nested tags bug\ntags:\n  - action\n  - block\nods:\n  profile: note\n  status: draft\n---\n")
+            || migrated.contains("tags:\n  - block\n  - action\n")
+            || migrated.contains("tags:\n  - action\n  - block\n"),
+        "expected root tags: {migrated}"
+    );
+    assert!(
+        !migrated.contains("  tags:"),
+        "tags must not remain nested under ods: {migrated}"
+    );
+    assert!(
+        migrate_frontmatter_to_canonical(&migrated).is_none(),
+        "second migrate should be no-op: {migrated}"
+    );
+}
+
+#[test]
+fn migrate_never_drops_nested_tag_values() {
+    let dir = temp_workspace();
+    fs::write(
+        dir.join("index.md"),
+        "---\nprofile: index\nods: 0.1\n---\n\n# R\n",
+    )
+    .unwrap();
+    fs::write(
+        dir.join("doc.md"),
+        "---\nods:\n  profile: guide\n  status: stable\n  tags:\n    - billing\n    - customer-care\n---\n\n# Doc\n",
+    )
+    .unwrap();
+
+    let workspace = load_workspace(&dir).unwrap();
+    let changed = migrate_workspace_frontmatter_with_workspace(&workspace).unwrap();
+    assert_eq!(changed.len(), 1);
+
+    let text = fs::read_to_string(dir.join("doc.md")).unwrap();
+    assert!(text.contains("billing"), "{text}");
+    assert!(text.contains("customer-care"), "{text}");
+    assert!(
+        text.contains("tags:\n  - billing\n  - customer-care\n")
+            || text.contains("tags:\n  - customer-care\n  - billing\n"),
+        "{text}"
+    );
+}

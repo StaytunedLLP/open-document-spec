@@ -143,6 +143,9 @@ pub struct Frontmatter {
     pub context: Option<ContextSpec>,
     pub owner: Option<String>,
     pub tags: Vec<String>,
+    /// True when `tags` was found nested under `ods:` (invalid placement).
+    /// Tags remain universal root-level keys; this flag drives lint + migrate repair.
+    pub tags_misplaced: bool,
     pub ods: Option<String>,
     pub aliases: BTreeMap<String, Vec<String>>,
     /// Workspace-relative path prefixes to exclude from scan/index (root `index.md` only).

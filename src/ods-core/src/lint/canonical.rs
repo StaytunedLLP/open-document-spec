@@ -183,7 +183,7 @@ fn lint_document(
 
             diagnostics.extend(lint_alias_scope(workspace, document, frontmatter));
             diagnostics.extend(lint_ods_scope(workspace, document, frontmatter));
-            diagnostics.extend(crate::tags::lint_document_tags(document));
+            diagnostics.extend(crate::tags::lint_document_tags(document, workspace));
 
             if matches!(level, LintLevel::Level3) {
                 diagnostics.extend(lint_references(

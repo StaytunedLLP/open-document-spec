@@ -65,7 +65,8 @@ The primary method to run ODS is via the single native `ods` CLI binary:
 
 1. **Custom Domain Keys (`title`, `name`, `author`, `reviewer`, `target_release`, `service`, `team`, `tags`)**:
    - Placed at the **top-level** of frontmatter (outside `ods:`). Permissively supports both `title:` and `name:`.
-   - Keeps custom metadata clean, human-readable, and compatible with Static Site Generators (Docusaurus, Astro, Hugo, Next.js).
+   - **`tags` MUST be top-level only** — never under `ods:` — so Obsidian, Hugo, Docusaurus, Astro, and any YAML consumer can read them without knowing ODS.
+   - Misplaced nested `tags` under `ods:` produce a lint warning; repair with `ods fmt --migrate` (hoists tags to root; never drops values).
 2. **ODS Engine Keys (`profile`, `status`, `id`, `share`, `depends`, `related`, `code`, `resources`)**:
    - Nested inside the **`ods:` map** (`ods.profile: rfc`, `ods.status: draft`).
 
@@ -76,6 +77,9 @@ name: "cache_strategy"
 author: "Alice Smith"
 reviewer: "Bob Jones"
 target_release: "v2.4"
+tags:
+  - caching
+  - redis
 ods:
   profile: rfc
   status: draft

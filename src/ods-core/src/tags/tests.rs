@@ -71,9 +71,63 @@ mod tests {
         assert!(!tag_usage_with_builtins(&ws, true).is_empty());
 
         let doc_a = ws.document_by_path(&dir.join("a.md")).unwrap();
-        let diags = lint_document_tags(doc_a);
+        let diags = lint_document_tags(doc_a, &ws);
         assert!(diags.iter().any(|d| d.message.contains("tag has spaces")));
         assert!(diags.iter().any(|d| d.message.contains("tag collides with status value")));
         assert!(diags.iter().any(|d| d.message.contains("tag collides with profile name")));
+    }
+
+    #[test]
+    fn nested_tags_under_ods_are_misplaced_and_visible_until_migrate() {
+        let dir = ods_test_support::temp_workspace();
+        std::fs::write(
+            dir.join("index.md"),
+            "---\nprofile: index\nods: 0.1\n---\n\n# R\n",
+        )
+        .unwrap();
+        std::fs::write(
+            dir.join("nested.md"),
+            "---\nods:\n  profile: note\n  status: draft\n  tags:\n    - billing\n    - block\n---\n\n# Nested\n",
+        )
+        .unwrap();
+
+        let ws = crate::fs::load_workspace(&dir).unwrap();
+        let doc = ws.document_by_path(&dir.join("nested.md")).unwrap();
+        let FrontmatterState::Parsed(fm) = &doc.frontmatter else {
+            panic!("expected parsed frontmatter");
+        };
+        assert!(fm.tags_misplaced, "nested tags must set tags_misplaced");
+        assert!(fm.tags.iter().any(|t| t == "billing"));
+        assert!(fm.tags.iter().any(|t| t == "block"));
+        // Temporary in-memory merge so find/tags can surface broken docs before repair.
+        assert!(docs_with_tag(&ws, "billing").iter().any(|id| id.contains("nested")));
+
+        let diags = lint_document_tags(doc, &ws);
+        assert!(
+            diags.iter().any(|d| d.message.contains("tags must be top-level")),
+            "{diags:?}"
+        );
+    }
+
+    #[test]
+    fn migrate_hoists_nested_tags_to_root_without_dropping() {
+        let text = "---\nods:\n  profile: note\n  status: draft\n  tags:\n    - billing\n    - block\n---\n\n# Doc\n";
+        let out = crate::mv::migrate_frontmatter_to_canonical(text).expect("should hoist");
+        assert!(out.contains("tags:\n  - billing\n  - block\n"), "{out}");
+        assert!(out.contains("ods:\n  profile: note\n  status: draft\n"), "{out}");
+        assert!(
+            !out.contains("ods:\n  profile: note\n  status: draft\n  tags:"),
+            "tags must not remain under ods: {out}"
+        );
+        // Idempotent after hoist
+        assert!(crate::mv::migrate_frontmatter_to_canonical(&out).is_none());
+    }
+
+    #[test]
+    fn migrate_merges_root_and_nested_tags() {
+        let text = "---\ntags:\n  - billing\nods:\n  profile: note\n  tags:\n    - block\n    - Billing\n---\n\n# Doc\n";
+        let out = crate::mv::migrate_frontmatter_to_canonical(text).expect("should migrate");
+        assert!(out.contains("tags:\n  - billing\n  - block\n"), "{out}");
+        assert!(!out.contains("  tags:"), "no nested tags under ods: {out}");
     }
 }

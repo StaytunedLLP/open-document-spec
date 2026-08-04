@@ -15,12 +15,16 @@ pub fn rewrite_tags_in_text(text: &str, from: &str, to: &str) -> Option<String> 
         let indent = line.len() - trimmed.len();
 
         if !in_tags {
-            if let Some(rest) = trimmed.strip_prefix("tags:") {
+            // Root-only contract: only rewrite top-level `tags:` (indent 0).
+            // Nested tags under `ods:` are invalid; hoist via `ods fmt --migrate` first.
+            if indent == 0
+                && let Some(rest) = trimmed.strip_prefix("tags:")
+            {
                 let rest = rest.trim();
                 // Inline form: tags: [a, b] or tags: a
                 if !rest.is_empty() && !rest.starts_with('#') {
                     if let Some(new_inline) = rewrite_inline_tags(rest, &from_n, &to_n) {
-                        *line = format!("{}tags: {}", " ".repeat(indent), new_inline);
+                        *line = format!("tags: {new_inline}");
                         changed = true;
                     }
                     in_tags = false;

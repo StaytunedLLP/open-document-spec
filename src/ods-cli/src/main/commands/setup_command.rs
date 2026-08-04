@@ -23,10 +23,11 @@ Commands:
   index [path]             Generate index.md files
   index --check [path]     Exit 1 if indexes are stale
   profiles [path]          List loaded profiles
-  tags [path]              List project tags (observed) with use counts
+  tags [path]              List root-level project tags (observed) with use counts
   tags --all [path]        Include unused default ODS tags
   find [path] --tag <t>    List document ids with tag (repeat --tag = OR)
-  tag rename <old> <new>   Rewrite a tag across frontmatter (dry-run; --write)
+  tag rename <old> <new>   Rewrite a root-level tag across frontmatter (dry-run; --write)
+                           Nested tags under ods: are invalid — run: ods fmt --migrate
   setup [path]             Set up machine service for workspace + check updates and workspace health
   context [path] <id>      Resolve reading list for a document
   graph [path]             Print depends/related edges

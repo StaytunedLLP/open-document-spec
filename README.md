@@ -219,7 +219,8 @@ ods:
 | `ods mv` | `ods mv <src> <dst>` | Move/rename Markdown file and auto-heal graph links and references. |
 | `ods adopt` | `ods adopt [path]` | Auto-draft frontmatter on unindexed legacy Markdown files. |
 | `ods profile` | `ods profile list/init` | List registered profiles or scaffold new custom profile schemas. |
-| `ods tag` | `ods tag catalog/rename` | Query tag catalog, suggest synonyms, or perform global tag renames. |
+| `ods tags` | `ods tags [path] [--all]` | List root-level project tags with use counts (`--all` includes unused default tags). Tags must be top-level frontmatter (not under `ods:`). |
+| `ods tag rename` | `ods tag rename <old> <new> [--write]` | Rewrite a root-level tag across document frontmatter (dry-run; `--write` applies). |
 | `ods share` | `ods share [path]` | Export public documentation pack while stripping `share: private` files. |
 | `ods pack` | `ods pack <subcommand>` | Manage reusable ODS document packs (`add`, `sync`, `list`, `preview`, `remove`, `init`). |
 | `ods bench` | `ods bench <subcommand>` | ROI benchmarking & frontmatter snapshot (`stats`, `strip`, `restore`, `run`). |
