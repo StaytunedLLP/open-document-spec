@@ -20,14 +20,19 @@ When `specs/**`, CLI flags, or key placement change:
 9. **Install scripts** — `src/scripts/install.*` is source of truth; sync `app-web/public/` + `skills/ods/scripts/`
 10. **CHANGELOG** — Unreleased bullet
 
-## Grep dead paths
+## Grep dead paths + false CLI claims
 
 ```bash
 # from repo root
 grep -RInE 'SPEC\.md|resources-and-code|/spec/spec|non-goals\.md' \
   --include='*.md' --include='*.astro' --include='*.ts' --include='*.txt' \
   docs app-web/src app-web/public skills AGENTS.md README.md || true
+
+# Do not teach export-as-routine-context or missing flags
+grep -RInE 'export graph.*token|related.*chains.*context' skills/ods README.md docs/guide || true
 ```
+
+After skill edits: confirm `ods skill install` bundle in `skill_command.rs` still lists current `references/*`.
 
 ## Optional verify
 

@@ -197,14 +197,18 @@ When editing Markdown in an ODS workspace:
 3. Use `ods mv` for renames; `ods lint` after structural edits.
 "#;
 
+/// Agent-facing skill bundle: progressive references only (no evals — those burn host context).
 const SKILL_BUNDLE: &[(&str, &[u8])] = &[
     ("SKILL.md", include_bytes!("../../../../../skills/ods/SKILL.md")),
-    ("CHANGELOG.md", include_bytes!("../../../../../skills/ods/CHANGELOG.md")),
     ("index.md", include_bytes!("../../../../../skills/ods/index.md")),
-    ("evals/evals.json", include_bytes!("../../../../../skills/ods/evals/evals.json")),
     ("references/index.md", include_bytes!("../../../../../skills/ods/references/index.md")),
-    ("references/non-goals.md", include_bytes!("../../../../../skills/ods/references/non-goals.md")),
+    ("references/intro.md", include_bytes!("../../../../../skills/ods/references/intro.md")),
+    ("references/keys.md", include_bytes!("../../../../../skills/ods/references/keys.md")),
+    ("references/core.md", include_bytes!("../../../../../skills/ods/references/core.md")),
+    ("references/scope.md", include_bytes!("../../../../../skills/ods/references/scope.md")),
+    ("references/lsp.md", include_bytes!("../../../../../skills/ods/references/lsp.md")),
     ("references/spec.md", include_bytes!("../../../../../skills/ods/references/spec.md")),
+    ("references/non-goals.md", include_bytes!("../../../../../skills/ods/references/non-goals.md")),
     ("scripts/bootstrap.ps1", include_bytes!("../../../../../skills/ods/scripts/bootstrap.ps1")),
     ("scripts/bootstrap.sh", include_bytes!("../../../../../skills/ods/scripts/bootstrap.sh")),
     ("scripts/install-from-release.sh", include_bytes!("../../../../../skills/ods/scripts/install-from-release.sh")),

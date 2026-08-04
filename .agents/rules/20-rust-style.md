@@ -14,14 +14,10 @@
 
 ## Quality before handoff
 
+See `.agents/rules/40-quality-gates.md` and skill `quality-gate`.
+
 ```bash
-cargo fmt --all -- --check
-cargo clippy --workspace --all-targets --locked -- -D warnings
-cargo test --workspace --locked
-# or full gate:
-SKIP_RELEASE_BUILD=true ./src/scripts/check-local.sh
-ODS_COVERAGE_FAIL_UNDER_LINES=90 ./src/scripts/coverage.sh
+.agents/hooks/scripts/pre-handoff.sh --full
 ```
 
-- Workspace coverage bar: **≥90% lines** with T3 excludes (`docs/maintainer/coverage-excludes.md`)
 - Prefer table-driven edge tests (flags, keys, invalid enums) over coverage-only noise

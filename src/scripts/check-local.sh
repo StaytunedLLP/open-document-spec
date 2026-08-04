@@ -45,6 +45,11 @@ run cargo clippy --workspace --all-targets --locked -- -D warnings
 run cargo test --workspace --locked
 run "${ROOT}/src/scripts/check-naming.sh"
 run "${ROOT}/src/scripts/check-odc-residue.sh"
+# Schema registry smoke (unit + ods schema CLI when binary available after tests)
+if [ -x "${ROOT}/src/scripts/check-schema-keys.sh" ]; then
+  # Use already-built test/debug binary; skip full recompile if schema tests already ran via cargo test
+  run cargo test -p ods-core --lib spec::schema --locked -- --quiet
+fi
 if [ "${SKIP_RELEASE_BUILD:-}" != "true" ]; then
   run cargo build --workspace --release --locked
 fi

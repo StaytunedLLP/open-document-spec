@@ -154,3 +154,8 @@ src/zed-ods-lsp/target/
 
 # Never commit built Zed extension wasm (CI packs it into release artifacts only)
 *.wasm
+
+# Local agent / ODS tool debris (not product source)
+.claude/
+.cursor/
+**/.ods/

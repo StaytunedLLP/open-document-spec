@@ -31,7 +31,12 @@ fn installs_complete_bundles_for_skill_agents() {
         let installed = directory.path().join(expected_directory);
         assert!(installed.join("SKILL.md").is_file());
         assert!(installed.join("scripts/bootstrap.sh").is_file());
-        assert!(installed.join("references/spec.md").is_file());
+        assert!(installed.join("references/keys.md").is_file());
+        assert!(installed.join("references/intro.md").is_file());
+        assert!(
+            !installed.join("evals/evals.json").exists(),
+            "evals should not be installed into agent hosts (token waste)"
+        );
         assert!(
             fs::read_to_string(installed.join("SKILL.md"))
                 .unwrap()
@@ -49,7 +54,11 @@ fn installs_file_based_agents() {
             "Open Document Specs (ODS) Rules",
         ),
         ("copilot", ".github/copilot-instructions.md", "name: ods"),
-        ("windsurf", ".windsurf/rules/ods.md", "trigger: always_on"),
+        (
+            "windsurf",
+            ".windsurf/rules/ods.md",
+            "trigger: model_decision",
+        ),
     ] {
         let directory = tempdir().expect("temporary test directory");
         let output = ods_bin()

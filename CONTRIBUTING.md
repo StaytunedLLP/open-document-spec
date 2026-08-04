@@ -75,7 +75,7 @@ CLI surface or multi-spec changes must update: `specs/`, `docs/guide/`, `docs/ot
 cargo install cargo-llvm-cov --locked
 ./src/scripts/coverage.sh
 # or:
-IGNORE_T3='(asset_downloader\.rs|update/installer\.rs|update/binary_replacer\.rs|update/http_helpers\.rs|service/launchers\.rs|watch_and_serve_runner\.rs|okf_watch\.rs|github_release\.rs|setup_command\.rs|lsp_command\.rs|git_sync\.rs)'
+IGNORE_T3='(asset_downloader\.rs|update/installer\.rs|update/binary_replacer\.rs|update/http_helpers\.rs|service/launchers\.rs|service_commands\.rs|watch_and_serve_runner\.rs|okf_watch\.rs|github_release\.rs|setup_command\.rs|lsp_command\.rs|git_sync\.rs)'
 cargo llvm-cov --workspace --locked --ignore-filename-regex "$IGNORE_T3" --fail-under-lines 90
 ```
 

@@ -1,4 +1,18 @@
 fn run_lint_command(args: &[String]) -> Result<ExitCode, CliError> {
+    if args.iter().any(|a| a == "--help" || a == "-h") {
+        println!(
+            "ods lint [path] [flags]\n\n\
+             Validate the ODS document graph (and optionally OKF/Skills).\n\n\
+             Flags:\n\
+               --level 1|3 | --mode standard|strict   Compliance level (default 3/strict)\n\
+               --format text|json|sarif\n\
+               --fix                              Regenerate indexes (does not invent missing docs)\n\
+               --canonical-refs                     Warn on extensionless document refs\n\
+               --okf / --skills                     Extra dialect engines\n\
+               --skip-frontmatter-keys              Suppress key-requirement lint\n"
+        );
+        return Ok(ExitCode::from(0));
+    }
     let (root, level, format) = parse_common_flags(args, 2)?;
     let extra = ods_core::parse_extra_spec_flags(args.iter().map(String::as_str))
         .map_err(|e| usage(e.message()))?;
@@ -23,9 +37,11 @@ fn run_lint_command(args: &[String]) -> Result<ExitCode, CliError> {
             .map_err(|err| failure(err.to_string()))?;
         let fix = args.iter().any(|arg| arg == "--fix");
         if fix {
-            let _ = generate_indexes(&workspace);
+            let n = generate_indexes(&workspace).map(|v| v.len()).unwrap_or(0);
             if matches!(format, OutputFormat::Text) {
-                println!("Auto-fixed frontmatter keys and updated workspace indexes.");
+                println!(
+                    "Regenerated {n} index file(s). Note: --fix does not create missing depends targets or rewrite dangling refs."
+                );
             }
         }
         let ods_diags = if canonical_refs {

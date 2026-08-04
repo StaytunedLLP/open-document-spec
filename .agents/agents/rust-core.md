@@ -2,13 +2,13 @@
 
 **Use when:** changing `src/ods-core` or `src/ods-cli` behavior that must stay aligned with specs.
 
-**Process:**
+**Process:** follow `.agents/skills/quality-gate/SKILL.md` when the change is multi-step.
 
-1. Map modules under `src/ods-core/src/` before editing
-2. Prefer functional style (`docs/maintainer/functional-style.md`)
-3. Preserve CLI surface: no `--ods`, no namespaces; subcommand names after the verb (argv)
-4. **Keys/dialects:** edit `spec/schema.rs` registry first; keep lint/`ods schema` schema-driven
-5. Add/adjust tests (edge cases for flags + keys, not only happy path)
-6. Run `SKIP_RELEASE_BUILD=true ./src/scripts/check-local.sh` (includes naming + odc residue)
-7. If coverage-sensitive, `ODS_COVERAGE_FAIL_UNDER_LINES=90 ./src/scripts/coverage.sh`
-8. If behavior is user-visible, update `specs` + guide via docs-sync
+1. Map modules under `src/ods-core/src/` before editing  
+2. Functional style (`docs/maintainer/functional-style.md`)  
+3. CLI locks: no `--ods`, no namespaces; subcommand args after the verb  
+4. Keys/dialects → `spec/schema.rs` first (`.agents/rules/30-schema-keys.md`)  
+5. Edge-case tests (flags + keys), not only happy path  
+6. **Forbidden:** expand T3 coverage excludes without updating `coverage.sh` + `pr.yml` + `coverage-excludes.md` together  
+7. Handoff: `.agents/hooks/scripts/pre-handoff.sh --full`  
+8. User-visible → docs-sync / release-docs skill  

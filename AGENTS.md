@@ -1,88 +1,68 @@
 # AGENTS.md
 
-Rules for coding agents working in this Open Document Spec repository.
+<!-- hand-maintained: do not overwrite with `ods agents sync` at this repo root -->
 
-## CLI product surface (locked)
+Rules for coding agents in the **Open Document Spec** monorepo.
 
-- Binary: **`ods`**
-- **ODS is default** — bare `ods <cmd>` (there is **no** `--ods` flag)
-- Extra specs use flags only:
-  - `--okf` — Google OKF v0.2
-  - `--skills` — Agent Skills (`SKILL.md` packages)
-- Do **not** use namespaces `ods okf` / `ods ods` / `ods skills` (deprecated if present)
-- Editors: **`ods lsp`** (JSON-RPC). Background watcher: `ods serve` / `ods start` — not an LSP
+## Product locks (always)
+
+- Binary: **`ods`** — bare `ods <cmd>` is ODS (there is **no** `--ods` flag)
+- Extra specs: **`--okf`**, **`--skills`** only — never namespaces `ods okf` / `ods ods`
+- Editors: **`ods lsp`** · Watcher: `ods serve` / `ods start` (not LSP)
 - Do not invent `odc:` or `ods-cli:` frontmatter keys
-- Subcommands: after a verb like `profile init`, the **name is argv index 3** (`ods profile init <name>`), not index 2
+- Specs live at repo-root **`specs/{ods,okf,skills}/`** — start at `intro.md` + `keys.md`
+- Subcommands: name after the verb (`ods profile init <name>` → name at argv index **3**)
 
-## Specs layout (normative)
+## Keys are schema-driven
 
-Single tree at **repo root** `specs/` (not under `src/`; no symlink):
+Engine SoT: `src/ods-core/src/spec/schema.rs`. Details: `.agents/rules/30-schema-keys.md`.
 
-```
-specs/
-  ods/     # default dialect — start at intro.md, keys.md, core.md
-  okf/     # --okf dialect — intro.md, keys.md
-  skills/  # --skills dialect — intro.md, keys.md
-```
+## Token & context reliability
 
-- Authoring keys: read `specs/ods/keys.md` (not buried in core).
-- After renames, update `app-web` nav + sitemap + `docs/guide` + `skills/ods/references` + `llms.txt`.
-- Maintainer agent skills: `.agents/skills/` (this repo). End-user skill: `skills/ods/`.
+- Prefer `ods context <id>` (`--max-tokens N`, `--print`). Read **only** returned paths.
+- Context walks **depends + context.load** (not `related`). `--include-code` is opt-in.
+- If context errors: **stop** — use `ods find <query>`; do not dump the repo or full graph export.
+- `ods export` defaults to `.ods/graph.md` (not routine AI prompts).
+- Do not load `skills/ods/references/*` and `specs/ods/*` duplicates in one turn.
 
-## Schema-driven keys (engine)
+## Definition of Done
 
-**Single source of truth for dialect keys:** `src/ods-core/src/spec/schema.rs` (`SpecSchemaRegistry`).
+Do **not** claim CI-safe / commit-ready without:
 
-- Add/change keys or dialects there first (ODS / OKF / Skills + custom profiles).
-- Wire lint / `ods schema` from the registry — do **not** grow new hardcoded key tables in parse/lint.
-- Normative prose: `specs/*/keys.md`. How-to: `docs/maintainer/schema-driven-keys.md`.
-- `ods schema` emits registry-driven JSON Schema; `ods schema --okf` / `--skills` list dialect keys.
+1. `SKIP_RELEASE_BUILD=true ./src/scripts/check-local.sh` → exit 0  
+2. If Rust/tests changed: `ODS_COVERAGE_FAIL_UNDER_LINES=90 ./src/scripts/coverage.sh`  
+3. Keys touched → registry + `specs/*/keys.md` + tests aligned  
+4. User-visible → release-docs skill checklist  
 
-## Naming / legacy `odc` (do not thrash)
+Full policy: `.agents/rules/40-quality-gates.md`. Multi-step work: `.agents/skills/quality-gate/SKILL.md`.
 
-- Product name and binary are **`ods`**. Never teach `odc` as primary.
-- **Do not** blind `s/odc/ods/g` (breaks archive history, dual-read, “do not invent” text).
-- Strip `odc:` pins from **new** fixtures; one intentional preserve-unknown test is OK.
-- Legacy env dual-read (`ODC_JOBS`, `ODC_AUTO_UPDATE`, …) may remain with “legacy” comments.
-- Gate: `./src/scripts/check-odc-residue.sh` and `./src/scripts/check-naming.sh`.
-
-## After document / skill edits
+## Cheap handoff
 
 ```bash
-ods lint
-ods lint --okf      # if OKF trees changed
-ods lint --skills   # if SKILL.md packages changed
+.agents/hooks/scripts/pre-handoff.sh          # naming + odc residue
+.agents/hooks/scripts/pre-handoff.sh --full   # + check-local
 ```
 
-## Before commit (local pipeline)
+## Ownership
 
-Mirrors CI quality gate. Prefer this over ad-hoc partial checks:
-
-```bash
-SKIP_RELEASE_BUILD=true ./src/scripts/check-local.sh   # fmt, clippy -D warnings, tests, fixtures, naming, odc residue
-ODS_COVERAGE_FAIL_UNDER_LINES=90 ./src/scripts/coverage.sh   # workspace ≥90% lines with T3 excludes
-```
-
-- Coverage policy: `docs/maintainer/coverage.md` + `coverage-excludes.md` (T3 = network/OS/watch/LSP/git-update edges).
-- Ratchet CI `--fail-under-lines` **up only**. Keep ignore regex in sync: `coverage.sh`, `pr.yml`, excludes doc.
-- Install script source of truth: `src/scripts/install.*` — sync copies under `app-web/public/` and `skills/ods/scripts/`.
-
-## Code style
-
-Prefer functional style in `ods-core` / CLI: data + free functions, pipelines, effects at the edge.
-See `docs/maintainer/functional-style.md`.
+| Path | Owner |
+|---|---|
+| **This file** | Hand-maintained (this monorepo). **Do not** run `ods agents sync` at repo root — it skips overwrite when `.agents/rules/` exists. |
+| `.agents/rules/*` | Always-on short rules |
+| `.agents/skills/*` | Task skills (maintainer) |
+| `skills/ods/` | **End-user** product skill only (no CI/coverage process) |
+| Nested `**/AGENTS.md` | Crate/folder specifics |
 
 ## Useful commands
 
 | Goal | Command |
 |---|---|
-| Validate ODS | `ods lint` |
-| OKF | `ods lint --okf` / `ods init --okf` |
-| Skills | `ods lint --skills` / `ods init --skills` |
-| Context | `ods context <id>` |
-| Editor LSP | `ods lsp` |
-| JSON Schema | `ods schema` / `ods schema --okf` / `--skills` |
-| Install skill into host | `ods skill install --agent <name>` |
-| Local quality gate | `./src/scripts/check-local.sh` |
-| Coverage | `./src/scripts/coverage.sh` |
-| Refresh this file | `ods agents sync` |
+| Local gate | `./src/scripts/check-local.sh` |
+| Coverage ≥90% | `./src/scripts/coverage.sh` |
+| Schema smoke | `./src/scripts/check-schema-keys.sh` |
+| Lint ODS/OKF/Skills | `ods lint` / `--okf` / `--skills` |
+| Context | `ods context <id> [--max-tokens N] [--print]` |
+| Find id | `ods find <query>` |
+| JSON Schema | `ods schema` |
+
+Maintainer entry: `.agents/README.md`.

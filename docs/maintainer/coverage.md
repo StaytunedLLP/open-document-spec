@@ -6,7 +6,7 @@
 # From repository root (applies T3 excludes; see coverage-excludes.md)
 ./src/scripts/coverage.sh              # summary + HTML under .artifacts/coverage/
 cargo llvm-cov --workspace --locked \
-  --ignore-filename-regex '(asset_downloader\.rs|update/installer\.rs|update/binary_replacer\.rs|update/http_helpers\.rs|service/launchers\.rs|watch_and_serve_runner\.rs|okf_watch\.rs|github_release\.rs|setup_command\.rs|lsp_command\.rs|git_sync\.rs)' \
+  --ignore-filename-regex '(asset_downloader\.rs|update/installer\.rs|update/binary_replacer\.rs|update/http_helpers\.rs|service/launchers\.rs|service_commands\.rs|watch_and_serve_runner\.rs|okf_watch\.rs|github_release\.rs|setup_command\.rs|lsp_command\.rs|git_sync\.rs)' \
   --summary-only
 ```
 

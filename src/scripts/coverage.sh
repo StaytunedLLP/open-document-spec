@@ -12,7 +12,7 @@ OUT="${ODS_COVERAGE_DIR:-${ODC_COVERAGE_DIR:-$ROOT/.artifacts/coverage}}"
 mkdir -p "$OUT"
 
 # Shared T3 ignore list (keep in sync with CI and coverage-excludes.md)
-IGNORE_T3="${ODS_COVERAGE_IGNORE_T3:-(asset_downloader\\.rs|update/installer\\.rs|update/binary_replacer\\.rs|update/http_helpers\\.rs|service/launchers\\.rs|watch_and_serve_runner\\.rs|okf_watch\\.rs|github_release\\.rs|setup_command\\.rs|lsp_command\\.rs|git_sync\\.rs)}"
+IGNORE_T3="${ODS_COVERAGE_IGNORE_T3:-(asset_downloader\\.rs|update/installer\\.rs|update/binary_replacer\\.rs|update/http_helpers\\.rs|service/launchers\\.rs|service_commands\\.rs|watch_and_serve_runner\\.rs|okf_watch\\.rs|github_release\\.rs|setup_command\\.rs|lsp_command\\.rs|git_sync\\.rs)}"
 FAIL_UNDER="${ODS_COVERAGE_FAIL_UNDER_LINES:-}"
 
 if ! command -v cargo-llvm-cov >/dev/null 2>&1 && ! cargo llvm-cov --version >/dev/null 2>&1; then

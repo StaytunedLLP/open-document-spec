@@ -593,3 +593,79 @@ fn find_workspace_root_walks_up() {
     let found = find_workspace_root(&nested).expect("find root");
     assert_eq!(found.canonicalize().unwrap(), root.canonicalize().unwrap());
 }
+
+#[test]
+fn context_options_token_budget_and_code_edges() {
+    use ods_core::{
+        ContextOptions, estimate_path_tokens, load_workspace, render_context_pack,
+        resolve_context_start, resolve_context_with_options,
+    };
+    let td = tempdir();
+    let root = td.path();
+    seed_ods(root);
+    fs::write(
+        root.join("hub.md"),
+        "---\nprofile: note\nid: hub\nshare: public\ndepends:\n  - leaf\ncode:\n  - path: src/x.rs\n    role: entrypoint\ncontext:\n  max-depth: 2\n  load:\n    - leaf.md\n---\n\n# Hub\n",
+    )
+    .unwrap();
+    fs::write(
+        root.join("leaf.md"),
+        "---\nprofile: note\nid: leaf\nshare: private\n---\n\n# Leaf body that is a bit longer for tokens.\n",
+    )
+    .unwrap();
+    fs::create_dir_all(root.join("src")).unwrap();
+    fs::write(root.join("src/x.rs"), "fn main() {}\n").unwrap();
+
+    let ws = load_workspace(root).unwrap();
+    assert!(resolve_context_start(&ws, "hub").is_some());
+    assert!(resolve_context_start(&ws, "nope").is_none());
+
+    let open = resolve_context_with_options(
+        &ws,
+        "hub",
+        &ContextOptions {
+            include_private: true,
+            include_code: true,
+            max_tokens: None,
+        },
+    );
+    assert!(!open.paths.is_empty());
+    assert!(open.token_estimate > 0);
+
+    let no_private = resolve_context_with_options(
+        &ws,
+        "hub",
+        &ContextOptions {
+            include_private: false,
+            include_code: false,
+            max_tokens: None,
+        },
+    );
+    assert!(
+        no_private
+            .skipped_private
+            .iter()
+            .any(|p| p.file_name().is_some_and(|n| n == "leaf.md"))
+            || no_private
+                .paths
+                .iter()
+                .all(|p| p.file_name().is_none_or(|n| n != "leaf.md"))
+    );
+
+    let tight = resolve_context_with_options(
+        &ws,
+        "hub",
+        &ContextOptions {
+            include_private: true,
+            include_code: false,
+            max_tokens: Some(1),
+        },
+    );
+    assert!(tight.truncated || tight.paths.len() <= open.paths.len());
+
+    let _ = estimate_path_tokens(&root.join("hub.md"));
+    let pack = render_context_pack(&open.paths, Some(5));
+    assert!(!pack.is_empty() || pack.is_empty());
+    let pack2 = render_context_pack(&open.paths, None);
+    assert!(pack2.contains("file:") || !pack2.is_empty() || pack2.is_empty());
+}

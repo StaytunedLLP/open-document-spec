@@ -10,7 +10,7 @@ GitHub Releases use GitHub’s auto-generated notes. Edit this file by hand when
 ## [Unreleased]
 
 ### Changed
-- **Agent instructions:** root `AGENTS.md`, `.agents/{rules,skills,agents,hooks}`, and crate `AGENTS.md` files document schema-driven keys, pre-commit gates (`check-local` / coverage 90%), odc residue policy, and subcommand argv indexing for future iterations.
+- **Agent instructions:** root `AGENTS.md` (hand-maintained; `ods agents sync` will not clobber when `.agents/rules/` exists), rules `30-schema-keys` / `40-quality-gates`, skill `quality-gate`, pre-handoff hooks, and `check-schema-keys` smoke for reliable future iterations.
 - **Schema-driven keys:** `SpecSchemaRegistry` now registers full **ODS + OKF + Skills** key catalogs (aligned with `specs/*/keys.md`). Lint enum checks (`status`/`share`) and `ods schema` JSON emission are driven from the registry so adding/updating dialect keys is a schema change + tests.
 - **CI coverage floor** raised **88 → 90** lines (T3 excludes unchanged). Local: `ODS_COVERAGE_FAIL_UNDER_LINES=90 ./src/scripts/coverage.sh`.
 - **Legacy `odc` residue gate:** `./src/scripts/check-odc-residue.sh`; test fixtures no longer embed `odc:` pins; install scripts install **ods** only (legacy env dual-read for `ODC_*` kept where noted).
@@ -34,6 +34,7 @@ GitHub Releases use GitHub’s auto-generated notes. Edit this file by hand when
 - **`ods context` token-waste regression:** `find_workspace_root` no longer collapses relative document ids (e.g. `specs/ods/core`) to an empty root, which made `ods context <id>` silently return **zero paths** (exit 0) and pushed agents to dump full trees / full graph exports. Roots are absolutized before ancestor walks; empty paths are rejected.
 - **`ods context` CLI:** document id is not treated as the workspace root; supports `ods context <id>`, `ods context <workspace> <id>`, and `ods context --root <dir> <id>`. Missing ids now **error** (non-zero) instead of silent empty success. Query matching accepts path-shaped ids, `.md` paths, unique stems, and absolute paths under the workspace.
 - **Agent skill / install templates:** stop recommending full `ods export graph` for routine AI prompts; Cursor/Windsurf rules prefer bounded context only (no always-on encyclopedias).
+- **End-user friction wave:** `--max-tokens` / `--print` / `--include-code` on context; private-skip warnings; export defaults to `.ods/graph.md`; skill install ships current references (no evals); `ods find` by id/path/stem; honest `lint --fix` message; status “did you mean” hints; FM `title:` warning; real `resolve_context` bench averages; `--help` on context/lint/find; help text uses `index.ods.md`.
 - Workspace error messages reference `~/.ods/odsconfig.toml` (not `odcconfig`).
 - JSON Schema status enum aligned to SPEC: `draft|stable|deprecated|archived`.
 - Hybrid workspaces: bare lint/doctor/audit are **ODS-only**; pass `--okf` to include OKF.

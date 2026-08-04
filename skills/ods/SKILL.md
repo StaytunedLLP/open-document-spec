@@ -41,12 +41,12 @@ There is **no** `--ods` flag and **no** `ods okf` / `ods ods` namespaces (`ods o
 When assisting users inside an ODS workspace, follow these operational directives:
 
 - ❓ **WHAT**: Recognize ODS workspaces by checking for `ods:` in root `index.ods.md`. Keep files as `.md`. Title is H1 only (no FM `title:`); optional top-level `name:` is fine.
-- 💡 **WHY (token discipline)**: Prefer `ods context <doc-id-or-path>` to get a **bounded path list**, then read **only those files**. Do **not** dump the repo, open every related doc, or run `ods export graph` for routine Q&A (export is full-workspace and wastes tokens). If context errors with “document not found”, stop and refine the id — never fall back to loading all markdown.
+- 💡 **WHY (token discipline)**: Prefer `ods context <id> [--max-tokens N] [--print]` for a **bounded** list (depends + `context.load` only — **not** `related`). Read only those paths. Never dump the repo or use full graph export for routine Q&A. On “document not found”, run `ods find <query>` — do not load all markdown.
 - 👥 **WHO**: Operate seamlessly on behalf of non-technical or developer users without requiring manual terminal commands.
-- 📍 **WHERE**: Inspect custom profiles (`ods.profile: custom-profile`) and `SKILL.md` packages when needed; do not preload entire `references/` dictionaries unless authoring frontmatter.
-- ⏰ **WHEN**: Run `ods lint` (or `ods lint --fix`) after structural doc edits. Use `ods mv <src> <dst>` when moving files to auto-heal graph links.
-- 🛡️ **SAFETY**: `ods adopt` preserves existing YAML keys while appending `ods:`. Navigation uses `index.ods.md` sidecars. Use `ods undo` to revert bulk writes if needed.
-- 🛠️ **HOW**: Shell `ods context <id>` from the workspace root (id may be path-shaped, e.g. `specs/ods/core`). Optional: `ods context --root <dir> <id>` or `ods context <workspace-dir> <id>`.
+- 📍 **WHERE**: Open `references/keys.md` only when authoring frontmatter; do not preload all references every turn.
+- ⏰ **WHEN**: Run `ods lint` after structural edits (`--fix` only regenerates indexes — it does not invent missing docs). Use `ods mv` for renames.
+- 🛡️ **SAFETY**: Prefer H1 for titles (FM `title:` is a lint **warning**, value kept). Navigation uses `index.ods.md` sidecars.
+- 🛠️ **HOW**: `ods context <id>` from workspace root; optional `--include-code`, `--include-private`, `--root <dir>`.
 
 ---
 
@@ -166,7 +166,7 @@ custom-profiles:
 | **`ods fmt [path]`** | 🛠️ Tier 2 (Practitioner) | Reformat YAML frontmatter and body spacing (`--refs md-paths` converts IDs to relative `.md` paths). |
 | **`ods stats [path]`** | 🛠️ Tier 2 (Practitioner) | Workspace document telemetry, graph density, profile distribution, and health score %. |
 | **`ods tree [path]`** | 🛠️ Tier 2 (Practitioner) | Visual ASCII/Unicode hierarchy tree of index navigation and dependency graphs. |
-| **`ods context <id>`** | 📋 Tier 3 (Power User) | Bounded AI reading list (target + `depends` + `context.load`). Errors if id missing. Optional `--root <dir>`. |
+| **`ods context <id>`** | 📋 Tier 3 (Power User) | Bounded list (depends + context.load). `--max-tokens N`, `--print`, `--include-code`, `--root`. |
 | **`ods profiles` / `ods profile list`** | 📋 Tier 3 (Power User) | List registered profile catalog (text or `--format json`). |
 | **`ods tags [path]`** | 📋 Tier 3 (Power User) | Workspace-wide tag catalog and document count breakdown. |
 | **`ods tag rename`** | 📋 Tier 3 (Power User) | Perform workspace-wide tag renaming (dry-run; `--write`). |

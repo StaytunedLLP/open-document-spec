@@ -4,25 +4,37 @@ Portable agent config for this repository (Grok, Claude Code, Cursor, and simila
 
 | Path | Role |
 |---|---|
-| `skills/` | Maintainer skills (edit specs, multi-spec, release docs) |
-| `rules/` | Always-on short rules (also mirrored by nested `AGENTS.md`) |
+| `skills/` | Maintainer skills (edit specs, multi-spec, release docs, **quality-gate**) |
+| `rules/` | Always-on short rules (also summarized by root `AGENTS.md`) |
 | `agents/` | Custom subagent / persona prompts |
-| `hooks/` | Optional lifecycle hooks (lint after spec edits) |
+| `hooks/` | Post-edit hints + **pre-handoff** cheap gates |
 
 **End-user product skill** remains `skills/ods/` (installable via `ods skill install`).  
-**Always-on product locks** remain root [`AGENTS.md`](../AGENTS.md).
+**Always-on product locks** remain root [`AGENTS.md`](../AGENTS.md) (**hand-maintained** in this monorepo).
 
-## Start here for agents
+## Start here
 
-1. Root `AGENTS.md` — CLI surface, schema-driven keys, quality gates, odc policy
-2. Spec intro — `specs/ods/intro.md`
-3. Spec keys — `specs/ods/keys.md`
-4. Schema how-to — `docs/maintainer/schema-driven-keys.md` when adding keys/dialects
-5. This folder’s skills when the task matches
+1. Root `AGENTS.md` — locks, **token reliability**, Definition of Done  
+2. Rules: `00-cli-surface.md`, `30-schema-keys.md`, `35-token-context.md`, `40-quality-gates.md`  
+3. Spec intro/keys — `specs/ods/intro.md`, `keys.md` (on demand only)  
+4. **One** skill by task (do not load all):
+   - **quality-gate** — sequenced pre-commit / coverage / finish work  
+   - **spec-author** — `specs/**`  
+   - **multi-spec** — flags / dialects  
+   - **release-docs** — site/skill/CHANGELOG sync  
 
-## Pre-handoff (engine work)
+**Budget:** always-on rules + one skill. Prefer `ods context <id>` over full-tree reads.
+
+## Pre-handoff
 
 ```bash
-SKIP_RELEASE_BUILD=true ./src/scripts/check-local.sh
-ODS_COVERAGE_FAIL_UNDER_LINES=90 ./src/scripts/coverage.sh
+.agents/hooks/scripts/pre-handoff.sh
+.agents/hooks/scripts/pre-handoff.sh --full
+# coverage when needed:
+ODS_COVERAGE_HANDOFF=1 .agents/hooks/scripts/pre-handoff.sh --full
 ```
+
+## `ods agents sync` ownership
+
+- **This monorepo:** root `AGENTS.md` is hand-owned (has `.agents/rules/`). Sync **must not** overwrite it; it only refreshes editor snippets.  
+- **User workspaces** (no `.agents/rules/`): `ods agents sync` may write a generated `AGENTS.md`.

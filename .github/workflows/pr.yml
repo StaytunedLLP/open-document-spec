@@ -392,7 +392,7 @@ jobs:
           fi
           # T3 excludes: network download, OS service install, long-running watch loops.
           # See docs/maintainer/coverage-excludes.md. Ratchet upward only.
-          IGNORE_T3='(asset_downloader\.rs|update/installer\.rs|update/binary_replacer\.rs|update/http_helpers\.rs|service/launchers\.rs|watch_and_serve_runner\.rs|okf_watch\.rs|github_release\.rs|setup_command\.rs|lsp_command\.rs|git_sync\.rs)'
+          IGNORE_T3='(asset_downloader\.rs|update/installer\.rs|update/binary_replacer\.rs|update/http_helpers\.rs|service/launchers\.rs|service_commands\.rs|watch_and_serve_runner\.rs|okf_watch\.rs|github_release\.rs|setup_command\.rs|lsp_command\.rs|git_sync\.rs)'
           cargo llvm-cov --workspace --locked \
             --ignore-filename-regex "$IGNORE_T3" \
             --fail-under-lines 90

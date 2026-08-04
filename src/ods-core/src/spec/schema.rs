@@ -587,9 +587,16 @@ pub fn validate_ods_frontmatter(frontmatter: &Frontmatter) -> Vec<SchemaIssue> {
         && let KeyType::Enum(allowed) = &def.key_type
         && !allowed.iter().any(|v| v == status)
     {
+        let hint = status_alias_hint(status);
         issues.push(SchemaIssue {
             severity: Severity::Error,
-            message: format!("invalid status: {status}"),
+            message: if let Some(h) = hint {
+                format!("invalid status: {status} (did you mean `{h}`? allowed: draft|stable|deprecated|archived)")
+            } else {
+                format!(
+                    "invalid status: {status} (allowed: draft|stable|deprecated|archived)"
+                )
+            },
         });
     }
 
@@ -600,12 +607,30 @@ pub fn validate_ods_frontmatter(frontmatter: &Frontmatter) -> Vec<SchemaIssue> {
     {
         issues.push(SchemaIssue {
             severity: Severity::Error,
-            message: format!("invalid share value: {share}"),
+            message: format!("invalid share value: {share} (allowed: public|org|private)"),
+        });
+    }
+
+    // Prefer H1 title; frontmatter title: is preserved but discouraged for ODS purity.
+    if frontmatter.title.is_some() {
+        issues.push(SchemaIssue {
+            severity: Severity::Warning,
+            message: "frontmatter `title:` is discouraged for ODS docs — use the first `# H1` as the document title (value is preserved)".into(),
         });
     }
 
     // tags_misplaced is reported by tags::lint_document_tags (single message).
     issues
+}
+
+fn status_alias_hint(status: &str) -> Option<&'static str> {
+    match status.to_ascii_lowercase().as_str() {
+        "wip" | "in-progress" | "in_progress" | "todo" | "working" | "dev" => Some("draft"),
+        "done" | "complete" | "completed" | "ready" | "ga" | "released" => Some("stable"),
+        "old" | "obsolete" | "sunset" => Some("deprecated"),
+        "archive" | "archived" | "inactive" => Some("archived"),
+        _ => None,
+    }
 }
 
 fn key_type_to_json_schema(key_type: &KeyType, description: &str) -> Value {

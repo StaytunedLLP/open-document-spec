@@ -1,7 +1,21 @@
 fn run_context_command(args: &[String]) -> Result<ExitCode, CliError> {
-    // Context is special: the primary positional is a *document id*, not a workspace
-    // root. Using parse_common_flags alone treats `ods context specs/ods/core` as
-    // root=specs/ods/core and historically collapsed find_workspace_root to "".
+    if args.iter().any(|a| a == "--help" || a == "-h") {
+        println!(
+            "ods context <id-or-path> [flags]\n\n\
+             Resolve a bounded AI reading list (target + depends + context.load).\n\
+             Does not walk `related` (soft edges). Code edges are off unless --include-code.\n\n\
+             Flags:\n\
+               --root <dir>           Workspace root (default: cwd)\n\
+               --include-private      Include share: private documents\n\
+               --include-code         Expand code: edges into the reading list\n\
+               --max-tokens <N>       Cap estimated tokens (bytes/4 heuristic)\n\
+               --print                Print file contents under the budget (prompt pack)\n\
+               --format text|json     Output format (default text)\n\
+               --okf                  OKF concept context instead of ODS\n"
+        );
+        return Ok(ExitCode::from(0));
+    }
+    // Context is special: the primary positional is a *document id*, not a workspace root.
     let (_ignored_root, _level, format) = parse_common_flags(args, 2)?;
     let extra = ods_core::parse_extra_spec_flags(args.iter().map(String::as_str))
         .map_err(|e| usage(e.message()))?;
@@ -13,11 +27,9 @@ fn run_context_command(args: &[String]) -> Result<ExitCode, CliError> {
         (Some(rf), [id]) => (rf, id.clone()),
         (Some(rf), [_, id]) => (rf, id.clone()),
         (Some(rf), rest) => (rf, rest.last().cloned().unwrap()),
-        // `ods context <existing-dir> <id>` — explicit workspace + id
         (None, [maybe_root, id]) if PathBuf::from(maybe_root).is_dir() => {
             (PathBuf::from(maybe_root), id.clone())
         }
-        // `ods context <id>` — workspace is cwd (document id is NOT a root path)
         (None, [only]) if PathBuf::from(only).is_dir() => {
             return Err(usage(
                 "missing document id (usage: ods context <id-or-path> or ods context <workspace-dir> <id>)",
@@ -47,32 +59,78 @@ fn run_context_command(args: &[String]) -> Result<ExitCode, CliError> {
     }
 
     let include_private = args.iter().any(|arg| arg == "--include-private");
+    let include_code = args.iter().any(|arg| arg == "--include-code");
+    let print_pack = args.iter().any(|arg| arg == "--print");
+    let max_tokens = parse_flag_val(args, "--max-tokens")
+        .map(|v| {
+            v.parse::<usize>()
+                .map_err(|_| usage("--max-tokens requires a positive integer"))
+        })
+        .transpose()?;
+
     let workspace = load_workspace_with_options(&root, load_options_graph())
         .map_err(|err| failure(err.to_string()))?;
-    let paths = resolve_context(&workspace, &query, include_private);
-    if paths.is_empty() {
+    let result = ods_core::resolve_context_with_options(
+        &workspace,
+        &query,
+        &ods_core::ContextOptions {
+            include_private,
+            include_code,
+            max_tokens,
+        },
+    );
+    if result.paths.is_empty() {
         return Err(failure(format!(
             "document not found for context query `{query}` in workspace {} \
-             (try a path-shaped id like `specs/ods/core`, a relative `.md` path, or `ods find`)",
+             (try a path-shaped id like `specs/ods/core`, a relative `.md` path, or `ods find <query>`)",
             root.display()
         )));
     }
+
+    if !result.skipped_private.is_empty() && matches!(format, OutputFormat::Text) {
+        eprintln!(
+            "warning: skipped {} private document(s) (pass --include-private to include)",
+            result.skipped_private.len()
+        );
+    }
+    if result.truncated && matches!(format, OutputFormat::Text) {
+        eprintln!(
+            "warning: context truncated at ~{} tokens (pass a higher --max-tokens)",
+            max_tokens.unwrap_or(0)
+        );
+    }
+
+    if print_pack {
+        let pack = ods_core::render_context_pack(&result.paths, max_tokens);
+        print!("{pack}");
+        return Ok(ExitCode::from(0));
+    }
+
     match format {
         OutputFormat::Text => {
-            for path in &paths {
+            for path in &result.paths {
                 println!("{}", path.display());
             }
         }
         OutputFormat::Json | OutputFormat::Sarif => {
-            let items: Vec<_> = paths
+            let items: Vec<_> = result
+                .paths
+                .iter()
+                .map(|p| json_escape(&p.display().to_string()))
+                .collect();
+            let skipped: Vec<_> = result
+                .skipped_private
                 .iter()
                 .map(|p| json_escape(&p.display().to_string()))
                 .collect();
             println!(
-                r#"{{"id":{},"root":{},"paths":[{}]}}"#,
+                r#"{{"id":{},"root":{},"paths":[{}],"token_estimate":{},"truncated":{},"skipped_private":[{}]}}"#,
                 json_escape(&query),
                 json_escape(&root.display().to_string()),
-                items.join(",")
+                items.join(","),
+                result.token_estimate,
+                result.truncated,
+                skipped.join(",")
             );
         }
     }

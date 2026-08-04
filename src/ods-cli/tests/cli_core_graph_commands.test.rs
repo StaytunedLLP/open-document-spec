@@ -99,11 +99,13 @@ fn init_lint_index_graph_context() {
 #[test]
 fn context_path_shaped_id_from_cwd() {
     let dir = temp_workspace();
-    assert!(Command::new(ods_bin())
-        .args(["init", dir.to_str().unwrap()])
-        .status()
-        .unwrap()
-        .success());
+    assert!(
+        Command::new(ods_bin())
+            .args(["init", dir.to_str().unwrap()])
+            .status()
+            .unwrap()
+            .success()
+    );
     fs::create_dir_all(dir.join("specs/ods")).unwrap();
     fs::write(
         dir.join("specs/ods/core.md"),
@@ -131,6 +133,45 @@ fn context_path_shaped_id_from_cwd() {
     let stdout = String::from_utf8_lossy(&out.stdout);
     assert!(stdout.contains("core.md"), "{stdout}");
     assert!(stdout.contains("intro.md"), "{stdout}");
+
+    let out = Command::new(ods_bin())
+        .current_dir(&dir)
+        .args([
+            "context",
+            "specs/ods/core",
+            "--max-tokens",
+            "1",
+            "--format",
+            "json",
+        ])
+        .output()
+        .unwrap();
+    assert!(out.status.success(), "{:?}", out);
+    assert!(
+        String::from_utf8_lossy(&out.stdout).contains("truncated"),
+        "{:?}",
+        out
+    );
+
+    let out = Command::new(ods_bin())
+        .current_dir(&dir)
+        .args(["find", "specs/ods/core"])
+        .output()
+        .unwrap();
+    assert!(out.status.success(), "{:?}", out);
+    assert!(
+        String::from_utf8_lossy(&out.stdout).contains("specs/ods/core"),
+        "{:?}",
+        out
+    );
+
+    let out = Command::new(ods_bin())
+        .current_dir(&dir)
+        .args(["context", "--help"])
+        .output()
+        .unwrap();
+    assert!(out.status.success());
+    assert!(String::from_utf8_lossy(&out.stdout).contains("--max-tokens"));
 }
 
 #[test]
