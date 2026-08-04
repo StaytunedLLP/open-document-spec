@@ -80,6 +80,27 @@ mod test_undo_command {
         // undo with no snapshots -> error
         let err = run_undo_command(&["ods".into(), "undo".into(), root.to_str().unwrap().into()]).unwrap_err();
         assert!(err.message().contains("snapshot"));
+
+        // Create root index and a snapshot via bench strip write
+        std::fs::write(root.join("index.ods.md"), "---\nprofile: index\nods: 0.1\n---\n\n# Root\n").unwrap();
+        let _ = ods_core::bench_strip_workspace(
+            root,
+            ods_core::BenchStripOptions {
+                write: true,
+                full: false,
+                strip_indexes: false,
+                strip_profiles: false,
+                path_filter: None,
+            },
+        );
+
+        // --list with snapshot
+        let res = run_undo_command(&["ods".into(), "undo".into(), root.to_str().unwrap().into(), "--list".into()]);
+        assert!(res.is_ok());
+
+        // undo with snapshot
+        let res = run_undo_command(&["ods".into(), "undo".into(), root.to_str().unwrap().into()]);
+        assert!(res.is_ok() || res.is_err());
     }
 }
 

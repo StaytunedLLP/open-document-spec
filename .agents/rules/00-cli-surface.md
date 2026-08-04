@@ -10,7 +10,6 @@
 - Before writing CLI tests: confirm usage via `ods <cmd>` error string / help text
 - New subcommand: tests for missing arg, wrong order, and one success path
 - Legacy name `odc`: do not reintroduce product teaching or fixture pins; run `./src/scripts/check-odc-residue.sh`
-
 ## User-facing errors (locked)
 
 - **SoT:** `src/ods-core/src/error/messages.rs`

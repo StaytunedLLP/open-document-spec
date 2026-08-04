@@ -25,6 +25,7 @@ CLI/engine user copy lives in **`src/ods-core/src/error/messages.rs`** (not ad-h
 - Exit: usage **2**, failure **1**
 - When adding a failure path: add/reuse a catalog builder, then call `fail_msg` / `usage_msg` from the CLI
 
+
 ## Token & context reliability
 
 - Prefer `ods context <id>` (`--max-tokens N`, `--print`). Read **only** returned paths.

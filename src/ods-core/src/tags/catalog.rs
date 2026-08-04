@@ -282,4 +282,3 @@ mod test_tags_catalog {
         }
     }
 }
-
