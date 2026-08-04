@@ -45,12 +45,17 @@ Happy path: [Quickstart Guide](/docs/quickstart).
 | `ods sync [path]` | 🛠️ **Tier 2: Practitioner** | Reconcile git-tracked renames (`git status --porcelain`) and rewrite graph references. |
 | `ods adopt [path]` | 🛠️ **Tier 2: Practitioner** | Draft frontmatter for existing Markdown files (dry-run; `--write`). |
 | `ods rm <path-or-id>` | 🛠️ **Tier 2: Practitioner** | Atomically delete document and scrub graph references (`depends`/`related`) workspace-wide. Alias: `ods remove`. |
-| `ods archive <path-or-id>` | 🛠️ **Tier 2: Practitioner** | Set `status: archived` in frontmatter in place. |
+| `ods status <path> <value>` | 🛠️ **Tier 2: Practitioner** | Set lifecycle status (`draft` \| `stable` \| `deprecated` \| `archived`). Writes nested `ods.status` when an `ods:` map exists. |
+| `ods archive <path-or-id>` | 🛠️ **Tier 2: Practitioner** | Alias for `ods status <path> archived`. |
 | `ods fmt [path]` | 🛠️ **Tier 2: Practitioner** | Reformat YAML frontmatter/body blank-line spacing. `--refs md-paths` converts extensionless IDs to relative `.md` paths. **`--migrate`** rewrites engine keys under `ods:` and hoists misplaced nested `tags` to top-level. |
 | `ods stats [path]` | 🛠️ **Tier 2: Practitioner** | Display workspace document telemetry, graph density, profile distribution, and health score (`--format text\|json`). |
 | `ods tree [path]` | 🛠️ **Tier 2: Practitioner** | Display visual ASCII/Unicode hierarchy tree of index navigation and dependency graphs (`--format text\|json`). |
-| `ods context [path] <id>` | 📋 **Tier 3: Power User** | Generate resolved bounded AI reading list (`--include-private` includes `share: private` documents). |
+| `ods context [path] <id>` | 📋 **Tier 3: Power User** | Bounded AI reading list. Walks `depends` + `context.load`; `--include-related` / `--include-code` / `--include-private`; `--explain` shows inclusion reasons; `--okf` pure OKF or hybrid merge. |
+| `ods undo [path]` | 📋 **Tier 3: Power User** | Restore latest frontmatter snapshot (`--list` shows ids under `~/.ods/backups/…`). Created mainly by `ods bench strip --write`; not a full git undo. |
 | `ods profiles [path]` | 📋 **Tier 3: Power User** | List standard and custom profiles loaded in workspace and report schema conflicts. |
+| `ods profile init <name>` | 📋 **Tier 3: Power User** | Scaffold `.ods/profiles/<name>.md` and **register** under root `custom-profiles:` (use `--no-register` to skip). |
+| `ods profile show <name>` | 📋 **Tier 3: Power User** | Show profile layer, source, expected sections/keys. |
+| `ods aliases` / `ods alias add` | 📋 **Tier 3: Power User** | List or add **section-heading** aliases on the root index. |
 | `ods tags [path]` | 📋 **Tier 3: Power User** | List **top-level** document tags with counts (`--all` includes default unused tags). Tags must not live under `ods:`. |
 | `ods find [path] --tag <t>` | 📋 **Tier 3: Power User** | Find and list documents by top-level tag (repeat `--tag` for OR query). |
 | `ods tag rename <old> <new>` | 📋 **Tier 3: Power User** | Workspace-wide top-level tag rename (dry-run; `--write`). |

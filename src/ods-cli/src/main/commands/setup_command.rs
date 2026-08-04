@@ -23,19 +23,25 @@ Commands:
   index [path]             Generate index.ods.md navigation lockfiles
   index --check [path]     Exit 1 if indexes are stale
   profiles [path]          List loaded profiles
+  profile init <name>      Scaffold custom profile (registers under custom-profiles: by default)
+  profile show <name>      Show profile layer, sections, expected keys
+  aliases [path]           List workspace section-heading aliases
+  alias add <Can> <Syn>    Add a section alias on the root index
   tags [path]              List root-level project tags (observed) with use counts
   tags --all [path]        Include unused default ODS tags
   find [path] [--tag t] [q]  Find docs by tag and/or id/path/stem query
   tag rename <old> <new>   Rewrite a root-level tag across frontmatter (dry-run; --write)
                            Nested tags under ods: are invalid — run: ods fmt --migrate
   setup [path]             Set up machine service for workspace + check updates and workspace health
-  context <id>             Bounded reading list (depends + context.load; see --help)
+  context <id>             Bounded reading list (depends + context.load; --explain / --include-related)
+  undo [path]              Restore latest frontmatter snapshot (`ods undo --list` to inspect)
   graph [path]             Print depends/related edges
   export [path]            Write graph under .ods/graph.md (optional --out PATH, --include-private)
   share [path] --out DIR   Publish a share-filtered copy of a workspace/subtree
   new <path>               Scaffold new document with inferred profile and valid frontmatter
   rm <path-or-id>          Atomically delete document and scrub graph references workspace-wide
-  archive <path-or-id>     Set document status to archived (frontmatter only)
+  status <path> <value>    Set lifecycle status (draft|stable|deprecated|archived)
+  archive <path-or-id>     Alias for status … archived
   mv [path] <from> <to>    Move file/folder and rewrite refs + indexes
   fmt [path]               Normalize frontmatter/body blank lines
   fmt --refs md-paths      Also rewrite Document refs to .md paths
@@ -60,9 +66,12 @@ Extra specs (ODS is the default — there is no `--ods` flag):
   --okf                    Enable Google OKF v0.2 engine for this command
   --skills                 Enable Agent Skills package engine for this command
 
-  ods lint --okf           Lint an OKF bundle (or ODS+OKF when both present)
+  Native in binary ≠ always on: OKF/Skills activate with flags or root specs.*.enabled
+  --okf supported: init lint doctor audit adopt index context export fmt watch serve
+  ODS-only (no --okf graph rewrite): mv tags status archive pack share graph new rm
+  ods lint --okf           Pure OKF or hybrid ODS+OKF lint
   ods init --okf           Scaffold OKF v0.2 bundle
-  ods lint --skills        Lint Agent Skills packages (engine rolling out)
+  ods lint --skills        Lint Agent Skills packages (parse/lint/init surface)
 
 Also: `ods lsp` — JSON-RPC Language Server for editors (stdio; not the same as `ods serve`).
 

@@ -122,11 +122,62 @@ fn run_rm_command(args: &[String]) -> Result<ExitCode, CliError> {
 }
 
 fn run_archive_command(args: &[String]) -> Result<ExitCode, CliError> {
-    if args.len() < 3 {
-        return Err(usage_msg(ods_core::missing_required_arg("path-or-id", "ods archive <path-or-id>")));
+    // Thin alias for `ods status <path-or-id> archived` (friendly archive wording).
+    let target = args.get(2).map(String::as_str).unwrap_or("");
+    if target.is_empty() || target.starts_with('-') {
+        return Err(usage_msg(ods_core::missing_required_arg(
+            "path-or-id",
+            "ods archive <path-or-id>",
+        )));
+    }
+    set_document_status_with_label(target, "archived", "archived document")
+}
+
+fn run_status_command(args: &[String]) -> Result<ExitCode, CliError> {
+    if args.iter().any(|a| a == "--help" || a == "-h") {
+        println!(
+            "ods status <path-or-id> <draft|stable|deprecated|archived>\n\n\
+             Set document lifecycle status (writes nested ods.status when an ods: map exists).\n\
+             Alias: ods archive <path-or-id>  →  status archived"
+        );
+        return Ok(ExitCode::from(0));
+    }
+    let positionals = positional_args(args, 2);
+    match positionals.as_slice() {
+        [path, status] => set_document_status_with_label(path, status, "set status on"),
+        [_] => Err(usage_msg(ods_core::missing_required_arg(
+            "status",
+            "ods status <path-or-id> <draft|stable|deprecated|archived>",
+        ))),
+        _ => Err(usage_msg(ods_core::missing_required_arg(
+            "path-or-id status",
+            "ods status <path-or-id> <draft|stable|deprecated|archived>",
+        ))),
+    }
+}
+
+fn set_document_status_with_label(
+    target_str: &str,
+    status: &str,
+    action_label: &str,
+) -> Result<ExitCode, CliError> {
+    if target_str.is_empty() {
+        return Err(usage_msg(ods_core::missing_required_arg(
+            "path-or-id",
+            "ods status <path-or-id> <draft|stable|deprecated|archived>",
+        )));
+    }
+    let status = status.trim().to_ascii_lowercase();
+    const ALLOWED: &[&str] = &["draft", "stable", "deprecated", "archived"];
+    if !ALLOWED.contains(&status.as_str()) {
+        return Err(usage_msg(ods_core::invalid_choice(
+            "status",
+            &status,
+            "draft|stable|deprecated|archived",
+        )));
     }
 
-    let target = PathBuf::from(&args[2]);
+    let target = PathBuf::from(target_str);
     let root = env::current_dir().unwrap_or_else(|_| PathBuf::from("."));
     let workspace = load_workspace(&root).map_err(|e| fail_load(&root, e))?;
 
@@ -137,7 +188,6 @@ fn run_archive_command(args: &[String]) -> Result<ExitCode, CliError> {
     };
     let target_canon = target_abs.canonicalize().ok();
     let target_stem = target.file_stem().map(|s| s.to_string_lossy().to_lowercase());
-
     let target_id_str = target.to_string_lossy().to_lowercase();
 
     let doc = workspace
@@ -158,33 +208,41 @@ fn run_archive_command(args: &[String]) -> Result<ExitCode, CliError> {
                 || did == target_id_str
                 || target_stem.as_deref() == Some(did.as_str())
         })
-        .ok_or_else(|| {
-            fail_msg(ods_core::document_not_found(&target.display().to_string()))
-        })?;
+        .ok_or_else(|| fail_msg(ods_core::document_not_found(target_str)))?;
 
-    let doc_id = document_id(&root, &doc.path, match &doc.frontmatter {
-        FrontmatterState::Parsed(fm) => Some(fm),
-        _ => None,
-    });
+    let doc_id = document_id(
+        &root,
+        &doc.path,
+        match &doc.frontmatter {
+            FrontmatterState::Parsed(fm) => Some(fm),
+            _ => None,
+        },
+    );
 
-    let text = fs::read_to_string(&doc.path).map_err(|e| fail_msg(ods_core::io_failed("read file", e)))?;
+    let text =
+        fs::read_to_string(&doc.path).map_err(|e| fail_msg(ods_core::io_failed("read file", e)))?;
     let (fm_opt, body) = ods_core::split_frontmatter(&text);
 
     let new_text = if let Some(fm) = fm_opt {
-        let lines = set_frontmatter_status_archived(fm);
+        let lines = set_frontmatter_status(fm, &status);
         format!("---\n{}\n---\n\n{}", lines.join("\n"), body.trim_start())
     } else {
-        format!("---\nstatus: archived\n---\n\n{}", text.trim_start())
+        format!("---\nstatus: {status}\n---\n\n{}", text.trim_start())
     };
 
-    fs::write(&doc.path, new_text).map_err(|e| fail_msg(ods_core::io_failed("write file", e)))?;
+    fs::write(&doc.path, new_text)
+        .map_err(|e| fail_msg(ods_core::io_failed("write file", e)))?;
 
-    println!("archived document {}\n  id: {}\n  status: archived", doc.path.display(), doc_id);
+    println!(
+        "{action_label} {}\n  id: {}\n  status: {status}",
+        doc.path.display(),
+        doc_id
+    );
     Ok(ExitCode::from(0))
 }
 
-/// Set `status: archived` on flat top-level and nested `ods.status` keys (preserve indent).
-fn set_frontmatter_status_archived(fm: &str) -> Vec<String> {
+/// Set `status:` on flat top-level and nested `ods.status` keys (preserve indent).
+fn set_frontmatter_status(fm: &str, status: &str) -> Vec<String> {
     let mut lines: Vec<String> = fm.lines().map(|s| s.to_string()).collect();
     let mut in_ods_map = false;
     let mut ods_child_indent: Option<usize> = None;
@@ -233,7 +291,7 @@ fn set_frontmatter_status_archived(fm: &str) -> Vec<String> {
                     in_ods_map = false;
                     ods_child_indent = None;
                 } else if indent == ci && trimmed.starts_with("status:") {
-                    *line = format!("{:indent$}status: archived", "", indent = indent);
+                    *line = format!("{:indent$}status: {status}", "", indent = indent);
                     updated_nested = true;
                     continue;
                 } else {
@@ -243,20 +301,19 @@ fn set_frontmatter_status_archived(fm: &str) -> Vec<String> {
         }
 
         if !in_ods_map && indent == 0 && trimmed.starts_with("status:") {
-            *line = "status: archived".to_string();
+            *line = format!("status: {status}");
             updated_flat = true;
         }
     }
 
     if !updated_nested && has_ods_map {
-        // Insert status under the `ods:` map using a conventional 2-space indent.
         if let Some(idx) = lines.iter().position(|l| l.trim() == "ods:") {
-            lines.insert(idx + 1, "  status: archived".to_string());
+            lines.insert(idx + 1, format!("  status: {status}"));
             updated_nested = true;
         }
     }
     if !updated_nested && !updated_flat {
-        lines.push("status: archived".to_string());
+        lines.push(format!("status: {status}"));
     }
 
     lines
@@ -323,32 +380,32 @@ mod test_lifecycle_helpers {
     #[test]
     fn archive_status_flat_nested_and_insert() {
         let flat = "profile: note\nstatus: draft\n";
-        let out = set_frontmatter_status_archived(flat);
+        let out = set_frontmatter_status(flat, "archived");
         assert!(out.iter().any(|l| l.trim() == "status: archived"), "{out:?}");
 
         let nested = "ods:\n  profile: note\n  status: draft\n";
-        let out = set_frontmatter_status_archived(nested);
+        let out = set_frontmatter_status(nested, "archived");
         assert!(
             out.iter().any(|l| l.contains("status: archived")),
             "{out:?}"
         );
 
         let ods_map_no_status = "ods:\n  profile: note\nprofile: note\n";
-        let out = set_frontmatter_status_archived(ods_map_no_status);
+        let out = set_frontmatter_status(ods_map_no_status, "archived");
         assert!(
             out.iter().any(|l| l.contains("status: archived")),
             "{out:?}"
         );
 
         let scalar_ods = "ods: 0.1\nprofile: note\n";
-        let out = set_frontmatter_status_archived(scalar_ods);
+        let out = set_frontmatter_status(scalar_ods, "archived");
         assert!(
             out.iter().any(|l| l.contains("status: archived")),
             "{out:?}"
         );
 
         let empty = "profile: note\n";
-        let out = set_frontmatter_status_archived(empty);
+        let out = set_frontmatter_status(empty, "archived");
         assert!(
             out.iter().any(|l| l.contains("status: archived")),
             "{out:?}"
@@ -356,8 +413,11 @@ mod test_lifecycle_helpers {
 
         // comments / blanks
         let with_comments = "# c\n\nprofile: note\nstatus: draft\n";
-        let out = set_frontmatter_status_archived(with_comments);
+        let out = set_frontmatter_status(with_comments, "archived");
         assert!(out.iter().any(|l| l.contains("archived")));
+
+        let out = set_frontmatter_status(nested, "stable");
+        assert!(out.iter().any(|l| l.contains("status: stable")), "{out:?}");
     }
 
     #[test]

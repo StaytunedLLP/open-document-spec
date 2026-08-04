@@ -3,15 +3,18 @@ fn run_context_command(args: &[String]) -> Result<ExitCode, CliError> {
         println!(
             "ods context <id-or-path> [flags]\n\n\
              Resolve a bounded AI reading list (target + depends + context.load).\n\
-             Does not walk `related` (soft edges). Code edges are off unless --include-code.\n\n\
+             Does not walk `related` unless --include-related. Code edges off unless --include-code.\n\
+             With --okf on a hybrid workspace, merges OKF markdown-link neighborhood after ODS graph.\n\n\
              Flags:\n\
                --root <dir>           Workspace root (default: cwd)\n\
                --include-private      Include share: private documents\n\
                --include-code         Expand code: edges into the reading list\n\
+               --include-related      Also walk soft related: edges\n\
+               --explain              Show why each path was included\n\
                --max-tokens <N>       Cap estimated tokens (bytes/4 heuristic)\n\
                --print                Print file contents under the budget (prompt pack)\n\
                --format text|json     Output format (default text)\n\
-               --okf                  OKF concept context instead of ODS\n"
+               --okf                  Include OKF context (pure OKF or hybrid merge)\n"
         );
         return Ok(ExitCode::from(0));
     }
@@ -45,8 +48,10 @@ fn run_context_command(args: &[String]) -> Result<ExitCode, CliError> {
 
     let root = resolve_root_path(root_dir);
     let detected = ods_core::detect_workspace(&root);
-    let engines = ods_core::resolve_engines(extra, detected, true)
-        .map_err(|e| failure(e.message()))?;
+    let root_specs = ods_core::load_root_specs_config(&root);
+    let engines =
+        ods_core::resolve_engines_with_config(extra, detected, Some(&root_specs), true)
+            .map_err(|e| failure(e.message()))?;
     if engines.okf && !engines.ods {
         return run_okf_context_command(args);
     }
@@ -56,25 +61,56 @@ fn run_context_command(args: &[String]) -> Result<ExitCode, CliError> {
 
     let include_private = args.iter().any(|arg| arg == "--include-private");
     let include_code = args.iter().any(|arg| arg == "--include-code");
+    let include_related = args.iter().any(|arg| arg == "--include-related");
+    let explain = args.iter().any(|arg| arg == "--explain");
     let print_pack = args.iter().any(|arg| arg == "--print");
     let max_tokens = parse_flag_val(args, "--max-tokens")
         .map(|v| {
-            v.parse::<usize>()
-                .map_err(|_| usage_msg(ods_core::missing_flag_value("--max-tokens", "`ods context id --max-tokens 4000`")))
+            v.parse::<usize>().map_err(|_| {
+                usage_msg(ods_core::missing_flag_value(
+                    "--max-tokens",
+                    "`ods context id --max-tokens 4000`",
+                ))
+            })
         })
         .transpose()?;
 
     let workspace = load_workspace_with_options(&root, load_options_graph())
         .map_err(|err| fail_load(&root, err))?;
-    let result = ods_core::resolve_context_with_options(
+    let mut result = ods_core::resolve_context_with_options(
         &workspace,
         &query,
         &ods_core::ContextOptions {
             include_private,
             include_code,
+            include_related,
             max_tokens,
         },
     );
+
+    // Hybrid: merge OKF markdown-link neighborhood when OKF engine is active.
+    if engines.okf {
+        if let Ok(bundle) = ods_core::load_okf_bundle(&root) {
+            let okf_paths = ods_core::okf_context(&bundle, &query);
+            for p in okf_paths {
+                if !result.paths.iter().any(|existing| existing == &p) {
+                    let tokens = ods_core::estimate_path_tokens(&p);
+                    if let Some(budget) = max_tokens {
+                        if !result.paths.is_empty()
+                            && result.token_estimate.saturating_add(tokens) > budget
+                        {
+                            result.truncated = true;
+                            continue;
+                        }
+                    }
+                    result.token_estimate = result.token_estimate.saturating_add(tokens);
+                    result.paths.push(p);
+                    result.reasons.push("okf link neighborhood".into());
+                }
+            }
+        }
+    }
+
     if result.paths.is_empty() {
         return Err(fail_msg(ods_core::document_not_found_context(&query)));
     }
@@ -100,15 +136,32 @@ fn run_context_command(args: &[String]) -> Result<ExitCode, CliError> {
 
     match format {
         OutputFormat::Text => {
-            for path in &result.paths {
-                println!("{}", path.display());
+            for (i, path) in result.paths.iter().enumerate() {
+                if explain {
+                    let reason = result.reasons.get(i).map(String::as_str).unwrap_or("?");
+                    println!("{}  # {reason}", path.display());
+                } else {
+                    println!("{}", path.display());
+                }
             }
         }
         OutputFormat::Json | OutputFormat::Sarif => {
             let items: Vec<_> = result
                 .paths
                 .iter()
-                .map(|p| json_escape(&p.display().to_string()))
+                .enumerate()
+                .map(|(i, p)| {
+                    if explain {
+                        let reason = result.reasons.get(i).map(String::as_str).unwrap_or("?");
+                        format!(
+                            r#"{{"path":{},"reason":{}}}"#,
+                            json_escape(&p.display().to_string()),
+                            json_escape(reason)
+                        )
+                    } else {
+                        json_escape(&p.display().to_string())
+                    }
+                })
                 .collect();
             let skipped: Vec<_> = result
                 .skipped_private
@@ -116,13 +169,14 @@ fn run_context_command(args: &[String]) -> Result<ExitCode, CliError> {
                 .map(|p| json_escape(&p.display().to_string()))
                 .collect();
             println!(
-                r#"{{"id":{},"root":{},"paths":[{}],"token_estimate":{},"truncated":{},"skipped_private":[{}]}}"#,
+                r#"{{"id":{},"root":{},"paths":[{}],"token_estimate":{},"truncated":{},"skipped_private":[{}],"explain":{}}}"#,
                 json_escape(&query),
                 json_escape(&root.display().to_string()),
                 items.join(","),
                 result.token_estimate,
                 result.truncated,
-                skipped.join(",")
+                skipped.join(","),
+                explain
             );
         }
     }

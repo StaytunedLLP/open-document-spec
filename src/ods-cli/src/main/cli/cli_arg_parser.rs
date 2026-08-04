@@ -300,7 +300,15 @@ fn parse_common_flags(
                 // value consumed by context/mv/rm; do not treat as workspace path positional
                 i += 2;
             }
-            "--include-code" | "--print" | "--help" | "-h" => {
+            "--include-code"
+            | "--include-related"
+            | "--explain"
+            | "--print"
+            | "--list"
+            | "--no-register"
+            | "--register"
+            | "--help"
+            | "-h" => {
                 i += 1;
             }
             "--tag" | "--prompt" | "--llm" | "--agent" | "--snapshot" | "--path" | "--name" => {

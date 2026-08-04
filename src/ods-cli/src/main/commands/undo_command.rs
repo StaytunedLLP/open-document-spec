@@ -1,6 +1,41 @@
 fn run_undo_command(args: &[String]) -> Result<ExitCode, CliError> {
-    let target = args.get(2).map(PathBuf::from).unwrap_or_else(|| PathBuf::from("."));
+    if args.iter().any(|a| a == "--help" || a == "-h") {
+        println!(
+            "ods undo [path] [--list]\n\n\
+             Restore the latest workspace frontmatter snapshot (from `ods bench strip --write`\n\
+             or other snapshot-creating operations under ~/.ods/backups/<repo-hash>/).\n\n\
+             Not every mutating command creates a snapshot today. Prefer git for general undo.\n\n\
+             Flags:\n\
+               --list    List available snapshot ids for this workspace (newest last)\n"
+        );
+        return Ok(ExitCode::from(0));
+    }
+
+    let list = args.iter().any(|a| a == "--list");
+    let target = args
+        .iter()
+        .skip(2)
+        .find(|a| !a.starts_with('-'))
+        .map(PathBuf::from)
+        .unwrap_or_else(|| PathBuf::from("."));
     let root = find_marked_ods_workspace_root(&target).unwrap_or(target);
+
+    if list {
+        let snaps = ods_core::list_workspace_snapshots(&root).map_err(|err| {
+            fail_msg(ods_core::io_failed("list snapshots", err))
+        })?;
+        if snaps.is_empty() {
+            println!("no snapshots under {}", ods_core::get_backup_dir(&root).map(|p| p.display().to_string()).unwrap_or_else(|_| "~/.ods/backups/…".into()));
+            println!("hint: `ods bench strip --write` creates a restore point; then `ods undo`");
+            return Ok(ExitCode::from(0));
+        }
+        println!("snapshots (oldest → newest):");
+        for id in &snaps {
+            println!("  {id}");
+        }
+        println!("Next: ods undo   # restores the newest snapshot");
+        return Ok(ExitCode::from(0));
+    }
 
     let report = ods_core::undo_latest_snapshot(&root).map_err(|err| {
         let text = err.to_string();

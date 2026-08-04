@@ -626,11 +626,14 @@ fn context_options_token_budget_and_code_edges() {
         &ContextOptions {
             include_private: true,
             include_code: true,
+            include_related: false,
             max_tokens: None,
         },
     );
     assert!(!open.paths.is_empty());
     assert!(open.token_estimate > 0);
+    assert_eq!(open.reasons.len(), open.paths.len());
+    assert!(open.reasons.first().is_some_and(|r| r == "start"));
 
     let no_private = resolve_context_with_options(
         &ws,
@@ -638,6 +641,7 @@ fn context_options_token_budget_and_code_edges() {
         &ContextOptions {
             include_private: false,
             include_code: false,
+            include_related: false,
             max_tokens: None,
         },
     );
@@ -658,6 +662,7 @@ fn context_options_token_budget_and_code_edges() {
         &ContextOptions {
             include_private: true,
             include_code: false,
+            include_related: false,
             max_tokens: Some(1),
         },
     );

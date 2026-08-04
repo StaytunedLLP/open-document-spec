@@ -39,9 +39,31 @@ When resolving profile definitions (Zero Folder Auto-Discovery):
 
 ---
 
+## Custom profiles (one command)
+
+```bash
+ods profile init rfc              # scaffold .ods/profiles/rfc.md + register custom-profiles:
+ods profile init rfc --no-register  # scaffold only
+ods profile show rfc
+ods profiles                      # list standard + custom
+```
+
+By default, `profile init` appends `.ods/profiles/<name>.md` under root **`custom-profiles:`**. No folder auto-discovery: unlisted paths are ignored.
+
+### Section aliases
+
+Workspace **section aliases** live on the root index (`aliases:`) and extend which H2 headings satisfy a profile section check. Standard profiles already ship pipe-alternatives (e.g. `Goal | Objective | Purpose`).
+
+```bash
+ods aliases
+ods alias add Goal Objective
+```
+
+---
+
 ## ODS Packs (`ods pack`)
 
-A **Profile** defines a single document structural schema (`profile: decision`). A **Pack** is a reusable ODS workspace bundling **Custom Profiles**, **AI Agent Skills**, **SOPs**, **Templates**, and **Governance Rules** across repositories and machines.
+A **Profile** defines a single document structural schema (`profile: decision`). A **Pack** (v1) is a reusable directory/repo whose primary engine effect is importing **custom profile catalogs** (`ods-profiles/` or pack root). Packs may also carry Markdown SOPs/guides as ordinary docs; **skills install** and template engines are separate surfaces (`ods skill install`, `ods init --skills`) — not automatic pack apply.
 
 Workspaces declare custom profiles and imported ODS Packs in their root `index.md` / `index.ods.md`:
 

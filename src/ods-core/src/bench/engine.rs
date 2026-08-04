@@ -266,4 +266,25 @@ pub fn undo_latest_snapshot(root: &Path) -> io::Result<BenchRestoreReport> {
     bench_restore_workspace(root, None)
 }
 
+/// List snapshot ids (newest last) under the machine backup dir for this workspace.
+pub fn list_workspace_snapshots(root: &Path) -> io::Result<Vec<String>> {
+    let root = root.canonicalize().unwrap_or_else(|_| root.to_path_buf());
+    let backup_dir = get_backup_dir(&root)?;
+    if !backup_dir.is_dir() {
+        return Ok(Vec::new());
+    }
+    let mut entries: Vec<String> = fs::read_dir(&backup_dir)?
+        .filter_map(|e| e.ok())
+        .map(|e| e.path())
+        .filter(|p| p.extension().is_some_and(|ext| ext == "json"))
+        .filter_map(|p| {
+            p.file_stem()
+                .and_then(|s| s.to_str())
+                .map(|s| s.to_string())
+        })
+        .collect();
+    entries.sort();
+    Ok(entries)
+}
+
 

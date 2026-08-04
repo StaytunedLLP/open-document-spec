@@ -9,6 +9,14 @@ GitHub Releases use GitHub’s auto-generated notes. Edit this file by hand when
 
 ## [Unreleased]
 
+### Added
+- **`ods profile init --register` (default):** scaffolds `.ods/profiles/<name>.md` and appends it under root `custom-profiles:` (use `--no-register` to skip). **`ods profile show <name>`** prints layer, sections, expected keys.
+- **`ods status <path-or-id> <draft|stable|deprecated|archived>`** lifecycle setter; **`ods archive`** remains an alias for `status … archived`.
+- **`ods aliases` / `ods alias add <Canonical> <Synonym>`** for workspace section-heading aliases on the root index.
+- **`ods context --explain`** / **`--include-related`**; hybrid **`--okf`** merges OKF link neighborhood after ODS depends/load; respects root `specs.okf.enabled`.
+- **`ods undo --list`** lists machine backup snapshots; help clarifies undo is snapshot/bench restore, not full git undo.
+- Guide clarity: multi-spec flag rules in quickstart; context depends/related/load recipe; packs v1 = profile catalogs (honest scope); `--okf` command matrix in CLI help.
+
 ### Changed
 - **Directive CLI errors (catalog):** user-facing failures live in `src/ods-core/src/error/messages.rs`. First-call shape is `error:`/`usage:` + `Next:` (optional `Hint:`). Full CLI long-tail (argv/load/mutate/service/pack/bench/update/…), ODS **+ OKF + Skills** lint diagnostics, and service/update failures use the catalog; bare `failure(e.to_string())` / free-form usage dumps removed from command paths. Guide `07-troubleshooting`, skill, and agent rules updated.
 - **Agent instructions:** root `AGENTS.md` (hand-maintained; `ods agents sync` will not clobber when `.agents/rules/` exists), rules `30-schema-keys` / `40-quality-gates`, skill `quality-gate`, pre-handoff hooks, and `check-schema-keys` smoke for reliable future iterations.
