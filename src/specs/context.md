@@ -15,7 +15,7 @@ This document defines AI agent context scope loading configurations and visibili
 
 ## 1. Context: deterministic AI loading
 
-The `ods.context` block allows authors to define a precise reading list for AI agents working on the document's topic, replacing expensive repository-wide searches with a bounded, predictable context scope.
+The `ods.context` block (nested under `ods:` only — see [SPEC.md](SPEC.md) §3) allows authors to define a precise reading list for AI agents working on the document's topic, replacing expensive repository-wide searches with a bounded, predictable context scope.
 
 ```yaml
 ---

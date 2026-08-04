@@ -45,7 +45,7 @@ Rules:
 
 ## 3. The graph: `depends` and `related`
 
-ODS defines exactly **two** edge types inside the `ods:` frontmatter block. Richer vocabularies (e.g., `implements`, `extends`, and `replaces`) are deliberately excluded from the core; use `ods.related` until a future extension standardizes them from observed need.
+ODS defines exactly **two** edge types inside the nested `ods:` frontmatter block (`depends` and `related` live under `ods:` only — not as universal top-level keys; see [SPEC.md](SPEC.md) §3). Richer vocabularies (e.g., `implements`, `extends`, and `replaces`) are deliberately excluded from the core; use `ods.related` until a future extension standardizes them from observed need.
 
 ```yaml
 ods:

@@ -21,6 +21,7 @@ Conformance for metadata is defined by **validation, not intention**. The normat
 | :--- | :---: | :---: |
 | Frontmatter parses as valid YAML | 1+ | error |
 | Frontmatter MUST NOT contain a `title:` key (title exists only as H1 body header) | 1+ | error |
+| `tags` MUST be top-level when present; nested `tags` under `ods:` is misplaced | 1+ | warning |
 | `ods.status` (or fallback `status`) is one of `draft`, `stable`, `deprecated`, or `archived` | 1+ | error |
 | `ods.share` (or fallback `share`, when present) is one of `public`, `org`, or `private` | 1+ | error |
 | `ods.profile` (or fallback `profile`) resolves to a known profile | 1+ | warning |
@@ -48,7 +49,9 @@ ODS consumers must preserve author content whenever doing so does not break the 
 | :--- | :--- |
 | Unknown frontmatter key | Preserve and ignore for core validation. |
 | Unknown `profile` value | Warn and treat as `note` (Default Profile) for section checks until a Profile definition is available. |
-| Unknown `tags` value | Accept; tags are workspace-observed search facets. |
+| Top-level `tags` value (any string) | Accept; normalize to lowercase; include in the workspace tag set. Tags are free-form facets (no closed registry). |
+| `tags` nested under `ods:` | SHOULD warn (misplaced universal key). SHOULD NOT treat as a permanent authoring form. Migrate tooling (`ods fmt --migrate`) SHOULD hoist values to top-level without dropping them. |
+| Legacy flat engine keys (`profile`, `status`, …) without nested `ods:` | Accept for migration; format/migrate SHOULD nest them under `ods:`. |
 | Unknown `code` item `role` value | Error; Code Reference roles are fixed by this specification. |
 | Invalid `share` value | Error; `share` must be `public`, `org`, or `private`. |
 | Dangling `depends` / `related` reference | Level-3 error. |
@@ -82,14 +85,20 @@ Adoption never rewrites prose body content. Plain Markdown without frontmatter r
 
 ## 3. Compatibility (CLI-versioned workspaces)
 
-Tools that implement tag discovery SHOULD treat the **workspace tag set** as the observed union of document `tags` values after normalization. A built-in suggestion list, when present, is for completions and documentation only and MUST NOT make documents invalid.
+Tools that implement tag discovery SHOULD treat the **workspace tag set** as the observed union of **top-level** document `tags` values after normalization (see [SPEC.md](SPEC.md) §3). A built-in suggestion list, when present, is for completions and documentation only and MUST NOT make documents invalid. Nested `tags` under `ods:` is not the supported authoring form; tools MAY surface it only to aid repair.
 
-For the `ods: 0.1` core field set (`profile`, `status`, `share`, `description`, `id`, `depends`, `related`, `resources`, `code`, `context`, `owner`, `tags`, and root `ods` / `ods` / `profiles` / `packs` / `ignore` / `aliases`):
+For the `ods: 0.1` core field set, keys are placement-aware:
+
+| Placement | Keys |
+| :--- | :--- |
+| **Universal top-level** | `description`, `owner`, `tags`, `created`, `updated` |
+| **Engine under `ods:`** | `profile`, `status`, `id`, `share`, `depends`, `related`, `resources`, `code`, `context` |
+| **Root index only (top-level)** | scalar `ods` (spec version / CLI constraint), `profiles` / `custom-profiles`, `packs`, `ignore`, `aliases`, `specs` |
 
 - A workspace root `ods:` value SHOULD equal the current ODS spec version.
 - A workspace root `ods:` value SHOULD be an exact CLI version or minimum range such as `>=0.0.1`.
 - Workspace discovery SHOULD remain tolerant of older `ods:` values so setup can upgrade them in place.
-- `ods lint` and `ods doctor`  MUST report missing or stale root `ods:` values and missing, invalid, or unsatisfied `ods:` values.
-- `ods init` and `ods setup`  MUST write the current spec version to `ods:` and the current CLI minimum requirement to `ods:`.
+- `ods lint` and `ods doctor` MUST report missing or stale root `ods:` values and missing, invalid, or unsatisfied `ods:` values.
+- `ods init` and `ods setup` MUST write the current spec version to `ods:` and the current CLI minimum requirement to `ods:`.
 - Unknown frontmatter keys MUST continue to be ignored by core tools.
 - Breaking changes to core field meaning require a new `ods` version string on the root index.

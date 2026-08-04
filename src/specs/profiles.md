@@ -82,12 +82,14 @@ packs:
 
 ## 3. Workspace Tag Operations
 
-Documents MAY declare free-form strings in their frontmatter `tags:` list. Tools MUST normalize tags to lowercase on ingest.
+`tags` is **universal top-level** frontmatter (see [SPEC.md](SPEC.md) §3). It MUST NOT appear under `ods:`. Nested placement makes tags invisible to SSGs and other non-ODS tools; `ods lint` SHOULD warn, and `ods fmt --migrate` SHOULD hoist nested tags to the top level without dropping values.
 
-Tooling SHOULD provide query and refactoring operations for workspace tags:
-- **`ods tags`**: Inspect all unique tags in the workspace and their frequency across documents.
-- **`ods find --tag <name>`**: Retrieve all documents carrying a given tag.
-- **`ods tag rename <old> <new>`**: Safely rewrite occurrences of `<old>` to `<new>` in document frontmatter across the workspace without altering body content.
+Documents MAY declare free-form strings in their top-level frontmatter `tags:` list. Tools MUST normalize tags to lowercase on ingest. Tags SHOULD NOT collide with lifecycle status values (`draft`, `stable`, `deprecated`, `archived`) or with profile names (standard or workspace-registered custom profiles).
+
+Tooling SHOULD provide query and refactoring operations for **top-level** workspace tags:
+- **`ods tags`**: Inspect all unique top-level tags in the workspace and their frequency across documents.
+- **`ods find --tag <name>`**: Retrieve all documents carrying a given top-level tag.
+- **`ods tag rename <old> <new>`**: Safely rewrite occurrences of `<old>` to `<new>` in top-level frontmatter tag lists across the workspace without altering body content.
 
 ---
 

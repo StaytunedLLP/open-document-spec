@@ -18,12 +18,13 @@ This document lists concepts and features ODS intentionally excludes from its co
 ### 1. Document Format & Identity
 - **No new file extension**: Standard `.md` Markdown is used. New extensions create editor friction, break git diffing, and complicate ingestion.
 - **No frontmatter `title` field**: Document title MUST exist only once as the first `# H1` body header (Single Source of Truth / Token Efficiency).
-- **No un-prefixed flat engine keys or flat key prefixing**: Engine metadata is grouped in a nested `ods:` map (`ods: { profile, status, share, id, depends, related, resources, code, context }`) to avoid collisions with static site generators (Rspress, Docusaurus, Astro) and visual clutter.
+- **No un-prefixed flat engine keys or flat key prefixing**: Engine metadata is grouped in a nested `ods:` map (`ods: { profile, status, share, id, depends, related, resources, code, context }`) to avoid collisions with static site generators (Rspress, Docusaurus, Astro) and visual clutter. Canonical emit places engine keys under `ods:`; legacy flat engine keys are accepted only for migration.
+- **No nesting of universal keys under `ods:`**: Keys such as `tags`, `description`, and `owner` MUST stay at the **top level** of frontmatter so non-ODS tools (Obsidian, Hugo, Docusaurus, Astro, CMS, agents) can read them without implementing ODS. Putting them under `ods:` privatizes them to the engine and breaks multi-tool interop. Nested `tags` is invalid placement (lint + hoist via `ods fmt --migrate`), not a second supported API.
 - **No separate type taxonomy**: The `ods.profile` field uniquely identifies a document's classification; adding a parallel `type` field introduces redundant taxonomy bureaucracy.
 - **No per-document spec version / profile version**: Version info belongs in the root index and profile definitions, not duplicated in every file causing commit churn.
 - **No lifecycle field**: The `ods.status` field is the single source of truth for document maturity; adding `lifecycle` creates a duplicate status system.
 - **No updated timestamp**: Hand-maintained timestamps rot quickly; git commit logs provide the single authoritative history.
-- **No closed tag registries / allowlists**: Tags are free-form search facets. Hardcoded tag registries cause Synonym bureaucracy and friction; soft completion suggestions are sufficient.
+- **No closed tag registries / allowlists**: Tags are free-form top-level search facets. Hardcoded tag registries cause synonym bureaucracy and friction; soft completion suggestions are sufficient.
 
 ### 2. Manifests & Configs
 - **No manifest files**: Navigation, workspaces, metadata, and profiles are resolved directly from the directory structure and root `index.md`. There are no workspace, context, or collection manifests.

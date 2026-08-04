@@ -106,7 +106,7 @@ Legend: **Yes** = first-class in that spec · **No** = not part of that spec’s
 | **Nested `ods.resources`** | Yes | Related | Non-code resource refs |
 | **Nested `ods.code`** | Yes | No | Code path bindings + roles |
 | **Nested `ods.context`** | Yes | No | Context pack for `ods context` |
-| **Universal top-level** (`title`, `description`, `owner`, `tags`, …) | Yes (SSG/CMS-friendly) | Partial (`title`, `description`, `tags` recommended) | Human/agent display metadata |
+| **Universal top-level** (`description`, `owner`, `tags`, …) — **never under `ods:`** | Yes (SSG/CMS-friendly; any tool can read) | Partial (`title`, `description`, `tags` recommended) | Human/agent display metadata; ODS forbids nesting these under `ods:` |
 | **`type`** | No | **Required** | Concept kind (Metric, BigQuery Table, …) |
 | **`resource`** | Via resources/code | Yes optional | Canonical URI of underlying asset |
 | **`sources`** (+ credibility) | No (v1) | Yes | Provenance: what this concept was built from |
@@ -145,6 +145,8 @@ Legend: **Yes** = first-class in that spec · **No** = not part of that spec’s
 | **Root ods / ods** | Mark the tree as an ODS workspace and gate CLI version |
 
 **Goal:** efficient, structured **engineering documentation** for humans and coding agents.
+
+**Placement rule:** Universal keys (`tags`, `description`, `owner`, …) stay at the **common top level** so any technology can use them. Engine keys stay under **`ods:`**. Do not put `tags` under `ods:` — lint warns; `ods fmt --migrate` hoists them. See normative [SPEC.md §3](../../src/specs/SPEC.md).
 
 ### 4.2 OKF identity & description
 

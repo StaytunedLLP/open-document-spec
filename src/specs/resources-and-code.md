@@ -17,7 +17,7 @@ This document defines how non-Markdown files (resources) and source code impleme
 
 A resource refers to any non-Markdown file. ODS aims to describe and document these resources without replacing their native formats (e.g., CSV, OpenAPI specifications, images, and PDFs remain unchanged).
 
-A document serving as the canonical definition of a resource lists it inside `ods.resources` in its frontmatter:
+A document serving as the canonical definition of a resource lists it inside `ods.resources` in its frontmatter (`resources` is an engine key under `ods:` only — see [SPEC.md](SPEC.md) §3):
 
 ```yaml
 ods:
@@ -34,7 +34,7 @@ ods:
 
 ## 2. Code References
 
-The `ods.code` field maps an ODS document to the source files, infrastructure files, tests, schemas, and automation that implement or operationalize the document. Code references exist to help humans and AI agents move from "what and why" in Markdown to "where and how" in the repository without broad searches.
+The `ods.code` field (nested under `ods:` only) maps an ODS document to the source files, infrastructure files, tests, schemas, and automation that implement or operationalize the document. Code references exist to help humans and AI agents move from "what and why" in Markdown to "where and how" in the repository without broad searches.
 
 Code files are not ODS documents. They do not join the document graph, do not require frontmatter, and MUST NOT be indexed as Markdown children. The Markdown document remains the canonical source of truth for the mapping.
 
