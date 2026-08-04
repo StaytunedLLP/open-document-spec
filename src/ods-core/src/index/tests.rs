@@ -40,7 +40,7 @@ mod tests {
         let dir = temp_workspace();
         fs::write(
             dir.join("index.ods.md"),
-            "---\nprofile: index\nods: 0.1\nodc: \">=0.0.1\"\n---\n\n# Root\n",
+            "---\nprofile: index\nods: 0.1\n---\n\n# Root\n",
         )
         .unwrap();
         fs::create_dir_all(dir.join("a/b")).unwrap();
@@ -66,7 +66,7 @@ mod tests {
         let dir = temp_workspace();
         fs::write(
             dir.join("index.ods.md"),
-            "---\nprofile: index\nods: 0.1\nodc: \">=0.0.1\"\n---\n\n# Root\n",
+            "---\nprofile: index\nods: 0.1\n---\n\n# Root\n",
         )
         .unwrap();
         fs::create_dir_all(dir.join("gone")).unwrap();
@@ -91,7 +91,7 @@ mod tests {
         let dir = temp_workspace();
         fs::write(
             dir.join("index.ods.md"),
-            "---\nprofile: index\nods: 0.1\nodc: \">=0.0.1\"\n---\n\n# Root\n",
+            "---\nprofile: index\nods: 0.1\n---\n\n# Root\n",
         )
         .unwrap();
         fs::write(
@@ -121,7 +121,7 @@ mod tests {
         let dir = temp_workspace();
         fs::write(
             dir.join("index.ods.md"),
-            "---\nprofile: index\nods: 0.1\nodc: \">=0.0.1\"\n---\n\n# Root\n",
+            "---\nprofile: index\nods: 0.1\n---\n\n# Root\n",
         )
         .unwrap();
 
@@ -155,7 +155,7 @@ mod tests {
         let dir = temp_workspace();
         fs::write(
             dir.join("index.ods.md"),
-            "---\nprofile: index\nods: '0.1'\nodc: '>=0.0.1'\nother_list:\n  - item\n---\n\n# Root\n",
+            "---\nprofile: index\nods: '0.1'\nother_list:\n  - item\n---\n\n# Root\n",
         )
         .unwrap();
         fs::create_dir_all(dir.join("res")).unwrap();

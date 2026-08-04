@@ -31,7 +31,7 @@ pub fn parse_path(root: &Path, path: PathBuf, include_body: bool) -> io::Result<
     Ok(parse_document_text(root, path, &text, keep_body))
 }
 
-/// Parse many paths in parallel (order-preserving). Honors `ODC_JOBS` when set.
+/// Parse many paths in parallel (order-preserving). Honors `ODS_JOBS` (legacy `ODC_JOBS`).
 pub fn parse_paths_parallel(
     root: &Path,
     paths: &[PathBuf],

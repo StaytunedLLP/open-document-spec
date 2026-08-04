@@ -1,5 +1,5 @@
 /// Canonical order of ODS engine keys inside the nested `ods:` map
-/// (specs/SPEC.md "Canonical Key Sequence Rule").
+/// (specs/ods/keys.md "Canonical Key Sequence Rule").
 const CANONICAL_ODS_KEY_ORDER: [&str; 9] = [
     "profile",
     "status",

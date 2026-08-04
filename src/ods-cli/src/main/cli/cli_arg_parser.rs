@@ -291,6 +291,10 @@ fn parse_common_flags(
             "--refs" | "--ignore-keys" | "--ignore-key" => {
                 i += 2;
             }
+            "--root" => {
+                // value consumed by context/mv/rm; do not treat as workspace path positional
+                i += 2;
+            }
             "--tag" | "--prompt" | "--llm" | "--agent" | "--snapshot" | "--path" | "--name" => {
                 // value consumed by find/bench/skills init; skip so path parsing still works
                 i += 2;
@@ -350,9 +354,8 @@ fn positional_args(args: &[String], start: usize) -> Vec<String> {
     let mut i = start;
     while i < args.len() {
         match args[i].as_str() {
-            "--level" | "--format" | "--version" => i += 2,
+            "--level" | "--format" | "--version" | "--root" | "--refs" => i += 2,
             "--check" | "--write" | "--force" | "--canonical-refs" | "--include-private" => i += 1,
-            "--refs" => i += 2,
             flag if flag.starts_with('-') => i += 1,
             other => {
                 out.push(other.to_string());

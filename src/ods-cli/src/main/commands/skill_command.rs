@@ -173,29 +173,28 @@ Flags:
 }
 
 const CURSOR_MDC_TEMPLATE: &str = r#"---
-description: Activates when editing files inside an ODS workspace. Enforces frontmatter standards, dependency graph integrity, and runs ODS CLI check commands.
-globs: ["*.md"]
+description: ODS markdown authoring — bounded context, not full-repo dumps.
+globs: ["**/*.md"]
+alwaysApply: false
 ---
 # Open Document Specs (ODS) Rules
 
-When editing Markdown files in this project:
-1. **Frontmatter Integrity**: Keep ODS metadata (`profile`, `status`, `share`, `depends`, `related`, `code`) consistent.
-2. **Context Resolution**: Use `ods context <file>` to resolve dependency graphs before sending text to the LLM prompt.
-3. **Automatic Link Repair**: Use `ods mv <src> <dst>` instead of `mv` when renaming or moving documents.
-4. **Validation**: Run `ods lint` to check for broken links and structural compliance.
+When editing Markdown in an ODS workspace:
+1. Keep engine keys under `ods:` (`profile`, `status`, `depends`, `related`, `context`).
+2. **Token discipline**: run `ods context <id>` and read **only** the returned paths. Never load the whole tree or `ods export graph` for routine answers.
+3. Use `ods mv <src> <dst>` when renaming docs; run `ods lint` after structural edits.
 "#;
 
 const WINDSURF_RULE_TEMPLATE: &str = r#"---
-trigger: always_on
-description: Keep Markdown documentation compliant with Open Document Specs.
+trigger: model_decision
+description: ODS markdown — use bounded context, avoid full-repo token waste.
 ---
 # Open Document Specs (ODS) Rules
 
-When editing Markdown files in this project:
-1. Keep ODS metadata (`profile`, `status`, `share`, `depends`, `related`, `code`) consistent.
-2. Run `ods context <file>` before loading a document's dependency graph into the agent context.
-3. Use `ods mv <src> <dst>` instead of `mv` when renaming or moving documents.
-4. Run `ods lint` to check links and structural compliance.
+When editing Markdown in an ODS workspace:
+1. Keep ODS metadata consistent (`ods.profile`, `ods.status`, `depends`, `related`).
+2. Run `ods context <id>` and read only those paths — do not dump the repository.
+3. Use `ods mv` for renames; `ods lint` after structural edits.
 "#;
 
 const SKILL_BUNDLE: &[(&str, &[u8])] = &[

@@ -7,7 +7,7 @@ These areas need mocks or platform CI; incomplete line coverage here does **not*
 Used by `./src/scripts/coverage.sh` and CI:
 
 ```text
-(asset_downloader\.rs|update/installer\.rs|service/launchers\.rs|watch_and_serve_runner\.rs|okf_watch\.rs|github_release\.rs|setup_command\.rs)
+(asset_downloader\.rs|update/installer\.rs|update/binary_replacer\.rs|update/http_helpers\.rs|service/launchers\.rs|watch_and_serve_runner\.rs|okf_watch\.rs|github_release\.rs|setup_command\.rs|lsp_command\.rs|git_sync\.rs)
 ```
 
 Override locally with `ODS_COVERAGE_IGNORE_T3='...'` if needed.
@@ -16,11 +16,15 @@ Override locally with `ODS_COVERAGE_IGNORE_T3='...'` if needed.
 |---|---|
 | `ods-cli/.../update/asset_downloader.rs` | Live HTTP download of release assets |
 | `ods-cli/.../update/installer.rs` | Network install + binary replace orchestration |
+| `ods-cli/.../update/binary_replacer.rs` | In-place binary replace on self-update (effect edge) |
+| `ods-cli/.../update/http_helpers.rs` | HTTP client helpers for release fetch |
 | `ods-cli/.../update/github_release.rs` | Live GitHub Releases API + download orchestration |
 | `ods-cli/.../service/launchers.rs` | `systemctl` / `launchctl` / privileged service enable |
 | `ods-cli/.../service/watch_and_serve_runner.rs` | Long-running watch/serve loops, `ctrlc`, debounce |
 | `ods-cli/.../okf/okf_watch.rs` | Long-running OKF watch/serve poll loop (same class as serve runner) |
 | `ods-cli/.../setup_command.rs` | Machine first-run: editor install, service enable, health checks |
+| `ods-cli/.../lsp_command.rs` | Long-running JSON-RPC editor protocol (stdio loop) |
+| `ods-cli/.../support/git_sync.rs` | Invokes `git` subprocesses for rename detection |
 
 ## Still counted (prefer tests / seams)
 

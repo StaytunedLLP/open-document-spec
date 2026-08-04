@@ -15,7 +15,7 @@ Open Document Specs (ODS) is a lightweight, graph-native Markdown convention lay
 
 ## 1. Core Frontmatter Features
 
-Frontmatter is split into **universal top-level** keys (any tool can read them) and **engine keys under `ods:`** (ODS-only). See normative [SPEC.md §3](../../src/specs/SPEC.md).
+Frontmatter is split into **universal top-level** keys (any tool can read them) and **engine keys under `ods:`** (ODS-only). See the key dictionary [ods/keys.md](../../specs/ods/keys.md).
 
 | Field | Type | Placement | Level | Purpose & Usage |
 | :--- | :--- | :--- | :---: | :--- |

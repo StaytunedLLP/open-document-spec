@@ -104,7 +104,7 @@ fn dangling_pack_path_error() {
     let dir = temp_workspace();
     fs::write(
         dir.join("index.ods.md"),
-        "---\nprofile: index\nods: 0.1\nodc: \">=0.0.1\"\npacks:\n  - vendor/non-existent-pack\n---\n\n# Root\n",
+        "---\nprofile: index\nods: 0.1\npacks:\n  - vendor/non-existent-pack\n---\n\n# Root\n",
     )
     .unwrap();
     let ws = load_workspace(&dir).unwrap();

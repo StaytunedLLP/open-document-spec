@@ -49,12 +49,26 @@ fn run_profile_list_command(args: &[String]) -> Result<ExitCode, CliError> {
 }
 
 fn run_profile_init_command(args: &[String]) -> Result<ExitCode, CliError> {
+    // argv: ods profile init <name>  → name at index 3
+    // (dispatch already matched subcommand "init" at index 2)
     let profile_name = args
-        .get(2)
+        .get(3)
         .filter(|a| !a.starts_with('-'))
-        .ok_or_else(|| usage("profile init requires a profile name argument (e.g. `ods profile init rfc`)"))?;
+        .or_else(|| {
+            // tolerate accidental `ods profile <name>` when routed here
+            args.get(2)
+                .filter(|a| a.as_str() != "init" && !a.starts_with('-'))
+        })
+        .ok_or_else(|| {
+            usage("profile init requires a profile name argument (e.g. `ods profile init rfc`)")
+        })?;
 
-    let root = env::current_dir().unwrap_or_else(|_| PathBuf::from("."));
+    // Optional root path after name: ods profile init rfc /path
+    let root = args
+        .get(4)
+        .filter(|a| !a.starts_with('-'))
+        .map(PathBuf::from)
+        .unwrap_or_else(|| env::current_dir().unwrap_or_else(|_| PathBuf::from(".")));
     let profiles_dir = root.join(".ods").join("profiles");
     fs::create_dir_all(&profiles_dir).map_err(|err| failure(err.to_string()))?;
 

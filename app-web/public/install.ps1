@@ -8,8 +8,8 @@
 #   irm https://raw.githubusercontent.com/StaytunedLLP/open-document-spec/main/src/scripts/install.ps1 | iex
 #
 # Options via environment variables:
-#   ODS_VERSION / ODC_VERSION — pin a release tag, e.g. "v0.1.0"  (default: latest)
-#   ODS_PREFIX / ODC_PREFIX   — install dir (default: %LOCALAPPDATA%\Programs\ods)
+#   ODS_VERSION — pin a release tag, e.g. "v0.1.0"  (default: latest; legacy ODC_VERSION still read)
+#   ODS_PREFIX  — install dir (default: %LOCALAPPDATA%\Programs\ods; legacy ODC_PREFIX still read)
 #   ODS_NO_VERIFY — set to "1" to skip SHA256 checksum verification
 #   GH_TOKEN / GITHUB_TOKEN — optional token (e.g. for higher API rate limits)
 #
@@ -130,6 +130,7 @@ $Asset = switch ($ProcArch.ToString()) {
 
 # ── Version resolution ────────────────────────────────────────────────────────
 $Version = $env:ODS_VERSION
+if (-not $Version) { $Version = $env:ODC_VERSION } # legacy fallback
 try {
     if ($Version) {
         Write-Step "Fetching release $Version..."
@@ -201,19 +202,17 @@ if ($env:ODS_NO_VERIFY -ne "1") {
 Write-Step "Extracting..."
 Expand-Archive -Path "$TmpDir\$Filename" -DestinationPath $TmpDir -Force
 $Extracted = "$TmpDir\ods-$Version-$Asset"
-if (-not (Test-Path "$Extracted")) { $Extracted = "$TmpDir\odc-$Version-$Asset" }
 $BinSrc = $null
 if (Test-Path "$Extracted\ods.exe") { $BinSrc = "$Extracted\ods.exe" }
-elseif (Test-Path "$Extracted\odc.exe") { $BinSrc = "$Extracted\odc.exe" }
 else {
-    $found = Get-ChildItem -Path $TmpDir -Recurse -Include "ods.exe","odc.exe" -ErrorAction SilentlyContinue | Select-Object -First 1
+    $found = Get-ChildItem -Path $TmpDir -Recurse -Include "ods.exe" -ErrorAction SilentlyContinue | Select-Object -First 1
     if ($found) { $BinSrc = $found.FullName }
 }
-if (-not $BinSrc) { throw "ods.exe/odc.exe not found in archive" }
+if (-not $BinSrc) { throw "ods.exe not found in archive" }
 
 # ── Install ───────────────────────────────────────────────────────────────────
-$Prefix = $env:ODC_PREFIX
-if (-not $Prefix) { $Prefix = $env:ODS_PREFIX }
+$Prefix = $env:ODS_PREFIX
+if (-not $Prefix) { $Prefix = $env:ODC_PREFIX } # legacy fallback
 if (-not $Prefix) { $Prefix = Join-Path $env:LOCALAPPDATA "Programs\ods" }
 New-Item -ItemType Directory -Force -Path $Prefix | Out-Null
 Copy-Item $BinSrc (Join-Path $Prefix "ods.exe") -Force

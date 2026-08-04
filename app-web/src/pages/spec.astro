@@ -1,12 +1,16 @@
 ---
 // FILE: src/pages/spec.astro
-// Purpose: Main /spec route rendering the primary SPEC.md document inside the DocShell.
+// Purpose: Main /spec route rendering the ODS intro document inside the DocShell.
 
 import { getCollection, render } from "astro:content";
 import DocShell from "../components/DocShell.astro";
 
 const allEntries = await getCollection("specs");
-const mainSpec = allEntries.find((e) => (e.id || "").includes("SPEC")) || allEntries[0];
+const mainSpec =
+  allEntries.find((e) => (e.id || "").replace(/\\/g, "/").endsWith("ods/intro.md")) ||
+  allEntries.find((e) => (e.id || "").includes("ods/intro")) ||
+  allEntries.find((e) => (e.id || "").includes("ods/core")) ||
+  allEntries[0];
 const { Content, headings } = await render(mainSpec);
 ---
 

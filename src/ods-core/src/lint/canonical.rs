@@ -113,30 +113,9 @@ fn lint_document(
         }
         FrontmatterState::Absent => {}
         FrontmatterState::Parsed(frontmatter) => {
-            if let Some(status) = &frontmatter.status
-                && !matches!(
-                    status.as_str(),
-                    "draft" | "stable" | "deprecated" | "archived"
-                )
-            {
-                diagnostics.push(Diagnostic {
-                    path: document.path.clone(),
-                    severity: Severity::Error,
-                    message: format!("invalid status: {status}"),
-                });
-            }
-
-            if let Some(share) = &frontmatter.share
-                && !matches!(
-                    share.as_str(),
-                    "public" | "org" | "private"
-                )
-            {
-                diagnostics.push(Diagnostic {
-                    path: document.path.clone(),
-                    severity: Severity::Error,
-                    message: format!("invalid share value: {share}"),
-                });
+            // Schema-driven enum + placement checks (status, share, tags under ods:).
+            for issue in crate::spec::validate_ods_frontmatter(frontmatter) {
+                diagnostics.push(issue.to_diagnostic(document.path.clone()));
             }
 
             if let Some(created) = &frontmatter.created {

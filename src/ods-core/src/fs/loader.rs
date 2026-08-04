@@ -119,12 +119,19 @@ pub fn load_odsignore_patterns(root: &Path) -> Vec<String> {
 /// Locate the ODS workspace root for a file path.
 ///
 /// Prefers the **nearest** ancestor whose `index.ods.md` declares `ods:` (workspace marker).
+///
+/// Relative paths are resolved against the process cwd **before** walking parents so
+/// component pop never yields an empty `PathBuf` (which would match cwd files via
+/// `"".join("index.ods.md")` and return a broken empty root).
 pub fn find_workspace_root(path: impl AsRef<Path>) -> Option<PathBuf> {
     let path = path.as_ref();
-    let start = if path.is_dir() {
-        path.to_path_buf()
+    let abs = absolute_probe_path(path)?;
+    let start = if abs.is_dir() {
+        abs
     } else {
-        path.parent()?.to_path_buf()
+        abs.parent()
+            .filter(|p| !p.as_os_str().is_empty())?
+            .to_path_buf()
     };
 
     let mut current = start;
@@ -132,6 +139,11 @@ pub fn find_workspace_root(path: impl AsRef<Path>) -> Option<PathBuf> {
     let mut nearest_ods = None::<PathBuf>;
 
     loop {
+        // Empty paths must never be treated as roots (relative-walk bug).
+        if current.as_os_str().is_empty() {
+            break;
+        }
+
         let index_ods_path = current.join("index.ods.md");
         let index_md_path = current.join("index.md");
 
@@ -157,12 +169,36 @@ pub fn find_workspace_root(path: impl AsRef<Path>) -> Option<PathBuf> {
             break;
         }
 
-        if !current.pop() {
+        if !current.pop() || current.as_os_str().is_empty() {
             break;
         }
     }
 
-    nearest_ods.or(nearest_index)
+    let found = nearest_ods.or(nearest_index)?;
+    if found.as_os_str().is_empty() {
+        return None;
+    }
+    Some(found.canonicalize().unwrap_or(found))
+}
+
+/// Make a probe path absolute without requiring it to exist on disk.
+///
+/// Used so ancestor walks for document ids like `specs/ods/core` start from a real
+/// directory chain under cwd, not a relative path that collapses to `""`.
+fn absolute_probe_path(path: &Path) -> Option<PathBuf> {
+    if path.as_os_str().is_empty() {
+        return std::env::current_dir().ok();
+    }
+    let joined = if path.is_absolute() {
+        path.to_path_buf()
+    } else {
+        std::env::current_dir().ok()?.join(path)
+    };
+    Some(
+        joined
+            .canonicalize()
+            .unwrap_or_else(|_| crate::fs::normalize_path(&joined)),
+    )
 }
 
 /// True if the given `index.md` or `index.ods.md` path declares an `ods:` frontmatter field.

@@ -1,9 +1,15 @@
 # ODS workspace graph
 
 - **Root:** `/home/beingminimal/Downloads/gh-beingminimal/StaytunedLLP/open-document-spec/src/ods-cli`
-- **Documents:** 3
+- **Documents:** 4
 
 ## Documents
+
+### `agents`
+
+- **path:** `AGENTS.md`
+- **profile:** `(none)`
+- **status:** `(none)`
 
 ### `graph`
 

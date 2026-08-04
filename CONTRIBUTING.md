@@ -58,11 +58,11 @@ New engine code should follow [functional style](docs/maintainer/functional-styl
 
 **Product naming:** **`ods`** is the tool; bare commands = ODS (no `--ods`); extra specs via **`--okf`** / **`--skills`** only (no namespaces).
 
-Coverage: see [docs/maintainer/coverage.md](docs/maintainer/coverage.md). Run `./src/scripts/coverage.sh`. CI enforces a line floor (**88%** as of 2026-08-02, with T3 excludes).
+Coverage: see [docs/maintainer/coverage.md](docs/maintainer/coverage.md). Run `./src/scripts/coverage.sh`. CI enforces a line floor (**90%** as of 2026-08-04, with T3 excludes).
 
 ### Touchpoint rule
 
-CLI surface or multi-spec changes must update: `src/specs/`, `docs/guide/`, `docs/other-specs/`, `skills/ods/`, tests, help strings, and `CHANGELOG.md` in the same change set when practical.
+CLI surface or multi-spec changes must update: `specs/`, `docs/guide/`, `docs/other-specs/`, `skills/ods/`, tests, help strings, and `CHANGELOG.md` in the same change set when practical.
 
 ## Tests & coverage
 
@@ -75,8 +75,8 @@ CLI surface or multi-spec changes must update: `src/specs/`, `docs/guide/`, `doc
 cargo install cargo-llvm-cov --locked
 ./src/scripts/coverage.sh
 # or:
-IGNORE_T3='(asset_downloader\.rs|update/installer\.rs|service/launchers\.rs|watch_and_serve_runner\.rs|okf_watch\.rs|github_release\.rs)'
-cargo llvm-cov --workspace --locked --ignore-filename-regex "$IGNORE_T3" --fail-under-lines 88
+IGNORE_T3='(asset_downloader\.rs|update/installer\.rs|update/binary_replacer\.rs|update/http_helpers\.rs|service/launchers\.rs|watch_and_serve_runner\.rs|okf_watch\.rs|github_release\.rs|setup_command\.rs|lsp_command\.rs|git_sync\.rs)'
+cargo llvm-cov --workspace --locked --ignore-filename-regex "$IGNORE_T3" --fail-under-lines 90
 ```
 
 ## CI

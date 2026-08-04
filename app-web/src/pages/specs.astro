@@ -1,12 +1,16 @@
 ---
 // FILE: src/pages/specs.astro
-// Purpose: Plural /specs root route rendering the main SPEC.md document inside DocShell.
+// Purpose: Plural /specs root route — same entry as /spec (ODS intro).
 
 import { getCollection, render } from "astro:content";
 import DocShell from "../components/DocShell.astro";
 
 const allEntries = await getCollection("specs");
-const mainSpec = allEntries.find((e) => (e.id || "").includes("SPEC")) || allEntries[0];
+const mainSpec =
+  allEntries.find((e) => (e.id || "").replace(/\\/g, "/").endsWith("ods/intro.md")) ||
+  allEntries.find((e) => (e.id || "").includes("ods/intro")) ||
+  allEntries.find((e) => (e.id || "").includes("ods/core")) ||
+  allEntries[0];
 const { Content, headings } = await render(mainSpec);
 ---
 

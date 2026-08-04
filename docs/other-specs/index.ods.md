@@ -2,15 +2,17 @@
 profile: index
 ---
 
-# Other specs (extra dialects in the `ods` CLI)
+# Other specs (guides & comparisons)
 
-ODS is the **default** product of the `ods` CLI. Other dialects are enabled **only with flags** (never namespaces, never `--ods`):
+**Normative dialect homes** now live under [`specs/`](../../specs/index.ods.md):
 
-| Spec | Flag | Notes |
+| Spec | Folder | Flag |
 |---|---|---|
-| **ODS** | *(none — default)* | Document graphs, profiles, indexes |
-| **OKF v0.2** | `--okf` | Knowledge bundles (`okf_version`) |
-| **Agent Skills** | `--skills` | `SKILL.md` packages |
+| **ODS** | [`specs/ods/`](../../specs/ods/index.ods.md) | *(none — default)* |
+| **OKF v0.2** | [`specs/okf/`](../../specs/okf/index.ods.md) | `--okf` |
+| **Agent Skills** | [`specs/skills/`](../../specs/skills/index.ods.md) | `--skills` |
+
+This folder keeps **operational guides**, long upstream dumps, and **comparisons**:
 
 - [agentskills.md](agentskills.md)
 - [cli-multi-spec.md](cli-multi-spec.md)

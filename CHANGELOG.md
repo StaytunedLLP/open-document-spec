@@ -10,7 +10,12 @@ GitHub Releases use GitHub’s auto-generated notes. Edit this file by hand when
 ## [Unreleased]
 
 ### Changed
-- **Test coverage elevation (production readiness):** workspace line coverage raised from ~**76.8%** raw / ~**77%** with T3 excludes to ~**88.9%** lines (T3-excluded), with **`ods-core` ~92%** and CLI ~**84%**. CI floor **73 → 88** using shared T3 `--ignore-filename-regex` (network download, OS service install, long-running watch, GitHub release client). New tests: multi-spec/skills engine, graph JSON export, LSP protocol surface, CLI agents/schema/stats/tree/clean/completion/audit/pack/upgrade/bench, and high-ROI core unit tests. Reports via `./src/scripts/coverage.sh` → `.artifacts/coverage/`. Remaining gap to the **90%** workspace bar is mostly CLI orchestration (`lsp`, `lifecycle`, `pack`, `upgrade`, OKF flag runners). See `docs/maintainer/coverage.md`.
+- **Agent instructions:** root `AGENTS.md`, `.agents/{rules,skills,agents,hooks}`, and crate `AGENTS.md` files document schema-driven keys, pre-commit gates (`check-local` / coverage 90%), odc residue policy, and subcommand argv indexing for future iterations.
+- **Schema-driven keys:** `SpecSchemaRegistry` now registers full **ODS + OKF + Skills** key catalogs (aligned with `specs/*/keys.md`). Lint enum checks (`status`/`share`) and `ods schema` JSON emission are driven from the registry so adding/updating dialect keys is a schema change + tests.
+- **CI coverage floor** raised **88 → 90** lines (T3 excludes unchanged). Local: `ODS_COVERAGE_FAIL_UNDER_LINES=90 ./src/scripts/coverage.sh`.
+- **Legacy `odc` residue gate:** `./src/scripts/check-odc-residue.sh`; test fixtures no longer embed `odc:` pins; install scripts install **ods** only (legacy env dual-read for `ODC_*` kept where noted).
+- **Specs IA overhaul:** multi-spec tree under top-level **`specs/{ods,okf,skills}/`** (single location; former `src/specs` + root symlink removed). ODS modules renamed to one-word files (`core`, `assets`, `scope`, …) with new end-user **`intro.md`** and frontmatter **`keys.md`**. Site routes are `/spec/ods/...`, `/spec/okf/...`, `/spec/skills/...` (legacy flat `/spec/spec` etc. retired). `docs/other-specs/` is guides/comparisons only.
+- **Test coverage elevation (production readiness):** workspace line coverage raised from ~**76.8%** raw / ~**77%** with T3 excludes toward the **≥90%** bar (T3-excluded). CI floor **73 → 88 → 90** using shared T3 `--ignore-filename-regex` (network download, OS service install, long-running watch, GitHub release client). New tests: multi-spec/skills engine, graph JSON export, LSP protocol surface, CLI agents/schema/stats/tree/clean/completion/audit/pack/upgrade/bench, schema-driven enum lint, and high-ROI core unit tests. Reports via `./src/scripts/coverage.sh` → `.artifacts/coverage/`. See `docs/maintainer/coverage.md`.
 - **CLI multi-spec UX (flag-only):** ODS is the default native engine (no `--ods` flag). Extra specs use `--okf` and `--skills` only.
 - **Bare hybrid lint** runs **ODS only**; pass `--okf` to also lint OKF. Pure OKF trees require `ods lint --okf`.
 - **Agent Skills:** native parse/lint/init via `ods init --skills` and `ods lint --skills`.
@@ -26,6 +31,9 @@ GitHub Releases use GitHub’s auto-generated notes. Edit this file by hand when
 - **Dead code:** removed unused `SpecKeyProcessor` / parallel `SpecDescriptor` key tables; keep `SpecSchemaRegistry` only.
 
 ### Fixed
+- **`ods context` token-waste regression:** `find_workspace_root` no longer collapses relative document ids (e.g. `specs/ods/core`) to an empty root, which made `ods context <id>` silently return **zero paths** (exit 0) and pushed agents to dump full trees / full graph exports. Roots are absolutized before ancestor walks; empty paths are rejected.
+- **`ods context` CLI:** document id is not treated as the workspace root; supports `ods context <id>`, `ods context <workspace> <id>`, and `ods context --root <dir> <id>`. Missing ids now **error** (non-zero) instead of silent empty success. Query matching accepts path-shaped ids, `.md` paths, unique stems, and absolute paths under the workspace.
+- **Agent skill / install templates:** stop recommending full `ods export graph` for routine AI prompts; Cursor/Windsurf rules prefer bounded context only (no always-on encyclopedias).
 - Workspace error messages reference `~/.ods/odsconfig.toml` (not `odcconfig`).
 - JSON Schema status enum aligned to SPEC: `draft|stable|deprecated|archived`.
 - Hybrid workspaces: bare lint/doctor/audit are **ODS-only**; pass `--okf` to include OKF.

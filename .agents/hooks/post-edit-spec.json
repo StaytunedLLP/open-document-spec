@@ -1,0 +1,15 @@
+{
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Write|Edit|search_replace",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "p=\"${TOOL_INPUT_PATH:-}${TOOL_INPUT_file_path:-}\"; case \"$p\" in */specs/*|*skills/ods/references*) echo '[.agents] Spec/skill refs edited — run: ods lint (and --okf/--skills if those trees changed); sync skills/ods/references if ODS keys changed' ;; */src/ods-core/src/spec/*) echo '[.agents] Schema registry edited — update specs/*/keys.md + tests; run cargo test -p ods-core --lib spec::schema' ;; */src/ods-*/*|*/src/scripts/*) echo '[.agents] Engine/scripts edited — before handoff: SKIP_RELEASE_BUILD=true ./src/scripts/check-local.sh && ODS_COVERAGE_FAIL_UNDER_LINES=90 ./src/scripts/coverage.sh' ;; */src/scripts/install.*) echo '[.agents] Install script is source of truth — sync app-web/public and skills/ods/scripts copies' ;; esac"
+          }
+        ]
+      }
+    ]
+  }
+}

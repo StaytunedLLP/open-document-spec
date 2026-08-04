@@ -26,5 +26,9 @@ Open Document Spec (ODS) is an open-source, local-first specification. The CLI t
 - Quickstart Guide: https://opendocify.com/docs/quickstart
 - Adoption Guide: https://opendocify.com/docs/adoption
 - Tooling Reference: https://opendocify.com/docs/tooling
-- ODS Core Specification: https://opendocify.com/spec/spec
+- ODS Intro: https://opendocify.com/spec/ods/intro
+- ODS Keys dictionary: https://opendocify.com/spec/ods/keys
+- ODS Core model: https://opendocify.com/spec/ods/core
+- OKF Intro: https://opendocify.com/spec/okf/intro
+- Skills Intro: https://opendocify.com/spec/skills/intro
 - Privacy & Secrets Policy: https://opendocify.com/privacy

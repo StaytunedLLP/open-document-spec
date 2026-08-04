@@ -58,11 +58,25 @@ if (collection === "docs") {
   if (refItems.length) categories.push({ name: "Reference & Ops", items: refItems });
   if (useCaseItems.length) categories.push({ name: "Enterprise Use Cases", items: useCaseItems });
 } else {
-  const normItems = sortedEntries.filter((e) => (e.data?.order ?? 99) <= 4);
-  const auxItems = sortedEntries.filter((e) => (e.data?.order ?? 99) > 4);
+  // Specs collection: group by dialect folder (ods/, okf/, skills/)
+  const isIndexFile = (id: string) =>
+    /(^|\/)index(\.ods)?\.(md|mdx)$/i.test(id) || id === "index.ods.md" || id === "index.md";
+  const contentEntries = sortedEntries.filter((e) => !isIndexFile(e.id || ""));
+  const byPrefix = (prefix: string) =>
+    contentEntries.filter((e) => (e.id || "").replace(/\\/g, "/").startsWith(prefix));
 
-  if (normItems.length) categories.push({ name: "Specification Standards", items: normItems });
-  if (auxItems.length) categories.push({ name: "Validation & Guidelines", items: auxItems });
+  const odsItems = byPrefix("ods/");
+  const okfItems = byPrefix("okf/");
+  const skillsItems = byPrefix("skills/");
+  const otherItems = contentEntries.filter((e) => {
+    const id = (e.id || "").replace(/\\/g, "/");
+    return !id.startsWith("ods/") && !id.startsWith("okf/") && !id.startsWith("skills/");
+  });
+
+  if (odsItems.length) categories.push({ name: "ODS (default)", items: odsItems });
+  if (okfItems.length) categories.push({ name: "OKF (--okf)", items: okfItems });
+  if (skillsItems.length) categories.push({ name: "Skills (--skills)", items: skillsItems });
+  if (otherItems.length) categories.push({ name: "Other", items: otherItems });
 }
 
 if (!categories.length) {

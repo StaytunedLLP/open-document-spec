@@ -254,7 +254,6 @@ tar xzf "${TMPDIR_ODS}/${FILENAME}" -C "${TMPDIR_ODS}"
 BIN_SRC=""
 for try in "${TMPDIR_ODS}/ods-${VERSION}-${ASSET}"; do
   if [ -f "${try}/ods" ]; then BIN_SRC="${try}/ods"; break; fi
-  if [ -f "${try}/odc" ]; then BIN_SRC="${try}/odc"; break; fi
 done
 if [ -z "${BIN_SRC}" ]; then
   FOUND=$(find "${TMPDIR_ODS}" -type f -name ods 2>/dev/null | head -1 || true)

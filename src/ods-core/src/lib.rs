@@ -101,7 +101,10 @@ pub use profiles::{
     standard_profile_catalog,
 };
 pub use share::{ShareLevel, ShareOptions, SharePublishReport, effective_share, publish_workspace};
-pub use spec::{KeyDefinition, KeyPlacement, SpecKind, SpecSchema, SpecSchemaRegistry};
+pub use spec::{
+    KeyDefinition, KeyPlacement, KeyType, SchemaIssue, SpecKind, SpecSchema, SpecSchemaRegistry,
+    generate_ods_json_schema, validate_ods_frontmatter,
+};
 pub use tags::{
     TagRenameReport, builtin_tags, completion_tags, docs_with_any_tag, docs_with_tag,
     is_builtin_tag, normalize_tag, normalize_tag_list, observed_tags, rename_tag_in_workspace,

@@ -25,13 +25,13 @@ ods init         # ODS workspace (root ods: marker)
 ods init --okf   # OKF bundle (okf_version: "0.2")
 ```
 
-**Source of truth for product naming:** [ods tool / keys / legacy cleanup plan](../plan/odc_tool_keys_legacy_cleanup.md).
+**Source of truth for product naming:** [ods tool / keys / legacy cleanup plan](../plan/archive/odc_tool_keys_legacy_cleanup.md).
 
 **Normative references**
 
-- ODS: [`specs/SPEC.md`](../../specs/SPEC.md) and sibling modules under `specs/`
-- OKF: [Google OKF SPEC v0.2](https://github.com/GoogleCloudPlatform/knowledge-catalog/blob/main/okf/SPEC.md)
-- Implementation plans: [ODS migration](../plan/ods_to_odc_migration_and_cli_architecture.md), [Native OKF](../plan/okf_native_support.md)
+- ODS: [`specs/ods/intro.md`](../../specs/ods/intro.md), [`specs/ods/keys.md`](../../specs/ods/keys.md), [`specs/ods/core.md`](../../specs/ods/core.md)
+- OKF (CLI dialect): [`specs/okf/keys.md`](../../specs/okf/keys.md); upstream [Google OKF SPEC v0.2](https://github.com/GoogleCloudPlatform/knowledge-catalog/blob/main/okf/SPEC.md)
+- Implementation plans: [ODS migration](../plan/archive/ods_to_odc_migration_and_cli_architecture.md), [Native OKF](../plan/archive/okf_native_support.md)
 
 ---
 
@@ -95,8 +95,7 @@ Legend: **Yes** = first-class in that spec · **No** = not part of that spec’s
 
 | Key / concept | ODS | OKF v0.2 | Purpose (short) |
 |---|---|---|---|
-| **Root `ods:`** | Yes | No | ODS workspace version / boundary |
-| **`ods:`** | Yes | No | Pin minimum CLI for ODS workspace |
+| **Root `ods:`** | Yes | No | ODS workspace version / boundary (e.g. `0.1`) |
 | **Nested `ods.profile`** | Yes | No | Document shape (guide, api, feature, …) |
 | **Nested `ods.status`** | Yes | Related* | ODS doc lifecycle (`draft` / `stable` / …) |
 | **Nested `ods.id`** | Yes | No† | Stable id override (path is default id) |
@@ -146,7 +145,7 @@ Legend: **Yes** = first-class in that spec · **No** = not part of that spec’s
 
 **Goal:** efficient, structured **engineering documentation** for humans and coding agents.
 
-**Placement rule:** Universal keys (`tags`, `description`, `owner`, …) stay at the **common top level** so any technology can use them. Engine keys stay under **`ods:`**. Do not put `tags` under `ods:` — lint warns; `ods fmt --migrate` hoists them. See normative [SPEC.md §3](../../src/specs/SPEC.md).
+**Placement rule:** Universal keys (`tags`, `description`, `owner`, …) stay at the **common top level** so any technology can use them. Engine keys stay under **`ods:`**. Do not put `tags` under `ods:` — lint warns; `ods fmt --migrate` hoists them. See [ods/keys.md](../../specs/ods/keys.md).
 
 ### 4.2 OKF identity & description
 
@@ -263,6 +262,7 @@ If Open Document Spec later adopts shared optional keys into ODS (e.g. `stale_af
 
 ## 8. See also
 
-- ODS modules: [`specs/`](../../specs/) (`SPEC.md`, `graph.md`, `validation.md`, `profiles.md`, …)  
-- Plans: [Tool / keys / legacy cleanup](../plan/odc_tool_keys_legacy_cleanup.md), [ODS migration](../plan/ods_to_odc_migration_and_cli_architecture.md), [Native OKF](../plan/okf_native_support.md)  
+- ODS modules: [`specs/ods/`](../../specs/ods/) (`intro`, `keys`, `core`, `graph`, `validation`, …)  
+
+- Plans: [Tool / keys / legacy cleanup](../plan/archive/odc_tool_keys_legacy_cleanup.md), [ODS migration](../plan/archive/ods_to_odc_migration_and_cli_architecture.md), [Native OKF](../plan/archive/okf_native_support.md)  
 - Upstream OKF: [SPEC.md v0.2](https://github.com/GoogleCloudPlatform/knowledge-catalog/blob/main/okf/SPEC.md)

@@ -180,7 +180,7 @@ fn reindex_workspace_writes_indexes() {
     let dir = temp_workspace();
     fs::write(
         dir.join("index.ods.md"),
-        "---\nprofile: index\nods: 0.1\nodc: \">=0.0.1\"\n---\n\n# R\n\n",
+        "---\nprofile: index\nods: 0.1\n---\n\n# R\n\n",
     )
     .unwrap();
     fs::write(

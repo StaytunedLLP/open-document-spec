@@ -61,7 +61,7 @@ Progress from initial setup to enterprise documentation architecture across 4 st
 
 | Feature | Command / Key | Role & Description |
 |---|---|---|
-| ⚡ **Deterministic Bounded Context Graph** | `ods context <doc-id>` | Bounded AI reading scope (<5ms) following `depends:` and `related:` chains for AI Coding Assistants. |
+| ⚡ **Deterministic Bounded Context Graph** | `ods context <doc-id>` | Bounded AI reading scope (<5ms) following `depends:` + `context.load` (not full-repo dump). |
 | 📋 **Custom Profile Schema Engine** | `ods profile` / `custom-profiles:` | Single-source profile schema registration in `index.ods.md`, enforcing `expected_keys` and `H2`/`H3` section hierarchies. |
 | 📊 **Workspace Document Telemetry** | `ods stats` | Reports document health score %, graph dependency density, profile distribution, and top taxonomy tags. |
 | 🌳 **Visual Tree Representation** | `ods tree` | Displays visual ASCII/Unicode hierarchy tree of index navigation and dependency graphs. |
@@ -215,7 +215,7 @@ ods:
 | `ods diff` | `ods diff [target]` | Compare document graph dependencies and frontmatter changes against git commits or branches. |
 | `ods clean` | `ods clean [path]` | Clean diagnostic reports (`.ods/ods-errors.md`), coverage files (`.ods/coverage.md`), and cache files. |
 | `ods status` / `coverage` | `ods coverage [path]` | Display workspace health score and profile coverage breakdown. |
-| `ods context` | `ods context <doc-id> [--max-tokens N]` | Generate sub-5ms bounded AI context graph for prompt feeding (`--max-tokens` caps token budget). |
+| `ods context` | `ods context <doc-id> [--root <dir>]` | Sub-5ms bounded AI reading list (target + depends + context.load). Errors if the id is missing — do not fall back to full-repo reads. |
 | `ods mv` | `ods mv <src> <dst>` | Move/rename Markdown file and auto-heal graph links and references. |
 | `ods adopt` | `ods adopt [path]` | Auto-draft frontmatter on unindexed legacy Markdown files. |
 | `ods profile` | `ods profile list/init` | List registered profiles or scaffold new custom profile schemas. |
@@ -261,6 +261,13 @@ jobs:
 - 🛠️ **Tier 2 (Practitioner)**: [Tooling Matrix](/docs/guide/04-tooling) · [Features](/docs/guide/features)
 - 📋 **Tier 3 (Power User)**: [Profiles & Catalogs](/docs/guide/05-profiles) · [Advanced Workspaces](/docs/guide/06-advanced) · [ROI Calculator](/docs/guide/roi-calculator)
 - 🏢 **Tier 4 (Architect)**: [Diagnostics](/docs/guide/07-troubleshooting-and-diagnostics) · [Enterprise Deployment](/docs/guide/08-enterprise-deployment) · [Use Cases](/docs/guide/use-cases)
+
+### Specification (format meaning)
+
+- **ODS**: [Intro](specs/ods/intro.md) · [Keys](specs/ods/keys.md) · [Core](specs/ods/core.md) · [all modules](specs/ods/index.ods.md)
+- **OKF** (`--okf`): [Intro](specs/okf/intro.md) · [Keys](specs/okf/keys.md)
+- **Skills** (`--skills`): [Intro](specs/skills/intro.md) · [Keys](specs/skills/keys.md)
+- Site: https://opendocify.com/spec
 
 ---
 

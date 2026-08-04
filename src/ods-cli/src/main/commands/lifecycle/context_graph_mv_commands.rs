@@ -1,7 +1,39 @@
 fn run_context_command(args: &[String]) -> Result<ExitCode, CliError> {
-    let (root, _level, format) = parse_common_flags(args, 2)?;
+    // Context is special: the primary positional is a *document id*, not a workspace
+    // root. Using parse_common_flags alone treats `ods context specs/ods/core` as
+    // root=specs/ods/core and historically collapsed find_workspace_root to "".
+    let (_ignored_root, _level, format) = parse_common_flags(args, 2)?;
     let extra = ods_core::parse_extra_spec_flags(args.iter().map(String::as_str))
         .map_err(|e| usage(e.message()))?;
+
+    let positionals = positional_args(args, 2);
+    let root_flag = parse_flag_val(args, "--root").map(PathBuf::from);
+    let (root_dir, query) = match (root_flag, positionals.as_slice()) {
+        (_, []) => return Err(usage("missing document id (usage: ods context <id-or-path>)")),
+        (Some(rf), [id]) => (rf, id.clone()),
+        (Some(rf), [_, id]) => (rf, id.clone()),
+        (Some(rf), rest) => (rf, rest.last().cloned().unwrap()),
+        // `ods context <existing-dir> <id>` — explicit workspace + id
+        (None, [maybe_root, id]) if PathBuf::from(maybe_root).is_dir() => {
+            (PathBuf::from(maybe_root), id.clone())
+        }
+        // `ods context <id>` — workspace is cwd (document id is NOT a root path)
+        (None, [only]) if PathBuf::from(only).is_dir() => {
+            return Err(usage(
+                "missing document id (usage: ods context <id-or-path> or ods context <workspace-dir> <id>)",
+            ));
+        }
+        (None, [only]) => (
+            env::current_dir().unwrap_or_else(|_| PathBuf::from(".")),
+            only.clone(),
+        ),
+        (None, rest) => (
+            env::current_dir().unwrap_or_else(|_| PathBuf::from(".")),
+            rest.last().cloned().unwrap(),
+        ),
+    };
+
+    let root = resolve_root_path(root_dir);
     let detected = ods_core::detect_workspace(&root);
     let engines = ods_core::resolve_engines(extra, detected, true)
         .map_err(|e| failure(e.message()))?;
@@ -13,21 +45,18 @@ fn run_context_command(args: &[String]) -> Result<ExitCode, CliError> {
             "context requires an ODS workspace (or pass `--okf` for OKF context)",
         ));
     }
-    let positionals = positional_args(args, 2);
-    let query = match positionals.as_slice() {
-        [] => return Err(usage("missing document id")),
-        [only] if PathBuf::from(only).is_dir() => {
-            return Err(usage("missing document id"));
-        }
-        [only] => only.clone(),
-        [maybe_root, id] if PathBuf::from(maybe_root).is_dir() => id.clone(),
-        rest => rest.last().cloned().unwrap(),
-    };
 
     let include_private = args.iter().any(|arg| arg == "--include-private");
     let workspace = load_workspace_with_options(&root, load_options_graph())
         .map_err(|err| failure(err.to_string()))?;
     let paths = resolve_context(&workspace, &query, include_private);
+    if paths.is_empty() {
+        return Err(failure(format!(
+            "document not found for context query `{query}` in workspace {} \
+             (try a path-shaped id like `specs/ods/core`, a relative `.md` path, or `ods find`)",
+            root.display()
+        )));
+    }
     match format {
         OutputFormat::Text => {
             for path in &paths {
@@ -40,8 +69,9 @@ fn run_context_command(args: &[String]) -> Result<ExitCode, CliError> {
                 .map(|p| json_escape(&p.display().to_string()))
                 .collect();
             println!(
-                r#"{{"id":{},"paths":[{}]}}"#,
+                r#"{{"id":{},"root":{},"paths":[{}]}}"#,
                 json_escape(&query),
+                json_escape(&root.display().to_string()),
                 items.join(",")
             );
         }
