@@ -1,5 +1,5 @@
 ---
-description: "Principles, Level 0–3 adoption ladder, learning path, and core benefits of Open Document Spec."
+description: "Principles, binary compliance, learning path, and core benefits of Open Document Spec."
 status: "stable"
 order: 1
 ods:
@@ -17,82 +17,71 @@ Documents stay plain `.md` files. Metadata is optional YAML frontmatter. Nothing
 
 ODS is built on six foundational dimensions:
 
-- ❓ **WHAT**: A human-first Markdown specification standard and sub-5ms Rust CLI engine (`ods`) that turns flat `.md` files into a validated, auto-healing document graph.
-- 💡 **WHY**: Eliminates documentation drift, prevents AI model hallucinations, reduces AI prompt token costs by up to ~95% using bounded context graphs, and enforces mandatory section trees.
-- 👥 **WHO**: Connects Developers, Product Managers, Technical Writers, Compliance Leads, and AI Coding Assistants (Antigravity, Claude, Cursor, ChatGPT).
-- 📍 **WHERE**: Runs in local terminals, IDE prompt windows, CI/CD GitHub Actions (`ods/action`), and outputs OASIS SARIF v2.1.0 security diagnostics.
-- ⏰ **WHEN**: Used from day 1 repo setup (`ods init`), during active refactoring (`ods mv`), feature scaffolding (`ods new`), and automated pull request gates (`ods lint`).
-- 🛠️ **HOW**: Hands-on CLI commands and Skill-first AI automation across a 4-Tier Novice-to-Expert Learning Arc.
+- ❓ **WHAT**: A human-first Markdown specification and native Rust CLI (`ods`) that turns flat `.md` files into a validated document graph.
+- 💡 **WHY**: Reduces documentation drift, bounds AI context with `ods context`, and keeps relationships explicit.
+- 👥 **WHO**: Developers, PMs, writers, compliance leads, and coding agents (Cursor, Claude, ChatGPT, …).
+- 📍 **WHERE**: Local terminals, editors (`ods lsp`), CI, and optional background service (`ods serve`).
+- ⏰ **WHEN**: From day-one setup (`ods init`) through refactors (`ods mv`) and PR gates (`ods lint`).
+- 🛠️ **HOW**: CLI-first discovery and validation — no nested index lockfiles.
 
 ---
 
-## 🎓 Novice-to-Expert Mastery Roadmap
+## Novice-to-expert roadmap
 
-| Tier | Level & Audience | Key Focus & Concepts | Primary Commands |
+| Tier | Audience | Focus | Primary commands |
 | --- | --- | --- | --- |
-| **Tier 1** | 🏁 **Novice**<br/>(Foundations) | Installation, root spec (`ods: 0.1`), basic frontmatter (`profile`, `status`), Level-3 validation. | `ods init`<br/>`ods setup`<br/>`ods lint` |
-| **Tier 2** | 🛠️ **Practitioner**<br/>(Day-to-Day Graph) | Document graphs (`depends`, `related`), code linking (`code`), auto-indexes (`index.md`), atomic moves. | `ods index`<br/>`ods mv`<br/>`ods new`<br/>`ods adopt` |
-| **Tier 3** | 📋 **Power User**<br/>(Custom Schemas) | Custom Profile Schemas (`custom-profiles:`), ODS Packs (`ods pack`), AI bounded context, token ROI benchmarking. | `ods profile`<br/>`ods context`<br/>`ods pack`<br/>`ods bench` |
-| **Tier 4** | 🏢 **Architect**<br/>(Enterprise CI/CD) | Persistent OS background daemons (`ods serve`), GitHub Actions (`ods/action`), SARIF reporting, pre-commit hooks. | `ods setup --git-hooks`<br/>`ods serve`<br/>`ods lint --format sarif` |
+| **1 · Setup** | New workspace | Install, `ods.toml`, frontmatter, lint | `ods init` · `ods setup` · `ods lint` |
+| **2 · Graph** | Day-to-day docs | `depends` / `related`, code links, moves | `ods overview` · `ods find` · `ods mv` · `ods new` |
+| **3 · Profiles** | Custom shapes | Profiles, packs, context | `ods profile` · `ods context` · `ods pack` |
+| **4 · Service** | Teams / CI | Serve, hooks, SARIF | `ods serve` · `ods lint --format sarif` |
 
 ---
 
 ## Core design principles
 
-1. **Human first** — Readable in any text editor, forever.
-2. **Free at level zero** — Plain Markdown is already conformant; adoption is enrichment, never migration.
-3. **Token efficient** — Every fact has exactly one canonical location.
-4. **Graph native** — Relationships are explicit frontmatter data, not inferred from prose.
-5. **Trust from validation** — Metadata is only as reliable as the checks that enforce it.
+1. **Human first** — Readable in any text editor.
+2. **Plain Markdown is valid** — Adoption is enrichment, never forced migration.
+3. **Token efficient** — Every fact has one canonical location; agents use progressive CLI discovery.
+4. **Graph native** — Relationships are explicit frontmatter, not guessed from prose.
+5. **Trust from validation** — Binary **compliant | non-compliant** via `ods lint`.
 
 ---
 
-## Adoption ladder (Level 0–3)
+## Compliance (binary)
 
-| Level | What you have | Done when |
-| --- | --- | --- |
-| **0** | Any Markdown tree | Files open in any editor |
-| **1** | Optional `profile` + `status` frontmatter | Docs are typed where it matters |
-| **2** | Path IDs, `depends` / `related`, `index.md` navigation | Graph and maps exist |
-| **3** | CI lint: no dangling refs, indexes current, resources exist | Trust comes from validation |
+| State | Meaning |
+| --- | --- |
+| **Plain Markdown** | Files open anywhere; no workspace marker required |
+| **ODS workspace** | Root **`ods.toml`** with `spec` (e.g. `"0.1"`) |
+| **Compliant** | `ods lint` reports zero errors |
+| **Non-compliant** | Fix diagnostics, then re-lint |
 
-You never migrate Level 0 away. You only add structure when you need it.
+There is **no** Level 0–3 ladder. Normative rules: [`specs/ods/intro.md`](../../specs/ods/intro.md), [`specs/ods/core.md`](../../specs/ods/core.md), [`specs/ods/validation.md`](../../specs/ods/validation.md).
 
 ---
 
 ## Learning path
 
-| Step | Doc | Time | You will |
-| --- | --- | --- | --- |
-| 1 | [Introduction](/docs/introduction) | 5 min | Understand principles and Level 0–3 |
-| 2 | [Quickstart Guide](/docs/quickstart) | 10 min | Skill-first setup, init, start/watch, lint, context |
-| 3 | [Adopting ODS](/docs/adoption) | 15 min | Enrich an existing Markdown repo |
-| 4 | [Tooling Reference](/docs/tooling) | 15 min | CLI, setup, service, CI, update |
-| 5 | [Features](/docs/features) | 20 min | Full feature catalog |
-| 6 | [Profiles & Catalogs](/docs/profiles) | 15 min | Standard and custom profiles |
-| 7 | [Advanced Workspaces](/docs/advanced) | 20 min | Agents, context, large workspaces |
-| 8 | [FAQ](/docs/faq) | as needed | Troubleshooting |
+| Step | Doc | You will |
+| --- | --- | --- |
+| 1 | This introduction | Principles and compliance |
+| 2 | [Quickstart](02-quickstart.md) | Init, lint, context |
+| 3 | [Adoption](03-adoption.md) | Enrich an existing repo |
+| 4 | [Tooling](04-tooling.md) | CLI and CI |
+| 5 | [Profiles](05-profiles.md) | Document shapes |
+| 6 | [Advanced](06-advanced.md) | Agents and large workspaces |
+| 7 | [FAQ](faq.md) | Troubleshooting |
 
-Normative rules start at [`specs/ods/intro.md`](/spec/ods/intro) (keys: [`specs/ods/keys.md`](/spec/ods/keys), core: [`specs/ods/core.md`](/spec/ods/core)). This guide is operational.
-
-**Automation default:** child lists in `index.md` are generated by `ods index` / `ods start` / `ods watch`. Do not hand-edit those bullets—set document `description` instead.
+**Discovery:** use `ods overview` → `ods find` / `ods tag` / `ods tree` → `ods context <id>`. Do **not** commit nested `index.ods.md` files.
 
 ---
 
 ## What you get
 
-- **Clear shapes** — Standard profiles (guide, feature, decision, …) reduce format guesswork.
-- **Navigable trees** — Generated `index.md` files stay current under `ods start` / `watch` / `index`.
-- **Explicit edges** — `depends` and `related` feed agents and tools.
-- **Bounded AI context** — `context.*` plus `ods context` / optional `ods export`.
-- **Share-aware publishing** — `ods share` writes a real, filtered directory (public docs only by default) that you `git init`/push yourself.
-- **Safer refactors** — Rename while the service/watch runs, or use `ods mv`; refs and indexes update together.
-- **CLI trust** — `ods lint` is the Level-3 gate (green message or `.ods/ods-errors.md`).
-
----
-
-## What to read next
-
-- New workspace: [Quickstart Guide](/docs/quickstart)
-- Existing Markdown repo: [Adopting ODS](/docs/adoption)
-- Tooling & service: [Tooling Reference](/docs/tooling)
+- **Clear shapes** — Standard profiles (guide, feature, decision, …).
+- **CLI navigation** — Progressive discovery without index lockfiles.
+- **Explicit edges** — `depends` and `related` for agents and tools.
+- **Bounded AI context** — `ods context` with optional `--max-tokens`.
+- **Share-aware publish** — `ods share` filters by `share:`.
+- **Safer refactors** — `ods mv` rewrites graph refs.
+- **Low-memory service** — `ods serve` targets **≤ 10 MB** RSS by default (`service.max_rss_mb`).

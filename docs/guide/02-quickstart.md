@@ -9,7 +9,7 @@ ods:
 
 # Quickstart
 
-Open Document Spec is one native CLI binary: **`ods`**. ODS is the default engine (no `--ods` flag). Extra specs use **`--okf`** / **`--skills`**. The normal flow is install, run `ods setup`, initialize or adopt Markdown, optionally keep the user service running, then validate with bare **`ods lint`** / **`ods index --check`**.
+Open Document Spec is one native CLI binary: **`ods`**. ODS is the default engine (no `--ods` flag). Extra specs use **`--okf`** / **`--skills`**. The normal flow is install, run `ods setup`, initialize or adopt Markdown, optionally keep the user service running, then validate with bare **`ods lint`** / **`ods lint`**.
 
 ---
 
@@ -75,7 +75,7 @@ OKF knowledge bundle:
 ods init --okf .    # OKF v0.2 knowledge bundle (extra-spec flag)
 ```
 
-`ods init` (ODS default) makes the folder ODS-compliant by creating a root `index.md` with `ods: 0.1` and generating child index files.
+`ods init` (ODS default) makes the folder ODS-compliant by creating a root `ods.toml` with `spec = "0.1"` and generating child index files.
 
 ### Multi-spec: when do I need a flag?
 
@@ -114,7 +114,7 @@ Foreground alternative:
 ods watch .
 ```
 
-While `ods start` or `ods watch` runs, rename/move Markdown normally. ODS keeps path-shaped `id`, `depends`, `related`, body links, resource paths, context path entries, and generated `index.md` child lists current.
+While `ods start` or `ods watch` runs, rename/move Markdown normally. ODS keeps path-shaped `id`, `depends`, `related`, body links, resource paths, context path entries, and generated `ods.toml` child lists current.
 
 ---
 
@@ -122,7 +122,7 @@ While `ods start` or `ods watch` runs, rename/move Markdown normally. ODS keeps 
 
 ```bash
 ods lint
-ods index --check
+ods lint
 ```
 
 Clean lint output:

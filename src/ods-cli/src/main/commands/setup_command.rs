@@ -284,8 +284,7 @@ fn find_marked_ods_workspace_root(path: &Path) -> Option<PathBuf> {
     };
 
     loop {
-        let index = current.join("index.ods.md");
-        if index.is_file() && ods_core::index_has_ods_field(&index) {
+        if ods_core::ods_toml_enabled(&current) {
             return Some(current);
         }
         if current.join(".git").exists() {

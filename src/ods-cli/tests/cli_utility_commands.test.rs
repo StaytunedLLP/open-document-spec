@@ -22,7 +22,7 @@ fn lint_clean_prints_ok_message() {
     )
     .unwrap();
     let out = Command::new(ods_bin())
-        .args(["index", root])
+        .args(["lint", root])
         .output()
         .unwrap();
     assert!(out.status.success(), "{:?}", out);
@@ -59,7 +59,7 @@ fn lint_broken_writes_ods_error_report() {
     .unwrap();
     assert!(
         Command::new(ods_bin())
-            .args(["index", root])
+            .args(["lint", root])
             .output()
             .unwrap()
             .status
@@ -91,7 +91,7 @@ fn init_and_disable_cli() {
         .unwrap();
     assert!(out.status.success(), "{:?}", out);
     assert!(
-        fs::read_to_string(dir.join("index.ods.md"))
+        fs::read_to_string(dir.join("ods.toml"))
             .unwrap()
             .contains("ods:"),
         "root should be initialized"
@@ -121,7 +121,7 @@ fn init_and_disable_cli() {
     assert!(!plain.contains("profile:"));
     assert!(plain.contains("Body stays."));
     assert!(
-        !fs::read_to_string(dir.join("index.ods.md"))
+        !fs::read_to_string(dir.join("ods.toml"))
             .unwrap()
             .lines()
             .any(|l| l.trim().starts_with("ods:"))
@@ -146,7 +146,7 @@ fn tags_find_and_rename() {
     )
     .unwrap();
     Command::new(ods_bin())
-        .args(["index", dir.to_str().unwrap()])
+        .args(["lint", dir.to_str().unwrap()])
         .status()
         .unwrap();
 

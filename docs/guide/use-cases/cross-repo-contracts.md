@@ -17,7 +17,7 @@ ODS Packs (`ods pack`) enable teams to share architectural contracts, custom pro
 
 ```text
 acme-engineering-pack/
-├── index.md
+├── ods.toml
 ├── ods-profiles/
 │   └── api-contract.md
 └── skills/

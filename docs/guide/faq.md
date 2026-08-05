@@ -17,7 +17,7 @@ No. Documents are plain `.md` only.
 
 ## Does installing ODS auto-make my Markdown compliant?
 
-**No.** Without root `ods:`, tools do not rewrite your tree. Plain Markdown is Level 0.
+**No.** Without root `ods:`, tools do not rewrite your tree. Plain Markdown is plain Markdown.
 
 - Opt in: `ods init .` or `ods init . --adopt`, then `ods lint`.
 - Opt out: `ods disable .` then `ods disable . --write`.

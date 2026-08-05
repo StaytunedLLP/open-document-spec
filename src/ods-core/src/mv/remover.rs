@@ -3,7 +3,6 @@
 // Used by `ods mv`, `ods watch`, and `ods serve` / `ods start` (background watch).
 
 use crate::fs::load_workspace;
-use crate::index::generate_indexes;
 use std::collections::BTreeSet;
 use std::fs;
 use std::io;
@@ -160,18 +159,8 @@ pub fn apply_path_changes(
         }
     }
 
-    if heal_failed && report.indexes.is_empty() {
-        match load_workspace(root) {
-            Ok(workspace) => match generate_indexes(&workspace) {
-                Ok(indexes) => report.indexes = indexes,
-                Err(err) => report.errors.push(format!("regenerate indexes: {err}")),
-            },
-            Err(err) => report
-                .errors
-                .push(format!("reload workspace for index: {err}")),
-        }
-    }
-
+    let _ = heal_failed;
+    report.indexes.clear();
     Ok(report)
 }
 

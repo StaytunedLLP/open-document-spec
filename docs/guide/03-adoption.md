@@ -9,7 +9,7 @@ ods:
 
 # Adopting ODS
 
-ODS adoption is **enrichment**, never migration. Plain Markdown is already 100% valid (Level 0).
+ODS adoption is **enrichment**, never migration. Plain Markdown is already 100% valid (plain Markdown).
 
 > [!TIP]
 > **Zero-Effort Adoption in 10 Seconds**:
@@ -21,7 +21,7 @@ Empty tree? Use [Quickstart Guide](/docs/quickstart) first.
 
 ## Installing Tools Does Not Rewrite Your Repo
 
-Installing `ods`  does **not** change Markdown until you opt in. Plain files stay Level 0.
+Installing `ods`  does **not** change Markdown until you opt in. Plain files stay plain Markdown.
 
 | Goal | Command |
 | --- | --- |
@@ -38,10 +38,10 @@ Installing `ods`  does **not** change Markdown until you opt in. Plain files sta
 | 1 | `ods setup` — check/update path and create or repair root `ods:` |
 | 2 | `ods init .` — explicit opt-in alternative for root `ods:` + indexes |
 | 3 | Optional: `ods init . --adopt` or `ods adopt --write` — draft `profile` + `status: draft` |
-| 4 | Root `ignore:` for code trees if needed, then `ods index` |
+| 4 | Root `ignore:` for code trees if needed, then `ods overview` / `ods find` |
 | 5 | Add `depends` / `related` where you know relationships |
 | 6 | `ods setup` or `ods start .` — ensure background service |
-| 7 | CI: `ods index --check` + `ods lint` |
+| 7 | CI: `ods lint` + `ods lint` |
 
 ---
 
@@ -53,7 +53,7 @@ ods disable . --write         # strip ODS keys; keep prose
 ods disable . --write --remove-indexes
 ```
 
-Remove `ods lint` / `ods index --check` from CI if you no longer want enforcement. Stop any service: `ods stop --unregister .`.
+Remove `ods lint` / `ods lint` from CI if you no longer want enforcement. Stop any service: `ods stop --unregister .`.
 
 ---
 
@@ -62,9 +62,9 @@ Remove `ods lint` / `ods index --check` from CI if you no longer want enforcemen
 | Command | Behavior |
 | --- | --- |
 | `ods setup` | Check updates, workspace state, service, and doctor |
-| `ods init` | Create/ensure root `index.md` + `ods:` |
+| `ods init` | Create/ensure root `ods.toml` + `ods:` |
 | `ods adopt` / `--write` | Dry-run or draft minimal frontmatter |
-| `ods index` / `--check` | Generate indexes / CI stale check |
+| `ods lint` | Generate indexes / CI stale check |
 | `ods lint` | Validate |
 | `ods start` / `stop` | Background watch service |
 | `ods watch` | Foreground automation |
@@ -79,7 +79,7 @@ Remove `ods lint` / `ods index --check` from CI if you no longer want enforcemen
 Practical rules:
 
 - Generated index **child lists** beat hand-maintained maps.
-- With `ods start` or `ods watch`, renames keep refs and indexes current.
+- With `ods start` or `ods watch`, renames keep refs and graph intact.
 - Markdown language servers are optional and **not** required for ODS.
 
 ---
@@ -89,12 +89,12 @@ Practical rules:
 | When | Add |
 | --- | --- |
 | Day 0 | Plain Markdown |
-| Day 1 | Root `index.md` + `ods:` via `ods init` |
+| Day 1 | Root `ods.toml` + `ods:` via `ods init` |
 | Early | `profile` + `status` |
 | As you link | `depends` / `related` |
 | When skimming | `description` |
 | Before agents | `context` / `ods export` |
-| Full trust | Level 3 CI |
+| Full trust | CI lint (compliant) |
 
 Full catalog: [Features](/docs/features).
 

@@ -62,7 +62,7 @@ ods:
 | :--- | :--- | :--- |
 | **Universal (common)** | **Top-level** only | Any YAML consumer can read it (SSGs, Obsidian, Hugo, Docusaurus, Astro, CMS, agents) |
 | **ODS engine** | Nested under **`ods:`** only | Profile, lifecycle, graph, share, assets, context |
-| **Root index only** | Top-level on **root** `index.ods.md` (or `index.md`) | Workspace boundary, packs, ignore, multi-spec config |
+| **ods.toml only** | Top-level on **root** `ods.toml` (or `index.md`) | Workspace boundary, packs, ignore, multi-spec config |
 
 **Why the split:** universal keys stay visible to non-ODS tools; engine keys stay in a private namespace so they do not collide with SSG reserved keys.
 
@@ -72,7 +72,7 @@ ods:
 | :--- | :--- |
 | `description`, `tags`, `owner`, `created`, `updated` | **Top-level (common)** |
 | `profile`, `status`, `id`, `share`, `depends`, `related`, `resources`, `code`, `context` | **Under `ods:`** |
-| `ods`, `custom-profiles`, `profiles` (legacy), `packs`, `ignore`, `aliases`, `specs` | **Root index only** |
+| `spec`, `custom_profiles`, `packs`, `ignore`, `aliases`, `specs`, `service` | **`ods.toml` only** |
 
 ### Tags placement (normative)
 
@@ -247,9 +247,9 @@ Parsers MUST NOT error if order differs; only emit tooling enforces sequence.
 
 ---
 
-## 4. Root index keys only
+## 4. ods.toml keys only
 
-Appear at the **top level of the workspace root index** (`index.ods.md` preferred). Ordinary documents MUST NOT use them as workspace markers.
+Appear at the **top level of the workspace ods.toml** (`ods.toml` preferred). Ordinary documents MUST NOT use them as workspace markers.
 
 ### `ods` (spec version)
 
@@ -370,7 +370,7 @@ Use this guide when processing customer refunds.
 
 ---
 
-## 6. Root index example
+## 6. ods.toml example
 
 ```yaml
 ---

@@ -32,7 +32,7 @@ fn duplicate_tag_warns() {
             .any(|d| matches!(&d.frontmatter, ods_core::FrontmatterState::Parsed(fm) if fm.tags == vec!["billing".to_string(), "billing".to_string()])),
         "expected normalized duplicate tags"
     );
-    let diags = lint_workspace_with_level(&ws, LintLevel::Level1);
+    let diags = lint_workspace_with_level(&ws, LintLevel::Full);
     assert!(
         diags
             .iter()
@@ -89,7 +89,7 @@ fn stale_root_ods_version_errors() {
     )
     .unwrap();
     let ws = load_workspace(&dir).unwrap();
-    let diags = lint_workspace_with_level(&ws, LintLevel::Level1);
+    let diags = lint_workspace_with_level(&ws, LintLevel::Full);
     assert!(
         diags.iter().any(|d| {
             d.severity == Severity::Error

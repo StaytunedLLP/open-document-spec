@@ -113,7 +113,7 @@ fn pack_and_profiles_and_find_edges() {
         "---\nprofile: note\nstatus: draft\ntags:\n  - z\n---\n\n# F\n",
     )
     .unwrap();
-    let _ = ods().args(["index", root]).output();
+    let _ = ods().args(["lint", root]).output();
     let _ = ods().args(["find", root, "--query", "F"]).output();
     let _ = ods()
         .args(["find", root, "--tag", "z", "--format", "json"])

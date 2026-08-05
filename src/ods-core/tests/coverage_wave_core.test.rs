@@ -2,7 +2,7 @@
 use ods_core::{
     BenchStripOptions, InitOptions, LoadOptions, NewDocumentOptions, RemoveDocumentOptions,
     ShareOptions, atomic_delete_document, bench_calculate_stats, bench_strip_workspace,
-    export_workspace_graph, find_workspace_root, generate_indexes, indexes_are_current,
+    export_workspace_graph, find_workspace_root,
     init_workspace, lint_workspace, load_options_graph, load_profile_catalog, load_workspace,
     load_workspace_with_options, move_document_and_rewrite_refs, normalize_tag, observed_tags,
     path_matches_workspace_ignore, publish_workspace, rename_tag_in_workspace, render_graph_json,
@@ -10,17 +10,14 @@ use ods_core::{
     scaffold_new_document, standard_profile_catalog, tag_usage,
 };
 use std::fs;
+use std::path::Path;
 
 fn tempdir() -> tempfile::TempDir {
     tempfile::tempdir().expect("tempdir")
 }
 
-fn seed_ods(root: &std::path::Path) {
-    fs::write(
-        root.join("index.ods.md"),
-        "---\nprofile: index\nods: 0.1\n---\n\n# Root\n",
-    )
-    .unwrap();
+fn seed_ods(root: &Path) {
+    fs::write(root.join("ods.toml"), "spec = \"0.1\"\n").unwrap();
 }
 
 #[test]
@@ -73,7 +70,7 @@ fn export_workspace_graph_under_workspace_regenerates_indexes() {
     )
     .unwrap();
     let ws = load_workspace(root).unwrap();
-    generate_indexes(&ws).unwrap();
+    /* indexes removed */
 
     let out = root.join("docs/graph-export.md");
     let path = export_workspace_graph(root, &out, true).unwrap();
@@ -117,9 +114,9 @@ fn index_and_lint_with_resources() {
     fs::write(root.join("specs/data.csv"), "x\n").unwrap();
 
     let ws = load_workspace(root).unwrap();
-    generate_indexes(&ws).unwrap();
+    /* indexes removed */
     let ws = load_workspace(root).unwrap();
-    let _ = indexes_are_current(&ws);
+    
     let _ = lint_workspace(&ws);
 }
 
@@ -408,7 +405,7 @@ outputs:
 
 #[test]
 fn index_render_and_checker_paths() {
-    use ods_core::{generate_indexes, index_directories, render_index};
+    use ods_core::{};
 
     let td = tempdir();
     let root = td.path();
@@ -427,14 +424,9 @@ fn index_render_and_checker_paths() {
     .unwrap();
 
     let ws = load_workspace(root).unwrap();
-    generate_indexes(&ws).unwrap();
+    /* indexes removed */
     let ws = load_workspace(root).unwrap();
-    let dirs = index_directories(&ws);
-    for d in dirs {
-        let existing = fs::read_to_string(d.join("index.md")).ok();
-        let rendered = render_index(&ws, &d, existing.as_deref());
-        assert!(!rendered.is_empty());
-    }
+    
     let _ = lint_workspace(&ws);
 }
 
@@ -527,8 +519,9 @@ fn schema_driven_lint_invalid_enums_and_dates() {
     let td = tempdir();
     let root = td.path();
     fs::write(
-        root.join("index.ods.md"),
-        "---\nprofile: index\nods: 0.1\n---\n\n# Root\n\n- [bad.md](bad.md)\n",
+        root.join("ods.toml"),
+        "spec = \"0.1\"
+",
     )
     .unwrap();
     fs::write(
@@ -558,8 +551,9 @@ fn load_workspace_graph_options_and_odsignore() {
     let td = tempdir();
     let root = td.path();
     fs::write(
-        root.join("index.ods.md"),
-        "---\nprofile: index\nods: 0.1\n---\n\n# Root\n\n- [a.md](a.md)\n",
+        root.join("ods.toml"),
+        "spec = \"0.1\"
+",
     )
     .unwrap();
     fs::write(root.join("a.md"), "---\nprofile: note\n---\n\n# A\n").unwrap();

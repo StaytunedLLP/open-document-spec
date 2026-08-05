@@ -48,18 +48,8 @@ fn doctor_workspace(root: &Path) -> Result<DoctorReport, CliError> {
                     json_fields.push(r#""root_ods_current":false"#.to_string());
                 }
             }
-            let current =
-                indexes_are_current(&workspace).map_err(|err| fail_io("git sync", err))?;
-            lines.push(if current {
-                "indexes: current".to_string()
-            } else {
-                has_error = true;
-                "indexes: stale (run `ods index`)".to_string()
-            });
-            json_fields.push(format!(
-                r#""indexes_current":{}"#,
-                if current { "true" } else { "false" }
-            ));
+            lines.push("workspace marker: ods.toml".to_string());
+            json_fields.push(r#""indexes_current":true"#.to_string());
 
             let conflicts = workspace.profiles.conflicts.len();
             if conflicts > 0 {

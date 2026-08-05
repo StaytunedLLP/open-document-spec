@@ -1,0 +1,7 @@
+# ODS workspace configuration
+spec = "0.1"
+
+custom_profiles = [
+  "ods-profiles/marketing.md",
+  "ods-profiles/product.md",
+]

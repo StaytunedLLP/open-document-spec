@@ -107,9 +107,16 @@ fn serve_workspace(options: ServeOptions) -> Result<(), CliError> {
     match resolved_serve_mode(options.mode) {
         ServeMode::Watch => {
             if options.memory_report {
-                print_memory_report("watch", &options.root, 0);
+                // One graph load for the report only (serve path itself stays FM-only).
+                let (docs, budget) = load_workspace_with_options(
+                    &options.root,
+                    load_options_graph(),
+                )
+                .map(|ws| (ws.documents.len(), ws.config.service.max_rss_mb))
+                .unwrap_or((0, 10));
+                print_memory_report("watch", docs, 0, budget);
             }
-            watch_workspace(&options.root, LintLevel::Level3, OutputFormat::Text, true)
+            watch_workspace(&options.root, LintLevel::Full, OutputFormat::Text, true)
         }
         ServeMode::Poll => poll_workspace(options),
         ServeMode::Auto => unreachable!("auto mode is resolved before serve"),
@@ -138,14 +145,18 @@ fn poll_workspace(options: ServeOptions) -> Result<(), CliError> {
             &options.root,
             &tree,
             &workspace,
-            LintLevel::Level3,
+            LintLevel::Full,
             OutputFormat::Text,
             true,
             false,
         )?;
         if options.memory_report {
             let retained = tree.borrow().snapshot.files.len();
-            print_memory_report("poll", &options.root, retained);
+            let (docs, budget_mb) = {
+                let ws = workspace.borrow();
+                (ws.documents.len(), ws.config.service.max_rss_mb)
+            };
+            print_memory_report("poll", docs, retained, budget_mb);
         }
         sleep_checking_shutdown(Duration::from_secs(options.poll_secs), &shutdown);
     }
@@ -235,15 +246,32 @@ fn run_watch_tick(
         }
         let existing: Vec<PathBuf> = dirty.into_iter().filter(|p| p.is_file()).collect();
         if !existing.is_empty() {
+            // Frontmatter-only parse — never retain bodies on the serve path.
             let docs = parse_paths_parallel(root, &existing, false)
                 .map_err(|err| fail_io("watch/serve", err))?;
             apply_document_upserts(&mut workspace.borrow_mut(), docs);
         }
     }
 
+    // Soft RSS budget from ods.toml [service] max_rss_mb (default 10).
     {
         let ws = workspace.borrow();
-        let _ = generate_indexes(&ws).map_err(|err| fail_io("watch/serve", err))?;
+        let budget_mb = ws.config.service.max_rss_mb.max(1);
+        if let Some(rss_kb) = current_rss_kb() {
+            let limit_kb = budget_mb.saturating_mul(1024);
+            if rss_kb > limit_kb {
+                eprintln!(
+                    "ods serve: warning rss_kb={rss_kb} exceeds service.max_rss_mb={budget_mb} (limit {limit_kb} KB)"
+                );
+            }
+        }
+        // Keep a compact meta store in sync for progressive discovery callers.
+        let _store = ods_core::WorkspaceStore::from_workspace(&ws);
+        let _ = _store.within_rss_budget(budget_mb);
+    }
+
+    {
+        let ws = workspace.borrow();
         let diagnostics = lint_workspace_with_level(&ws, level);
         if !headless {
             print_diagnostics(&diagnostics, format);
@@ -276,14 +304,16 @@ fn run_watch_tick(
     Ok(())
 }
 
-fn print_memory_report(mode: &str, root: &Path, retained_snapshot_files: usize) {
+fn print_memory_report(
+    mode: &str,
+    documents: usize,
+    retained_snapshot_files: usize,
+    max_rss_mb: u64,
+) {
     let rss = current_rss_kb()
         .map(|kb| kb.to_string())
         .unwrap_or_else(|| "unknown".to_string());
-    let documents = load_workspace_with_options(root, load_options_graph())
-        .map(|workspace| workspace.documents.len())
-        .unwrap_or(0);
     eprintln!(
-        "ods serve: mode={mode} documents={documents} retained_snapshot_files={retained_snapshot_files} rss_kb={rss}"
+        "ods serve: mode={mode} documents={documents} retained_snapshot_files={retained_snapshot_files} max_rss_mb={max_rss_mb} rss_kb={rss}"
     );
 }

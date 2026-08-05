@@ -25,7 +25,7 @@ Your files stay plain `.md`. You add optional YAML frontmatter when you want str
 
 **Why it exists:** flat Markdown folders drift, links break, and AI tools waste tokens searching the whole repo. ODS makes identity, relationships, and context **explicit and lintable**, so docs stay trustworthy as code changes.
 
-**How it is used:** the `ods` CLI is the default engine (no `--ods` flag). Extra dialects use flags only: `--okf` (Google OKF v0.2) and `--skills` (Agent Skills packages). See sibling folders under [`../`](../index.ods.md).
+**How it is used:** the `ods` CLI is the default engine (no `--ods` flag). Extra dialects use flags only: `--okf` (Google OKF v0.2) and `--skills` (Agent Skills packages). Sibling dialects: [`../`](../).
 
 ---
 
@@ -33,27 +33,20 @@ Your files stay plain `.md`. You add optional YAML frontmatter when you want str
 
 | Term | Meaning |
 | :--- | :--- |
-| **Workspace** | A document tree whose **root** navigation file (`index.ods.md`, or `index.md`) declares `ods: 0.1` (current spec version). |
+| **Workspace** | A document tree whose root **`ods.toml`** declares `spec` (e.g. `"0.1"`). |
 | **Document** | Any `.md` file. Frontmatter is optional. |
-| **Index** | A generated navigation file (`index.ods.md` preferred) listing **immediate** children only. |
 | **Profile** | Document *shape* (guide, feature, decision, …). Controls expected sections; not a file type. |
 | **Graph edge** | Explicit frontmatter links: `depends` (must-read first) and `related` (optional reference). |
 | **Asset** | Non-Markdown files (`resources`) or source bindings (`code`) attached to a document. |
 | **Context** | A bounded AI reading list (`ods.context` + `ods context` CLI). |
-| **Level 0–3** | Adoption ladder from plain Markdown to fully validated workspaces. |
+| **Compliance** | Binary: **compliant** when `ods lint` is clean; otherwise **non-compliant**. |
+| **Discovery** | Progressive CLI: `overview` → `find` / `tag` / `ls` / `tree` → `context` (no nested index files). |
 
 ---
 
-## Adoption ladder (plain language)
+## Compliance (not levels)
 
-| Level | What you have | Done when |
-| :--- | :--- | :--- |
-| **0** | Any Markdown tree | Files open in any editor |
-| **1** | `ods.profile` + `ods.status` | Docs are typed where it matters |
-| **2** | Path IDs, `depends` / `related`, indexes | A navigable graph exists |
-| **3** | CI lint: no dangling refs, indexes current, assets exist | Trust comes from validation |
-
-You never abandon Level 0. You only add structure when you need it. Normative wording lives in [core.md](core.md).
+Plain Markdown is fine without ODS. An **ODS workspace** has `ods.toml`. Run `ods lint` for trust. There is no Level 0–3 ladder. Normative wording: [core.md](core.md), [validation.md](validation.md).
 
 ---
 
@@ -65,11 +58,11 @@ Read **intro** (this file) first, then pick a path below. Each module owns one i
 | :--- | :--- |
 | [intro.md](intro.md) | Purpose, concepts, reading map (you are here) |
 | [keys.md](keys.md) | Every frontmatter key: placement, purpose, examples |
-| [core.md](core.md) | Format model, conformance levels, lifecycle operations |
+| [core.md](core.md) | Format model, compliance, lifecycle operations |
 | [profiles.md](profiles.md) | Standard and custom document shapes |
 | [graph.md](graph.md) | IDs, single source of truth, depends/related |
 | [context.md](context.md) | Deterministic AI context loading |
-| [indexes.md](indexes.md) | Navigation indexes and workspace scan rules |
+| [indexes.md](indexes.md) | `ods.toml` workspace config + CLI discovery |
 | [assets.md](assets.md) | Resources (files) and code references |
 | [validation.md](validation.md) | Lint rules and tooling contract |
 | [scope.md](scope.md) | What ODS deliberately does **not** include |

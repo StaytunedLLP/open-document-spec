@@ -3,8 +3,8 @@ fn run_profile_list_command(args: &[String]) -> Result<ExitCode, CliError> {
     let workspace = load_workspace(&root).ok();
     let roots = workspace
         .as_ref()
-        .map(|ws| profile_catalog_roots(&root, ws.document_by_path(&root.join("index.ods.md"))))
-        .unwrap_or_else(|| profile_catalog_roots(&root, None));
+        .map(|ws| ods_core::profile_catalog_roots_from_config(&root, &ws.config))
+        .unwrap_or_default();
     let catalog = load_profile_catalog(&root, &roots).map_err(|err| fail_io("profile", err))?;
 
     match format {
@@ -68,13 +68,8 @@ fn run_profile_show_command(args: &[String]) -> Result<ExitCode, CliError> {
     let workspace = load_workspace(&root).ok();
     let roots = workspace
         .as_ref()
-        .map(|ws| {
-            let idx = ws
-                .document_by_path(&root.join("index.ods.md"))
-                .or_else(|| ws.document_by_path(&root.join("index.md")));
-            profile_catalog_roots(&root, idx)
-        })
-        .unwrap_or_else(|| profile_catalog_roots(&root, None));
+        .map(|ws| ods_core::profile_catalog_roots_from_config(&root, &ws.config))
+        .unwrap_or_default();
     let catalog = load_profile_catalog(&root, &roots).map_err(|err| fail_io("profile", err))?;
 
     let def = catalog.definitions.get(profile_name.as_str()).ok_or_else(|| {
@@ -189,12 +184,12 @@ ods:
     if register {
         match register_custom_profile_in_root(&root, &rel_register) {
             Ok(RegisterResult::Registered(path)) => {
-                println!("registered in {} under custom-profiles:", path.display());
+                println!("registered in {} under custom_profiles:", path.display());
                 println!("  - {rel_register}");
             }
             Ok(RegisterResult::AlreadyRegistered(path)) => {
                 println!(
-                    "already registered in {} under custom-profiles:",
+                    "already registered in {} under custom_profiles:",
                     path.display()
                 );
                 println!("  - {rel_register}");
@@ -209,7 +204,7 @@ ods:
         }
     } else {
         println!(
-            "skipped registration (--no-register). Add to root custom-profiles:\n  - {rel_register}"
+            "skipped registration (--no-register). Add to root custom_profiles =   - {rel_register}"
         );
     }
 
@@ -234,51 +229,48 @@ fn register_custom_profile_in_root(
     root: &Path,
     rel_entry: &str,
 ) -> Result<RegisterResult, CliError> {
-    let index_path = if root.join("index.ods.md").is_file() {
-        root.join("index.ods.md")
-    } else if root.join("index.md").is_file() {
-        root.join("index.md")
-    } else {
+    let toml_path = root.join("ods.toml");
+    if !toml_path.is_file() {
         return Ok(RegisterResult::NoRootIndex);
-    };
-
-    let text = fs::read_to_string(&index_path).map_err(|e| fail_io("profile", e))?;
-    if profile_entry_already_listed(&text, rel_entry) {
-        return Ok(RegisterResult::AlreadyRegistered(index_path));
     }
 
-    let updated = insert_custom_profile_into_root_index(&text, rel_entry);
-    fs::write(&index_path, updated).map_err(|e| fail_io("profile", e))?;
-    Ok(RegisterResult::Registered(index_path))
+    let text = fs::read_to_string(&toml_path).map_err(|e| fail_io("profile", e))?;
+    if profile_entry_already_listed(&text, rel_entry) {
+        return Ok(RegisterResult::AlreadyRegistered(toml_path));
+    }
+
+    let updated = insert_custom_profile_into_ods_toml(&text, rel_entry);
+    fs::write(&toml_path, updated).map_err(|e| fail_io("profile", e))?;
+    Ok(RegisterResult::Registered(toml_path))
 }
 
 fn profile_entry_already_listed(text: &str, rel_entry: &str) -> bool {
-    text.contains(&format!("- {rel_entry}"))
-        || text.contains(&format!("- \"{rel_entry}\""))
-        || text.contains(&format!("- '{rel_entry}'"))
+    text.contains(&format!("\"{rel_entry}\""))
+        || text.contains(&format!("'{rel_entry}'"))
+        || text.lines().any(|l| l.trim() == rel_entry || l.trim() == format!("- {rel_entry}"))
 }
 
-fn insert_custom_profile_into_root_index(text: &str, rel_entry: &str) -> String {
-    if text.contains("custom-profiles:") {
-        return text.replace(
-            "custom-profiles:",
-            &format!("custom-profiles:\n  - {rel_entry}"),
-        );
+fn insert_custom_profile_into_ods_toml(text: &str, rel_entry: &str) -> String {
+    if text.contains("custom_profiles") {
+        // Append entry before closing bracket of array if present.
+        if let Some(idx) = text.find("custom_profiles") {
+            let after = &text[idx..];
+            if let Some(bracket) = after.find('[') {
+                let abs = idx + bracket;
+                let rest = &text[abs + 1..];
+                if let Some(end) = rest.find(']') {
+                    let abs_end = abs + 1 + end;
+                    let insert = if text[abs + 1..abs_end].trim().is_empty() {
+                        format!("\n  \"{rel_entry}\",\n")
+                    } else {
+                        format!("\n  \"{rel_entry}\",")
+                    };
+                    return format!("{}{}{}", &text[..abs_end], insert, &text[abs_end..]);
+                }
+            }
+        }
     }
-    // Legacy key still accepted by parser.
-    if text.contains("profiles:") {
-        // Prefer adding canonical key rather than extending ambiguous legacy key when both absent of custom.
-        // If only legacy `profiles:` exists, append under it for compatibility.
-        return text.replace("profiles:", &format!("profiles:\n  - {rel_entry}"));
-    }
-    if text.starts_with("---\n") || text.starts_with("---\r\n") {
-        return text.replacen(
-            "---",
-            &format!("---\ncustom-profiles:\n  - {rel_entry}"),
-            1,
-        );
-    }
-    format!("---\ncustom-profiles:\n  - {rel_entry}\n---\n\n{text}")
+    format!("{}\ncustom_profiles = [\"{rel_entry}\"]\n", text.trim_end())
 }
 
 fn run_aliases_command(args: &[String]) -> Result<ExitCode, CliError> {

@@ -6,7 +6,7 @@ When editing this folder:
 - **core.md** is format model + levels + lifecycle — not a second key encyclopedia
 - One-word filenames; keep content owned by the file name (`assets` = resources+code, `scope` = non-goals)
 - Relative links between siblings; site URLs are `/spec/ods/<name>`
-- Prefer `index.ods.md` language for indexes; root marker is `ods: 0.1`
+- Root marker is `ods.toml` (`spec`); discovery via CLI (no nested indexes)
 - Custom profiles: document **`custom-profiles:`** (legacy `profiles:` allowed)
 - After changes: sync `skills/ods/references/{intro,keys,core,scope}.md` and site nav
 - If **keys.md** changes: update engine registry `src/ods-core/src/spec/schema.rs` in the same change set

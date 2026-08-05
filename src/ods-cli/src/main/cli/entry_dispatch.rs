@@ -40,7 +40,15 @@ fn dispatch_ods_command(args: &[String]) -> Result<ExitCode, CliError> {
             Ok(ExitCode::from(0))
         }
         "lint" => run_lint_command(args),
-        "index" => run_index_command(args),
+        "index" => {
+            if args.iter().any(|a| a == "--okf") {
+                run_okf_index_command(args)
+            } else {
+                eprintln!("error: ods index was removed for ODS (use overview/find/tree/context)");
+                eprintln!("Next: ods overview  |  for OKF: ods index --okf");
+                Ok(ExitCode::from(2))
+            }
+        }
         "profile" | "profiles" => {
             let sub = args.get(2).map(String::as_str).unwrap_or("");
             match sub {

@@ -27,7 +27,7 @@ cd acme-engineering-pack
 This scaffolds the canonical ODS Pack layout:
 ```text
 acme-engineering-pack/
-├── index.md                 # ODS workspace root marker
+├── ods.toml                 # ODS workspace root marker
 ├── ods-profiles/            # Custom YAML schema definitions
 │   ├── rfc.md
 │   └── postmortem.md
@@ -42,7 +42,7 @@ acme-engineering-pack/
 ods pack add git@github.com:acme-org/engineering-pack.git --auto-update daily
 ```
 
-This clones the pack into `vendor/engineering-pack` and appends `- vendor/engineering-pack` to the project's root `index.md` `packs:` key.
+This clones the pack into `vendor/engineering-pack` and appends `- vendor/engineering-pack` to the project's root `ods.toml` `packs:` key.
 
 ---
 
@@ -79,7 +79,7 @@ jobs:
         uses: actions/checkout@v7
 
       - name: Check Index Lockfile Freshness
-        run: ods index --check
+        run: ods lint
 
       - name: Level-3 Graph & Schema Linting
         run: ods lint --level 3

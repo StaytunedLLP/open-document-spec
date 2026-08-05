@@ -64,16 +64,21 @@ fn poll_serve_prints_memory_report() {
         .and_then(|value| value.parse().ok())
         .unwrap_or_else(|| panic!("could not parse rss_kb from: {stderr}"));
 
-    // Regression canary, not a strict product SLA: docs/guide/faq.md measures
-    // ~7.5-17MB on an optimized macOS build; this generous ceiling catches
-    // gross regressions (e.g. loading full document bodies unnecessarily)
-    // without being flaky across debug builds / CI machines / platforms.
     assert!(
         rss_kb > 0,
         "rss_kb should be a real positive sample: {rss_kb}"
     );
+    // Product SLA: service.max_rss_mb = 10. Debug builds may be larger; allow
+    // ODS_MEM_TEST_RELAXED=1 or non-release to use a 32MB soft cap.
+    let limit_kb: u64 = if cfg!(debug_assertions)
+        || std::env::var("ODS_MEM_TEST_RELAXED").is_ok()
+    {
+        32_768
+    } else {
+        10_240
+    };
     assert!(
-        rss_kb < 100_000,
-        "ods serve RSS ({rss_kb} KB) exceeded the 100MB regression ceiling — investigate before raising this limit"
+        rss_kb < limit_kb,
+        "ods serve RSS ({rss_kb} KB) exceeded {limit_kb} KB budget — investigate before raising service.max_rss_mb"
     );
 }

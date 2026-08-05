@@ -220,8 +220,6 @@ const SKILL_BUNDLE: &[(&str, &[u8])] = &[
     ("references/core.md", include_bytes!("../../../../../skills/ods/references/core.md")),
     ("references/scope.md", include_bytes!("../../../../../skills/ods/references/scope.md")),
     ("references/lsp.md", include_bytes!("../../../../../skills/ods/references/lsp.md")),
-    ("references/spec.md", include_bytes!("../../../../../skills/ods/references/spec.md")),
-    ("references/non-goals.md", include_bytes!("../../../../../skills/ods/references/non-goals.md")),
     ("scripts/bootstrap.ps1", include_bytes!("../../../../../skills/ods/scripts/bootstrap.ps1")),
     ("scripts/bootstrap.sh", include_bytes!("../../../../../skills/ods/scripts/bootstrap.sh")),
     ("scripts/install-from-release.sh", include_bytes!("../../../../../skills/ods/scripts/install-from-release.sh")),

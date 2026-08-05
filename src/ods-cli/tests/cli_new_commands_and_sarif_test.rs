@@ -144,8 +144,8 @@ fn test_cli_setup_git_hooks() {
     let dir = tempdir().unwrap();
     let path = dir.path().to_str().unwrap();
     fs::write(
-        dir.path().join("index.md"),
-        "---\nprofile: index\nods: 0.1\n---\n\n# Root\n",
+        dir.path().join("ods.toml"), "spec = \"0.1\"
+",
     )
     .unwrap();
 

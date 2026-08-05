@@ -35,7 +35,7 @@ fn production_cli_matrix_core_commands() {
     assert_ok(&out, "help");
     let help = String::from_utf8_lossy(&out.stdout);
     for cmd in [
-        "lint", "index", "profiles", "tags", "find", "context", "graph", "mv", "fmt", "adopt",
+        "lint", "lint", "profiles", "tags", "find", "context", "graph", "mv", "fmt", "adopt",
         "doctor", "sync", "watch", "update",
     ] {
         assert!(help.contains(cmd), "help missing {cmd}");
@@ -47,12 +47,14 @@ fn production_cli_matrix_core_commands() {
     fs::create_dir_all(dir.join("ods-profiles")).unwrap();
     fs::write(
         dir.join("ods-profiles").join("widget.md"),
-        "# Widget\n\n## Overview\n",
+        "---\nname: widget\n---\n\n# Widget\n\n## Overview\n",
     )
     .unwrap();
     fs::write(
-        dir.join("index.ods.md"),
-        "---\nprofile: index\nods: 0.1\ncustom-profiles:\n  - ods-profiles/widget.md\n---\n\n# Root\n\n- [Release gate](gate.md) — Release gate\n- [Impl](impl.md)\n- [Spec](spec.md) — Spec\n- [Plain note without frontmatter](plain.md)\n",
+        dir.join("ods.toml"),
+        r#"spec = "0.1"
+custom_profiles = ["ods-profiles"]
+"#,
     )
     .unwrap();
 
@@ -73,8 +75,8 @@ fn production_cli_matrix_core_commands() {
     .unwrap();
     fs::write(dir.join("plain.md"), "# Plain note without frontmatter\n").unwrap();
 
-    assert_ok(&run(&["index", root]), "index");
-    assert_ok(&run(&["index", "--check", root]), "index --check");
+    assert_ok(&run(&["lint", root]), "lint");
+    assert_ok(&run(&["lint", root]), "lint check");
 
     let out = run(&["lint", "--format", "json", root]);
     assert_ok(&out, "lint");
@@ -176,7 +178,7 @@ fn production_cli_matrix_core_commands() {
         "---\nprofile: note\nstatus: draft\ndepends:\n  - gate\n---\n\n# Mover\n",
     )
     .unwrap();
-    assert_ok(&run(&["index", root]), "reindex");
+    assert_ok(&run(&["lint", root]), "lint again");
     let out = run(&["mv", root, "gate.md", "release-gate.md"]);
     assert_ok(&out, "mv");
     assert!(dir.join("release-gate.md").exists());
@@ -187,7 +189,7 @@ fn production_cli_matrix_core_commands() {
     );
 
     assert_ok(&run(&["lint", "--level", "1", root]), "lint level 1");
-    assert_ok(&run(&["index", "--check", root]), "index check after ops");
+    assert_ok(&run(&["lint", root]), "lint after ops");
 
     // enable/disable round-trip (opt-in / opt-out) — body preserved
     let out = run(&["disable", root]);
@@ -200,20 +202,18 @@ fn production_cli_matrix_core_commands() {
     );
     // still enabled after dry-run
     assert!(
-        fs::read_to_string(dir.join("index.ods.md"))
-            .unwrap()
-            .contains("ods:"),
-        "dry-run must not remove ods:"
+        dir.join("ods.toml").exists()
+            && fs::read_to_string(dir.join("ods.toml"))
+                .unwrap()
+                .contains("spec"),
+        "dry-run must not remove ods.toml"
     );
 
     let out = run(&["disable", root, "--write"]);
     assert_ok(&out, "disable --write");
     assert!(
-        !fs::read_to_string(dir.join("index.ods.md"))
-            .unwrap()
-            .lines()
-            .any(|l| l.trim().starts_with("ods:")),
-        "ods: must be removed"
+        !dir.join("ods.toml").exists(),
+        "ods.toml must be removed on disable --write"
     );
     // prose from earlier files still present if not deleted
     if dir.join("impl.md").exists() {
@@ -227,9 +227,10 @@ fn production_cli_matrix_core_commands() {
     // re-init for later commands not required
     assert_ok(&run(&["init", root, "--adopt"]), "re-init after disable");
     assert!(
-        fs::read_to_string(dir.join("index.ods.md"))
-            .unwrap()
-            .contains("ods:"),
-        "init must restore ods:"
+        dir.join("ods.toml").exists()
+            && fs::read_to_string(dir.join("ods.toml"))
+                .unwrap()
+                .contains("spec"),
+        "init must restore ods.toml"
     );
 }

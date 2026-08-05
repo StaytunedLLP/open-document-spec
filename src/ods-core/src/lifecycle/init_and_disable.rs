@@ -3,23 +3,18 @@
 // Init is explicit (`ods init`). Disable strips ODS metadata and leaves prose intact.
 
 use crate::adopt::{AdoptOptions, adopt_workspace};
-use crate::fs::{find_workspace_root, index_has_ods_field, load_workspace};
-use crate::index::generate_indexes;
-use crate::model::current_ods_spec_version;
+use crate::config::{
+    WorkspaceConfig, migrate_root_index_to_toml, ods_toml_enabled, ods_toml_path, write_ods_toml,
+};
+use crate::fs::{find_workspace_root, load_workspace};
 use crate::parse::split_frontmatter;
 use std::fs;
 use std::io;
 use std::path::{Path, PathBuf};
 
-/// True when `root` has `index.ods.md` declaring `ods:`.
+/// True when `root` has a valid `ods.toml`.
 pub fn ods_enabled(root: impl AsRef<Path>) -> bool {
-    let root = root.as_ref();
-    let index_ods = root.join("index.ods.md");
-    if index_ods.is_file() && index_has_ods_field(&index_ods) {
-        return true;
-    }
-    let index_md = root.join("index.md");
-    index_md.is_file() && index_has_ods_field(&index_md)
+    ods_toml_enabled(root.as_ref())
 }
 
 /// Resolve whether ODS is enabled for a path (file or directory).
@@ -56,9 +51,9 @@ pub struct DisableOptions {
     pub strip_frontmatter: bool,
     /// Strip root policy keys ods/profiles/ignore/aliases (default true).
     pub strip_root_policy: bool,
-    /// Delete non-root index.md files (default false; otherwise only strip FM).
+    /// Delete non-root legacy index.md files (default false).
     pub remove_indexes: bool,
-    /// Delete root index.md (default false; dangerous).
+    /// Delete root index.md / ods.toml (default false; dangerous).
     pub remove_root_index: bool,
 }
 
@@ -95,15 +90,16 @@ pub struct InitOptions {
 #[derive(Debug, Clone, PartialEq, Eq, Default)]
 pub struct InitReport {
     pub root: PathBuf,
-    /// Created root index or injected `ods:`.
+    /// Created `ods.toml` or migrated from legacy root index.
     pub initialized: bool,
-    /// Root already had `ods:`.
+    /// Root already had valid `ods.toml`.
     pub already_initialized: bool,
     pub adopted: Vec<PathBuf>,
+    /// Always empty — nested indexes are not generated.
     pub indexes: Vec<PathBuf>,
 }
 
-/// Ensure workspace has `ods:` root, optionally adopt plain files, generate indexes.
+/// Ensure workspace has `ods.toml`, optionally adopt plain files.
 ///
 /// Single opt-in path for `ods init` (replaces the former `enable` command).
 pub fn init_workspace(root: impl AsRef<Path>, options: InitOptions) -> io::Result<InitReport> {
@@ -114,51 +110,27 @@ pub fn init_workspace(root: impl AsRef<Path>, options: InitOptions) -> io::Resul
         ..Default::default()
     };
 
-    let index = root.join("index.ods.md");
-    if ods_enabled(&root) {
-        let text = fs::read_to_string(&index)?;
-        let next = ensure_ods_in_index_text(&text);
-        if next != text {
-            fs::write(&index, next)?;
-            report.initialized = true;
-        } else {
-            report.already_initialized = true;
-        }
-    } else if index.exists() {
-        // Inject or update ods: in existing root index frontmatter or prepend block.
-        let text = fs::read_to_string(&index)?;
-        let next = ensure_ods_in_index_text(&text);
-        if next != text {
-            fs::write(&index, next)?;
-            report.initialized = true;
-        } else {
-            report.already_initialized = true;
-        }
-    } else {
-        let name = root
-            .file_name()
-            .and_then(|n| n.to_str())
-            .unwrap_or("Workspace");
-        let content = format!(
-            "---\nprofile: index\nods: {}\n---\n\n# {name}\n\n",
-            current_ods_spec_version()
-        );
-        fs::write(&index, content)?;
+    let toml = ods_toml_path(&root);
+    if ods_toml_enabled(&root) {
+        report.already_initialized = true;
+    } else if let Some(_path) = migrate_root_index_to_toml(&root)? {
         report.initialized = true;
+    } else if !toml.is_file() {
+        write_ods_toml(&root, &WorkspaceConfig::new_workspace())?;
+        report.initialized = true;
+    } else {
+        report.already_initialized = true;
     }
 
     let workspace = load_workspace(&root)?;
-    // `adopt_workspace(write: true)` rewrites files, so only reload when it ran;
-    // otherwise reuse the workspace already loaded above (avoids a redundant
-    // same-state re-parse of the whole tree).
-    let workspace = if options.adopt {
+    let _workspace = if options.adopt {
         let adopt_report = adopt_workspace(&workspace, AdoptOptions { write: true })?;
         report.adopted = adopt_report.written;
         load_workspace(&root)?
     } else {
         workspace
     };
-    report.indexes = generate_indexes(&workspace)?;
+    report.indexes = Vec::new();
     Ok(report)
 }
 
@@ -183,10 +155,25 @@ pub fn disable_workspace(
 
     let workspace = load_workspace(&root)?;
     let root_index = root.join("index.ods.md");
+    let root_toml = ods_toml_path(&root);
+
+    if options.remove_root_index || options.strip_root_policy {
+        if root_toml.is_file() {
+            report.would_delete.push(root_toml.clone());
+            if options.write && options.remove_root_index {
+                fs::remove_file(&root_toml)?;
+                report.deleted.push(root_toml.clone());
+            } else if options.write && options.strip_root_policy && !options.remove_root_index {
+                // strip = delete config when disabling policy
+                fs::remove_file(&root_toml)?;
+                report.deleted.push(root_toml.clone());
+            }
+        }
+    }
 
     for document in &workspace.documents {
         let path = &document.path;
-        let is_root_index = path == &root_index;
+        let is_root_index = path == &root_index || path == &root.join("index.md");
         let is_index = path
             .file_name()
             .and_then(|n| n.to_str())

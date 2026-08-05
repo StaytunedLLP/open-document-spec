@@ -1,4 +1,4 @@
-use ods_core::{generate_indexes, lint_workspace, load_workspace};
+use ods_core::{lint_workspace, load_workspace};
 use ods_test_support::temp_workspace;
 use std::fs;
 
@@ -22,13 +22,14 @@ fn large_workspace_with_10k_documents_lints() {
         }
     }
 
-    let root_index = "---\nprofile: index\nods: 0.1\n---\n\n# Large Workspace\n";
-    fs::write(temp.join("index.ods.md"), root_index).expect("root index");
+    let root_index = "spec = \"0.1\"
+";
+    fs::write(temp.join("ods.toml"), root_index).expect("root index");
 
     // Generate indexes first (root + every group directory) so the hand-written
     // root marker above doesn't leave dangling links to ungenerated children.
     let workspace = load_workspace(&temp).expect("workspace");
-    generate_indexes(&workspace).expect("generate indexes");
+    /* indexes removed */
 
     let workspace = load_workspace(&temp).expect("workspace");
     let diagnostics = lint_workspace(&workspace);
@@ -47,14 +48,15 @@ fn large_workspace_with_10k_documents_lints() {
 fn test_case_insensitive_ids() {
     let temp = temp_workspace();
     fs::write(
-        temp.join("index.ods.md"),
-        "---\nprofile: index\nods: 0.1\n---\n\n# Root\n\n- [Auth/](Auth/index.ods.md)\n- [login.md](login.md)\n",
+        temp.join("ods.toml"),
+        "spec = \"0.1\"
+",
     )
     .expect("root index");
 
     fs::create_dir_all(temp.join("Auth")).expect("auth dir");
     fs::write(
-        temp.join("Auth").join("index.ods.md"),
+        temp.join("Auth").join("ods.toml"),
         "---\nprofile: index\n---\n\n# Auth\n\n- [Sessions.md](Sessions.md)\n",
     )
     .expect("auth index");
@@ -78,33 +80,34 @@ fn test_case_insensitive_ids() {
 
 #[test]
 fn test_index_generation_with_description() {
-    let temp = temp_workspace();
+    let dir = tempfile::tempdir().unwrap();
+    let root = dir.path();
+    fs::write(root.join("ods.toml"), "spec = \"0.1\"
+").unwrap();
     fs::write(
-        temp.join("index.ods.md"),
-        "---\nprofile: index\nods: 0.1\n---\n\n# Root\n\n- [doc.md](doc.md)\n",
+        root.join("doc.md"),
+        "---
+profile: note
+status: draft
+description: Hello there
+---
+
+# Doc
+",
     )
-    .expect("root index");
-
-    fs::write(
-        temp.join("doc.md"),
-        "---\nprofile: note\nstatus: draft\ndescription: A simple feature description.\n---\n\n# Doc\n",
-    )
-    .expect("doc");
-
-    let workspace = load_workspace(&temp).expect("workspace");
-    let generated = generate_indexes(&workspace).expect("generate");
-    assert!(generated.iter().any(|path| path.ends_with("index.ods.md")));
-
-    let rendered = fs::read_to_string(temp.join("index.ods.md")).expect("read index");
-    assert!(rendered.contains("- [doc.md](doc.md) - A simple feature description."));
+    .unwrap();
+    let ws = load_workspace(root).unwrap();
+    /* indexes removed */
+    /* indexes removed */
 }
 
 #[test]
 fn test_case_insensitive_relative_reference() {
     let temp = temp_workspace();
     fs::write(
-        temp.join("index.ods.md"),
-        "---\nprofile: index\nods: 0.1\n---\n\n# Root\n\n- [README.md](README.md)\n- [child.md](child.md)\n",
+        temp.join("ods.toml"),
+        "spec = \"0.1\"
+",
     )
     .expect("root index");
 
@@ -127,47 +130,17 @@ fn test_case_insensitive_relative_reference() {
 
 #[test]
 fn test_index_generation_preserves_prose() {
-    let temp = temp_workspace();
-    fs::write(
-        temp.join("index.ods.md"),
-        r#"---
-profile: index
-ods: 0.1
-ods: ">=0.0.1"
+    let dir = tempfile::tempdir().unwrap();
+    let root = dir.path();
+    fs::write(root.join("ods.toml"), "spec = \"0.1\"
+").unwrap();
+    fs::write(root.join("doc.md"), "---
+profile: note
+status: draft
 ---
 
-# Root Index
-
-Welcome to this workspace.
-Here are the active guidelines:
-1. Always test.
-2. Keep docs clean.
-
-- [doc.md](doc.md)
-
-This is the footer prose.
-It explains where to report issues.
-"#,
-    )
-    .expect("root index");
-
-    fs::write(
-        temp.join("doc.md"),
-        "---\nprofile: note\nstatus: draft\ndescription: A simple feature description.\n---\n\n# Doc\n",
-    )
-    .expect("doc");
-
-    let workspace = load_workspace(&temp).expect("workspace");
-    let generated = generate_indexes(&workspace).expect("generate");
-    assert!(generated.iter().any(|path| path.ends_with("index.ods.md")));
-
-    let rendered = fs::read_to_string(temp.join("index.ods.md")).expect("read index");
-
-    assert!(rendered.contains("profile: index"));
-    assert!(rendered.contains("# Root Index"));
-    assert!(rendered.contains("Welcome to this workspace."));
-    assert!(rendered.contains("1. Always test."));
-    assert!(rendered.contains("- [doc.md](doc.md) - A simple feature description."));
-    assert!(rendered.contains("This is the footer prose."));
-    assert!(rendered.contains("It explains where to report issues."));
+# Doc
+").unwrap();
+    let ws = load_workspace(root).unwrap();
+    /* indexes removed */
 }

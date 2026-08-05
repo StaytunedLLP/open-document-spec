@@ -8,7 +8,10 @@ Rules for coding agents in the **Open Document Spec** monorepo.
 
 - Binary: **`ods`** — bare `ods <cmd>` is ODS (there is **no** `--ods` flag)
 - Extra specs: **`--okf`**, **`--skills`** only — never namespaces `ods okf` / `ods ods`
-- Editors: **`ods lsp`** · Watcher: `ods serve` / `ods start` (not LSP)
+- Workspace marker: **`ods.toml`** at repo root (not nested `index.ods.md`)
+- Compliance: **compliant | non-compliant** only (no Level 0–3)
+- Discovery: `ods overview` / `find` / `ls` / `tree` / `context` — progressive CLI, not folder indexes
+- Editors: **`ods lsp`** · Watcher: `ods serve` / `ods start` (not LSP); serve target **≤10 MB** RSS (`service.max_rss_mb`)
 - Do not invent `odc:` or `ods-cli:` frontmatter keys
 - Specs live at repo-root **`specs/{ods,okf,skills}/`** — start at `intro.md` + `keys.md`
 - Subcommands: name after the verb (`ods profile init <name>` → name at argv index **3**)

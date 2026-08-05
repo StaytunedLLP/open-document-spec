@@ -3,7 +3,7 @@
 /// Performs filesystem renames when `disk_already_moved` is false (same as
 /// [`apply_path_changes`]), then returns `(report, path → new full text)` for every
 /// markdown file whose content would change. Index regeneration is left to the
-/// caller ([`apply_path_changes`] writes edits then calls [`generate_indexes`]).
+/// caller ([`apply_path_changes`] writes edits and rebuilds in-memory maps).
 ///
 /// Useful for LSP `workspace/willRenameFiles`: run against a temp copy, map the
 /// returned paths back to the live pre-rename URIs, and return a `WorkspaceEdit`.

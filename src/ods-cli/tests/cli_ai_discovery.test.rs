@@ -43,7 +43,7 @@ fn find_by_key_status_custom_and_tag_match() {
     );
     assert!(
         Command::new(ods_bin())
-            .args(["index", &root])
+            .args(["lint", &root])
             .output()
             .unwrap()
             .status
@@ -135,7 +135,7 @@ fn tag_list_show_and_tags_regression() {
     );
     assert!(
         Command::new(ods_bin())
-            .args(["index", &root])
+            .args(["lint", &root])
             .output()
             .unwrap()
             .status
@@ -235,7 +235,7 @@ fn overview_and_summary_and_stats_regression() {
     );
     assert!(
         Command::new(ods_bin())
-            .args(["index", &root])
+            .args(["lint", &root])
             .output()
             .unwrap()
             .status
@@ -293,7 +293,7 @@ fn context_filter_unique_multi_and_id_regression() {
     );
     assert!(
         Command::new(ods_bin())
-            .args(["index", &root])
+            .args(["lint", &root])
             .output()
             .unwrap()
             .status

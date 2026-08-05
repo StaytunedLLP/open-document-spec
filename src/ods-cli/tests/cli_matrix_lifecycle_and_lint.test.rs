@@ -36,8 +36,8 @@ fn production_init_disable_remove_indexes() {
         "---\nprofile: note\nstatus: draft\n---\n\n# A\n",
     )
     .unwrap();
-    assert_ok(&run(&["index", root]), "index nested");
-    assert!(dir.join("sub/index.ods.md").exists() || dir.join("index.ods.md").exists());
+    assert_ok(&run(&["lint", root]), "lint nested");
+    assert!(dir.join("sub/index.ods.md").exists() || dir.join("ods.toml").exists());
 
     // create nested index if generator put one
     if !dir.join("sub/index.ods.md").exists() {
@@ -57,11 +57,11 @@ fn production_init_disable_remove_indexes() {
         }
     );
     assert!(
-        dir.join("index.ods.md").exists(),
+        dir.join("ods.toml").exists(),
         "root index kept by default"
     );
     assert!(
-        !fs::read_to_string(dir.join("index.ods.md"))
+        !fs::read_to_string(dir.join("ods.toml"))
             .unwrap()
             .lines()
             .any(|l| l.trim().starts_with("ods:"))
@@ -88,7 +88,7 @@ fn production_lint_flags_dangling_and_accepts_checklist() {
         "---\nprofile: note\nstatus: draft\ndepends:\n  - missing/doc\n---\n\n# Bad\n",
     )
     .unwrap();
-    assert_ok(&run(&["index", root]), "index");
+    assert_ok(&run(&["lint", root]), "lint");
 
     let out = run(&["lint", "--format", "json", root]);
     assert!(!out.status.success(), "lint should fail on dangling");

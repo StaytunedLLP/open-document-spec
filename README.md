@@ -43,16 +43,16 @@ Progress from initial setup to enterprise documentation architecture across 4 st
 ├───────────────────┼─────────────────────┼──────────────────────┼───────────────────────┤
 │ • Skill / Install │ • Graph (`depends`) │ • Custom Profiles    │ • Background Daemon   │
 │ • `ods init`      │ • Code (`code:`)    │ • ODS Packs (`pack`) │ • GitHub Action CI    │
-│ • Root `ods: 0.1` │ • Auto-Index (`index`)│ • AI Scope (`context`)│ • SARIF Security     │
+│ • Root `spec = "0.1"` │ • Auto-Index (`index`)│ • AI Scope (`context`)│ • SARIF Security     │
 │ • `ods lint`      │ • Atomic `ods mv`   │ • Token ROI (`bench`)│ • Git Pre-Commit Hook │
 └───────────────────┴─────────────────────┴──────────────────────┴───────────────────────┘
 ```
 
 | Tier | Focus Area | Essential Commands & Keys | Learning Goal |
 |---|---|---|---|
-| **Tier 1: Novice** | Foundations & Validation | `ods init`<br/>`ods lint`<br/>`ods: 0.1` | Install binary, initialize root `index.ods.md`, write basic frontmatter (`profile`, `status`), run Level-3 lint checks. |
-| **Tier 2: Practitioner** | Document Graphs & Code Links | `depends:` / `related:`<br/>`code:`<br/>`ods index`<br/>`ods mv` | Construct document dependency graphs, bind source code symbols, generate navigation lockfiles, and perform atomic file moves. |
-| **Tier 3: Power User** | Custom Schemas & AI Context | `custom-profiles:`<br/>`ods profile`<br/>`ods context`<br/>`ods find --key`<br/>`ods overview`<br/>`ods pack`<br/>`ods bench` | Register domain profile schemas, discover docs by key/tag, cold-start with workspace overview, export packs, and measure token ROI. |
+| **Tier 1: Novice** | Foundations & Validation | `ods init`<br/>`ods lint`<br/>`spec = "0.1"` | Install binary, initialize root `ods.toml`, write basic frontmatter (`profile`, `status`), run lint checks. |
+| **Tier 2: Practitioner** | Document Graphs & Code Links | `depends:` / `related:`<br/>`code:`<br/>`ods overview` / `ods find`<br/>`ods mv` | Construct document dependency graphs, bind source code symbols, navigate the document graph, and perform atomic file moves. |
+| **Tier 3: Power User** | Custom Schemas & AI Context | `custom_profiles (ods.toml):`<br/>`ods profile`<br/>`ods context`<br/>`ods find --key`<br/>`ods overview`<br/>`ods pack`<br/>`ods bench` | Register domain profile schemas, discover docs by key/tag, cold-start with workspace overview, export packs, and measure token ROI. |
 | **Tier 4: Architect** | Automation & Enterprise Governance | `ods setup --git-hooks`<br/>`ods serve` / `ods start`<br/>`ods/action` (CI)<br/>`--format sarif`<br/>`ods lint --okf` | Run persistent OS background daemons, enforce CI pull request gates, output SARIF security annotations, and enable Google OKF via `ods lint --okf` (no namespaces; no `--ods` flag). |
 
 ---
@@ -63,7 +63,7 @@ Progress from initial setup to enterprise documentation architecture across 4 st
 |---|---|---|
 | ⚡ **Deterministic Bounded Context Graph** | `ods context <doc-id>` | Bounded AI reading scope (<5ms) following `depends:` + `context.load` (not full-repo dump). |
 | 🔍 **Multi-criteria AI discovery** | `ods find` / `ods overview` / `ods schema keys` | Find by tag and frontmatter keys (`--key`, `--status`, …); cold-start snapshot; list registered schema keys. |
-| 📋 **Custom Profile Schema Engine** | `ods profile` / `custom-profiles:` | Single-source profile schema registration in `index.ods.md`, enforcing `expected_keys` and `H2`/`H3` section hierarchies. |
+| 📋 **Custom Profile Schema Engine** | `ods profile` / `custom_profiles (ods.toml):` | Single-source profile schema registration in `ods.toml`, enforcing `expected_keys` and `H2`/`H3` section hierarchies. |
 | 📊 **Workspace Document Telemetry** | `ods stats` | Reports document health score %, graph dependency density, profile distribution, and top taxonomy tags. |
 | 🌳 **Visual Tree Representation** | `ods tree` | Displays visual ASCII/Unicode hierarchy tree of index navigation and dependency graphs. |
 | 🔄 **Smart Rename & Dependency Healing** | `ods mv <src> <dst>` | Renames files while automatically rewriting graph dependencies, relative body links, and code references. |
@@ -129,7 +129,7 @@ irm https://raw.githubusercontent.com/StaytunedLLP/open-document-spec/main/src/s
 
 ```bash
 mkdir my-docs && cd my-docs
-ods init .      # Writes root index.ods.md with ods: 0.1 spec marker
+ods init .      # Writes root ods.toml with spec = "0.1" spec marker
 ods setup       # Verify workspace, check updates, and register background OS service
 ```
 
@@ -153,15 +153,15 @@ ods adopt docs/                    # Auto-draft frontmatter on legacy Markdown
 
 Custom profiles define domain document schemas, expected frontmatter keys, and starter templates.
 
-### Single-Source Registration in Root `index.ods.md`
+### Single-Source Registration in Root `ods.toml`
 
-Custom profiles are registered explicitly in root `index.ods.md` under `custom-profiles:`:
+Custom profiles are registered explicitly in root `ods.toml` under `custom_profiles (ods.toml):`:
 
 ```yaml
 ---
 profile: index
-ods: 0.1
-custom-profiles:
+spec = "0.1"
+custom_profiles (ods.toml):
   - .ods/profiles/rfc.md
   - docs/profiles/api_endpoint.md
 ---
@@ -204,9 +204,9 @@ ods:
 
 | Command | Syntax | Role & Description |
 |---|---|---|
-| `ods init` | `ods init [path]` | Initialize root `index.ods.md` with `ods: 0.1` spec marker. |
+| `ods init` | `ods init [path]` | Initialize root `ods.toml` with `spec = "0.1"` spec marker. |
 | `ods setup` | `ods setup [path] [--git-hooks]` | Verify workspace health, check updates, and register background OS service. `--git-hooks` installs `.git/hooks/pre-commit`. |
-| `ods lint` | `ods lint [path] [--level 1\|3 \| --mode standard\|strict] [--fix] [--format text\|json\|sarif]` | Graph validation. `--fix` regenerates **indexes only** (does not create missing depends targets). Extra dialects: `--okf` / `--skills`. |
+| `ods lint` | `ods lint [path] [ods lint\|3 \| --mode standard\|strict] [--fix] [--format text\|json\|sarif]` | Graph validation. `--fix` regenerates **indexes only** (does not create missing depends targets). Extra dialects: `--okf` / `--skills`. |
 | `ods lint --okf` | `ods lint --okf [path] [--skip-frontmatter-keys] [--ignore-keys k1,k2]` | Validate Google OKF v0.2 knowledge bundles (`okf_version: "0.2"`). Supports key suppression flags and root `okf_lint` frontmatter policies. |
 | `ods export graph` | `ods export graph [path] [--format text\|json\|md] [--spec ods\|okf]` | Export workspace knowledge graph in structured JSON for AI agents, Markdown snapshot, or text edge list (`--spec okf` exports Google OKF v0.2 bundle JSON). |
 | `ods stats` | `ods stats [path]` | Display workspace document telemetry, graph density, profile distribution, and health score %. |
@@ -268,7 +268,7 @@ jobs:
 
 ### Specification (format meaning)
 
-- **ODS**: [Intro](specs/ods/intro.md) · [Keys](specs/ods/keys.md) · [Core](specs/ods/core.md) · [all modules](specs/ods/index.ods.md)
+- **ODS**: [Intro](specs/ods/intro.md) · [Keys](specs/ods/keys.md) · [Core](specs/ods/core.md) · [all modules](specs/ods/ods.toml)
 - **OKF** (`--okf`): [Intro](specs/okf/intro.md) · [Keys](specs/okf/keys.md)
 - **Skills** (`--skills`): [Intro](specs/skills/intro.md) · [Keys](specs/skills/keys.md)
 - Site: https://opendocify.com/spec

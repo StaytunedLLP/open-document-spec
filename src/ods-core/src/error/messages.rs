@@ -262,7 +262,7 @@ pub fn not_ods_workspace(hint_okf: bool, hint_skills: bool) -> UserMsg {
     let mut msg = UserMsg::new(
         "not_ods_workspace",
         ErrorStage::Scope,
-        "not an ODS workspace (no root index.ods.md with ods:)",
+        "not an ODS workspace (no root ods.toml with spec)",
     )
     .next("run `ods init` here to create an ODS workspace");
     if hint_okf {
@@ -755,11 +755,15 @@ pub fn lint_root_version_mismatch(version: &str, expected: &str) -> String {
 }
 
 pub fn lint_root_missing_ods_version(expected: &str) -> String {
-    format!("root index.ods.md missing ods: {expected}")
+    format!("ods.toml missing spec = \"{expected}\"")
 }
 
 pub fn lint_missing_root_index(expected: &str) -> String {
-    format!("missing root index.ods.md with ods: {expected}")
+    format!("missing ods.toml with spec = \"{expected}\"")
+}
+
+pub fn lint_missing_ods_toml(expected: &str) -> String {
+    format!("missing ods.toml with spec = \"{expected}\"")
 }
 
 pub fn lint_non_canonical_ref(reference: &str, canonical: &str) -> String {

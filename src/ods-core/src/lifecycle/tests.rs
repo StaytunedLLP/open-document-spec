@@ -97,52 +97,6 @@ fn strip_keys_from_frontmatter_block(block: &str, drop_keys: &[&str]) -> (String
     (out.join("\n"), removed)
 }
 
-fn ensure_ods_in_index_text(text: &str) -> String {
-    let (fm, body) = split_frontmatter(text);
-    let ending = if text.contains("\r\n") { "\r\n" } else { "\n" };
-    let spec = current_ods_spec_version();
-    if let Some(block) = fm {
-        let mut lines: Vec<String> = block.lines().map(|l| l.to_string()).collect();
-        let mut saw_ods = false;
-        for line in &mut lines {
-            let trimmed = line.trim_start();
-            if trimmed
-                .split_once(':')
-                .is_some_and(|(key, _)| key.trim() == "ods")
-            {
-                let indent_len = line.len() - trimmed.len();
-                let indent = line[..indent_len].to_string();
-                *line = format!("{indent}ods: {spec}");
-                saw_ods = true;
-            }
-        }
-
-        // Insert root metadata after profile if present, else at top of frontmatter.
-        let mut inserted = false;
-        for (idx, line) in lines.iter().enumerate() {
-            if line.trim().starts_with("profile:") {
-                if !saw_ods {
-                    lines.insert(idx + 1, format!("ods: {spec}"));
-                }
-                inserted = true;
-                break;
-            }
-        }
-        if !inserted && !saw_ods {
-            lines.insert(0, format!("ods: {spec}"));
-        }
-        let kept = lines.join(ending);
-        let body = body.trim_start_matches(['\r', '\n']);
-        if body.is_empty() {
-            format!("---{ending}{kept}{ending}---{ending}")
-        } else {
-            format!("---{ending}{kept}{ending}---{ending}{ending}{body}")
-        }
-    } else {
-        let body = text.trim_start();
-        format!("---{ending}profile: index{ending}ods: {spec}{ending}---{ending}{ending}{body}")
-    }
-}
 
 #[cfg(test)]
 mod tests {

@@ -225,7 +225,9 @@ fn parse_common_flags(
     args: &[String],
     start: usize,
 ) -> Result<(PathBuf, LintLevel, OutputFormat), CliError> {
-    let mut level = LintLevel::Level3;
+    // ODS compliance is binary; LintLevel is always Full. --level/--mode ignored if present
+    // for one-release CLI compatibility (values are discarded).
+    let level = LintLevel::Full;
     let mut format = OutputFormat::Text;
     let mut path = None;
 
@@ -233,20 +235,8 @@ fn parse_common_flags(
     while i < args.len() {
         match args[i].as_str() {
             "--mode" | "--level" => {
-                let value = args
-                    .get(i + 1)
-                    .ok_or_else(|| usage_msg(ods_core::missing_flag_value("--mode/--level", "`ods lint --mode strict`")))?;
-                level = match value.to_lowercase().as_str() {
-                    "standard" | "1" => LintLevel::Standard,
-                    "strict" | "3" => LintLevel::Strict,
-                    other => {
-                        return Err(usage_msg(ods_core::invalid_choice(
-                            "--mode/--level",
-                            other,
-                            "standard|strict|1|3",
-                        )));
-                    }
-                };
+                // Accept and skip legacy flags; full integrity always runs.
+                let _ = args.get(i + 1);
                 i += 2;
             }
             "--format" => {

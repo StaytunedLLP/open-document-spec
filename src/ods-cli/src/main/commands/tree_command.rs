@@ -2,55 +2,80 @@ fn run_tree_command(args: &[String]) -> Result<ExitCode, CliError> {
     let (root, _level, format) = parse_common_flags(args, 2)?;
     require_ods_workspace(&root)?;
 
+    let mut max_depth = 2usize;
+    let mut i = 2usize;
+    while i < args.len() {
+        match args[i].as_str() {
+            "--depth" => {
+                let v = args
+                    .get(i + 1)
+                    .ok_or_else(|| usage_msg(ods_core::missing_flag_value("--depth", "`ods tree --depth 2`")))?;
+                max_depth = v.parse().unwrap_or(2).max(0);
+                i += 2;
+            }
+            _ => i += 1,
+        }
+    }
+
     let workspace = load_workspace_with_options(&root, load_options_graph())
         .map_err(|err| fail_load(&root, err))?;
 
     match format {
         OutputFormat::Text => {
             println!("ODS Workspace Tree: {}", root.display());
-            println!("└── index.ods.md (root index)");
-            let root_index_path = root.join("index.ods.md");
+            println!("└── ods.toml (workspace marker)");
 
-            let docs_by_dir = workspace
+            let mut entries: Vec<(PathBuf, PathBuf)> = workspace
                 .documents
                 .iter()
-                .filter(|doc| doc.path != root_index_path)
-                .fold(
-                    std::collections::BTreeMap::<PathBuf, Vec<PathBuf>>::new(),
-                    |mut map, doc| {
-                        let relative = doc.path.strip_prefix(&root).unwrap_or(&doc.path);
-                        let parent = relative.parent().map(|p| p.to_path_buf()).unwrap_or_default();
-                        map.entry(parent).or_default().push(doc.path.clone());
-                        map
-                    },
-                );
+                .filter_map(|doc| {
+                    let rel = doc.path.strip_prefix(&root).ok()?.to_path_buf();
+                    let depth = rel.components().count();
+                    if depth == 0 || depth > max_depth {
+                        return None;
+                    }
+                    Some((rel, doc.path.clone()))
+                })
+                .collect();
+            entries.sort_by(|a, b| a.0.cmp(&b.0));
 
-            for (dir, docs) in &docs_by_dir {
-                if dir.as_os_str().is_empty() {
-                    for (i, doc_path) in docs.iter().enumerate() {
-                        let is_last = i == docs.len() - 1 && docs_by_dir.len() == 1;
-                        let prefix = if is_last { "└── " } else { "├── " };
-                        let rel = doc_path.strip_prefix(&root).unwrap_or(doc_path);
-                        println!("{}{}", prefix, rel.display());
-                    }
+            for (i, (rel, abs)) in entries.iter().enumerate() {
+                let is_last = i + 1 == entries.len();
+                let prefix = if is_last { "└── " } else { "├── " };
+                let desc = workspace
+                    .document_by_path(abs)
+                    .and_then(|d| match &d.frontmatter {
+                        ods_core::FrontmatterState::Parsed(fm) => fm.description.clone(),
+                        _ => None,
+                    });
+                if let Some(d) = desc {
+                    println!("{prefix}{} — {d}", rel.display());
                 } else {
-                    println!("├── {}/", dir.display());
-                    for (i, doc_path) in docs.iter().enumerate() {
-                        let is_last = i == docs.len() - 1;
-                        let prefix = if is_last { "│   └── " } else { "│   ├── " };
-                        let file_name = doc_path.file_name().unwrap_or(doc_path.as_os_str());
-                        println!("{}{}", prefix, Path::new(file_name).display());
-                    }
+                    println!("{prefix}{}", rel.display());
                 }
+            }
+            if entries.is_empty() {
+                println!("(no documents within depth {max_depth})");
             }
         }
         OutputFormat::Json | OutputFormat::Sarif => {
             let docs: Vec<String> = workspace
                 .documents
                 .iter()
-                .map(|d| format!(r#""{}""#, d.path.strip_prefix(&root).unwrap_or(&d.path).display()))
+                .filter_map(|d| {
+                    let rel = d.path.strip_prefix(&root).ok()?;
+                    if rel.components().count() > max_depth {
+                        return None;
+                    }
+                    Some(format!(r#""{}""#, rel.display()))
+                })
                 .collect();
-            println!(r#"{{"root":"{}","tree":[{}]}}"#, root.display(), docs.join(","));
+            println!(
+                r#"{{"root":"{}","depth":{},"tree":[{}]}}"#,
+                root.display(),
+                max_depth,
+                docs.join(",")
+            );
         }
     }
 

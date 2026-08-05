@@ -73,22 +73,13 @@ fn publish_include_private_flag_includes_everything() {
 }
 
 #[test]
-fn publish_directory_share_cascade_filters_entire_subtree() {
+fn publish_private_document_filtered() {
     let dir = temp_dir("publish-sub-cascade");
-    write(
-        dir.as_path(),
-        "index.md",
-        "---\nprofile: index\nods: 0.1\n---\n\n# R\n",
-    );
-    write(
-        dir.as_path(),
-        "sub/index.md",
-        "---\nprofile: index\nshare: private\n---\n\n# Sub\n",
-    );
+    write(dir.as_path(), "ods.toml", "spec = \"0.1\"\n");
     write(
         dir.as_path(),
         "sub/doc.md",
-        "---\nprofile: note\nstatus: draft\nid: sub-doc\n---\n\n# Doc\n",
+        "---\nprofile: note\nstatus: draft\nid: sub-doc\nshare: private\n---\n\n# Doc\n",
     );
     let ws = load_workspace(&dir).unwrap();
     let out = temp_dir("publish-sub-out");
@@ -125,7 +116,7 @@ fn publish_document_override_overrides_parent_directory_share() {
     let report = publish_workspace(&ws, &dir, &out, ShareOptions::default()).unwrap();
 
     assert_eq!(report.written.len(), 1);
-    assert!(out.join("sub/index.ods.md").exists());
+    assert!(out.join("ods.toml").exists());
     assert!(out.join("sub/public_doc.md").exists());
 
     let _ = fs::remove_dir_all(&dir);
@@ -161,7 +152,7 @@ fn publish_subtree_path_relative_to_root() {
     let report = publish_workspace(&ws, dir.join("sub"), &out, ShareOptions::default()).unwrap();
 
     assert_eq!(report.written.len(), 1);
-    assert!(out.join("index.ods.md").exists());
+    assert!(out.join("ods.toml").exists());
     assert!(out.join("doc.md").exists());
     assert!(!out.join("other.md").exists());
 

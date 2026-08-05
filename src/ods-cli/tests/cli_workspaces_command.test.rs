@@ -148,7 +148,7 @@ fn share_and_export_and_disable_dry() {
         "---\nprofile: note\nstatus: draft\nshare: public\n---\n\n# P\n",
     )
     .unwrap();
-    let _ = Command::new(ods_bin()).args(["index", path]).status();
+    let _ = Command::new(ods_bin()).args(["lint", path]).status();
     let out_dir = dir.path().join("published");
     let out = Command::new(ods_bin())
         .args(["share", path, "--out", out_dir.to_str().unwrap()])
@@ -219,8 +219,8 @@ fn git_detect_renames_in_git_repo() {
         .output();
 
     fs::write(
-        root.join("index.ods.md"),
-        "---\nprofile: index\nods: 0.1\n---\n\n# R\n\n- [old.md](old.md)\n",
+        root.join("ods.toml"), "spec = \"0.1\"
+",
     )
     .unwrap();
     fs::write(

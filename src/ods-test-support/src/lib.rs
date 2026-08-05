@@ -37,6 +37,16 @@ pub fn temp_workspace() -> TempWorkspace {
     TempWorkspace(tempfile::tempdir().expect("temp workspace"))
 }
 
+/// Write a minimal `ods.toml` workspace marker (spec 0.1).
+pub fn write_ods_toml(root: &Path) {
+    write_ods_toml_with(root, "spec = \"0.1\"\n");
+}
+
+/// Write `ods.toml` with custom body.
+pub fn write_ods_toml_with(root: &Path, body: &str) {
+    fs::write(root.join("ods.toml"), body).expect("write ods.toml");
+}
+
 pub fn fixture_root() -> PathBuf {
     PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("fixtures/example-workspace")
 }

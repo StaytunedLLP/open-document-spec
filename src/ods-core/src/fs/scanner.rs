@@ -1,14 +1,11 @@
 /// Rebuild path/id/children/resource maps after documents change (e.g. LSP overlay).
 pub fn rebuild_indexes(workspace: &mut Workspace) {
-    // Resolve ignore before clearing maps (document_by_path needs by_path).
-    let root_index = workspace.root.join("index.md");
-    let ignore = workspace_ignore_from_root(
-        workspace
-            .documents
-            .iter()
-            .find(|doc| doc.path == root_index)
-            .or_else(|| workspace.documents.first()),
-    );
+    // Prefer config ignore (ods.toml); keep any runtime extensions already on workspace.
+    let ignore = if workspace.ignore.is_empty() {
+        workspace.config.ignore.clone()
+    } else {
+        workspace.ignore.clone()
+    };
 
     workspace.by_id.clear();
     workspace.by_path.clear();
@@ -45,20 +42,14 @@ pub fn rebuild_indexes(workspace: &mut Workspace) {
                     .or_default()
                     .push(id.clone());
             }
-            // Nested profile catalogs are declared on an `index.md`'s `profiles:` key.
-            if document
-                .path
-                .file_name()
-                .and_then(|n| n.to_str())
-                .is_some_and(|n| n.eq_ignore_ascii_case("index.md") || n.eq_ignore_ascii_case("index.ods.md"))
-            {
-                for catalog in &fm.profiles {
-                    workspace
-                        .profile_catalog_paths
-                        .insert(document.directory.join(catalog));
-                }
-            }
         }
+    }
+
+    // Profile catalog dirs from ods.toml custom_profiles.
+    for catalog in &workspace.config.custom_profiles {
+        workspace
+            .profile_catalog_paths
+            .insert(workspace.root.join(catalog));
     }
 
     for docs in workspace.tag_index.values_mut() {
@@ -97,14 +88,6 @@ pub fn rebuild_indexes(workspace: &mut Workspace) {
     }
 }
 
-fn workspace_ignore_from_root(root_index: Option<&Document>) -> Vec<String> {
-    root_index
-        .and_then(|doc| match &doc.frontmatter {
-            crate::model::FrontmatterState::Parsed(fm) => Some(fm.ignore.clone()),
-            _ => None,
-        })
-        .unwrap_or_default()
-}
 
 /// True when `path` lies under a workspace-relative ignore prefix from root `ignore:`.
 pub fn path_matches_workspace_ignore(root: &Path, path: &Path, ignore: &[String]) -> bool {

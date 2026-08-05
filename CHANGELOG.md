@@ -9,6 +9,14 @@ GitHub Releases use GitHub’s auto-generated notes. Edit this file by hand when
 
 ## [Unreleased]
 
+### Breaking
+- Workspace marker is **`ods.toml`** only (no nested `index.ods.md` / no `ods index`).
+- Compliance is **compliant | non-compliant** (no Level 0–3 ladder).
+- `ods serve` product RSS budget default **10 MB** (`service.max_rss_mb`).
+- Skill `references/{intro,keys,core,scope}` are pointers to `specs/ods/*` (no forked copies).
+
+
+
 ### Added
 - **`ods find --key <expr>` & multi-criteria search:** query documents by schema keys and custom profile keys (`--key`, `--key-match and|or`, `--tag-match any|all`, `--status`, `--profile`, `--owner`). Supports comma multi-values (`--key status=draft,stable`), comma multi-keys, and simple `AND`/`OR` expressions. Value match is **exact** (case-insensitive).
 - **`ods tag list` & `ods tag show <tag>`:** list observed workspace tags with document counts or inspect documents carrying a specific tag (`--format text|json`). (`ods tags` / `ods tag rename` unchanged.)

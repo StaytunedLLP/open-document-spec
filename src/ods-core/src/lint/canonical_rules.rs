@@ -1,52 +1,12 @@
 
 
-pub(super) fn lint_root_spec(
-    root_index: &Document,
-    frontmatter: &crate::model::Frontmatter,
-) -> Vec<Diagnostic> {
-    let mut diagnostics = Vec::new();
-
-    match frontmatter.ods.as_deref() {
-        Some(version) if version == crate::model::current_ods_spec_version() => {}
-        Some(version) => diagnostics.push(Diagnostic {
-            path: root_index.path.clone(),
-            severity: Severity::Error,
-            message: crate::error::lint_root_version_mismatch(
-                version,
-                crate::model::current_ods_spec_version(),
-            ),
-        }),
-        None => diagnostics.push(Diagnostic {
-            path: root_index.path.clone(),
-            severity: Severity::Error,
-            message: crate::error::lint_root_missing_ods_version(
-                crate::model::current_ods_spec_version(),
-            ),
-        }),
-    }
-
-    diagnostics
-}
-
 pub(super) fn lint_packs(
-    workspace: &Workspace,
-    document: &Document,
-    frontmatter: &crate::model::Frontmatter,
+    _workspace: &Workspace,
+    _document: &Document,
+    _frontmatter: &crate::model::Frontmatter,
 ) -> Vec<Diagnostic> {
-    let mut diagnostics = Vec::new();
-    if document.path == workspace.root.join("index.ods.md") {
-        for pack in &frontmatter.packs {
-            let path = normalize_join(&workspace.root, Path::new(pack));
-            if !path.exists() {
-                diagnostics.push(Diagnostic {
-                    path: document.path.clone(),
-                    severity: Severity::Error,
-                    message: crate::error::lint_missing_pack_path(pack),
-                });
-            }
-        }
-    }
-    diagnostics
+    // Pack paths are validated on workspace config in lint_root_config.
+    Vec::new()
 }
 
 pub(super) fn lint_references(
@@ -170,30 +130,4 @@ pub(super) fn lint_alias_scope(
     }]
 }
 
-#[cfg(test)]
-mod test_canonical_rules {
-    use super::*;
-    use crate::fs::load_workspace;
-    use tempfile::tempdir;
 
-    #[test]
-    fn test_canonical_rules_helpers() {
-        let td = tempdir().unwrap();
-        let root = td.path();
-        std::fs::write(
-            root.join("index.md"),
-            "---\nprofile: index\nods: 0.999\n---\n\n# Root\n",
-        )
-        .unwrap();
-
-        let ws = load_workspace(root).unwrap();
-        let doc = ws.documents.first().unwrap();
-        if let crate::model::FrontmatterState::Parsed(fm) = &doc.frontmatter {
-            let diags = lint_root_spec(doc, fm);
-            assert!(!diags.is_empty());
-
-            let alias_diags = lint_alias_scope(&ws, doc, fm);
-            assert!(alias_diags.is_empty());
-        }
-    }
-}

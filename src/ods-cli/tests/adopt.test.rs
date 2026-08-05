@@ -7,8 +7,8 @@ use std::process::{Command, Stdio};
 fn adopt_reports_alias_suggestions() {
     let root = temp_workspace();
     fs::write(
-        root.join("index.ods.md"),
-        "---\nprofile: index\nods: 0.1\n---\n\n# Root\n\n- [feature.md](feature.md)\n",
+        root.join("ods.toml"), "spec = \"0.1\"
+",
     )
     .expect("root index");
     fs::write(

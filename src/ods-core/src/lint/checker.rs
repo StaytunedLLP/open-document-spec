@@ -1,8 +1,7 @@
-use crate::fs::{normalize_join, paths_equal_normalized};
+use crate::fs::normalize_join;
 use crate::model::{Diagnostic, Document, FrontmatterState, LintLevel, Severity, Workspace};
 use crate::parse::{document_id, split_markdown_link_target};
 use std::collections::{BTreeMap, BTreeSet, HashSet};
-use std::fs;
 use std::path::Path;
 
 pub fn known_profiles(workspace: &Workspace) -> Vec<String> {
@@ -25,11 +24,24 @@ pub fn profile_sections(workspace: &Workspace, profile: &str) -> Vec<Vec<String>
 
 pub fn workspace_aliases(workspace: &Workspace) -> BTreeMap<String, BTreeSet<String>> {
     let mut aliases = BTreeMap::new();
+    for (canonical, values) in &workspace.config.aliases {
+        aliases
+            .entry(canonical.clone())
+            .or_insert_with(BTreeSet::new)
+            .extend(values.iter().cloned());
+    }
+    if !aliases.is_empty() {
+        return aliases;
+    }
+    // Legacy root index during migration.
     let root_index = workspace
         .document_by_path(&workspace.root.join("index.ods.md"))
         .or_else(|| {
             workspace.documents.iter().find(|document| {
-                document.path.file_name().is_some_and(|name| name == "index.ods.md")
+                document
+                    .path
+                    .file_name()
+                    .is_some_and(|name| name == "index.ods.md" || name == "index.md")
             })
         });
 
@@ -138,11 +150,21 @@ pub fn workspace_alias_suggestions(workspace: &Workspace) -> BTreeMap<String, BT
 }
 
 pub fn lint_workspace(workspace: &Workspace) -> Vec<Diagnostic> {
-    lint_workspace_with_level(workspace, LintLevel::Level3)
+    lint_workspace_with_level(workspace, LintLevel::Full)
 }
 
 pub fn lint_workspace_with_level(workspace: &Workspace, level: LintLevel) -> Vec<Diagnostic> {
     lint_workspace_with_ref_style(workspace, level, false)
+}
+
+/// Returns binary compliance for a workspace.
+pub fn workspace_compliance(workspace: &Workspace) -> crate::model::WorkspaceCompliance {
+    let diags = lint_workspace(workspace);
+    if diags.iter().any(|d| d.severity == crate::model::Severity::Error) {
+        crate::model::WorkspaceCompliance::NonCompliant
+    } else {
+        crate::model::WorkspaceCompliance::Compliant
+    }
 }
 
 pub fn lint_workspace_with_ref_style(
@@ -165,10 +187,8 @@ pub fn lint_workspace_with_ref_style(
         ));
     }
 
-    if matches!(level, LintLevel::Level3) {
-        diagnostics.extend(lint_duplicate_ids(&ids));
-        diagnostics.extend(lint_cycles(workspace, &ids));
-    }
+    diagnostics.extend(lint_duplicate_ids(&ids));
+    diagnostics.extend(lint_cycles(workspace, &ids));
 
     diagnostics
 }
@@ -196,24 +216,22 @@ pub fn lint_document_in_workspace(
     {
         diagnostics.extend(lint_document(workspace, document, &ids, level, false));
 
-        if matches!(level, LintLevel::Level3) {
-            let frontmatter = match &document.frontmatter {
-                FrontmatterState::Parsed(fm) => Some(fm),
-                _ => None,
-            };
-            let id = document_id(&workspace.root, &document.path, frontmatter);
+        let frontmatter = match &document.frontmatter {
+            FrontmatterState::Parsed(fm) => Some(fm),
+            _ => None,
+        };
+        let id = document_id(&workspace.root, &document.path, frontmatter);
 
-            diagnostics.extend(
-                lint_duplicate_ids(&ids)
-                    .into_iter()
-                    .filter(|d| d.path == path || d.message.contains(&id)),
-            );
-            diagnostics.extend(
-                lint_cycles(workspace, &ids)
-                    .into_iter()
-                    .filter(|d| d.path == path || d.message.contains(&id)),
-            );
-        }
+        diagnostics.extend(
+            lint_duplicate_ids(&ids)
+                .into_iter()
+                .filter(|d| d.path == path || d.message.contains(&id)),
+        );
+        diagnostics.extend(
+            lint_cycles(workspace, &ids)
+                .into_iter()
+                .filter(|d| d.path == path || d.message.contains(&id)),
+        );
     }
 
     diagnostics

@@ -78,123 +78,9 @@ fn lint_code_refs(document: &Document, frontmatter: &crate::model::Frontmatter) 
     diagnostics
 }
 
-fn lint_index(workspace: &Workspace, document: &Document) -> Vec<Diagnostic> {
-    if document.path.file_name().and_then(|name| name.to_str()) != Some("index.md") {
-        return Vec::new();
-    }
 
-    let expected = workspace
-        .children
-        .get(&document.directory)
-        .cloned()
-        .unwrap_or_else(|| directory_children(workspace, &document.directory));
-    // Only top-level list links count as index children (not prose/table links).
-    let actual = extract_index_list_links(&document.body);
-
-    let missing = expected
-        .iter()
-        .filter(|item| !actual.contains(*item))
-        .cloned()
-        .collect::<Vec<_>>();
-    let extra = actual
-        .iter()
-        .filter(|item| !expected.contains(*item))
-        .cloned()
-        .collect::<Vec<_>>();
-
-    let mut diagnostics = Vec::new();
-
-    if !missing.is_empty() {
-        diagnostics.push(Diagnostic {
-            path: document.path.clone(),
-            severity: Severity::Error,
-            message: crate::error::lint_index_stale_missing(&missing.join(", ")),
-        });
-    }
-
-    if !extra.is_empty() {
-        diagnostics.push(Diagnostic {
-            path: document.path.clone(),
-            severity: Severity::Error,
-            message: crate::error::lint_index_stale_extra(&extra.join(", ")),
-        });
-    }
-
-    diagnostics
-}
-
-fn directory_children(workspace: &Workspace, directory: &Path) -> Vec<String> {
-    let mut entries = match fs::read_dir(directory) {
-        Ok(entries) => entries.collect::<Result<Vec<_>, _>>().unwrap_or_default(),
-        Err(_) => return Vec::new(),
-    };
-    entries.sort_by_key(|entry| entry.file_name());
-
-    entries
-        .into_iter()
-        .filter_map(|entry| {
-            let name = entry.file_name().to_string_lossy().to_string();
-            if name == "index.md" || name.starts_with('.') {
-                return None;
-            }
-
-            let path = entry.path();
-            if crate::fs::path_matches_workspace_ignore(&workspace.root, &path, &workspace.ignore) {
-                return None;
-            }
-            if crate::fs::is_excluded_profile_catalog(workspace, &path) {
-                return None;
-            }
-
-            let file_type = entry.file_type().ok()?;
-            if file_type.is_dir() {
-                let is_doc_dir = workspace.doc_dirs.contains(&path);
-                if is_doc_dir {
-                    Some(format!("{name}/index.md"))
-                } else {
-                    None
-                }
-            } else if file_type.is_file() {
-                let is_resource = workspace.resource_paths.contains(&path)
-                    || workspace
-                        .resource_paths
-                        .iter()
-                        .any(|res| paths_equal_normalized(res, &path));
-                if name.ends_with(".md") || is_resource {
-                    Some(name)
-                } else {
-                    None
-                }
-            } else {
-                None
-            }
-        })
-        .collect::<Vec<_>>()
-}
 
 /// Links from top-level markdown list items only (`- [label](target)`).
-fn extract_index_list_links(body: &str) -> BTreeSet<String> {
-    let mut links = BTreeSet::new();
-    let mut in_code_block = false;
-    for line in body.lines() {
-        let trimmed = line.trim();
-        if trimmed.starts_with("```") {
-            in_code_block = !in_code_block;
-            continue;
-        }
-        if in_code_block {
-            continue;
-        }
-        let list_line = line.trim_start();
-        if !list_line.starts_with("- ") && !list_line.starts_with("* ") {
-            continue;
-        }
-        if let Some(target) = split_markdown_link_target(line) {
-            links.insert(target);
-        }
-    }
-    links
-}
 
 fn extract_markdown_links(body: &str) -> BTreeSet<String> {
     let mut links = BTreeSet::new();
@@ -272,9 +158,6 @@ mod test_lint_helpers {
         let links = extract_markdown_links(body);
         assert!(links.contains("nonexistent.md"));
         assert!(links.contains("https://example.com"));
-
-        let list_links = extract_index_list_links(body);
-        assert!(list_links.contains("nonexistent.md"));
 
         let doc = Document {
             path: PathBuf::from("/tmp/doc.md"),

@@ -1,7 +1,6 @@
 //! Deterministic workspace graph export for AI / review (`ods export`).
 
 use crate::fs::load_workspace;
-use crate::index::generate_indexes;
 use crate::model::{Frontmatter, FrontmatterState, Workspace};
 use crate::parse::document_id;
 use std::io;
@@ -15,9 +14,6 @@ fn parsed_fm(document: &crate::model::Document) -> Option<&Frontmatter> {
 }
 
 /// Write a Markdown graph of the workspace. Returns the absolute path written.
-///
-/// When `out` lands under the workspace root, indexes are regenerated so
-/// `ods doctor` does not report stale indexes after a normal export.
 ///
 /// Documents marked `share: private` or `share: org` are excluded from the
 /// rendered graph unless `include_private` is set, matching the same
@@ -37,25 +33,6 @@ pub fn export_workspace_graph(
         std::fs::create_dir_all(parent)?;
     }
     std::fs::write(out, md)?;
-
-    let out_abs = if out.is_absolute() {
-        out.to_path_buf()
-    } else {
-        std::env::current_dir()
-            .unwrap_or_else(|_| root.to_path_buf())
-            .join(out)
-    };
-    let root_abs = root.canonicalize().unwrap_or_else(|_| root.to_path_buf());
-    let under_workspace = out_abs
-        .canonicalize()
-        .unwrap_or(out_abs.clone())
-        .starts_with(&root_abs);
-    if under_workspace {
-        // Reload so the new file is included, then refresh indexes.
-        let workspace = load_workspace(root)?;
-        let _ = generate_indexes(&workspace)?;
-    }
-
     Ok(out.to_path_buf())
 }
 
@@ -204,7 +181,7 @@ pub fn render_graph_json(workspace: &Workspace, include_private: bool, spec: &st
         let diags = crate::lint_document_in_workspace(
             workspace,
             &document.path,
-            crate::model::ComplianceMode::Strict,
+            crate::model::ComplianceMode::Full,
         );
         if diags.is_empty() && fm.is_some() {
             compliant_count += 1;

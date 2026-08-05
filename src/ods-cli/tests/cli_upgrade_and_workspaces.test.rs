@@ -18,7 +18,7 @@ fn upgrade_rewrites_ods_cli_pin() {
             .unwrap()
             .success()
     );
-    let index = dir.path().join("index.ods.md");
+    let index = dir.path().join("ods.toml");
     let out = Command::new(ods_bin())
         .args(["upgrade", path, "--write"])
         .output()
@@ -135,7 +135,7 @@ fn find_by_tag() {
     .unwrap();
     assert!(
         Command::new(ods_bin())
-            .args(["index", path])
+            .args(["lint", path])
             .status()
             .unwrap()
             .success()

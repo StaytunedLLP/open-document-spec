@@ -126,8 +126,8 @@ mod tests {
     fn detect_ods_marker() {
         let td = tempdir().unwrap();
         fs::write(
-            td.path().join("index.ods.md"),
-            "---\nprofile: index\nods: 0.1\n---\n\n# R\n",
+            td.path().join("ods.toml"),
+            "spec = \"0.1\"\n",
         )
         .unwrap();
         let d = detect_workspace(td.path());

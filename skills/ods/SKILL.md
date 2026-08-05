@@ -16,11 +16,11 @@ description: >-
 | **`ods`** | Unified native Rust CLI binary and engine (`ods`) |
 | **`ods lsp`** | Native JSON-RPC 2.0 Language Server built into `ods` for Zed, VS Code, Neovim, Cursor |
 | **`ods:` frontmatter** | ODS format root/nested engine keys (`ods: { profile: rfc, status: draft }`) |
-| **`custom-profiles:`** | Root `index.ods.md` array declaring custom profile schema definitions |
-| **`ods context`** | Sub-5ms bounded AI reading list: target doc + `depends` + `context.load` (not full-repo, not full graph export) |
+| **`custom_profiles`** | `ods.toml` array declaring custom profile schema definitions |
+| **`ods context`** | Bounded AI reading list: target doc + `depends` + `context.load` (not full-repo, not full graph export) |
 | **`ods export graph`** | Full-workspace graph snapshot — use rarely for audits, **not** for routine AI prompts |
 
-ODS is plain Markdown with **permissive** YAML frontmatter (`title:` and `name:` both supported), powered by a native Rust engine binary named **`ods`**. A **workspace** is any directory tree whose **root `index.ods.md` carries an `ods:` key** (e.g. `ods: 0.1`).
+ODS is plain Markdown with **permissive** YAML frontmatter, powered by a native Rust engine binary named **`ods`**. A **workspace** is any directory tree whose root **`ods.toml`** has `spec` (e.g. `"0.1"`). Compliance is **compliant | non-compliant** (no Level ladder). Discovery: `overview` → `find` / `tag` / `ls` → `context`.
 
 ---
 
@@ -40,14 +40,14 @@ There is **no** `--ods` flag and **no** `ods okf` / `ods ods` namespaces (`ods o
 
 When assisting users inside an ODS workspace, follow these operational directives:
 
-- ❓ **WHAT**: Recognize ODS workspaces by checking for `ods:` in root `index.ods.md`. Keep files as `.md`. Title is H1 only (no FM `title:`); optional top-level `name:` is fine.
+- ❓ **WHAT**: Recognize ODS workspaces by root `ods.toml` (`spec`). Keep files as `.md`. Title is H1 only (no FM `title:`); optional top-level `name:` is fine.
 - 💡 **WHY (token discipline)**: Prefer `ods context <id> [--max-tokens N] [--print]` for a **bounded** list (depends + `context.load` only — **not** `related`). Read only those paths. Never dump the repo or use full graph export for routine Q&A. On “document not found”, run `ods find <query>` / `ods find --key …` — do not load all markdown.
 - 🧭 **COLD-START**: New workspace turn → `ods overview` (snapshot) → `ods tag list` / `ods schema keys` if needed → `ods find --tag` / `--key` to locate a target → `ods context <id>`. Do not replace context with overview for deep work.
-- 🚨 **ERRORS**: CLI prints `error:`/`usage:` + `Next:` (sometimes `Hint:`). Surface that Next line to the user; do not invent a different recovery. Common: not a workspace → `ods init`; miss → `ods find`; indexes → `ods index`; tags under `ods:` → `ods fmt --migrate`.
+- 🚨 **ERRORS**: CLI prints `error:`/`usage:` + `Next:` (sometimes `Hint:`). Surface that Next line to the user; do not invent a different recovery. Common: not a workspace → `ods init`; miss → `ods find`; tags under `ods:` → `ods fmt --migrate`.
 - 👥 **WHO**: Operate seamlessly on behalf of non-technical or developer users without requiring manual terminal commands.
 - 📍 **WHERE**: Open `references/keys.md` only when authoring frontmatter; do not preload all references every turn.
 - ⏰ **WHEN**: Run `ods lint` after structural edits (`--fix` only regenerates indexes — it does not invent missing docs). Use `ods mv` for renames.
-- 🛡️ **SAFETY**: Prefer H1 for titles (FM `title:` is a lint **warning**, value kept). Navigation uses `index.ods.md` sidecars.
+- 🛡️ **SAFETY**: Prefer H1 for titles (FM `title:` is a lint **warning**, value kept). Navigation is CLI discovery — do not recreate nested indexes.
 - 🛠️ **HOW**: `ods context <id>` from workspace root; optional `--include-code`, `--include-private`, `--root <dir>`.
 
 ---
@@ -102,9 +102,9 @@ ods:
 
 Custom profiles define domain schemas, required frontmatter keys, and starter templates.
 
-### Single-Source Registration (`custom-profiles:` in Root `index.ods.md`)
+### Single-Source Registration (`custom_profiles` in root `ods.toml`)
 
-Custom profiles can be explicitly registered in root `index.ods.md` under `custom-profiles:` or auto-discovered:
+Custom profiles can be explicitly registered in root `ods.toml` under `custom_profiles` or auto-discovered:
 
 ```yaml
 ---
@@ -153,12 +153,11 @@ custom-profiles:
 | Command | Mastery Tier | Role & Syntax |
 |---|---|---|
 | **`ods lsp [--port N]`** | 🏁 Tier 1 (Novice) | Native JSON-RPC 2.0 Language Server for real-time editor lints, hover, definition, and completion. |
-| **`ods init [path]`** | 🏁 Tier 1 (Novice) | Initialize root `index.ods.md` with `ods: 0.1` spec marker. `--adopt` drafts frontmatter on plain `.md` files. |
+| **`ods init [path]`** | 🏁 Tier 1 (Novice) | Initialize `ods.toml` with `spec = "0.1"` spec marker. `--adopt` drafts frontmatter on plain `.md` files. |
 | **`ods setup [path]`** | 🏁 Tier 1 (Novice) | Verify workspace boundary, check updates, register OS daemon. `--git-hooks` installs pre-commit hook. `--editor zed\|vscode\|nvim\|cursor` writes `ods lsp` config. |
-| **`ods lint [path]`** | 🏁 Tier 1 (Novice) | ODS validation by default (`--mode strict\|standard`, `--fix`, `--skip-frontmatter-keys`, `--ignore-keys k1,k2`, `--format text\|json\|sarif`). Auto-enables declared specs from root `index.ods.md` `specs:`. Add `--okf` / `--skills` for other specs. Never `--ods`. |
+| **`ods lint [path]`** | 🏁 Tier 1 (Novice) | ODS validation by default (`--mode strict\|standard`, `--fix`, `--skip-frontmatter-keys`, `--ignore-keys k1,k2`, `--format text\|json\|sarif`). Auto-enables declared specs from root `ods.toml` `[specs.*]`. Add `--okf` / `--skills` for other specs. Never `--ods`. |
 | **`ods export graph`** | 🏁 Tier 1 (Novice) | Export workspace knowledge graph in structured JSON (`--format json`), Markdown (`--format md`), or text (`--format text`) for `--spec ods` (default) or `--spec okf`. |
 | **`ods new <path>`** | 🛠️ Tier 2 (Practitioner) | Scaffold new Markdown document from profile template with starter HTML comments. |
-| **`ods index [path]`** | 🛠️ Tier 2 (Practitioner) | Generate navigation `index.ods.md` lockfiles (`--check` verifies freshness). |
 | **`ods mv <from> <to>`** | 🛠️ Tier 2 (Practitioner) | Atomic document move + workspace-wide graph reference rewriting. |
 | **`ods sync [path]`** | 🛠️ Tier 2 (Practitioner) | Reconcile git-tracked renames (`git status --porcelain`) and rewrite graph links. |
 | **`ods adopt [path]`** | 🛠️ Tier 2 (Practitioner) | Draft frontmatter (`ods: { profile: note, status: draft }`) on legacy Markdown trees non-destructively. |

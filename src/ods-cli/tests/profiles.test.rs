@@ -8,7 +8,7 @@ fn profiles_command_reports_merged_catalog_sources() {
     let root = temp_workspace();
     fs::create_dir_all(root.join("ods-profiles")).expect("catalog dir");
     fs::write(
-        root.join("index.ods.md"),
+        root.join("ods.toml"),
         "---\nprofile: index\nods: 0.1\ncustom-profiles:\n  - ods-profiles/custom.md\n---\n\n# Root\n",
     )
     .expect("root index");

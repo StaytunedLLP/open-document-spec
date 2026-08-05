@@ -19,9 +19,9 @@ Reference implementation: the single native **`ods` CLI**. ODS is the default en
 | --- | --- |
 | Version | `ods --version` |
 | First-run setup | `ods setup` |
-| Workspace | Root `index.md` with spec `ods: 0.1` and CLI requirement `ods: ">=0.0.1"` |
-| Local clean | `ods index && ods lint` |
-| CI | `ods index --check` + `ods lint` |
+| Workspace | Root `ods.toml` with spec `spec = "0.1"` and CLI requirement `ods: ">=0.0.1"` |
+| Local clean | `ods lint` |
+| CI | `ods lint` + `ods lint` |
 | Automation | `ods start` (background) or `ods watch` (foreground) |
 | AI dump (optional) | `ods export` → `graph.md` |
 | Doctor | `ods doctor` |
@@ -35,12 +35,12 @@ Happy path: [Quickstart Guide](/docs/quickstart).
 
 | Command | Mastery Tier | Role & Syntax |
 | --- | --- | --- |
-| `ods init [path]` | 🏁 **Tier 1: Novice** | Make folder/repo ODS-compliant (creates root `index.md` + `ods:` spec, generates indexes). `--adopt` drafts frontmatter. |
+| `ods init [path]` | 🏁 **Tier 1: Novice** | Make folder/repo ODS-compliant (creates root `ods.toml` + `ods:` spec, generates indexes). `--adopt` drafts frontmatter. |
 | `ods setup [path]` | 🏁 **Tier 1: Novice** | Set up machine background service for workspace, check updates, and run `ods doctor`. `--git-hooks` installs pre-commit hook. `--editor zed\|vscode\|nvim\|cursor` writes `ods lsp` config. |
 | `ods lsp` | 🏁 **Tier 1: Novice** | JSON-RPC Language Server (stdio / `--port`); not the same as `ods serve`. |
-| `ods lint` / `ods lint [path]` | 🏁 **Tier 1: Novice** | Validate graph & schemas (`--level 1\|3`, `--format text\|json\|sarif`, `--canonical-refs`). Generates or clears `.ods/ods-errors.md`. |
+| `ods lint` / `ods lint [path]` | 🏁 **Tier 1: Novice** | Validate graph & schemas (`ods lint\|3`, `--format text\|json\|sarif`, `--canonical-refs`). Generates or clears `.ods/ods-errors.md`. |
 | `ods new <path>` | 🛠️ **Tier 2: Practitioner** | Scaffold a new Markdown document with inferred profile (`guide`, `feature`, etc.) and valid frontmatter. |
-| `ods index [path]` | 🛠️ **Tier 2: Practitioner** | Generate `index.md` lockfiles (`--check` exits 1 if stale in CI). |
+| `ods overview [path]` | 🛠️ **Tier 2: Practitioner** | Generate `ods.toml` lockfiles (`--check` exits 1 if stale in CI). |
 | `ods mv <from> <to>` | 🛠️ **Tier 2: Practitioner** | Offline document move + rewrite graph references workspace-wide. |
 | `ods sync [path]` | 🛠️ **Tier 2: Practitioner** | Reconcile git-tracked renames (`git status --porcelain`) and rewrite graph references. |
 | `ods adopt [path]` | 🛠️ **Tier 2: Practitioner** | Draft frontmatter for existing Markdown files (dry-run; `--write`). |
@@ -53,7 +53,7 @@ Happy path: [Quickstart Guide](/docs/quickstart).
 | `ods context [path] <id>` | 📋 **Tier 3: Power User** | Bounded AI reading list. Walks `depends` + `context.load`; `--include-related` / `--include-code` / `--include-private`; `--explain`; `--okf`. Without id: unique `--tag` / `--key` / `--status` only (multi-match → use `ods find`). |
 | `ods undo [path]` | 📋 **Tier 3: Power User** | Restore latest frontmatter snapshot (`--list` shows ids under `~/.ods/backups/…`). Created mainly by `ods bench strip --write`; not a full git undo. |
 | `ods profiles [path]` | 📋 **Tier 3: Power User** | List standard and custom profiles loaded in workspace and report schema conflicts. |
-| `ods profile init <name>` | 📋 **Tier 3: Power User** | Scaffold `.ods/profiles/<name>.md` and **register** under root `custom-profiles:` (use `--no-register` to skip). |
+| `ods profile init <name>` | 📋 **Tier 3: Power User** | Scaffold `.ods/profiles/<name>.md` and **register** under root `custom_profiles (ods.toml):` (use `--no-register` to skip). |
 | `ods profile show <name>` | 📋 **Tier 3: Power User** | Show profile layer, source, expected sections/keys. |
 | `ods aliases` / `ods alias add` | 📋 **Tier 3: Power User** | List or add **section-heading** aliases on the root index. |
 | `ods tags [path]` | 📋 **Tier 3: Power User** | List **top-level** document tags with counts (`--all` includes default unused tags). Tags must not live under `ods:`. |
@@ -113,7 +113,7 @@ code:
     role: test
 ```
 
-`path` is required, `role` is required and fixed, and `symbol` is optional. `ods lint` validates paths at Level 3.
+`path` is required, `role` is required and fixed, and `symbol` is optional. `ods lint` validates paths at lint.
 
 ---
 
@@ -122,7 +122,7 @@ code:
 In CI pipelines:
 
 ```bash
-ods index --check
+ods lint
 ods lint --level 3
 ```
 
@@ -135,11 +135,11 @@ ods lint --level 3
 
 ## Hybrid Workspaces & Declarative Multi-Spec Configuration
 
-Bare `ods lint` runs **ODS only** by default. However, workspaces can declaratively enable extra specs (`okf`, `skills`) directly in the root `index.ods.md` (or `index.md`) frontmatter:
+Bare `ods lint` runs **ODS only** by default. However, workspaces can declaratively enable extra specs (`okf`, `skills`) directly in the root `ods.toml` (or `ods.toml`) frontmatter:
 
 ```yaml
 ---
-ods: 0.1
+spec = "0.1"
 title: Documentation Root
 specs:
   okf:
@@ -154,7 +154,7 @@ specs:
 ---
 ```
 
-When extra specs are set to `enabled: true` in root `index.ods.md`, bare `ods lint` automatically validates those declared specs without requiring extra CLI flags.
+When extra specs are set to `enabled: true` in root `ods.toml`, bare `ods lint` automatically validates those declared specs without requiring extra CLI flags.
 
 ### Imperative CLI Flags & Key Suppression
 

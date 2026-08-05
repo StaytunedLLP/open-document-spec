@@ -23,8 +23,10 @@ pub enum KeyPlacement {
     TopLevel,
     /// ODS engine keys nested under the `ods:` map.
     NestedEngineMap,
-    /// Only valid on the workspace root index.
+    /// Only valid in workspace `ods.toml` (formerly root index only).
     RootIndexOnly,
+    /// Only valid in workspace `ods.toml`.
+    WorkspaceConfigOnly,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -676,14 +678,11 @@ pub fn generate_ods_json_schema() -> String {
                     key_type_to_json_schema(&def.key_type, &def.description),
                 );
             }
-            KeyPlacement::RootIndexOnly => {
-                if def.name == "ods" {
-                    continue; // handled as oneOf below
+            KeyPlacement::RootIndexOnly | KeyPlacement::WorkspaceConfigOnly => {
+                if def.name == "ods" || def.name == "spec" {
+                    continue; // workspace config, not document frontmatter
                 }
-                top_props.insert(
-                    def.name.clone(),
-                    key_type_to_json_schema(&def.key_type, &def.description),
-                );
+                // Documented on ods.toml — omitted from document JSON Schema properties.
             }
         }
     }

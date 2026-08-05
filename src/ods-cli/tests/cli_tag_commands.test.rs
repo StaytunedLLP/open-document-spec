@@ -32,7 +32,7 @@ fn fmt_refs_md_paths_and_canonical_lint_flag() {
     .unwrap();
     assert!(
         Command::new(ods_bin())
-            .args(["index", root])
+            .args(["lint", root])
             .output()
             .unwrap()
             .status
@@ -170,7 +170,7 @@ fn fmt_migrate_skips_root_index() {
             .status
             .success()
     );
-    let root_index_before = fs::read_to_string(dir.join("index.ods.md")).unwrap();
+    let root_index_before = fs::read_to_string(dir.join("ods.toml")).unwrap();
     assert!(root_index_before.contains("ods: "));
 
     assert!(
@@ -182,6 +182,6 @@ fn fmt_migrate_skips_root_index() {
             .success()
     );
 
-    let root_index_after = fs::read_to_string(dir.join("index.ods.md")).unwrap();
+    let root_index_after = fs::read_to_string(dir.join("ods.toml")).unwrap();
     assert_eq!(root_index_before, root_index_after);
 }

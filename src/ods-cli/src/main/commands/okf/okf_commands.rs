@@ -59,10 +59,8 @@ fn run_okf_lint_command_with_config(
     let (root, level, format) = parse_common_flags(args, 2)?;
     require_okf_bundle(&root)?;
     let bundle = ods_core::load_okf_bundle(&root).map_err(|e| fail_msg(ods_core::load_okf_bundle_failed(&root, e)))?;
-    let okf_level = match level {
-        LintLevel::Level1 => ods_core::OkfLintLevel::Level1,
-        LintLevel::Level3 => ods_core::OkfLintLevel::Level3,
-    };
+    let _ = level;
+    let okf_level = ods_core::OkfLintLevel::Level3;
     let diagnostics = ods_core::lint_okf_bundle_with_config(&bundle, okf_level, config);
     print_diagnostics(&diagnostics, format);
     if diagnostics.is_empty() && matches!(format, OutputFormat::Text) {

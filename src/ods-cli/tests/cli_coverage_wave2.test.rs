@@ -193,13 +193,13 @@ fn profiles_list_and_init_profile_doc() {
     )
     .unwrap();
     // point root at custom profiles
-    let index = fs::read_to_string(dir.join("index.ods.md")).unwrap();
+    let index = fs::read_to_string(dir.join("ods.toml")).unwrap();
     let index = if index.contains("profiles:") {
         index
     } else {
         index.replacen("---\n", "---\nprofiles:\n  - ods-profiles\n", 1)
     };
-    fs::write(dir.join("index.ods.md"), index).unwrap();
+    fs::write(dir.join("ods.toml"), index).unwrap();
 
     let out = ods().args(["profiles", root]).output().unwrap();
     assert!(out.status.success(), "{:?}", out);
@@ -241,7 +241,7 @@ fn lifecycle_new_archive_rm_mv_context() {
         )
         .unwrap();
     }
-    let _ = ods().args(["index", root]).output();
+    let _ = ods().args(["lint", root]).output();
 
     let out = ods()
         .args(["archive", doc.to_str().unwrap()])
@@ -276,7 +276,7 @@ fn lint_index_fmt_with_formats_and_levels() {
         "---\nprofile: note\nstatus: draft\ndepends:\n  - missing/x\n---\n\n# N\n",
     )
     .unwrap();
-    let _ = ods().args(["index", root]).output();
+    let _ = ods().args(["lint", root]).output();
 
     for fmt in ["text", "json", "sarif"] {
         let out = ods()
@@ -289,7 +289,7 @@ fn lint_index_fmt_with_formats_and_levels() {
     let out = ods().args(["lint", root, "--level", "1"]).output().unwrap();
     let _ = out.status;
 
-    let out = ods().args(["index", root, "--check"]).output().unwrap();
+    let out = ods().args(["lint", root, "--check"]).output().unwrap();
     let _ = out.status;
 
     let out = ods()
@@ -356,7 +356,7 @@ fn adopt_disable_and_init_flags() {
     let _ = out.status;
     let out = ods().args(["adopt", root, "--write"]).output().unwrap();
     let _ = out.status;
-    let _ = ods().args(["index", root]).output();
+    let _ = ods().args(["lint", root]).output();
 
     let out = ods().args(["disable", root]).output().unwrap();
     let _ = out.status;
@@ -377,7 +377,7 @@ fn find_and_tag_and_share() {
         "---\nprofile: note\nstatus: draft\ntags:\n  - alpha\n  - beta\nshare: public\n---\n\n# T\n",
     )
     .unwrap();
-    let _ = ods().args(["index", root]).output();
+    let _ = ods().args(["lint", root]).output();
 
     let out = ods()
         .args(["find", root, "--tag", "alpha", "--tag", "beta"])

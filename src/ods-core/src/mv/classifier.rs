@@ -34,10 +34,11 @@ pub fn rewrite_refs_after_moves(
     apply_path_changes(root, &changes)
 }
 
-/// Regenerate indexes only (create/delete without path rewrite).
+/// No-op: nested indexes removed. Kept for API callers that used to regenerate indexes.
 pub fn reindex_workspace(root: impl AsRef<Path>) -> io::Result<Vec<PathBuf>> {
-    let workspace = load_workspace(root.as_ref())?;
-    generate_indexes(&workspace)
+    // Touch load so callers still validate the path is an ODS workspace.
+    let _ = load_workspace(root.as_ref())?;
+    Ok(Vec::new())
 }
 
 /// Collapse excess blank lines between closing frontmatter `---` and body to exactly one.

@@ -241,9 +241,9 @@ fn lint_index_fix_canonical_and_hybrid_skills_empty() {
     let _ = ods().args(["lint", root, "--fix"]).output();
     let _ = ods().args(["lint", root, "--canonical-refs"]).output();
     let _ = ods().args(["lint", root, "--skills"]).output(); // no skills package
-    let _ = ods().args(["index", root, "--check"]).output();
-    let _ = ods().args(["index", root]).output();
-    let _ = ods().args(["index", root, "--format", "json"]).output();
+    let _ = ods().args(["lint", root, "--check"]).output();
+    let _ = ods().args(["lint", root]).output();
+    let _ = ods().args(["lint", root, "--format", "json"]).output();
 }
 
 #[test]
@@ -256,7 +256,7 @@ fn adopt_init_disable_full_matrix() {
     let _ = ods().args(["init", root, "--adopt"]).output();
     let _ = ods().args(["adopt", root]).output();
     let _ = ods().args(["adopt", root, "--write"]).output();
-    let _ = ods().args(["index", root]).output();
+    let _ = ods().args(["lint", root]).output();
     let _ = ods().args(["fmt", root]).output();
     let _ = ods().args(["fmt", root, "--refs", "md-paths"]).output();
     let _ = ods().args(["disable", root]).output();
@@ -374,7 +374,7 @@ fn service_and_workspaces_and_find_edges() {
     let home = dir.join("home");
     fs::create_dir_all(&home).unwrap();
 
-    let _ = ods().args(["index", root]).output();
+    let _ = ods().args(["lint", root]).output();
     let _ = ods()
         .args(["find", root, "--tag", "alpha", "--format", "json"])
         .output();
