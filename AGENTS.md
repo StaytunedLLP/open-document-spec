@@ -28,9 +28,10 @@ CLI/engine user copy lives in **`src/ods-core/src/error/messages.rs`** (not ad-h
 
 ## Token & context reliability
 
+- Cold-start: `ods overview` → `ods tag list` / `ods schema keys` → `ods find --key …` → `ods context <id>`.
 - Prefer `ods context <id>` (`--max-tokens N`, `--print`). Read **only** returned paths.
 - Context walks **depends + context.load** (not `related`). `--include-code` is opt-in.
-- If context errors: **stop** — use `ods find <query>`; do not dump the repo or full graph export.
+- If context errors: **stop** — use `ods find <query>` / `--key`; do not dump the repo or full graph export.
 - `ods export` defaults to `.ods/graph.md` (not routine AI prompts).
 - Do not load `skills/ods/references/*` and `specs/ods/*` duplicates in one turn.
 
@@ -71,7 +72,10 @@ Full policy: `.agents/rules/40-quality-gates.md`. Multi-step work: `.agents/skil
 | Schema smoke | `./src/scripts/check-schema-keys.sh` |
 | Lint ODS/OKF/Skills | `ods lint` / `--okf` / `--skills` |
 | Context | `ods context <id> [--max-tokens N] [--print]` |
-| Find id | `ods find <query>` |
+| Find docs | `ods find [--tag t] [--key k] [query]` |
+| Tag catalog | `ods tag list` / `ods tag show <tag>` |
+| Schema keys | `ods schema keys` |
+| Workspace overview | `ods overview` |
 | JSON Schema | `ods schema` |
 
 Maintainer entry: `.agents/README.md`.

@@ -50,16 +50,18 @@ Happy path: [Quickstart Guide](/docs/quickstart).
 | `ods fmt [path]` | 🛠️ **Tier 2: Practitioner** | Reformat YAML frontmatter/body blank-line spacing. `--refs md-paths` converts extensionless IDs to relative `.md` paths. **`--migrate`** rewrites engine keys under `ods:` and hoists misplaced nested `tags` to top-level. |
 | `ods stats [path]` | 🛠️ **Tier 2: Practitioner** | Display workspace document telemetry, graph density, profile distribution, and health score (`--format text\|json`). |
 | `ods tree [path]` | 🛠️ **Tier 2: Practitioner** | Display visual ASCII/Unicode hierarchy tree of index navigation and dependency graphs (`--format text\|json`). |
-| `ods context [path] <id>` | 📋 **Tier 3: Power User** | Bounded AI reading list. Walks `depends` + `context.load`; `--include-related` / `--include-code` / `--include-private`; `--explain` shows inclusion reasons; `--okf` pure OKF or hybrid merge. |
+| `ods context [path] <id>` | 📋 **Tier 3: Power User** | Bounded AI reading list. Walks `depends` + `context.load`; `--include-related` / `--include-code` / `--include-private`; `--explain`; `--okf`. Without id: unique `--tag` / `--key` / `--status` only (multi-match → use `ods find`). |
 | `ods undo [path]` | 📋 **Tier 3: Power User** | Restore latest frontmatter snapshot (`--list` shows ids under `~/.ods/backups/…`). Created mainly by `ods bench strip --write`; not a full git undo. |
 | `ods profiles [path]` | 📋 **Tier 3: Power User** | List standard and custom profiles loaded in workspace and report schema conflicts. |
 | `ods profile init <name>` | 📋 **Tier 3: Power User** | Scaffold `.ods/profiles/<name>.md` and **register** under root `custom-profiles:` (use `--no-register` to skip). |
 | `ods profile show <name>` | 📋 **Tier 3: Power User** | Show profile layer, source, expected sections/keys. |
 | `ods aliases` / `ods alias add` | 📋 **Tier 3: Power User** | List or add **section-heading** aliases on the root index. |
 | `ods tags [path]` | 📋 **Tier 3: Power User** | List **top-level** document tags with counts (`--all` includes default unused tags). Tags must not live under `ods:`. |
-| `ods find [path] --tag <t>` | 📋 **Tier 3: Power User** | Find and list documents by top-level tag (repeat `--tag` for OR query). |
+| `ods tag list` / `ods tag show <tag>` | 📋 **Tier 3: Power User** | Observed tags with counts or docs for one tag (`--format text\|json`). Complements `ods tags` (which can include unused builtins via `--all`). |
 | `ods tag rename <old> <new>` | 📋 **Tier 3: Power User** | Workspace-wide top-level tag rename (dry-run; `--write`). |
-| `ods schema [path]` | 📋 **Tier 3: Power User** | Export JSON Schema (`ods.schema.json`) for IDE frontmatter autocomplete and validation (`--write`, `--out PATH`). |
+| `ods find [path]` | 📋 **Tier 3: Power User** | Find by tag (`--tag`, `--tag-match any\|all`), schema/custom keys (`--key`, exact match; `--status`/`--profile`/`--owner`), and/or ID/path query. |
+| `ods schema [keys]` | 📋 **Tier 3: Power User** | List schema key definitions (`ods schema keys`) or export JSON Schema (`ods.schema.json`; `--write`, `--out PATH`). |
+| `ods overview [path]` | 📋 **Tier 3: Power User** | AI cold-start snapshot (counts, profile/status, top tags, custom keys). Alias: `summary`. For lint health % use `ods stats`. |
 | `ods diff [target]` | 📋 **Tier 3: Power User** | Compare document graph dependencies and frontmatter changes against git commits or branches (`--format text\|json`). |
 | `ods graph [path]` | 📋 **Tier 3: Power User** | Print `depends`/`related` edges as `path -> edge` lines. |
 | `ods export [path]` | 📋 **Tier 3: Power User** | Export single-file Markdown graph snapshot (`--out PATH`, `--include-private`). |

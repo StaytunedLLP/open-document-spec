@@ -1,9 +1,27 @@
 fn run_schema_command(args: &[String]) -> Result<ExitCode, CliError> {
+    if args.iter().any(|a| a == "--help" || a == "-h") {
+        println!(
+            "ods schema [keys] [flags]\n\n\
+             Generate or inspect schema key definitions.\n\n\
+             Subcommands / Flags:\n\
+               ods schema keys                  List registered schema keys\n\
+               --write, -w                      Save schema to .ods/<dialect>.schema.json\n\
+               --out <file>, -o <file>          Save schema to specified path\n\
+               --okf                            Use OKF schema\n\
+               --skills                         Use Skills schema\n\
+               --spec <name>                    Select dialect (ods|okf|skills)\n\
+               --format text|json               Output format (default: json for schema, text for keys)\n"
+        );
+        return Ok(ExitCode::from(0));
+    }
+
+    let is_keys_sub = args.get(2).map(String::as_str) == Some("keys");
     let mut write = false;
     let mut out_path = None;
     let mut dialect = "ods".to_string();
+    let mut format = if is_keys_sub { OutputFormat::Text } else { OutputFormat::Json };
 
-    let mut i = 2;
+    let mut i = if is_keys_sub { 3 } else { 2 };
     while i < args.len() {
         match args[i].as_str() {
             "--write" | "-w" => {
@@ -15,6 +33,17 @@ fn run_schema_command(args: &[String]) -> Result<ExitCode, CliError> {
                     .get(i + 1)
                     .ok_or_else(|| usage_msg(ods_core::missing_flag_value("--out", "`ods schema --out schema.json`")))?;
                 out_path = Some(PathBuf::from(p));
+                i += 2;
+            }
+            "--format" => {
+                let val = args
+                    .get(i + 1)
+                    .ok_or_else(|| usage_msg(ods_core::missing_flag_value("--format", "`--format text|json`")))?;
+                format = match val.as_str() {
+                    "text" => OutputFormat::Text,
+                    "json" => OutputFormat::Json,
+                    other => return Err(usage_msg(ods_core::invalid_choice("--format", other, "text|json"))),
+                };
                 i += 2;
             }
             "--okf" => {
@@ -38,10 +67,53 @@ fn run_schema_command(args: &[String]) -> Result<ExitCode, CliError> {
         }
     }
 
+    if is_keys_sub {
+        let registry = ods_core::SpecSchemaRegistry::with_defaults();
+        let schema = registry.get(&dialect).ok_or_else(|| {
+            usage_msg(ods_core::invalid_choice("--spec", &dialect, "ods|okf|skills"))
+        })?;
+
+        match format {
+            OutputFormat::Text => {
+                println!("Schema keys for {dialect} (v{}):", schema.version);
+                let mut keys: Vec<_> = schema.keys.values().collect();
+                keys.sort_by(|a, b| a.name.cmp(&b.name));
+                for k in keys {
+                    let req = if k.required { "[required]" } else { "[optional]" };
+                    println!("  {:<20} {:<18} {:<10} {}", k.name, format!("{:?}", k.placement), req, k.description);
+                }
+            }
+            OutputFormat::Json | OutputFormat::Sarif => {
+                let keys: Vec<_> = schema
+                    .keys
+                    .values()
+                    .map(|k| {
+                        serde_json::json!({
+                            "name": k.name,
+                            "placement": format!("{:?}", k.placement),
+                            "key_type": format!("{:?}", k.key_type),
+                            "required": k.required,
+                            "description": k.description,
+                        })
+                    })
+                    .collect();
+                println!(
+                    "{}",
+                    serde_json::to_string_pretty(&serde_json::json!({
+                        "dialect": dialect,
+                        "version": schema.version,
+                        "keys": keys,
+                    }))
+                    .unwrap_or_default()
+                );
+            }
+        }
+        return Ok(ExitCode::from(0));
+    }
+
     let schema_json = match dialect.as_str() {
         "ods" => ods_core::generate_ods_json_schema(),
         other => {
-            // Future: generate from registry for okf/skills; for now surface keys.
             let registry = ods_core::SpecSchemaRegistry::with_defaults();
             let schema = registry
                 .get(other)

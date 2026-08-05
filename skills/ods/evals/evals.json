@@ -99,6 +99,33 @@
         "Recommends `ods fmt --migrate`.",
         "Explains that `ods fmt --migrate` rewrites flat/legacy keys into the canonical nested `ods:` sequence."
       ]
+    },
+    {
+      "id": 11,
+      "prompt": "I just opened an unfamiliar ODS workspace and need a quick orientation before picking a doc for the agent. What should I run first?",
+      "expected_output": "Recommends `ods overview` (or `ods summary`) for a compact cold-start snapshot, then find/context as needed — not full export.",
+      "assertions": [
+        "Recommends `ods overview` or `ods summary`.",
+        "Does not recommend full-repo dump or routine `ods export` for orientation."
+      ]
+    },
+    {
+      "id": 12,
+      "prompt": "Find every draft doc owned by alice in this ODS workspace using the CLI.",
+      "expected_output": "Uses `ods find` with key filters such as `--key status=draft` and `--key owner=alice` (or combined AND expression), not a manual repo walk.",
+      "assertions": [
+        "Uses `ods find` with `--key` and/or `--status` / `--owner`.",
+        "Does not load every markdown file into the prompt as a substitute for find."
+      ]
+    },
+    {
+      "id": 13,
+      "prompt": "List which tags exist in the workspace and which docs carry the `billing` tag.",
+      "expected_output": "Uses `ods tag list` and `ods tag show billing` (or `ods tags` + find), not hand-grepping frontmatter.",
+      "assertions": [
+        "Recommends `ods tag list` and/or `ods tag show` (or equivalent `ods tags` / `ods find --tag`).",
+        "Does not invent a non-existent tag namespace command."
+      ]
     }
   ]
 }

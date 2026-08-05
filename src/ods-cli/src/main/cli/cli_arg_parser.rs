@@ -271,10 +271,10 @@ fn parse_common_flags(
             | "--check"
             | "--write"
             | "--fix"
+            | "--force"
             | "--write-report"
             | "--all"
             | "--adopt"
-            | "--status"
             | "--canonical-refs"
             | "--include-private"
             | "--keep-frontmatter"
@@ -293,6 +293,17 @@ fn parse_common_flags(
             | "--migrate"
             | "--migrate-fm" => {
                 i += 1;
+            }
+            // Dual-use: `ods start --status` (boolean) vs `ods find --status draft` (value).
+            "--status" => {
+                if let Some(next) = args.get(i + 1) {
+                    match next.as_str() {
+                        "draft" | "stable" | "deprecated" | "archived" => i += 2,
+                        _ => i += 1,
+                    }
+                } else {
+                    i += 1;
+                }
             }
             "--refs" | "--ignore-keys" | "--ignore-key" => {
                 i += 2;
@@ -317,8 +328,19 @@ fn parse_common_flags(
             | "-h" => {
                 i += 1;
             }
-            "--tag" | "--prompt" | "--llm" | "--agent" | "--snapshot" | "--path" | "--name" => {
-                // value consumed by find/bench/skills init; skip so path parsing still works
+            // Value flags for find/context/tag discovery (and similar).
+            "--tag"
+            | "--key"
+            | "--key-match"
+            | "--tag-match"
+            | "--profile"
+            | "--owner"
+            | "--prompt"
+            | "--llm"
+            | "--agent"
+            | "--snapshot"
+            | "--path"
+            | "--name" => {
                 i += 2;
             }
             flag if flag.starts_with('-') => {
@@ -341,6 +363,7 @@ fn parse_common_flags(
         format,
     ))
 }
+
 
 fn parse_key_suppression_flags(args: &[String], config: &mut ods_core::WorkspaceSpecsConfig) {
     let skip_keys = args.iter().any(|a| {
@@ -376,8 +399,29 @@ fn positional_args(args: &[String], start: usize) -> Vec<String> {
     let mut i = start;
     while i < args.len() {
         match args[i].as_str() {
-            "--level" | "--format" | "--version" | "--root" | "--refs" | "--max-tokens"
-            | "--mode" | "--tag" => i += 2,
+            "--level"
+            | "--format"
+            | "--version"
+            | "--root"
+            | "--refs"
+            | "--max-tokens"
+            | "--mode"
+            | "--tag"
+            | "--key"
+            | "--key-match"
+            | "--tag-match"
+            | "--profile"
+            | "--owner" => i += 2,
+            "--status" => {
+                if let Some(next) = args.get(i + 1) {
+                    match next.as_str() {
+                        "draft" | "stable" | "deprecated" | "archived" => i += 2,
+                        _ => i += 1,
+                    }
+                } else {
+                    i += 1;
+                }
+            }
             "--check"
             | "--write"
             | "--force"

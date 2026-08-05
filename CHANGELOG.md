@@ -10,6 +10,11 @@ GitHub Releases use GitHub’s auto-generated notes. Edit this file by hand when
 ## [Unreleased]
 
 ### Added
+- **`ods find --key <expr>` & multi-criteria search:** query documents by schema keys and custom profile keys (`--key`, `--key-match and|or`, `--tag-match any|all`, `--status`, `--profile`, `--owner`). Supports comma multi-values (`--key status=draft,stable`), comma multi-keys, and simple `AND`/`OR` expressions. Value match is **exact** (case-insensitive).
+- **`ods tag list` & `ods tag show <tag>`:** list observed workspace tags with document counts or inspect documents carrying a specific tag (`--format text|json`). (`ods tags` / `ods tag rename` unchanged.)
+- **`ods schema keys`:** inspect registered schema key definitions, placements (`TopLevel`, `NestedEngineMap`), key types, and descriptions in text or JSON. Bare `ods schema` still exports JSON Schema.
+- **`ods overview` (alias: `ods summary`):** compact workspace snapshot (document counts, profile/status breakdown, top tags, custom keys, graph statistics) for AI cold-start. Use `ods stats` for lint health %.
+- **`ods context` filter fallback:** when the positional id is omitted, `--tag` / `--key` / `--status` may resolve a target **only if the match is unique**; multi-match fails with a short id list and `Next: ods find …`. Classic `ods context <id>` is unchanged.
 - **`ods profile init --register` (default):** scaffolds `.ods/profiles/<name>.md` and appends it under root `custom-profiles:` (use `--no-register` to skip). **`ods profile show <name>`** prints layer, sections, expected keys.
 - **`ods status <path-or-id> <draft|stable|deprecated|archived>`** lifecycle setter; **`ods archive`** remains an alias for `status … archived`.
 - **`ods aliases` / `ods alias add <Canonical> <Synonym>`** for workspace section-heading aliases on the root index.

@@ -15,6 +15,7 @@ Open Document Spec (ODS) is an open-source, local-first specification. The CLI t
 - **Zero Telemetry**: Completely private with zero analytics, tracking beacons, or phone-home logging.
 - **Share-Aware Visibility**: Granular document scoping via `share: public | org | private` to isolate internal designs, credentials, and secrets.
 - **Deterministic AI Context (`ods context`)**: Reduces LLM context token consumption by 90%+ by serving precise connected reading lists for AI coding assistants (Claude, Cursor, VS Code, Zed, Windsurf, Antigravity).
+- **AI Query & Schema Discovery (`ods find`, `ods overview`, `ods schema keys`)**: Multi-criteria exact key/value search (`--key`, `--status`, simple AND/OR), tag catalog (`ods tag list` / `show`), schema key listing, and cold-start snapshots. Prefer `ods context <id>` for bounded reads after discovery.
 - **Multi-spec CLI**: Bare `ods lint` auto-detects ODS vs OKF from root markers (`ods:` / `okf_version:`); force with `--okf`.
 
 ## Installation & Quickstart

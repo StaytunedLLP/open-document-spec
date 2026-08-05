@@ -52,7 +52,7 @@ Progress from initial setup to enterprise documentation architecture across 4 st
 |---|---|---|---|
 | **Tier 1: Novice** | Foundations & Validation | `ods init`<br/>`ods lint`<br/>`ods: 0.1` | Install binary, initialize root `index.ods.md`, write basic frontmatter (`profile`, `status`), run Level-3 lint checks. |
 | **Tier 2: Practitioner** | Document Graphs & Code Links | `depends:` / `related:`<br/>`code:`<br/>`ods index`<br/>`ods mv` | Construct document dependency graphs, bind source code symbols, generate navigation lockfiles, and perform atomic file moves. |
-| **Tier 3: Power User** | Custom Schemas & AI Context | `custom-profiles:`<br/>`ods profile`<br/>`ods context`<br/>`ods pack`<br/>`ods bench` | Register domain profile schemas, export reusable ODS Packs, compute sub-5ms bounded AI context reading lists, and measure token ROI savings. |
+| **Tier 3: Power User** | Custom Schemas & AI Context | `custom-profiles:`<br/>`ods profile`<br/>`ods context`<br/>`ods find --key`<br/>`ods overview`<br/>`ods pack`<br/>`ods bench` | Register domain profile schemas, discover docs by key/tag, cold-start with workspace overview, export packs, and measure token ROI. |
 | **Tier 4: Architect** | Automation & Enterprise Governance | `ods setup --git-hooks`<br/>`ods serve` / `ods start`<br/>`ods/action` (CI)<br/>`--format sarif`<br/>`ods lint --okf` | Run persistent OS background daemons, enforce CI pull request gates, output SARIF security annotations, and enable Google OKF via `ods lint --okf` (no namespaces; no `--ods` flag). |
 
 ---
@@ -62,14 +62,15 @@ Progress from initial setup to enterprise documentation architecture across 4 st
 | Feature | Command / Key | Role & Description |
 |---|---|---|
 | ⚡ **Deterministic Bounded Context Graph** | `ods context <doc-id>` | Bounded AI reading scope (<5ms) following `depends:` + `context.load` (not full-repo dump). |
+| 🔍 **Multi-criteria AI discovery** | `ods find` / `ods overview` / `ods schema keys` | Find by tag and frontmatter keys (`--key`, `--status`, …); cold-start snapshot; list registered schema keys. |
 | 📋 **Custom Profile Schema Engine** | `ods profile` / `custom-profiles:` | Single-source profile schema registration in `index.ods.md`, enforcing `expected_keys` and `H2`/`H3` section hierarchies. |
 | 📊 **Workspace Document Telemetry** | `ods stats` | Reports document health score %, graph dependency density, profile distribution, and top taxonomy tags. |
 | 🌳 **Visual Tree Representation** | `ods tree` | Displays visual ASCII/Unicode hierarchy tree of index navigation and dependency graphs. |
 | 🔄 **Smart Rename & Dependency Healing** | `ods mv <src> <dst>` | Renames files while automatically rewriting graph dependencies, relative body links, and code references. |
 | 🔀 **Graph Change Diffing** | `ods diff [target]` | Compares document graph dependencies and frontmatter changes against git commits or branches. |
 | 🪄 **Legacy Markdown Adoption** | `ods adopt <dir>` | Scans legacy non-ODS Markdown folders and automatically drafts frontmatter schemas (`status: draft`). |
-| 🏷️ **Tag Taxonomy & Governance** | `ods tag` | Workspace-wide tag cataloging, alias resolution, tag suggestions, and tag renaming. |
-| 📜 **JSON Schema Export** | `ods schema` | Exports JSON Schema (`ods.schema.json`) for IDE frontmatter autocomplete and validation. |
+| 🏷️ **Tag Taxonomy & Governance** | `ods tags` / `ods tag list\|show\|rename` | Observed tag catalog, per-tag doc list, and workspace-wide rename (dry-run; `--write`). |
+| 📜 **JSON Schema Export** | `ods schema` / `ods schema keys` | Export JSON Schema for IDE autocomplete, or list registry key definitions. |
 | 🛡️ **SARIF Security Reporting** | `ods lint --format sarif` | Outputs standard OASIS SARIF v2.1.0 format for GitHub Code Scanning / CI security integration. |
 | ⚓ **Git Pre-Commit Hook Installer** | `ods setup --git-hooks` | Installs `.git/hooks/pre-commit` hook to catch broken links before commits. |
 | 🧹 **Diagnostic & Report Cleaner** | `ods clean` | Cleans `.ods/ods-errors.md`, `.ods/coverage.md`, and diagnostic cache files. |
@@ -209,17 +210,20 @@ ods:
 | `ods lint --okf` | `ods lint --okf [path] [--skip-frontmatter-keys] [--ignore-keys k1,k2]` | Validate Google OKF v0.2 knowledge bundles (`okf_version: "0.2"`). Supports key suppression flags and root `okf_lint` frontmatter policies. |
 | `ods export graph` | `ods export graph [path] [--format text\|json\|md] [--spec ods\|okf]` | Export workspace knowledge graph in structured JSON for AI agents, Markdown snapshot, or text edge list (`--spec okf` exports Google OKF v0.2 bundle JSON). |
 | `ods stats` | `ods stats [path]` | Display workspace document telemetry, graph density, profile distribution, and health score %. |
+| `ods overview` | `ods overview [path]` (alias: `summary`) | Cold-start snapshot: counts, profile/status, top tags, custom keys (no lint health). |
 | `ods completion` | `ods completion <bash\|zsh\|fish\|powershell>` | Generate shell autocompletion scripts for popular shells. |
-| `ods schema` | `ods schema [path] [--write]` | Export official JSON Schema (`ods.schema.json`) for IDE autocomplete and validation. |
+| `ods schema` | `ods schema [keys] [--write] [--format text\|json]` | Export JSON Schema, or list registry keys (`ods schema keys`). |
 | `ods tree` | `ods tree [path]` | Display visual ASCII/Unicode hierarchy tree of index navigation and dependency graphs. |
 | `ods diff` | `ods diff [target]` | Compare document graph dependencies and frontmatter changes against git commits or branches. |
 | `ods clean` | `ods clean [path]` | Clean diagnostic reports (`.ods/ods-errors.md`), coverage files (`.ods/coverage.md`), and cache files. |
 | `ods status` / `coverage` | `ods coverage [path]` | Display workspace health score and profile coverage breakdown. |
-| `ods context` | `ods context <doc-id> [--max-tokens N] [--print] [--include-code] [--root <dir>]` | Bounded AI reading list (depends + context.load). Errors if missing. `--print` emits a budgeted pack. |
+| `ods context` | `ods context <doc-id> [--max-tokens N] [--print] [--include-code] [--root <dir>]` | Bounded AI reading list (depends + context.load). Without id: unique `--tag`/`--key`/`--status` only. |
+| `ods find` | `ods find [path] [--tag t] [--key expr] [query]` | Find docs by tag, schema/custom keys, and/or id/path query (`--format text\|json`). |
 | `ods mv` | `ods mv <src> <dst>` | Move/rename Markdown file and auto-heal graph links and references. |
 | `ods adopt` | `ods adopt [path]` | Auto-draft frontmatter on unindexed legacy Markdown files. |
 | `ods profile` | `ods profile list/init` | List registered profiles or scaffold new custom profile schemas. |
 | `ods tags` | `ods tags [path] [--all]` | List root-level project tags with use counts (`--all` includes unused default tags). Tags must be top-level frontmatter (not under `ods:`). |
+| `ods tag list` / `show` | `ods tag list` · `ods tag show <tag>` | Observed tags with counts, or documents matching a tag (`--format text\|json`). |
 | `ods tag rename` | `ods tag rename <old> <new> [--write]` | Rewrite a root-level tag across document frontmatter (dry-run; `--write` applies). |
 | `ods share` | `ods share [path]` | Export public documentation pack while stripping `share: private` files. |
 | `ods pack` | `ods pack <subcommand>` | Manage reusable ODS document packs (`add`, `sync`, `list`, `preview`, `remove`, `init`). |

@@ -138,4 +138,8 @@ path = "tests/cli_coverage_wave5_finish.test.rs"
 name = "cli_edge_cases_test"
 path = "tests/cli_edge_cases.test.rs"
 
+[[test]]
+name = "cli_ai_discovery_test"
+path = "tests/cli_ai_discovery.test.rs"
+
 

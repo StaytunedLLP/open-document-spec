@@ -727,6 +727,167 @@ pub fn generate_ods_json_schema() -> String {
     serde_json::to_string_pretty(&root).unwrap_or_else(|_| "{}".into())
 }
 
+/// Extract scalar string values for a frontmatter key from a document.
+/// Known engine/universal fields take precedence; unknown keys use `custom_keys`
+/// (keys stored lowercased at parse time).
+pub fn get_document_key_values(doc: &crate::model::Document, key: &str) -> Vec<String> {
+    use crate::model::FrontmatterState;
+    let FrontmatterState::Parsed(fm) = &doc.frontmatter else {
+        return Vec::new();
+    };
+    let norm_key = key.trim().to_lowercase();
+    match norm_key.as_str() {
+        "profile" => fm.profile.clone().into_iter().collect(),
+        "status" => fm.status.clone().into_iter().collect(),
+        "owner" => fm.owner.clone().into_iter().collect(),
+        "share" => fm.share.clone().into_iter().collect(),
+        "description" => fm.description.clone().into_iter().collect(),
+        "id" => fm.id.clone().into_iter().collect(),
+        "title" => fm
+            .title
+            .clone()
+            .or_else(|| fm.name.clone())
+            .into_iter()
+            .collect(),
+        "name" => fm.name.clone().into_iter().collect(),
+        "created" | "created_at" | "date" => fm.created.clone().into_iter().collect(),
+        "updated" | "updated_at" | "last_updated" => fm.updated.clone().into_iter().collect(),
+        "tags" => fm.tags.clone(),
+        "depends" => fm.depends.clone(),
+        "related" => fm.related.clone(),
+        "packs" => fm.packs.clone(),
+        "profiles" | "custom-profiles" => fm.profiles.clone(),
+        "expected_keys" | "expected-keys" => fm.expected_keys.clone(),
+        "code" => fm
+            .code
+            .iter()
+            .map(|c| c.path.to_string_lossy().to_string())
+            .collect(),
+        "resources" => fm
+            .resources
+            .iter()
+            .map(|r| r.path.to_string_lossy().to_string())
+            .collect(),
+        other => fm
+            .custom_keys
+            .get(other)
+            .map(|val| val.as_query_strings())
+            .unwrap_or_default(),
+    }
+}
+
+/// Evaluate if a document matches a single key clause (`key` or `key=val1,val2`).
+/// Value match is **exact** (case-insensitive). Comma-separated values are OR.
+pub fn evaluate_single_key_clause(doc: &crate::model::Document, clause: &str) -> bool {
+    let trimmed = clause.trim();
+    if trimmed.is_empty() {
+        return true;
+    }
+
+    let (key, target_val) = match trimmed.split_once('=') {
+        Some((k, v)) => (k.trim(), Some(v.trim())),
+        None => (trimmed, None),
+    };
+
+    let doc_values = get_document_key_values(doc, key);
+
+    match target_val {
+        None => !doc_values.is_empty(),
+        Some(target) => {
+            let alternatives: Vec<String> = target
+                .split(',')
+                .map(|s| s.trim().to_lowercase())
+                .filter(|s| !s.is_empty())
+                .collect();
+
+            if alternatives.is_empty() {
+                return !doc_values.is_empty();
+            }
+
+            doc_values.iter().any(|dv| {
+                let dv_lc = dv.to_lowercase();
+                alternatives.contains(&dv_lc)
+            })
+        }
+    }
+}
+
+/// Evaluate key query expression on a document (supporting AND/OR and comma multi-keys).
+pub fn evaluate_document_key_query(doc: &crate::model::Document, expr: &str) -> bool {
+    let trimmed = expr.trim();
+    if trimmed.is_empty() {
+        return true;
+    }
+
+    if trimmed.contains(" OR ") || trimmed.contains(" or ") {
+        let parts: Vec<&str> = if trimmed.contains(" OR ") {
+            trimmed.split(" OR ").collect()
+        } else {
+            trimmed.split(" or ").collect()
+        };
+        return parts
+            .iter()
+            .any(|part| evaluate_document_key_query(doc, part));
+    }
+
+    if trimmed.contains(" AND ") || trimmed.contains(" and ") {
+        let parts: Vec<&str> = if trimmed.contains(" AND ") {
+            trimmed.split(" AND ").collect()
+        } else {
+            trimmed.split(" and ").collect()
+        };
+        return parts
+            .iter()
+            .all(|part| evaluate_document_key_query(doc, part));
+    }
+
+    if trimmed.contains(',') && trimmed.chars().filter(|c| *c == '=').count() > 1 {
+        let parts: Vec<&str> = trimmed.split(',').collect();
+        return parts
+            .iter()
+            .all(|part| evaluate_single_key_clause(doc, part));
+    }
+
+    evaluate_single_key_clause(doc, trimmed)
+}
+
+/// Filter workspace document IDs matching key expressions.
+pub fn filter_documents_by_keys(
+    workspace: &crate::model::Workspace,
+    key_exprs: &[String],
+    key_match_or: bool,
+) -> Vec<String> {
+    if key_exprs.is_empty() {
+        return workspace.by_id.keys().cloned().collect();
+    }
+
+    workspace
+        .documents
+        .iter()
+        .filter_map(|doc| {
+            let matches = if key_match_or {
+                key_exprs
+                    .iter()
+                    .any(|expr| evaluate_document_key_query(doc, expr))
+            } else {
+                key_exprs
+                    .iter()
+                    .all(|expr| evaluate_document_key_query(doc, expr))
+            };
+            if matches {
+                let fm = match &doc.frontmatter {
+                    crate::model::FrontmatterState::Parsed(fm) => Some(fm),
+                    _ => None,
+                };
+                let id = crate::parse::document_id(&workspace.root, &doc.path, fm);
+                Some(id)
+            } else {
+                None
+            }
+        })
+        .collect()
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -814,5 +975,103 @@ mod tests {
             let def = ods.keys.get(key).unwrap_or_else(|| panic!("missing {key}"));
             assert_eq!(def.placement, KeyPlacement::NestedEngineMap, "{key}");
         }
+    }
+
+    #[test]
+    fn test_evaluate_document_key_query() {
+        use crate::model::CustomValue;
+        use std::collections::BTreeMap;
+
+        let mut custom = BTreeMap::new();
+        custom.insert("team".into(), CustomValue::String("infra".into()));
+        custom.insert(
+            "tier".into(),
+            CustomValue::List(vec!["p0".into(), "p1".into()]),
+        );
+
+        let doc = crate::model::Document {
+            path: std::path::PathBuf::from("doc.md"),
+            directory: std::path::PathBuf::from("."),
+            body: String::new(),
+            headings: Vec::new(),
+            frontmatter: crate::model::FrontmatterState::Parsed(crate::model::Frontmatter {
+                status: Some("draft".into()),
+                owner: Some("alice".into()),
+                custom_keys: custom,
+                ..Default::default()
+            }),
+        };
+
+        assert!(evaluate_document_key_query(&doc, "status=draft"));
+        assert!(evaluate_document_key_query(&doc, "status=draft,stable"));
+        assert!(!evaluate_document_key_query(&doc, "status=stable"));
+        // Exact match only — substring must not match.
+        assert!(!evaluate_document_key_query(&doc, "status=dra"));
+        assert!(evaluate_document_key_query(&doc, "team=infra"));
+        assert!(evaluate_document_key_query(&doc, "TEAM=INFRA"));
+        assert!(evaluate_document_key_query(&doc, "tier=p0"));
+        assert!(evaluate_document_key_query(
+            &doc,
+            "status=draft AND owner=alice"
+        ));
+        assert!(evaluate_document_key_query(
+            &doc,
+            "status=stable OR team=infra"
+        ));
+        assert!(evaluate_document_key_query(
+            &doc,
+            "status=draft,owner=alice"
+        ));
+        assert!(!evaluate_document_key_query(&doc, "missing"));
+        assert!(evaluate_document_key_query(&doc, "team"));
+        assert!(!evaluate_document_key_query(&doc, "status=draft-review"));
+    }
+
+    #[test]
+    fn filter_documents_by_keys_and_or() {
+        use crate::model::{CustomValue, Document, Frontmatter, FrontmatterState, Workspace};
+        use std::collections::BTreeMap;
+        use std::path::PathBuf;
+
+        let mut custom_a = BTreeMap::new();
+        custom_a.insert("team".into(), CustomValue::String("infra".into()));
+        let doc_a = Document {
+            path: PathBuf::from("a.md"),
+            directory: PathBuf::from("."),
+            body: String::new(),
+            headings: Vec::new(),
+            frontmatter: FrontmatterState::Parsed(Frontmatter {
+                status: Some("draft".into()),
+                owner: Some("alice".into()),
+                custom_keys: custom_a,
+                ..Default::default()
+            }),
+        };
+        let doc_b = Document {
+            path: PathBuf::from("b.md"),
+            directory: PathBuf::from("."),
+            body: String::new(),
+            headings: Vec::new(),
+            frontmatter: FrontmatterState::Parsed(Frontmatter {
+                status: Some("stable".into()),
+                owner: Some("bob".into()),
+                ..Default::default()
+            }),
+        };
+        let mut ws = Workspace::empty(PathBuf::from("."));
+        ws.documents = vec![doc_a, doc_b];
+        ws.by_id.insert("a".into(), 0);
+        ws.by_id.insert("b".into(), 1);
+
+        let and_ids =
+            filter_documents_by_keys(&ws, &["status=draft".into(), "owner=alice".into()], false);
+        assert_eq!(and_ids, vec!["a".to_string()]);
+
+        let or_ids =
+            filter_documents_by_keys(&ws, &["status=draft".into(), "status=stable".into()], true);
+        assert_eq!(or_ids.len(), 2);
+
+        let none = filter_documents_by_keys(&ws, &["status=archived".into()], false);
+        assert!(none.is_empty());
     }
 }

@@ -34,7 +34,7 @@ const BASH_COMPLETION: &str = r#"_ods_completions() {
     COMPREPLY=()
     cur="${COMP_WORDS[COMP_CWORD]}"
     prev="${COMP_WORDS[COMP_CWORD-1]}"
-    opts="lint index profiles profile status aliases find tag context graph mv fmt adopt new rm archive init disable doctor sync watch logs serve export start stop share bench audit coverage setup update upgrade workspaces skill pack stats completion schema tree diff clean"
+    opts="lint index profiles profile status aliases find tag context graph mv fmt adopt new rm archive init disable doctor sync watch logs serve export start stop share bench audit coverage setup update upgrade workspaces skill pack stats overview summary completion schema tree diff clean"
 
     if [[ ${COMP_CWORD} -eq 1 ]] ; then
         COMPREPLY=( $(compgen -W "${opts}" -- ${cur}) )
@@ -72,6 +72,8 @@ _ods() {
         'serve:Run foreground language server / watcher'
         'export:Export graph visualization'
         'stats:Display workspace document telemetry and health metrics'
+        'overview:Compact workspace snapshot for AI cold-start'
+        'summary:Alias for overview'
         'completion:Generate shell autocompletion scripts'
         'schema:Export JSON Schema for frontmatter validation'
         'tree:Display visual hierarchy tree of workspace documents'
@@ -87,6 +89,8 @@ const FISH_COMPLETION: &str = r#"complete -c ods -f
 complete -c ods -n "__fish_use_subcommand" -a "lint" -d "Validate workspace consistency"
 complete -c ods -n "__fish_use_subcommand" -a "index" -d "Generate navigation index.md files"
 complete -c ods -n "__fish_use_subcommand" -a "stats" -d "Display document telemetry and health score"
+complete -c ods -n "__fish_use_subcommand" -a "overview" -d "AI cold-start workspace snapshot"
+complete -c ods -n "__fish_use_subcommand" -a "summary" -d "Alias for overview"
 complete -c ods -n "__fish_use_subcommand" -a "schema" -d "Export JSON Schema for frontmatter"
 complete -c ods -n "__fish_use_subcommand" -a "tree" -d "Display visual document tree"
 complete -c ods -n "__fish_use_subcommand" -a "diff" -d "Compare graph changes"
@@ -95,7 +99,7 @@ complete -c ods -n "__fish_use_subcommand" -a "clean" -d "Clean diagnostic repor
 
 const POWERSHELL_COMPLETION: &str = r#"Register-ArgumentCompleter -Native -CommandName ods -ScriptBlock {
     param($wordToComplete, $commandAst, $cursorPosition)
-    $commands = @('lint', 'index', 'profiles', 'status', 'aliases', 'find', 'tag', 'context', 'graph', 'mv', 'fmt', 'adopt', 'new', 'rm', 'archive', 'init', 'disable', 'doctor', 'sync', 'watch', 'logs', 'serve', 'export', 'stats', 'completion', 'schema', 'tree', 'diff', 'clean')
+    $commands = @('lint', 'index', 'profiles', 'status', 'aliases', 'find', 'tag', 'context', 'graph', 'mv', 'fmt', 'adopt', 'new', 'rm', 'archive', 'init', 'disable', 'doctor', 'sync', 'watch', 'logs', 'serve', 'export', 'stats', 'overview', 'summary', 'completion', 'schema', 'tree', 'diff', 'clean')
     $commands | Where-Object { $_ -like "$wordToComplete*" } | ForEach-Object {
         [System.Management.Automation.CompletionResult]::new($_, $_, 'ParameterValue', $_)
     }

@@ -41,7 +41,8 @@ There is **no** `--ods` flag and **no** `ods okf` / `ods ods` namespaces (`ods o
 When assisting users inside an ODS workspace, follow these operational directives:
 
 - ❓ **WHAT**: Recognize ODS workspaces by checking for `ods:` in root `index.ods.md`. Keep files as `.md`. Title is H1 only (no FM `title:`); optional top-level `name:` is fine.
-- 💡 **WHY (token discipline)**: Prefer `ods context <id> [--max-tokens N] [--print]` for a **bounded** list (depends + `context.load` only — **not** `related`). Read only those paths. Never dump the repo or use full graph export for routine Q&A. On “document not found”, run `ods find <query>` — do not load all markdown.
+- 💡 **WHY (token discipline)**: Prefer `ods context <id> [--max-tokens N] [--print]` for a **bounded** list (depends + `context.load` only — **not** `related`). Read only those paths. Never dump the repo or use full graph export for routine Q&A. On “document not found”, run `ods find <query>` / `ods find --key …` — do not load all markdown.
+- 🧭 **COLD-START**: New workspace turn → `ods overview` (snapshot) → `ods tag list` / `ods schema keys` if needed → `ods find --tag` / `--key` to locate a target → `ods context <id>`. Do not replace context with overview for deep work.
 - 🚨 **ERRORS**: CLI prints `error:`/`usage:` + `Next:` (sometimes `Hint:`). Surface that Next line to the user; do not invent a different recovery. Common: not a workspace → `ods init`; miss → `ods find`; indexes → `ods index`; tags under `ods:` → `ods fmt --migrate`.
 - 👥 **WHO**: Operate seamlessly on behalf of non-technical or developer users without requiring manual terminal commands.
 - 📍 **WHERE**: Open `references/keys.md` only when authoring frontmatter; do not preload all references every turn.
@@ -167,11 +168,13 @@ custom-profiles:
 | **`ods fmt [path]`** | 🛠️ Tier 2 (Practitioner) | Reformat YAML frontmatter and body spacing (`--refs md-paths` converts IDs to relative `.md` paths). |
 | **`ods stats [path]`** | 🛠️ Tier 2 (Practitioner) | Workspace document telemetry, graph density, profile distribution, and health score %. |
 | **`ods tree [path]`** | 🛠️ Tier 2 (Practitioner) | Visual ASCII/Unicode hierarchy tree of index navigation and dependency graphs. |
-| **`ods context <id>`** | 📋 Tier 3 (Power User) | Bounded list (depends + context.load). `--max-tokens N`, `--print`, `--include-code`, `--root`. |
-| **`ods profiles` / `ods profile list`** | 📋 Tier 3 (Power User) | List registered profile catalog (text or `--format json`). |
-| **`ods tags [path]`** | 📋 Tier 3 (Power User) | Workspace-wide tag catalog and document count breakdown. |
+| **`ods context <id>`** | 📋 Tier 3 (Power User) | Bounded list (depends + context.load). `--max-tokens N`, `--print`, `--include-code`, `--tag`, `--key`. |
+| **`ods find [path]`** | 📋 Tier 3 (Power User) | Find docs by tag (`--tag`), schema/custom keys (`--key`, `--status`, `--profile`, `--owner`), and query (`--format text\|json`). |
+| **`ods tag list` / `show`** | 📋 Tier 3 (Power User) | List observed tags with doc counts or inspect docs matching a tag (`--format text\|json`). |
 | **`ods tag rename`** | 📋 Tier 3 (Power User) | Perform workspace-wide tag renaming (dry-run; `--write`). |
-| **`ods schema`** | 📋 Tier 3 (Power User) | Emit registry-driven JSON Schema (`--write`, `--out`; optional `--okf` / `--skills` for dialect key lists). |
+| **`ods schema [keys]`** | 📋 Tier 3 (Power User) | List schema key definitions (`ods schema keys`) or emit JSON Schema (`--write`, `--out`). |
+| **`ods overview [path]`** | 📋 Tier 3 (Power User) | Compact workspace snapshot (document counts, profile/status breakdown, top tags, custom keys, graph statistics) for AI cold-start orientation. Alias: `ods summary`. |
+| **`ods profiles` / `ods profile list`** | 📋 Tier 3 (Power User) | List registered profile catalog (text or `--format json`). |
 | **`ods profile init <name>`** | 📋 Tier 3 (Power User) | Scaffold `.ods/profiles/<name>.md` (name is after `init`, e.g. `ods profile init rfc`). |
 | **`ods diff [target]`** | 📋 Tier 3 (Power User) | Compare document graph dependencies and frontmatter changes against git commits or branches. |
 | **`ods share [path]`** | 📋 Tier 3 (Power User) | Publish share-filtered workspace/subtree directory (`--out DIR`). |

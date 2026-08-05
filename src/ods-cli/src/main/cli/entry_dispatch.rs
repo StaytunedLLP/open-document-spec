@@ -79,6 +79,7 @@ fn dispatch_ods_command(args: &[String]) -> Result<ExitCode, CliError> {
         "audit" => run_ods_audit_command(args),
         "coverage" => run_coverage_command(args),
         "stats" => run_stats_command(args),
+        "overview" | "summary" => run_overview_command(args),
         "completion" => run_completion_command(args),
         "schema" => run_schema_command(args),
         "tree" => run_tree_command(args),

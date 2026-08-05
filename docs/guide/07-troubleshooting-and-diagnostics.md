@@ -35,8 +35,9 @@ Optional `Hint:` lines appear only when they prevent a second failure (for examp
 | Not an ODS workspace | `error: not an ODS workspace (no root index.ods.md with ods:)` | `Next: run \`ods init\`` (or `--okf` / `--skills` if Hint says so) |
 | Forbidden `--ods` | `usage: unknown flag: --ods` | ODS is default — bare `ods <cmd>`; extras are `--okf` / `--skills` only |
 | Unknown command | `usage: unknown command '…'` | `ods help`; may include `did you mean …?` |
-| Context miss | `error: no document matched '…'` | `ods find <query>` or a path-shaped id |
-| Missing context id | `usage: missing document id` | `ods context <id-or-path>` |
+| Context miss | `error: no document matched '…'` | `ods find <query>` / `ods find --key …` or a path-shaped id |
+| Context filter ambiguous | `error: context filter matched N documents…` | Narrow with `ods find --tag` / `--key`, then `ods context <id>` |
+| Missing context id | `usage: missing document id` | `ods context <id-or-path>` (or unique `--tag`/`--key`/`--status`) |
 | Load failure | `error: could not load workspace at '…'` | Check path or `ods init` |
 | Missing root index | `error: missing root index.ods.md` | `ods init` then retry |
 | Nothing to undo | `error: nothing to undo (no snapshot found)` | Snapshots come from bulk writes (adopt/fmt) |

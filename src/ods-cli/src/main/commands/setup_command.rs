@@ -29,9 +29,13 @@ Commands:
   alias add <Can> <Syn>    Add a section alias on the root index
   tags [path]              List root-level project tags (observed) with use counts
   tags --all [path]        Include unused default ODS tags
-  find [path] [--tag t] [q]  Find docs by tag and/or id/path/stem query
+  tag list [path]          List observed workspace tags with document counts
+  tag show [path] <tag>    Show documents matching a tag
   tag rename <old> <new>   Rewrite a root-level tag across frontmatter (dry-run; --write)
                            Nested tags under ods: are invalid — run: ods fmt --migrate
+  find [path] [--tag t] [--key k] [q]  Find docs by tag, schema/custom keys, and/or query
+  schema [keys]            Inspect schema keys or generate JSON schema (--write)
+  overview [path]          Compact workspace snapshot for AI cold-start orientation (alias: summary)
   setup [path]             Set up machine service for workspace + check updates and workspace health
   context <id>             Bounded reading list (depends + context.load; --explain / --include-related)
   undo [path]              Restore latest frontmatter snapshot (`ods undo --list` to inspect)
@@ -86,7 +90,13 @@ Flags:
   --keep-frontmatter       With disable: only drop ods: / root policy keys
   --remove-indexes         With disable: delete non-root index.ods.md files
   --all                    With tags: include unused default ODS tags
-  --tag <name>             With find: filter by tag (repeatable, OR)
+  --tag <name>             With find/context: filter by tag (repeatable)
+  --tag-match any|all      With find: tag intersection mode (default: any)
+  --key <expr>             With find/context: filter by key expression (comma values, AND/OR logic)
+  --key-match and|or       With find: key matching mode across flags (default: and)
+  --status <status>        Shortcut for --key status=<status>
+  --profile <profile>      Shortcut for --key profile=<profile>
+  --owner <owner>          Shortcut for --key owner=<owner>
   --check                  With index / update: check only
   --canonical-refs         With lint: warn on extensionless Document refs
   --refs md-paths          With fmt: rewrite Document refs to .md paths

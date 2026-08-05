@@ -221,7 +221,28 @@ pub fn missing_context_id() -> UserMsg {
         ErrorStage::Argv,
         "missing document id",
     )
-    .next("run `ods context <id-or-path>` (discover ids with `ods find <query>`)")
+    .next("run `ods context <id-or-path>` (discover ids with `ods find <query>` or `--tag` / `--key` when unique)")
+}
+
+/// Context filter fallback matched more than one document.
+pub fn context_filter_ambiguous(count: usize, sample_ids: &[String]) -> UserMsg {
+    let preview = if sample_ids.len() > 8 {
+        format!(
+            "{}… (+{} more)",
+            sample_ids[..8].join(", "),
+            sample_ids.len() - 8
+        )
+    } else {
+        sample_ids.join(", ")
+    };
+    UserMsg::new(
+        "context_filter_ambiguous",
+        ErrorStage::Resolve,
+        format!("context filter matched {count} documents; need a unique target"),
+    )
+    .next(format!(
+        "narrow with `ods find --tag` / `--key`, or pass an id: {preview}"
+    ))
 }
 
 pub fn missing_required_arg(what: &str, usage_line: &str) -> UserMsg {
@@ -655,6 +676,7 @@ pub const CATALOG_MESSAGE_IDS: &[&str] = &[
     "home_dir_unresolved",
     "document_not_found_context",
     "document_not_found",
+    "context_filter_ambiguous",
     "concept_not_found",
     "context_requires_ods_or_okf",
     "undo_no_snapshot",
@@ -767,6 +789,8 @@ pub const KNOWN_COMMANDS: &[&str] = &[
     "skill",
     "pack",
     "stats",
+    "overview",
+    "summary",
     "completion",
     "schema",
     "tree",
@@ -909,6 +933,17 @@ mod tests {
         let s = document_not_found_context("oauth").render_error();
         assert!(s.contains("oauth"), "{s}");
         assert!(s.contains("ods find"), "{s}");
+    }
+
+    #[test]
+    fn context_filter_ambiguous_lists_ids() {
+        let ids: Vec<String> = (0..10).map(|i| format!("doc{i}")).collect();
+        let s = context_filter_ambiguous(ids.len(), &ids).render_error();
+        assert!(s.contains("matched 10"), "{s}");
+        assert!(s.contains("doc0"), "{s}");
+        assert!(s.contains("ods find") || s.contains("Next:"), "{s}");
+        let small = context_filter_ambiguous(2, &["a".into(), "b".into()]).render_error();
+        assert!(small.contains("a") && small.contains("b"), "{small}");
     }
 
     #[test]

@@ -85,7 +85,7 @@ There is no standard `specs` profile. Specification documents use `note`, `decis
 
 - Free-form strings; normalize to lowercase.
 - SHOULD NOT collide with lifecycle statuses or profile names.
-- Tooling SHOULD support `ods tags`, find-by-tag, and `ods tag rename`.
+- Tooling SHOULD support `ods tags`, `ods tag list` / `ods tag show`, find-by-tag and find-by-key (`ods find --tag` / `--key`), and `ods tag rename`.
 
 ---
 

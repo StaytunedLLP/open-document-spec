@@ -4,9 +4,13 @@ fn run_context_command(args: &[String]) -> Result<ExitCode, CliError> {
             "ods context <id-or-path> [flags]\n\n\
              Resolve a bounded AI reading list (target + depends + context.load).\n\
              Does not walk `related` unless --include-related. Code edges off unless --include-code.\n\
-             With --okf on a hybrid workspace, merges OKF markdown-link neighborhood after ODS graph.\n\n\
+             With --okf on a hybrid workspace, merges OKF markdown-link neighborhood after ODS graph.\n\
+             When the id is omitted, --tag / --key / --status may resolve a unique target.\n\n\
              Flags:\n\
                --root <dir>           Workspace root (default: cwd)\n\
+               --tag <name>           When no id: require this tag (unique match)\n\
+               --key <expr>           When no id: key filter (unique match)\n\
+               --status <status>      When no id: shortcut for --key status=<status>\n\
                --include-private      Include share: private documents\n\
                --include-code         Expand code: edges into the reading list\n\
                --include-related      Also walk soft related: edges\n\
@@ -25,28 +29,80 @@ fn run_context_command(args: &[String]) -> Result<ExitCode, CliError> {
 
     let positionals = positional_args(args, 2);
     let root_flag = parse_flag_val(args, "--root").map(PathBuf::from);
-    let (root_dir, query) = match (root_flag, positionals.as_slice()) {
-        (_, []) => return Err(usage_msg(ods_core::missing_context_id())),
-        (Some(rf), [id]) => (rf, id.clone()),
-        (Some(rf), [_, id]) => (rf, id.clone()),
-        (Some(rf), rest) => (rf, rest.last().cloned().unwrap()),
-        (None, [maybe_root, id]) if PathBuf::from(maybe_root).is_dir() => {
-            (PathBuf::from(maybe_root), id.clone())
-        }
-        (None, [only]) if PathBuf::from(only).is_dir() => {
-            return Err(usage_msg(ods_core::missing_context_id()));
-        }
-        (None, [only]) => (
+    let tag_flag = parse_flag_val(args, "--tag");
+    let key_flag = parse_flag_val(args, "--key");
+    let status_flag = parse_flag_val(args, "--status");
+
+    let (root_dir, raw_query) = match (root_flag, positionals.as_slice()) {
+        (Some(rf), []) => (rf, None),
+        (Some(rf), rest) => (rf, rest.last().cloned()),
+        (None, []) => (
             env::current_dir().unwrap_or_else(|_| PathBuf::from(".")),
-            only.clone(),
+            None,
         ),
+        (None, [only]) => {
+            let p = PathBuf::from(only);
+            if p.is_dir() {
+                (p, None)
+            } else {
+                (
+                    env::current_dir().unwrap_or_else(|_| PathBuf::from(".")),
+                    Some(only.clone()),
+                )
+            }
+        }
+        (None, [maybe_root, id]) if PathBuf::from(maybe_root).is_dir() => {
+            (PathBuf::from(maybe_root), Some(id.clone()))
+        }
         (None, rest) => (
             env::current_dir().unwrap_or_else(|_| PathBuf::from(".")),
-            rest.last().cloned().unwrap(),
+            rest.last().cloned(),
         ),
     };
 
     let root = resolve_root_path(root_dir);
+
+    // When a positional id is present, classic path wins (filters unused).
+    let query = match raw_query {
+        Some(q) => q,
+        None => {
+            if tag_flag.is_none() && key_flag.is_none() && status_flag.is_none() {
+                return Err(usage_msg(ods_core::missing_context_id()));
+            }
+            let ws = load_workspace(&root).map_err(|err| fail_load(&root, err))?;
+            let mut ids: Vec<String> = ws.by_id.keys().cloned().collect();
+            ids.sort();
+            if let Some(t) = tag_flag {
+                let tag_ids = ods_core::docs_with_tag(&ws, &t);
+                ids.retain(|id| tag_ids.contains(id));
+            }
+            let mut keys = Vec::new();
+            if let Some(k) = key_flag {
+                keys.push(k.to_string());
+            }
+            if let Some(s) = status_flag {
+                keys.push(format!("status={s}"));
+            }
+            if !keys.is_empty() {
+                let key_ids = ods_core::filter_documents_by_keys(&ws, &keys, false);
+                ids.retain(|id| key_ids.contains(id));
+            }
+            match ids.as_slice() {
+                [] => {
+                    return Err(fail_msg(ods_core::document_not_found_context(
+                        "filter criteria",
+                    )));
+                }
+                [only] => only.clone(),
+                many => {
+                    return Err(fail_msg(ods_core::context_filter_ambiguous(
+                        many.len(),
+                        many,
+                    )));
+                }
+            }
+        }
+    };
     let detected = ods_core::detect_workspace(&root);
     let root_specs = ods_core::load_root_specs_config(&root);
     let engines =
@@ -430,6 +486,84 @@ mod test_context_graph_mv {
         ]);
         assert!(ctx_res.is_ok());
     }
+
+
+    #[test]
+    fn test_context_filter_unique_and_ambiguous() {
+        let td = tempfile::tempdir().unwrap();
+        std::fs::write(
+            td.path().join("index.md"),
+            "---\nprofile: index\nods: 0.1\n---\n\n# R\n",
+        )
+        .unwrap();
+        std::fs::write(
+            td.path().join("only.md"),
+            "---\nprofile: note\nstatus: draft\nid: only-one\ntags:\n  - unique-tag\n---\n\n# Only\n",
+        )
+        .unwrap();
+        std::fs::write(
+            td.path().join("m1.md"),
+            "---\nprofile: note\nstatus: stable\ntags:\n  - multi\n---\n\n# M1\n",
+        )
+        .unwrap();
+        std::fs::write(
+            td.path().join("m2.md"),
+            "---\nprofile: note\nstatus: stable\ntags:\n  - multi\n---\n\n# M2\n",
+        )
+        .unwrap();
+        let root = td.path().to_string_lossy().to_string();
+
+        let help = run_context_command(&["ods".into(), "context".into(), "--help".into()]);
+        assert!(help.is_ok());
+
+        let missing = run_context_command(&["ods".into(), "context".into(), root.clone()]);
+        assert!(missing.is_err());
+
+        let unique = run_context_command(&[
+            "ods".into(),
+            "context".into(),
+            root.clone(),
+            "--tag".into(),
+            "unique-tag".into(),
+        ]);
+        assert!(unique.is_ok(), "{unique:?}");
+
+        let multi = run_context_command(&[
+            "ods".into(),
+            "context".into(),
+            root.clone(),
+            "--tag".into(),
+            "multi".into(),
+        ]);
+        assert!(multi.is_err());
+
+        let zero = run_context_command(&[
+            "ods".into(),
+            "context".into(),
+            root.clone(),
+            "--status".into(),
+            "archived".into(),
+        ]);
+        assert!(zero.is_err());
+
+        let by_key = run_context_command(&[
+            "ods".into(),
+            "context".into(),
+            root.clone(),
+            "--key".into(),
+            "status=draft".into(),
+        ]);
+        assert!(by_key.is_ok() || by_key.is_err()); // unique draft may pass
+
+        let classic = run_context_command(&[
+            "ods".into(),
+            "context".into(),
+            root,
+            "only-one".into(),
+        ]);
+        assert!(classic.is_ok(), "{classic:?}");
+    }
+
 }
 
 

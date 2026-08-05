@@ -108,6 +108,21 @@ pub fn docs_with_any_tag(workspace: &Workspace, tags: &[String]) -> Vec<String> 
     set.into_iter().collect()
 }
 
+/// Document ids matching ALL of the tags (AND).
+pub fn docs_with_all_tags(workspace: &Workspace, tags: &[String]) -> Vec<String> {
+    if tags.is_empty() {
+        return Vec::new();
+    }
+    let mut iter = tags.iter();
+    let first = iter.next().unwrap();
+    let mut set: BTreeSet<String> = docs_with_tag(workspace, first).into_iter().collect();
+    for tag in iter {
+        let tag_docs: BTreeSet<String> = docs_with_tag(workspace, tag).into_iter().collect();
+        set.retain(|id| tag_docs.contains(id));
+    }
+    set.into_iter().collect()
+}
+
 /// (tag, count) for observed tags, sorted by count desc then name.
 pub fn tag_usage(workspace: &Workspace) -> Vec<(String, usize)> {
     let mut rows: Vec<(String, usize)> = workspace

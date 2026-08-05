@@ -36,7 +36,7 @@ ods disable . --write
 | :--- | :--- | :--- |
 | Means | Document **kind** (structure / expected H2s) | Cross-cutting **topics** |
 | Unknown | Warning | Always allowed |
-| CLI | `ods profiles` | `ods tags`, `ods find --tag` |
+| CLI | `ods profiles` | `ods tags`, `ods tag list`/`show`, `ods find --tag` / `--key` |
 
 ## Should `depends` / `related` include `.md`?
 

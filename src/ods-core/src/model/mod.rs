@@ -125,6 +125,33 @@ pub struct WorkspaceSpecsConfig {
     pub skills: SpecLintConfig,
 }
 
+/// Eq-safe custom frontmatter value (unknown top-level keys only).
+/// Nested maps are not supported and parse as [`CustomValue::Null`].
+#[derive(Debug, Clone, PartialEq, Eq, Default)]
+pub enum CustomValue {
+    #[default]
+    Null,
+    String(String),
+    List(Vec<String>),
+}
+
+impl CustomValue {
+    /// Scalar / list string values for query matching.
+    pub fn as_query_strings(&self) -> Vec<String> {
+        match self {
+            CustomValue::Null => Vec::new(),
+            CustomValue::String(s) => {
+                if s.is_empty() {
+                    Vec::new()
+                } else {
+                    vec![s.clone()]
+                }
+            }
+            CustomValue::List(items) => items.iter().filter(|s| !s.is_empty()).cloned().collect(),
+        }
+    }
+}
+
 #[derive(Debug, Clone, PartialEq, Eq, Default)]
 pub struct Frontmatter {
     pub profile: Option<String>,
@@ -154,6 +181,9 @@ pub struct Frontmatter {
     pub title: Option<String>,
     pub expected_keys: Vec<String>,
     pub specs: WorkspaceSpecsConfig,
+    /// Non-standard top-level frontmatter keys (custom profiles, domain metadata).
+    /// Keys are stored lowercased. Read-only for query — not rewritten by fmt/migrate.
+    pub custom_keys: BTreeMap<String, CustomValue>,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]

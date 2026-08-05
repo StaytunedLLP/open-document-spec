@@ -83,10 +83,10 @@ pub use lint::{
     workspace_alias_suggestions, workspace_aliases,
 };
 pub use model::{
-    CodeRef, CodeRole, ComplianceMode, Diagnostic, Document, Frontmatter, FrontmatterState,
-    LintLevel, LoadOptions, ProfileCatalog, ProfileConflict, ProfileDefinition, ResourceRef,
-    Severity, SpecLintConfig, Workspace, WorkspaceSpecsConfig, current_ods_spec_version,
-    current_ods_version,
+    CodeRef, CodeRole, ComplianceMode, CustomValue, Diagnostic, Document, Frontmatter,
+    FrontmatterState, LintLevel, LoadOptions, ProfileCatalog, ProfileConflict, ProfileDefinition,
+    ResourceRef, Severity, SpecLintConfig, Workspace, WorkspaceSpecsConfig,
+    current_ods_spec_version, current_ods_version,
 };
 pub use mv::{
     PathChange, PathChangeReport, apply_path_changes, canonicalize_workspace_document_refs,
@@ -109,12 +109,13 @@ pub use profiles::{
 pub use share::{ShareLevel, ShareOptions, SharePublishReport, effective_share, publish_workspace};
 pub use spec::{
     KeyDefinition, KeyPlacement, KeyType, SchemaIssue, SpecKind, SpecSchema, SpecSchemaRegistry,
-    generate_ods_json_schema, validate_ods_frontmatter,
+    evaluate_document_key_query, evaluate_single_key_clause, filter_documents_by_keys,
+    generate_ods_json_schema, get_document_key_values, validate_ods_frontmatter,
 };
 pub use tags::{
-    TagRenameReport, builtin_tags, completion_tags, docs_with_any_tag, docs_with_tag,
-    is_builtin_tag, normalize_tag, normalize_tag_list, observed_tags, rename_tag_in_workspace,
-    rewrite_tags_in_text, tag_usage, tag_usage_with_builtins,
+    TagRenameReport, builtin_tags, completion_tags, docs_with_all_tags, docs_with_any_tag,
+    docs_with_tag, is_builtin_tag, normalize_tag, normalize_tag_list, observed_tags,
+    rename_tag_in_workspace, rewrite_tags_in_text, tag_usage, tag_usage_with_builtins,
 };
 
 pub use okf::{
@@ -137,11 +138,11 @@ pub use multi_spec::{
 
 pub use error::{
     CATALOG_MESSAGE_IDS, ErrorStage, KNOWN_COMMANDS, UserMsg, already_exists, concept_not_found,
-    context_requires_ods_or_okf, document_not_found, document_not_found_context,
-    forbidden_ods_flag, home_dir_unresolved, invalid_choice, io_failed, load_okf_bundle_failed,
-    load_workspace_failed, missing_context_id, missing_flag_value, missing_required_arg,
-    no_skills_package, not_ods_workspace, not_okf_bundle, okf_namespace_removed, path_not_found,
-    render_error, render_usage, root_index_missing, scaffold_failed, service_failed,
-    suggest_command, undo_no_snapshot, unknown_command, unknown_flag, unknown_ods_command,
-    unknown_platform_command, unknown_subcommand, update_failed,
+    context_filter_ambiguous, context_requires_ods_or_okf, document_not_found,
+    document_not_found_context, forbidden_ods_flag, home_dir_unresolved, invalid_choice, io_failed,
+    load_okf_bundle_failed, load_workspace_failed, missing_context_id, missing_flag_value,
+    missing_required_arg, no_skills_package, not_ods_workspace, not_okf_bundle,
+    okf_namespace_removed, path_not_found, render_error, render_usage, root_index_missing,
+    scaffold_failed, service_failed, suggest_command, undo_no_snapshot, unknown_command,
+    unknown_flag, unknown_ods_command, unknown_platform_command, unknown_subcommand, update_failed,
 };
