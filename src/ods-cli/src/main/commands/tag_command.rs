@@ -233,6 +233,8 @@ mod test_tag_command {
     fn test_tag_list_show_and_rename() {
         let help = run_tag_command(&["ods".into(), "tag".into(), "--help".into()]);
         assert!(help.is_ok());
+        let help_h = run_tag_command(&["ods".into(), "tag".into(), "-h".into()]);
+        assert!(help_h.is_ok());
 
         let sample = ["fixtures/ecommerce", "src/fixtures/ecommerce"]
             .into_iter()
@@ -289,6 +291,48 @@ mod test_tag_command {
             assert!(res_show_missing.is_ok());
         }
 
+        // Empty-tag workspace: list prints friendly empty text / empty json array.
+        let empty = tempfile::tempdir().unwrap();
+        std::fs::write(
+            empty.path().join("index.md"),
+            "---\nprofile: index\nods: 0.1\n---\n\n# R\n",
+        )
+        .unwrap();
+        std::fs::write(
+            empty.path().join("plain.md"),
+            "---\nprofile: note\nstatus: draft\n---\n\n# Plain\n",
+        )
+        .unwrap();
+        let empty_root = empty.path().to_string_lossy().to_string();
+        assert!(run_tag_command(&[
+            "ods".into(),
+            "tag".into(),
+            "list".into(),
+            empty_root.clone(),
+            "--format".into(),
+            "text".into(),
+        ])
+        .is_ok());
+        assert!(run_tag_command(&[
+            "ods".into(),
+            "tag".into(),
+            "list".into(),
+            empty_root.clone(),
+            "--format".into(),
+            "json".into(),
+        ])
+        .is_ok());
+        assert!(run_tag_command(&[
+            "ods".into(),
+            "tag".into(),
+            "show".into(),
+            empty_root,
+            "missing".into(),
+            "--format".into(),
+            "text".into(),
+        ])
+        .is_ok());
+
         let td = tempfile::tempdir().unwrap();
         std::fs::write(
             td.path().join("index.md"),
@@ -300,41 +344,102 @@ mod test_tag_command {
             "---\nprofile: note\ntags:\n  - oldtag\n---\n\n# D\n",
         )
         .unwrap();
+        std::fs::write(
+            td.path().join("doc2.md"),
+            "---\nprofile: note\ntags:\n  - oldtag\n  - keep\n---\n\n# D2\n",
+        )
+        .unwrap();
+        let root = td.path().to_string_lossy().to_string();
 
-        let res_list_emptyish = run_tag_command(&[
+        let res_list = run_tag_command(&[
             "ods".into(),
             "tag".into(),
             "list".into(),
-            td.path().to_string_lossy().to_string(),
+            root.clone(),
+            "--format".into(),
+            "text".into(),
         ]);
-        assert!(res_list_emptyish.is_ok());
+        assert!(res_list.is_ok());
+        let res_list_json = run_tag_command(&[
+            "ods".into(),
+            "tag".into(),
+            "list".into(),
+            root.clone(),
+            "--format".into(),
+            "json".into(),
+        ]);
+        assert!(res_list_json.is_ok());
 
+        let res_show = run_tag_command(&[
+            "ods".into(),
+            "tag".into(),
+            "show".into(),
+            root.clone(),
+            "oldtag".into(),
+            "--format".into(),
+            "text".into(),
+        ]);
+        assert!(res_show.is_ok());
+
+        // Dry-run text path (lists files + re-run hint).
         let res_txt = run_tag_command(&[
             "ods".into(),
             "tag".into(),
             "rename".into(),
-            td.path().to_string_lossy().to_string(),
+            root.clone(),
             "oldtag".into(),
             "newtag".into(),
             "--format".into(),
             "text".into(),
         ]);
-        assert!(res_txt.is_ok());
+        assert!(res_txt.is_ok(), "{res_txt:?}");
 
+        // Missing rename args.
+        assert!(run_tag_command(&[
+            "ods".into(),
+            "tag".into(),
+            "rename".into(),
+            root.clone(),
+        ])
+        .is_err());
+        assert!(run_tag_command(&[
+            "ods".into(),
+            "tag".into(),
+            "rename".into(),
+            "onlyone".into(),
+        ])
+        .is_err());
+
+        // Write + JSON report path.
         let res_json = run_tag_command(&[
             "ods".into(),
             "tag".into(),
             "rename".into(),
-            td.path().to_string_lossy().to_string(),
+            root.clone(),
             "oldtag".into(),
             "newtag".into(),
             "--write".into(),
             "--format".into(),
             "json".into(),
         ]);
-        assert!(res_json.is_ok());
+        assert!(res_json.is_ok(), "{res_json:?}");
         let body = std::fs::read_to_string(td.path().join("doc.md")).unwrap();
         assert!(body.contains("newtag"), "{body}");
         assert!(!body.contains("oldtag"), "{body}");
+        let body2 = std::fs::read_to_string(td.path().join("doc2.md")).unwrap();
+        assert!(body2.contains("newtag") && body2.contains("keep"), "{body2}");
+
+        // No-op rename after write (dry-run finds nothing).
+        let res_noop = run_tag_command(&[
+            "ods".into(),
+            "tag".into(),
+            "rename".into(),
+            root,
+            "oldtag".into(),
+            "newtag".into(),
+            "--format".into(),
+            "text".into(),
+        ]);
+        assert!(res_noop.is_ok());
     }
 }

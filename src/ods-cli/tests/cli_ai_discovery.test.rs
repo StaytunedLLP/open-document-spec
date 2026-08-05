@@ -175,6 +175,22 @@ fn tag_list_show_and_tags_regression() {
         .output()
         .unwrap();
     assert!(!out.status.success(), "missing tag name should fail");
+
+    // Rename dry-run + write.
+    let out = Command::new(ods_bin())
+        .args(["tag", "rename", &root, "alpha", "beta", "--format", "text"])
+        .output()
+        .unwrap();
+    assert!(out.status.success(), "rename dry-run: {:?}", out);
+    let out = Command::new(ods_bin())
+        .args([
+            "tag", "rename", &root, "alpha", "beta", "--write", "--format", "json",
+        ])
+        .output()
+        .unwrap();
+    assert!(out.status.success(), "rename write: {:?}", out);
+    let body = fs::read_to_string(dir.join("a.md")).unwrap();
+    assert!(body.contains("beta"), "{body}");
 }
 
 #[test]

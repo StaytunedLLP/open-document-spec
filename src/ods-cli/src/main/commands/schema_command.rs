@@ -161,3 +161,65 @@ fn run_schema_command(args: &[String]) -> Result<ExitCode, CliError> {
 
     Ok(ExitCode::from(0))
 }
+
+#[cfg(test)]
+mod test_schema_command {
+    use super::*;
+
+    #[test]
+    fn schema_help_and_keys_text_json() {
+        assert!(run_schema_command(&["ods".into(), "schema".into(), "--help".into()]).is_ok());
+        assert!(run_schema_command(&["ods".into(), "schema".into(), "keys".into()]).is_ok());
+        assert!(run_schema_command(&[
+            "ods".into(),
+            "schema".into(),
+            "keys".into(),
+            "--format".into(),
+            "json".into(),
+        ])
+        .is_ok());
+        assert!(run_schema_command(&[
+            "ods".into(),
+            "schema".into(),
+            "keys".into(),
+            "--okf".into(),
+            "--format".into(),
+            "text".into(),
+        ])
+        .is_ok());
+        assert!(run_schema_command(&[
+            "ods".into(),
+            "schema".into(),
+            "keys".into(),
+            "--skills".into(),
+            "--format".into(),
+            "json".into(),
+        ])
+        .is_ok());
+        assert!(run_schema_command(&[
+            "ods".into(),
+            "schema".into(),
+            "keys".into(),
+            "--format".into(),
+            "bad".into(),
+        ])
+        .is_err());
+        // Bare schema still works.
+        assert!(run_schema_command(&["ods".into(), "schema".into()]).is_ok());
+        assert!(run_schema_command(&["ods".into(), "schema".into(), "--okf".into()]).is_ok());
+    }
+
+    #[test]
+    fn schema_write_to_temp_out() {
+        let td = tempfile::tempdir().unwrap();
+        let out = td.path().join("ods.schema.json");
+        let res = run_schema_command(&[
+            "ods".into(),
+            "schema".into(),
+            "--out".into(),
+            out.to_string_lossy().to_string(),
+        ]);
+        assert!(res.is_ok(), "{res:?}");
+        assert!(out.exists());
+    }
+}

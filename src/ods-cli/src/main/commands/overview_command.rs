@@ -175,15 +175,20 @@ mod test_overview_command {
         .unwrap();
         std::fs::write(
             td.path().join("a.md"),
-            "---\nprofile: note\nstatus: draft\nteam: infra\ntags:\n  - t1\ndepends:\n  - b.md\n---\n\n# A\n",
+            "---\nprofile: note\nstatus: draft\nteam: infra\ntags:\n  - t1\n  - t2\ndepends:\n  - b.md\nrelated:\n  - b.md\n---\n\n# A\n",
         )
         .unwrap();
         std::fs::write(
             td.path().join("b.md"),
-            "---\nprofile: note\nstatus: stable\n---\n\n# B\n",
+            "---\nprofile: feature\nstatus: stable\nowner: alice\ntags:\n  - t1\n---\n\n# B\n\n## Goal\n\n## Scope\n\n## Requirements\n\n## Acceptance Criteria\n\n## Risks\n",
         )
         .unwrap();
         std::fs::write(td.path().join("plain.md"), "# Plain\n").unwrap();
+        std::fs::write(
+            td.path().join("broken.md"),
+            "---\nprofile: note\nstatus: [\n---\n\n# Broken FM\n",
+        )
+        .unwrap();
         let root = td.path().to_string_lossy().to_string();
         let res = run_overview_command(&[
             "ods".into(),
@@ -192,14 +197,33 @@ mod test_overview_command {
             "--format".into(),
             "text".into(),
         ]);
-        assert!(res.is_ok());
+        assert!(res.is_ok(), "{res:?}");
         let res_json = run_overview_command(&[
             "ods".into(),
             "overview".into(),
+            root.clone(),
+            "--format".into(),
+            "json".into(),
+        ]);
+        assert!(res_json.is_ok(), "{res_json:?}");
+        let res_summary = run_overview_command(&[
+            "ods".into(),
+            "summary".into(),
             root,
             "--format".into(),
             "json".into(),
         ]);
-        assert!(res_json.is_ok());
+        assert!(res_summary.is_ok());
+    }
+
+    #[test]
+    fn test_overview_non_workspace_fails() {
+        let td = tempfile::tempdir().unwrap();
+        let res = run_overview_command(&[
+            "ods".into(),
+            "overview".into(),
+            td.path().to_string_lossy().to_string(),
+        ]);
+        assert!(res.is_err());
     }
 }
