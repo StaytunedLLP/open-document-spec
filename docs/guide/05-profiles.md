@@ -16,7 +16,7 @@ ODS uses a two-tiered **Standard (Built-in) vs. Workspace (Custom)** layering mo
 | Layer | Source | Enforcement |
 | :--- | :--- | :--- |
 | **Standard Profiles** | Built into the specification / `ods` binary (12 core profiles) | Always available; section lint for known shapes |
-| **Custom Profiles** | Explicitly declared under `custom-profiles:` in root `index.ods.md`, or imported **ODS Packs** (`packs:`) | Additive catalogs; unknown name → warning (falls back to **Default Profile (`note`)**) |
+| **Custom Profiles** | Explicitly declared under `custom_profiles` in root `ods.toml`, or imported **ODS Packs** (`packs:`) | Additive catalogs; unknown name → warning (falls back to **Default Profile (`note`)**) |
 
 Prefer **Standard Profiles** first (`feature`, `guide`, `api`, `architecture`, `decision`, `sop`, `policy`, `meeting`, `faq`, `checklist`, `index`, `note`). Introduce a **Custom Profile** or **ODS Pack** only when a repeated document class is worth standardizing across teams.
 
@@ -28,31 +28,31 @@ When resolving profile definitions (Zero Folder Auto-Discovery):
 
 ```text
 1. Standard Profiles (built-in 12 core profiles)           // always loaded first
-2. Explicit custom profile catalog paths listed in custom-profiles: // workspace-local
+2. Explicit custom profile catalog paths listed in custom_profiles (ods.toml): // workspace-local
 3. Custom profiles in imported ODS Packs listed in packs:   // vendor / linked packs
 ```
 
 - First definition of a name wins.
-- Later duplicate definitions trigger a conflict warning (Level 3 CI should fail).
+- Later duplicate definitions trigger a conflict warning (CI lint (compliant) should fail).
 - Custom profiles are **additive**; they cannot overwrite or replace a Standard Profile name.
-- Custom profiles are recognized **strictly** when explicitly declared in `custom-profiles:` or imported `packs:`. Unlisted directories are not auto-discovered.
+- Custom profiles are recognized **strictly** when explicitly declared in `custom_profiles (ods.toml):` or imported `packs:`. Unlisted directories are not auto-discovered.
 
 ---
 
 ## Custom profiles (one command)
 
 ```bash
-ods profile init rfc              # scaffold .ods/profiles/rfc.md + register custom-profiles:
+ods profile init rfc              # scaffold .ods/profiles/rfc.md + register custom_profiles (ods.toml):
 ods profile init rfc --no-register  # scaffold only
 ods profile show rfc
 ods profiles                      # list standard + custom
 ```
 
-By default, `profile init` appends `.ods/profiles/<name>.md` under root **`custom-profiles:`**. No folder auto-discovery: unlisted paths are ignored.
+By default, `profile init` appends `.ods/profiles/<name>.md` under root **`custom_profiles (ods.toml):`**. No folder auto-discovery: unlisted paths are ignored.
 
 ### Section aliases
 
-Workspace **section aliases** live on the root index (`aliases:`) and extend which H2 headings satisfy a profile section check. Standard profiles already ship pipe-alternatives (e.g. `Goal | Objective | Purpose`).
+Workspace **section aliases** live in root **`ods.toml`** under `[aliases]` and extend which H2 headings satisfy a profile section check. Standard profiles already ship pipe-alternatives (e.g. `Goal | Objective | Purpose`).
 
 ```bash
 ods aliases
@@ -65,15 +65,15 @@ ods alias add Goal Objective
 
 A **Profile** defines a single document structural schema (`profile: decision`). A **Pack** (v1) is a reusable directory/repo whose primary engine effect is importing **custom profile catalogs** (`ods-profiles/` or pack root). Packs may also carry Markdown SOPs/guides as ordinary docs; **skills install** and template engines are separate surfaces (`ods skill install`, `ods init --skills`) — not automatic pack apply.
 
-Workspaces declare custom profiles and imported ODS Packs in their root `index.md` / `index.ods.md`:
+Workspaces declare custom profiles and imported ODS Packs in their root `ods.toml`:
 
 ```yaml
 ---
 profile: index
-ods: 0.1
+spec = "0.1"
 ignore:
   - src
-custom-profiles:
+custom_profiles (ods.toml):
   - .ods/profiles/rfc.md
 packs:
   - vendor/engineering-pack
@@ -114,5 +114,5 @@ packs:
 ### Profile resolution order
 
 1. Built-in standard profiles
-2. Explicit custom profiles listed in root `custom-profiles:`
+2. Explicit custom profiles listed in root `custom_profiles (ods.toml):`
 3. Custom profiles in imported `packs:`

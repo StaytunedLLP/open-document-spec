@@ -1,5 +1,8 @@
 /// Strip ODS keys from a full document text.
 /// Returns (new_text, changed).
+///
+/// Key lists are **schema-driven** (`SpecSchema::document_disable_strip_keys` /
+/// `workspace_policy_strip_keys`) so disable never invents ad-hoc SSG key names.
 pub fn strip_ods_from_document_text(
     text: &str,
     strip_doc_keys: bool,
@@ -10,16 +13,26 @@ pub fn strip_ods_from_document_text(
         return (text.to_string(), false);
     };
 
-    let mut drop_keys: Vec<&str> = Vec::new();
-    if strip_doc_keys {
-        drop_keys.extend_from_slice(DOC_ODS_KEYS);
-    }
-    if strip_root_keys {
-        drop_keys.extend_from_slice(ROOT_ODS_KEYS);
-    }
-    if drop_keys.is_empty() {
+    let registry = crate::spec::SpecSchemaRegistry::with_defaults();
+    let schema = registry
+        .get("ods")
+        .expect("default ODS schema is always registered");
+    let owned: Vec<String> = match (strip_doc_keys, strip_root_keys) {
+        (false, false) => Vec::new(),
+        (true, false) => schema.document_disable_strip_keys(),
+        (false, true) => schema.workspace_policy_strip_keys(),
+        (true, true) => {
+            let mut v = schema.document_disable_strip_keys();
+            v.extend(schema.workspace_policy_strip_keys());
+            v.sort();
+            v.dedup();
+            v
+        }
+    };
+    if owned.is_empty() {
         return (text.to_string(), false);
     }
+    let drop_keys: Vec<&str> = owned.iter().map(String::as_str).collect();
 
     let (kept, removed_any) = strip_keys_from_frontmatter_block(fm, &drop_keys);
     if !removed_any {
@@ -97,52 +110,6 @@ fn strip_keys_from_frontmatter_block(block: &str, drop_keys: &[&str]) -> (String
     (out.join("\n"), removed)
 }
 
-fn ensure_ods_in_index_text(text: &str) -> String {
-    let (fm, body) = split_frontmatter(text);
-    let ending = if text.contains("\r\n") { "\r\n" } else { "\n" };
-    let spec = current_ods_spec_version();
-    if let Some(block) = fm {
-        let mut lines: Vec<String> = block.lines().map(|l| l.to_string()).collect();
-        let mut saw_ods = false;
-        for line in &mut lines {
-            let trimmed = line.trim_start();
-            if trimmed
-                .split_once(':')
-                .is_some_and(|(key, _)| key.trim() == "ods")
-            {
-                let indent_len = line.len() - trimmed.len();
-                let indent = line[..indent_len].to_string();
-                *line = format!("{indent}ods: {spec}");
-                saw_ods = true;
-            }
-        }
-
-        // Insert root metadata after profile if present, else at top of frontmatter.
-        let mut inserted = false;
-        for (idx, line) in lines.iter().enumerate() {
-            if line.trim().starts_with("profile:") {
-                if !saw_ods {
-                    lines.insert(idx + 1, format!("ods: {spec}"));
-                }
-                inserted = true;
-                break;
-            }
-        }
-        if !inserted && !saw_ods {
-            lines.insert(0, format!("ods: {spec}"));
-        }
-        let kept = lines.join(ending);
-        let body = body.trim_start_matches(['\r', '\n']);
-        if body.is_empty() {
-            format!("---{ending}{kept}{ending}---{ending}")
-        } else {
-            format!("---{ending}{kept}{ending}---{ending}{ending}{body}")
-        }
-    } else {
-        let body = text.trim_start();
-        format!("---{ending}profile: index{ending}ods: {spec}{ending}---{ending}{ending}{body}")
-    }
-}
 
 #[cfg(test)]
 mod tests {

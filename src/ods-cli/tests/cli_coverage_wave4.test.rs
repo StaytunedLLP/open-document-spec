@@ -28,7 +28,7 @@ fn hybrid_ods_okf_skills_lint_and_fix() {
     );
 
     // also plant OKF marker alongside (hybrid)
-    let index = fs::read_to_string(dir.join("index.ods.md")).unwrap();
+    let index = fs::read_to_string(dir.join("ods.toml")).unwrap();
     // keep ODS; add a concept file with okf-looking content under okf/
     fs::create_dir_all(dir.join("okf")).unwrap();
     fs::write(
@@ -157,7 +157,7 @@ fn lifecycle_new_rm_archive_mv_edges() {
             .unwrap();
         }
     }
-    let _ = ods().args(["index", root]).output();
+    let _ = ods().args(["lint", root]).output();
 
     let _ = ods()
         .args(["archive", dir.join("docs/n1.md").to_str().unwrap()])
@@ -198,7 +198,7 @@ fn fmt_and_adopt_disable_write_paths() {
     let _ = ods().args(["fmt", root]).output();
     let _ = ods().args(["fmt", root, "--refs", "md-paths"]).output();
     let _ = ods().args(["fmt", root, "--migrate"]).output();
-    let _ = ods().args(["index", root]).output();
+    let _ = ods().args(["lint", root]).output();
     let _ = ods()
         .args(["disable", root, "--write", "--remove-indexes"])
         .output();
@@ -455,7 +455,7 @@ fn lifecycle_scaffold_many_profiles_and_errors() {
     // mv missing
     let _ = ods().args(["mv", root, "missing.md", "other.md"]).output();
 
-    let _ = ods().args(["index", root]).output();
+    let _ = ods().args(["lint", root]).output();
     let _ = ods().args(["context", root, "p-note"]).output();
 }
 

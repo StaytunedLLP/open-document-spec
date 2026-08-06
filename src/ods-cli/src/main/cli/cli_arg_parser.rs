@@ -225,7 +225,9 @@ fn parse_common_flags(
     args: &[String],
     start: usize,
 ) -> Result<(PathBuf, LintLevel, OutputFormat), CliError> {
-    let mut level = LintLevel::Level3;
+    // ODS compliance is binary; LintLevel is always Full. --level/--mode ignored if present
+    // for one-release CLI compatibility (values are discarded).
+    let level = LintLevel::Full;
     let mut format = OutputFormat::Text;
     let mut path = None;
 
@@ -233,20 +235,8 @@ fn parse_common_flags(
     while i < args.len() {
         match args[i].as_str() {
             "--mode" | "--level" => {
-                let value = args
-                    .get(i + 1)
-                    .ok_or_else(|| usage_msg(ods_core::missing_flag_value("--mode/--level", "`ods lint --mode strict`")))?;
-                level = match value.to_lowercase().as_str() {
-                    "standard" | "1" => LintLevel::Standard,
-                    "strict" | "3" => LintLevel::Strict,
-                    other => {
-                        return Err(usage_msg(ods_core::invalid_choice(
-                            "--mode/--level",
-                            other,
-                            "standard|strict|1|3",
-                        )));
-                    }
-                };
+                // Accept and skip legacy flags; full integrity always runs.
+                let _ = args.get(i + 1);
                 i += 2;
             }
             "--format" => {
@@ -271,10 +261,10 @@ fn parse_common_flags(
             | "--check"
             | "--write"
             | "--fix"
+            | "--force"
             | "--write-report"
             | "--all"
             | "--adopt"
-            | "--status"
             | "--canonical-refs"
             | "--include-private"
             | "--keep-frontmatter"
@@ -293,6 +283,17 @@ fn parse_common_flags(
             | "--migrate"
             | "--migrate-fm" => {
                 i += 1;
+            }
+            // Dual-use: `ods start --status` (boolean) vs `ods find --status draft` (value).
+            "--status" => {
+                if let Some(next) = args.get(i + 1) {
+                    match next.as_str() {
+                        "draft" | "stable" | "deprecated" | "archived" => i += 2,
+                        _ => i += 1,
+                    }
+                } else {
+                    i += 1;
+                }
             }
             "--refs" | "--ignore-keys" | "--ignore-key" => {
                 i += 2;
@@ -317,8 +318,19 @@ fn parse_common_flags(
             | "-h" => {
                 i += 1;
             }
-            "--tag" | "--prompt" | "--llm" | "--agent" | "--snapshot" | "--path" | "--name" => {
-                // value consumed by find/bench/skills init; skip so path parsing still works
+            // Value flags for find/context/tag discovery (and similar).
+            "--tag"
+            | "--key"
+            | "--key-match"
+            | "--tag-match"
+            | "--profile"
+            | "--owner"
+            | "--prompt"
+            | "--llm"
+            | "--agent"
+            | "--snapshot"
+            | "--path"
+            | "--name" => {
                 i += 2;
             }
             flag if flag.starts_with('-') => {
@@ -341,6 +353,7 @@ fn parse_common_flags(
         format,
     ))
 }
+
 
 fn parse_key_suppression_flags(args: &[String], config: &mut ods_core::WorkspaceSpecsConfig) {
     let skip_keys = args.iter().any(|a| {
@@ -376,8 +389,29 @@ fn positional_args(args: &[String], start: usize) -> Vec<String> {
     let mut i = start;
     while i < args.len() {
         match args[i].as_str() {
-            "--level" | "--format" | "--version" | "--root" | "--refs" | "--max-tokens"
-            | "--mode" | "--tag" => i += 2,
+            "--level"
+            | "--format"
+            | "--version"
+            | "--root"
+            | "--refs"
+            | "--max-tokens"
+            | "--mode"
+            | "--tag"
+            | "--key"
+            | "--key-match"
+            | "--tag-match"
+            | "--profile"
+            | "--owner" => i += 2,
+            "--status" => {
+                if let Some(next) = args.get(i + 1) {
+                    match next.as_str() {
+                        "draft" | "stable" | "deprecated" | "archived" => i += 2,
+                        _ => i += 1,
+                    }
+                } else {
+                    i += 1;
+                }
+            }
             "--check"
             | "--write"
             | "--force"

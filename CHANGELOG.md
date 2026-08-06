@@ -9,10 +9,30 @@ GitHub Releases use GitHub’s auto-generated notes. Edit this file by hand when
 
 ## [Unreleased]
 
+### Breaking
+- Workspace marker is **`ods.toml`** only (no nested `index.ods.md` / no ODS `ods index` generation).
+- Compliance is **compliant | non-compliant** (no Level 0–3 ladder).
+- `ods serve` product RSS budget default **10 MB** (`service.max_rss_mb`).
+- Skill `references/{intro,keys,core,scope}` are pointers to `specs/ods/*` (no forked copies).
+
+### Fixed
+- **Non-destructive frontmatter:** `ods fmt --migrate` preserves unknown keys nested under `ods:` (no longer drops foreign nested blocks). Third-party top-level keys (Hugo/Astro/etc.) remain untouched on migrate, tag rewrite, spacing normalize, and disable strip.
+- **CLI honesty after index removal:** help/completions no longer claim ODS `index` lockfile generation; `ods lint --fix` documents no-op (discovery is `overview`/`find`/`tree`); error catalog points at **`ods.toml`** not root `index.ods.md`.
+- Removed accidental committed workspace graph dumps (`graph.md`, `src/ods-cli/graph.md`).
+- `ROOT_ODS_KEYS` strip list no longer duplicated `ods`; includes packs/specs for legacy root-policy disable.
+- Docs/skill residual “regenerate indexes” / root-index wording cleaned; profile CLI split into `profile/{inspect,init,aliases,tests}.rs`; workspace config keys registered as `WorkspaceConfigOnly`.
+- **Schema-driven disable strip lists** (`document_disable_strip_keys` / `workspace_policy_strip_keys`); shared `ChildGuard` for serve/watch test teardown (no leaked processes).
+
 ### Added
+- **`ods read [root] <id-or-path>`:** Fine-grained section extraction (`--section <heading>`), outline summary (`--summary`), and soft token cap controls (`--max-tokens N`, `--format text|json`). Prevents path traversal out of workspace.
+- **`ods find --key <expr>` & multi-criteria search:** query documents by schema keys and custom profile keys (`--key`, `--key-match and|or`, `--tag-match any|all`, `--status`, `--profile`, `--owner`). Supports comma multi-values (`--key status=draft,stable`), comma multi-keys, and simple `AND`/`OR` expressions. Value match is **exact** (case-insensitive).
+- **`ods tag list` & `ods tag show <tag>`:** list observed workspace tags with document counts or inspect documents carrying a specific tag (`--format text|json`). (`ods tags` / `ods tag rename` unchanged.)
+- **`ods schema keys`:** inspect registered schema key definitions, placements (`TopLevel`, `NestedEngineMap`), key types, and descriptions in text or JSON. Bare `ods schema` still exports JSON Schema.
+- **`ods overview` (alias: `ods summary`):** compact workspace snapshot (document counts, profile/status breakdown, top tags, custom keys, graph statistics) for AI cold-start. Use `ods stats` for lint health %.
+- **`ods context` filter fallback:** when the positional id is omitted, `--tag` / `--key` / `--status` may resolve a target **only if the match is unique**; multi-match fails with a short id list and `Next: ods find …`. Classic `ods context <id>` is unchanged.
 - **`ods profile init --register` (default):** scaffolds `.ods/profiles/<name>.md` and appends it under root `custom-profiles:` (use `--no-register` to skip). **`ods profile show <name>`** prints layer, sections, expected keys.
 - **`ods status <path-or-id> <draft|stable|deprecated|archived>`** lifecycle setter; **`ods archive`** remains an alias for `status … archived`.
-- **`ods aliases` / `ods alias add <Canonical> <Synonym>`** for workspace section-heading aliases on the root index.
+- **`ods aliases` / `ods alias add <Canonical> <Synonym>`** for workspace section-heading aliases in root `ods.toml` `[aliases]` (legacy root index still accepted).
 - **`ods context --explain`** / **`--include-related`**; hybrid **`--okf`** merges OKF link neighborhood after ODS depends/load; respects root `specs.okf.enabled`.
 - **`ods undo --list`** lists machine backup snapshots; help clarifies undo is snapshot/bench restore, not full git undo.
 - Guide clarity: multi-spec flag rules in quickstart; context depends/related/load recipe; packs v1 = profile catalogs (honest scope); `--okf` command matrix in CLI help.

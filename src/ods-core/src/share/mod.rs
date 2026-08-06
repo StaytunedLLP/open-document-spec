@@ -1,13 +1,11 @@
 //! Share-aware workspace publishing (`ods share`).
 //!
-//! A document's `share` visibility is either set directly on the document, or
-//! inherited from the nearest ancestor directory's `index.md` `share` value
-//! (a directory-level default), falling back to `public` when nothing is set
-//! anywhere. `publish_workspace` uses this to copy only the documents that
-//! should be visible into a fresh, git-ready output directory.
+//! A document's `share` visibility is set on the document frontmatter only
+//! (default `public`). Nested index inheritance was removed.
+//! `publish_workspace` copies visible documents and writes `ods.toml` at out.
 
+#[allow(unused_imports)]
 use crate::fs::load_workspace;
-use crate::index::generate_indexes;
 use crate::model::{Document, Frontmatter, FrontmatterState, Workspace};
 use std::fs;
 use std::io;
@@ -55,10 +53,7 @@ fn is_index_md(path: &Path) -> bool {
 
 /// Resolve the effective share visibility for a document.
 ///
-/// Precedence: the document's own `share` frontmatter wins if set; otherwise
-/// the nearest ancestor directory's `index.ods.md` (or `index.md`) `share` value is used as a
-/// directory-level default (walking up to, and including, `workspace.root`);
-/// otherwise `ShareLevel::Public`.
+/// Document frontmatter `share` only (nested indexes removed — no folder inheritance).
 pub fn effective_share(doc_path: &Path, workspace: &Workspace) -> ShareLevel {
     if let Some(doc) = workspace.document_by_path(doc_path)
         && let Some(fm) = parsed_fm(doc)
@@ -66,36 +61,6 @@ pub fn effective_share(doc_path: &Path, workspace: &Workspace) -> ShareLevel {
     {
         return level;
     }
-
-    let Some(mut current) = doc_path.parent().map(Path::to_path_buf) else {
-        return ShareLevel::Public;
-    };
-
-    loop {
-        let index_ods = current.join("index.ods.md");
-        let index_md = current.join("index.md");
-        let index_path = if index_ods.exists() {
-            index_ods
-        } else {
-            index_md
-        };
-        if index_path != doc_path
-            && let Some(doc) = workspace.document_by_path(&index_path)
-            && let Some(fm) = parsed_fm(doc)
-            && let Some(level) = fm.share.as_deref().and_then(ShareLevel::parse)
-        {
-            return level;
-        }
-
-        if current == workspace.root {
-            break;
-        }
-        match current.parent() {
-            Some(parent) => current = parent.to_path_buf(),
-            None => break,
-        }
-    }
-
     ShareLevel::Public
 }
 
@@ -175,8 +140,12 @@ pub fn publish_workspace(
         report.written.push(rel);
     }
 
-    let published = load_workspace(out)?;
-    let _ = generate_indexes(&published)?;
+    // Materialize workspace marker at out root (no nested indexes).
+    let mut out_cfg = workspace.config.clone();
+    if out_cfg.spec.trim().is_empty() {
+        out_cfg.spec = crate::model::current_ods_spec_version().to_string();
+    }
+    let _ = crate::config::write_ods_toml(out, &out_cfg);
 
     Ok(report)
 }

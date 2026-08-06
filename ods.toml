@@ -1,0 +1,24 @@
+# ODS workspace configuration
+spec = "0.1"
+
+ignore = [
+  "src/fixtures",
+  "ods-test",
+  "skills",
+  "docs/plan/archive",
+  "app-web",
+  "src/ods-cli",
+  "src/ods-core",
+  "src/ods-test-support",
+  "src/scripts",
+]
+
+custom_profiles = [
+  "src/fixtures/ecommerce/ods-profiles/marketing.md",
+  "src/fixtures/ecommerce/ods-profiles/product.md",
+]
+
+[service]
+mode = "poll"
+poll_secs = 2
+max_rss_mb = 10

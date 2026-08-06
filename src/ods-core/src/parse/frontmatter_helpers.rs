@@ -236,3 +236,63 @@ pub fn parse_specs_config(
 
     (specs, index)
 }
+
+/// Parse an unknown top-level frontmatter value (scalar or string list).
+/// Nested maps / non-list blocks are skipped as [`CustomValue::Null`] without
+/// advancing past following sibling keys incorrectly when a block list is absent.
+pub fn parse_custom_value(
+    lines: &[&str],
+    start: usize,
+    min_indent: usize,
+    inline: &str,
+) -> (crate::model::CustomValue, usize) {
+    use crate::model::CustomValue;
+
+    if !inline.is_empty() {
+        if inline.starts_with('[') && inline.ends_with(']') {
+            let items = parse_inline_list(inline);
+            return (CustomValue::List(items), start);
+        }
+        // Bare numbers/bools are stored as strings for exact query match.
+        return (CustomValue::String(unquote(inline)), start);
+    }
+
+    let mut index = start;
+    let mut items = Vec::new();
+    let mut is_list = false;
+
+    while let Some(raw_line) = lines.get(index) {
+        if raw_line.trim().is_empty() {
+            index += 1;
+            continue;
+        }
+
+        if indent(raw_line) < min_indent {
+            break;
+        }
+
+        let trimmed = raw_line.trim_start();
+        if let Some(item) = trimmed.strip_prefix("- ") {
+            is_list = true;
+            items.push(unquote(item.trim()));
+            index += 1;
+        } else if trimmed.starts_with("-") && trimmed.len() == 1 {
+            // Empty list item
+            is_list = true;
+            items.push(String::new());
+            index += 1;
+        } else {
+            // Nested map or other block — not supported for custom query values.
+            // Consume the nested block so subsequent keys are not lost.
+            let (_, next) = parse_passthrough_block(lines, index, min_indent);
+            return (CustomValue::Null, next);
+        }
+    }
+
+    if is_list {
+        (CustomValue::List(items), index)
+    } else {
+        (CustomValue::Null, start)
+    }
+}
+

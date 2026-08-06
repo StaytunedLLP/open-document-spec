@@ -251,3 +251,60 @@ specs:
     assert!(fm.specs.skills.enabled);
     assert!(fm.specs.skills.check_keys);
 }
+
+#[test]
+fn test_hybrid_frontmatter_preservation_on_mutation() {
+    let root = PathBuf::from("/ws");
+    let text = r#"---
+layout: post
+author: Alice
+tags:
+  - rust
+  - ods
+status: draft
+---
+
+# My Post
+"#;
+    let doc = parse_document_text(&root, root.join("post.md"), text, true);
+    let FrontmatterState::Parsed(fm) = doc.frontmatter else {
+        panic!("parse failed");
+    };
+
+    // Verify third-party custom keys parsed into custom_keys map
+    assert!(fm.custom_keys.contains_key("layout"));
+    assert!(fm.custom_keys.contains_key("author"));
+    assert_eq!(fm.status.as_deref(), Some("draft"));
+
+    // Verify fuzzy typo diagnostic checks
+    let issues = ods_core::validate_ods_frontmatter(&fm);
+    // Hugo layout & author keys are preserved without non-matching typo false positives
+    assert!(issues.iter().all(|i| !i.message.contains("layout")));
+}
+
+#[test]
+fn tag_rename_and_spacing_preserve_third_party_keys() {
+    let text = "---\nlayout: post\nauthor: Alice\ntags:\n  - rust\n  - ods\nods:\n  profile: note\n  status: draft\n---\n\n# My Post\n";
+    let renamed = ods_core::rewrite_tags_in_text(text, "rust", "systems").expect("rewrite");
+    assert!(renamed.contains("layout: post"), "{renamed}");
+    assert!(renamed.contains("author: Alice"), "{renamed}");
+    assert!(renamed.contains("- systems"), "{renamed}");
+    assert!(!renamed.contains("- rust\n"), "{renamed}");
+
+    let spaced = ods_core::normalize_frontmatter_body_spacing(text);
+    assert!(spaced.contains("layout: post"), "{spaced}");
+    assert!(spaced.contains("author: Alice"), "{spaced}");
+    assert!(spaced.contains("tags:\n  - rust\n  - ods\n"), "{spaced}");
+}
+
+#[test]
+fn strip_ods_keeps_third_party_keys() {
+    let text = "---\nlayout: post\nauthor: Alice\nprofile: note\nstatus: draft\ndepends:\n  - other\n---\n\n# Body\n";
+    let (next, changed) = ods_core::strip_ods_from_document_text(text, true, false);
+    assert!(changed);
+    assert!(next.contains("layout: post"), "{next}");
+    assert!(next.contains("author: Alice"), "{next}");
+    assert!(!next.contains("profile:"), "{next}");
+    assert!(!next.contains("depends:"), "{next}");
+    assert!(next.contains("# Body"), "{next}");
+}

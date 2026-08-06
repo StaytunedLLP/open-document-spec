@@ -79,7 +79,10 @@ fn test_cli_tree_command() {
         .unwrap();
     assert!(tree.status.success());
     let stdout = String::from_utf8_lossy(&tree.stdout);
-    assert!(stdout.contains("index.ods.md"), "{stdout}");
+    assert!(
+        stdout.contains("ods.toml") || stdout.contains("index.ods.md"),
+        "{stdout}"
+    );
 }
 
 #[test]
@@ -144,8 +147,9 @@ fn test_cli_setup_git_hooks() {
     let dir = tempdir().unwrap();
     let path = dir.path().to_str().unwrap();
     fs::write(
-        dir.path().join("index.md"),
-        "---\nprofile: index\nods: 0.1\n---\n\n# Root\n",
+        dir.path().join("ods.toml"),
+        "spec = \"0.1\"
+",
     )
     .unwrap();
 

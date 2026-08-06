@@ -51,7 +51,7 @@ pub fn heal_orphan_path_ids(root: impl AsRef<Path>) -> io::Result<PathChangeRepo
     }
 
     if heals.is_empty() {
-        let indexes = generate_indexes(&workspace)?;
+        let indexes: Vec<std::path::PathBuf> = Vec::new();
         report.indexes = indexes;
         return Ok(report);
     }
@@ -99,10 +99,7 @@ pub fn heal_orphan_path_ids(root: impl AsRef<Path>) -> io::Result<PathChangeRepo
     report.rewritten_files.sort();
     report.rewritten_files.dedup();
     match load_workspace(root) {
-        Ok(ws) => match generate_indexes(&ws) {
-            Ok(indexes) => report.indexes = indexes,
-            Err(err) => report.errors.push(format!("regenerate indexes: {err}")),
-        },
+        Ok(_ws) => { report.indexes = Vec::new(); },
         Err(err) => report.errors.push(format!("reload after heal: {err}")),
     }
     Ok(report)

@@ -164,22 +164,21 @@ fn lint_document(
             diagnostics.extend(lint_ods_scope(workspace, document, frontmatter));
             diagnostics.extend(crate::tags::lint_document_tags(document, workspace));
 
-            if matches!(level, LintLevel::Level3) {
-                diagnostics.extend(lint_references(
-                    workspace,
-                    document,
-                    ids,
-                    frontmatter,
-                    canonical_refs,
-                ));
-                diagnostics.extend(lint_profile_sections(workspace, document, profile));
-                diagnostics.extend(lint_resources(document, frontmatter));
-                diagnostics.extend(lint_code_refs(document, frontmatter));
-                diagnostics.extend(lint_index(workspace, document));
-                diagnostics.extend(lint_packs(workspace, document, frontmatter));
-                if !document.body.is_empty() {
-                    diagnostics.extend(lint_body_links(document));
-                }
+            // Full integrity (binary compliance — no partial levels).
+            let _ = level;
+            diagnostics.extend(lint_references(
+                workspace,
+                document,
+                ids,
+                frontmatter,
+                canonical_refs,
+            ));
+            diagnostics.extend(lint_profile_sections(workspace, document, profile));
+            diagnostics.extend(lint_resources(document, frontmatter));
+            diagnostics.extend(lint_code_refs(document, frontmatter));
+            diagnostics.extend(lint_packs(workspace, document, frontmatter));
+            if !document.body.is_empty() {
+                diagnostics.extend(lint_body_links(document));
             }
         }
     }
@@ -188,25 +187,52 @@ fn lint_document(
 }
 
 fn lint_root_ods_metadata(workspace: &Workspace) -> Vec<Diagnostic> {
-    let root_index_path = workspace.root.join("index.ods.md");
-    let Some(root_index) = workspace
-        .documents
-        .iter()
-        .find(|document| document.path == root_index_path)
-    else {
+    let toml_path = crate::config::ods_toml_path(&workspace.root);
+    if !toml_path.is_file() {
+        // One-release: accept legacy root index with ods: only if config was loaded from it.
+        if workspace.config.is_valid_marker()
+            && (workspace.root.join("index.ods.md").is_file()
+                || workspace.root.join("index.md").is_file())
+        {
+            return lint_root_config(workspace);
+        }
         return vec![Diagnostic {
-            path: root_index_path,
+            path: toml_path,
             severity: Severity::Error,
-            message: crate::error::lint_missing_root_index(
-                crate::model::current_ods_spec_version(),
-            ),
+            message: crate::error::lint_missing_ods_toml(crate::model::current_ods_spec_version()),
         }];
-    };
-
-    match &root_index.frontmatter {
-        FrontmatterState::Parsed(frontmatter) => lint_root_spec(root_index, frontmatter),
-        _ => Vec::new(),
     }
+    lint_root_config(workspace)
+}
+
+fn lint_root_config(workspace: &Workspace) -> Vec<Diagnostic> {
+    let mut diagnostics = Vec::new();
+    let path = if crate::config::ods_toml_path(&workspace.root).is_file() {
+        crate::config::ods_toml_path(&workspace.root)
+    } else {
+        workspace.root.join("index.ods.md")
+    };
+    let expected = crate::model::current_ods_spec_version();
+    let version = workspace.config.spec.as_str();
+    if version != expected {
+        diagnostics.push(Diagnostic {
+            path,
+            severity: Severity::Error,
+            message: crate::error::lint_root_version_mismatch(version, expected),
+        });
+    }
+    // Packs from config must exist.
+    for pack in &workspace.config.packs {
+        let pack_path = crate::fs::normalize_join(&workspace.root, Path::new(pack));
+        if !pack_path.exists() {
+            diagnostics.push(Diagnostic {
+                path: crate::config::ods_toml_path(&workspace.root),
+                severity: Severity::Error,
+                message: crate::error::lint_missing_pack_path(pack),
+            });
+        }
+    }
+    diagnostics
 }
 
 include!("canonical_rules.rs");

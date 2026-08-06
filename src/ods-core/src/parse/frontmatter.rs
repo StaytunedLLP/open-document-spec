@@ -310,7 +310,11 @@ fn parse_frontmatter(block: &str) -> Result<Frontmatter, String> {
                 index = next;
             }
             _ => {
-                let (_, next) = parse_passthrough_block(&lines, index, 2);
+                let (val, next) = parse_custom_value(&lines, index, 2, rest);
+                // Case-fold keys so queries are case-insensitive; last write wins.
+                frontmatter
+                    .custom_keys
+                    .insert(key.trim().to_lowercase(), val);
                 index = next;
             }
         }

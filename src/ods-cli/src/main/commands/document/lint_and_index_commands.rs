@@ -4,9 +4,9 @@ fn run_lint_command(args: &[String]) -> Result<ExitCode, CliError> {
             "ods lint [path] [flags]\n\n\
              Validate the ODS document graph (and optionally OKF/Skills).\n\n\
              Flags:\n\
-               --level 1|3 | --mode standard|strict   Compliance level (default 3/strict)\n\
+               --level 1|3 | --mode standard|strict   Lint strictness (default 3/strict)\n\
                --format text|json|sarif\n\
-               --fix                              Regenerate indexes (does not invent missing docs)\n\
+               --fix                              No-op for ODS (nested indexes removed; use overview/find/tree)\n\
                --canonical-refs                     Warn on extensionless document refs\n\
                --okf / --skills                     Extra dialect engines\n\
                --skip-frontmatter-keys              Suppress key-requirement lint\n"
@@ -36,13 +36,10 @@ fn run_lint_command(args: &[String]) -> Result<ExitCode, CliError> {
         let workspace = load_workspace_with_options(&root, load_options_graph())
             .map_err(|err| fail_load(&root, err))?;
         let fix = args.iter().any(|arg| arg == "--fix");
-        if fix {
-            let n = generate_indexes(&workspace).map(|v| v.len()).unwrap_or(0);
-            if matches!(format, OutputFormat::Text) {
-                println!(
-                    "Regenerated {n} index file(s). Note: --fix does not create missing depends targets or rewrite dangling refs."
-                );
-            }
+        if fix && matches!(format, OutputFormat::Text) {
+            println!(
+                "Note: nested index generation was removed. --fix does not rewrite files; use `ods overview` / `ods find` / `ods tree` for discovery, and `ods fmt --migrate` for frontmatter shape."
+            );
         }
         let ods_diags = if canonical_refs {
             lint_workspace_with_ref_style(&workspace, level, true)
@@ -55,10 +52,8 @@ fn run_lint_command(args: &[String]) -> Result<ExitCode, CliError> {
     if engines.okf {
         let bundle = ods_core::load_okf_bundle(&root)
             .map_err(|e| fail_msg(ods_core::load_okf_bundle_failed(&root, e)))?;
-        let okf_level = match level {
-            LintLevel::Level1 => ods_core::OkfLintLevel::Level1,
-            LintLevel::Level3 => ods_core::OkfLintLevel::Level3,
-        };
+        let _ = level;
+        let okf_level = ods_core::OkfLintLevel::Level3;
         let mut okf_diags =
             ods_core::lint_okf_bundle_with_config(&bundle, okf_level, &root_specs.okf);
         for d in &mut okf_diags {
@@ -107,88 +102,6 @@ fn run_lint_command(args: &[String]) -> Result<ExitCode, CliError> {
         }
     }
     Ok(exit_code(&diagnostics))
-}
-
-fn run_index_command(args: &[String]) -> Result<ExitCode, CliError> {
-    let (root, _level, format) = parse_common_flags(args, 2)?;
-    let extra = ods_core::parse_extra_spec_flags(args.iter().map(String::as_str))
-        .map_err(|e| usage(e.message()))?;
-    let detected = ods_core::detect_workspace(&root);
-    let engines = ods_core::resolve_engines(extra, detected, true)
-        .map_err(|e| failure(e.message()))?;
-
-    if engines.okf && !engines.ods {
-        return run_okf_index_command(args);
-    }
-    if engines.okf && engines.ods {
-        // Hybrid with --okf: run ODS indexes then OKF indexes.
-        let code = run_ods_index_only(&root, args, format)?;
-        let _ = run_okf_index_command(args)?;
-        return Ok(code);
-    }
-    if !engines.ods {
-        return Err(fail_msg(
-            ods_core::UserMsg::new(
-                "index_requires_ods",
-                ods_core::ErrorStage::Scope,
-                "index requires an ODS workspace",
-            )
-            .next("run `ods init`, or pass `--okf` for OKF indexes"),
-        ));
-    }
-    run_ods_index_only(&root, args, format)
-}
-
-fn run_ods_index_only(
-    root: &Path,
-    args: &[String],
-    format: OutputFormat,
-) -> Result<ExitCode, CliError> {
-    let check = args.iter().any(|a| a == "--check");
-    let workspace = load_workspace_with_options(root, load_options_graph())
-        .map_err(|err| fail_load(root, err))?;
-    if check {
-        let current =
-            indexes_are_current(&workspace).map_err(|err| fail_msg(ods_core::io_failed("index check", err)))?;
-        match format {
-            OutputFormat::Text => {
-                if current {
-                    println!("indexes up to date");
-                } else {
-                    eprintln!("indexes out of date; run `ods index`");
-                }
-            }
-            OutputFormat::Json | OutputFormat::Sarif => {
-                println!(
-                    r#"{{"current":{},"root":{}}}"#,
-                    if current { "true" } else { "false" },
-                    json_escape(&root.display().to_string())
-                );
-            }
-        }
-        Ok(ExitCode::from(if current { 0 } else { 1 }))
-    } else {
-        let paths = generate_indexes(&workspace).map_err(|err| fail_msg(ods_core::io_failed("generate indexes", err)))?;
-        match format {
-            OutputFormat::Text => {
-                for path in &paths {
-                    println!("{}", path.display());
-                }
-            }
-            OutputFormat::Json | OutputFormat::Sarif => {
-                let items: Vec<_> = paths
-                    .iter()
-                    .map(|p| json_escape(&p.display().to_string()))
-                    .collect();
-                println!(
-                    r#"{{"written":[{}],"count":{}}}"#,
-                    items.join(","),
-                    paths.len()
-                );
-            }
-        }
-        Ok(ExitCode::from(0))
-    }
 }
 
 fn run_tags_command(args: &[String]) -> Result<ExitCode, CliError> {
@@ -322,6 +235,7 @@ mod test_lint_index_commands {
     fn lint_fix_canonical_skills_and_index_check() {
         let td = tempdir().unwrap();
         let root = td.path();
+        fs::write(root.join("ods.toml"), "spec = \"0.1\"\n").unwrap();
         fs::write(
             root.join("index.ods.md"),
             "---\nprofile: index\nods: 0.1\n---\n\n# R\n",
@@ -371,25 +285,21 @@ mod test_lint_index_commands {
         }
 
         let path = root.to_str().unwrap().to_string();
-        let res = run_index_command(&["ods".into(), "index".into(), path.clone()]);
+        let res = run_overview_command(&["ods".into(), "overview".into(), path.clone()]);
         assert!(res.is_ok());
-        let res = run_index_command(&[
+        let res = run_find_command(&[
             "ods".into(),
-            "index".into(),
+            "find".into(),
+            "--root".into(),
             path.clone(),
-            "--check".into(),
+            "--key".into(),
+            "status=draft".into(),
         ]);
         assert!(res.is_ok());
-        let res = run_index_command(&[
-            "ods".into(),
-            "index".into(),
-            path.clone(),
-            "--format".into(),
-            "json".into(),
-        ]);
+        let res = run_tree_command(&["ods".into(), "tree".into(), path.clone()]);
         assert!(res.is_ok());
 
-        // fmt command and index --strip-indexes
+        // fmt command
         let res = run_fmt_command(&["ods".into(), "fmt".into(), path.clone()]);
         assert!(res.is_ok());
 
@@ -399,14 +309,6 @@ mod test_lint_index_commands {
             path.clone(),
             "--format".into(),
             "json".into(),
-        ]);
-        assert!(res.is_ok());
-
-        let res = run_index_command(&[
-            "ods".into(),
-            "index".into(),
-            path,
-            "--strip-indexes".into(),
         ]);
         assert!(res.is_ok());
     }

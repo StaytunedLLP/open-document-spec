@@ -273,7 +273,7 @@ impl<R: BufRead, W: Write> LspSession<R, W> {
 
         if ods_core::ods_enabled(&root) {
             if let Ok(ws) = load_workspace(&root) {
-                let diags = lint_workspace_with_level(&ws, LintLevel::Strict);
+                let diags = lint_workspace_with_level(&ws, LintLevel::Full);
                 for diag in diags {
                     if diag.path == path || paths_equal(&diag.path, &path) {
                         lsp_diagnostics.push(json!({

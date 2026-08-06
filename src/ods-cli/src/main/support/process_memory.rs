@@ -116,3 +116,50 @@ fn print_tags(workspace: &ods_core::Workspace, include_all: bool, format: Output
         }
     }
 }
+
+#[cfg(test)]
+mod tests_process_memory {
+    use super::*;
+    use std::path::PathBuf;
+
+    #[test]
+    fn test_print_path_change_report_text_and_json() {
+        let root = PathBuf::from("/ws");
+        let mut report = ods_core::PathChangeReport::default();
+        report.rewritten_files.push(PathBuf::from("/ws/doc.md"));
+        report.warnings.push("warn1".into());
+        report.errors.push("err1".into());
+
+        print_path_change_report(
+            &root,
+            "old",
+            "new",
+            &report,
+            OutputFormat::Text,
+            "moved",
+        );
+        print_path_change_report(
+            &root,
+            "old",
+            "new",
+            &report,
+            OutputFormat::Json,
+            "renamed",
+        );
+    }
+
+    #[test]
+    fn test_print_aliases_and_suggestions() {
+        let ws = ods_core::Workspace::empty(PathBuf::from("/ws"));
+        print_aliases(&ws);
+        print_alias_suggestions(&ws);
+    }
+
+    #[test]
+    fn test_print_tags_formats() {
+        let ws = ods_core::Workspace::empty(PathBuf::from("/ws"));
+        print_tags(&ws, false, OutputFormat::Text);
+        print_tags(&ws, true, OutputFormat::Json);
+    }
+}
+

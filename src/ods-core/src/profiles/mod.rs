@@ -15,26 +15,42 @@ pub fn standard_profile_catalog() -> ProfileCatalog {
 }
 
 pub fn profile_catalog_roots(root: &Path, root_index: Option<&Document>) -> Vec<PathBuf> {
-    let mut roots = Vec::new();
-
     if let Some(root_index) = root_index
         && let FrontmatterState::Parsed(frontmatter) = &root_index.frontmatter
     {
-        roots.extend(frontmatter.profiles.iter().map(|path| {
-            let p = root.join(path);
-            p.canonicalize().unwrap_or(p)
-        }));
+        let cfg = crate::config::WorkspaceConfig {
+            custom_profiles: frontmatter.profiles.clone(),
+            packs: frontmatter.packs.clone(),
+            ..Default::default()
+        };
+        return profile_catalog_roots_from_config(root, &cfg);
+    }
+    if let Ok(cfg) = crate::config::load_workspace_config(root) {
+        return profile_catalog_roots_from_config(root, &cfg);
+    }
+    Vec::new()
+}
 
-        // Also check imported ODS Packs listed under packs:
-        for pack_ref in &frontmatter.packs {
-            let pack_dir = root.join(pack_ref);
-            let pack_dir = pack_dir.canonicalize().unwrap_or(pack_dir);
-            let pack_profiles = pack_dir.join("ods-profiles");
-            if pack_profiles.exists() {
-                roots.push(pack_profiles);
-            } else if pack_dir.exists() {
-                roots.push(pack_dir);
-            }
+/// Profile catalog roots from `ods.toml` (`custom_profiles` + pack `ods-profiles`).
+pub fn profile_catalog_roots_from_config(
+    root: &Path,
+    config: &crate::config::WorkspaceConfig,
+) -> Vec<PathBuf> {
+    let mut roots = Vec::new();
+
+    roots.extend(config.custom_profiles.iter().map(|path| {
+        let p = root.join(path);
+        p.canonicalize().unwrap_or(p)
+    }));
+
+    for pack_ref in &config.packs {
+        let pack_dir = root.join(pack_ref);
+        let pack_dir = pack_dir.canonicalize().unwrap_or(pack_dir);
+        let pack_profiles = pack_dir.join("ods-profiles");
+        if pack_profiles.exists() {
+            roots.push(pack_profiles);
+        } else if pack_dir.exists() {
+            roots.push(pack_dir);
         }
     }
 
@@ -52,8 +68,12 @@ pub fn load_profile_catalog(root: &Path, roots: &[PathBuf]) -> io::Result<Profil
         }
 
         let mut paths = Vec::new();
-        collect_markdown_paths(profile_root, &mut paths)?;
-        paths.sort();
+        if profile_root.is_file() {
+            paths.push(profile_root.clone());
+        } else {
+            collect_markdown_paths(profile_root, &mut paths)?;
+            paths.sort();
+        }
 
         for path in paths {
             let text = fs::read_to_string(&path)?;

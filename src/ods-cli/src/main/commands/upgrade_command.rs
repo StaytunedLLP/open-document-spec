@@ -126,6 +126,13 @@ fn run_upgrade_command(args: &[String]) -> Result<ExitCode, CliError> {
 }
 
 fn run_ods_audit_command(args: &[String]) -> Result<ExitCode, CliError> {
+    if args.iter().any(|a| a == "--help" || a == "-h") {
+        println!(
+            "ods audit [path] [--write-report] [--report-path <path>] [--fail-on any|plain|invalid] [--format text|json]\n\n\
+             Inventory plain, invalid, partial, and compliant Markdown documents."
+        );
+        return Ok(ExitCode::from(0));
+    }
     let write_report = args.iter().any(|a| a == "--write-report");
     let mut report_path_opt = None;
     let mut fail_on = None;
@@ -191,11 +198,8 @@ fn run_ods_audit_command(args: &[String]) -> Result<ExitCode, CliError> {
                 lines.push(format!("- `{rel}` — {err}"));
             }
             FrontmatterState::Parsed(fm) => {
-                // root index with ods: counts as compliant shape for audit inventory
                 let has_profile = fm.profile.as_deref().map(|p| !p.is_empty()).unwrap_or(false);
-                if doc.path == root.join("index.ods.md") {
-                    compliant += 1;
-                } else if !has_profile {
+                if !has_profile {
                     partial += 1;
                     lines.push(format!("- `{rel}` — missing profile"));
                 } else {
@@ -277,6 +281,7 @@ mod test_upgrade_and_audit {
     fn upgrade_migrate_fm_dry_and_write() {
         let td = tempdir().unwrap();
         let root = td.path();
+        fs::write(root.join("ods.toml"), "spec = \"0.1\"\n").unwrap();
         fs::write(
             root.join("index.ods.md"),
             "---\nprofile: index\nods: 0.1\n---\n\n# Root\n",
@@ -335,6 +340,7 @@ mod test_upgrade_and_audit {
         assert!(err.message().contains("workspace") || err.message().contains("ODS"));
 
         // Setup ODS workspace with root index, plain doc, invalid doc, and partial doc
+        fs::write(root.join("ods.toml"), "spec = \"0.1\"\n").unwrap();
         fs::write(
             root.join("index.ods.md"),
             "---\nprofile: index\nods: 0.1\n---\n\n# Root\n",
@@ -407,6 +413,7 @@ mod test_upgrade_and_audit {
     fn audit_command_inventory_paths() {
         let td = tempdir().unwrap();
         let root = td.path();
+        fs::write(root.join("ods.toml"), "spec = \"0.1\"\n").unwrap();
         fs::write(
             root.join("index.ods.md"),
             "---\nprofile: index\nods: 0.1\n---\n\n# R\n",
@@ -432,7 +439,7 @@ mod test_upgrade_and_audit {
             "--fail-on".into(),
             "any".into(),
         ]);
-        assert!(res.is_ok());
+        assert_eq!(res.unwrap(), ExitCode::from(1));
         assert!(report.exists());
 
         let res = run_ods_audit_command(&[
@@ -444,7 +451,7 @@ mod test_upgrade_and_audit {
             "--fail-on".into(),
             "plain".into(),
         ]);
-        assert!(res.is_ok());
+        assert_eq!(res.unwrap(), ExitCode::from(1));
 
         let res = run_ods_audit_command(&["ods".into(), "audit".into(), "--help".into()]);
         assert!(res.is_ok());

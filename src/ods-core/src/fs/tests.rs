@@ -46,16 +46,8 @@ mod tests {
         let root = std::env::temp_dir().join(format!("ods-root-{nonce}"));
         let nested = root.join("nested");
         fs::create_dir_all(nested.join("products")).expect("dirs");
-        fs::write(
-            root.join("index.ods.md"),
-            "---\nprofile: index\nods: 0.1\n---\n\n# Root\n",
-        )
-        .expect("root index");
-        fs::write(
-            nested.join("index.ods.md"),
-            "---\nprofile: index\nods: 0.1\n---\n\n# Nested\n",
-        )
-        .expect("nested index");
+        fs::write(root.join("ods.toml"), "spec = \"0.1\"\n").expect("root toml");
+        fs::write(nested.join("ods.toml"), "spec = \"0.1\"\n").expect("nested toml");
         let file = nested.join("products/item.md");
         fs::write(&file, "# Item\n").expect("file");
 
@@ -102,14 +94,13 @@ mod tests {
         let file = dir.join("docs/thing.md");
         fs::write(&file, "# Thing\n").expect("file");
 
-        // index.ods.md without ods: key is still found as nearest_index fallback.
-        // But it should NOT act as a workspace root for plain directories
-        // that lack the ods: marker.
+        // index.ods.md without ods: and without ods.toml is not a workspace root.
         let found = find_workspace_root(&file);
-        // nearest_index is found (index.ods.md exists), so it returns Some.
-        // This is expected — the strict guard (require_ods_workspace) in CLI
-        // catches this case by checking ods_enabled().
-        assert!(found.is_some());
+        assert!(
+            found.is_none(),
+            "expected None without ods.toml / ods: marker, got {:?}",
+            found
+        );
 
         let _ = fs::remove_dir_all(dir);
     }
@@ -123,16 +114,7 @@ mod tests {
         let root = std::env::temp_dir().join(format!("ods-rel-root-{nonce}"));
         let nested = root.join("specs").join("ods");
         fs::create_dir_all(&nested).expect("dirs");
-        fs::write(
-            root.join("index.ods.md"),
-            "---\nprofile: index\nods: 0.1\n---\n\n# Root\n",
-        )
-        .expect("root index");
-        fs::write(
-            nested.join("index.ods.md"),
-            "---\nprofile: index\n---\n\n# Nested index without ods key\n",
-        )
-        .expect("nested index");
+        fs::write(root.join("ods.toml"), "spec = \"0.1\"\n").expect("root toml");
         fs::write(nested.join("core.md"), "# Core\n").expect("core");
 
         let prev = std::env::current_dir().expect("cwd");

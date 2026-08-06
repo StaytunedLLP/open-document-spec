@@ -33,11 +33,13 @@ include!("main/commands/workspace/pack/pack_command.rs");
 include!("main/commands/share_command.rs");
 include!("main/commands/bench_command.rs");
 include!("main/commands/stats_command.rs");
+include!("main/commands/overview_command.rs");
 include!("main/commands/completion_command.rs");
 include!("main/commands/schema_command.rs");
 include!("main/commands/tree_command.rs");
 include!("main/commands/diff_command.rs");
 include!("main/commands/clean_command.rs");
+include!("main/commands/read_command.rs");
 include!("main/commands/undo_command.rs");
 
 // --- support (formatters, loaders, helpers) ---

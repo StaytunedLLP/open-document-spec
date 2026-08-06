@@ -183,7 +183,7 @@ fn profile_fmt_disable_doctor_and_flag_matrix() {
         "---\nprofile: note\nstatus: draft\ntags:\n  - one\n---\n\n# Note\n",
     )
     .unwrap();
-    let _ = ods().args(["index", root]).output();
+    let _ = ods().args(["lint", root]).output();
 
     // profiles list (text + json)
     let out = ods().args(["profiles", root]).output().unwrap();
@@ -202,8 +202,8 @@ fn profile_fmt_disable_doctor_and_flag_matrix() {
         .unwrap();
     assert!(out.status.success(), "profile init: {:?}", out);
     assert!(dir.join(".ods/profiles/rfc.md").is_file());
-    let index_text = fs::read_to_string(dir.join("index.md"))
-        .unwrap_or_else(|_| fs::read_to_string(dir.join("index.ods.md")).expect("root index"));
+    let index_text = fs::read_to_string(dir.join("ods.toml"))
+        .unwrap_or_else(|_| fs::read_to_string(dir.join("ods.toml")).expect("root index"));
     assert!(
         index_text.contains(".ods/profiles/rfc.md"),
         "expected custom-profiles registration: {index_text}"
@@ -257,10 +257,11 @@ fn profile_fmt_disable_doctor_and_flag_matrix() {
         .output()
         .unwrap();
     assert!(out.status.success(), "alias add: {:?}", out);
-    let index_text = fs::read_to_string(dir.join("index.md"))
-        .unwrap_or_else(|_| fs::read_to_string(dir.join("index.ods.md")).expect("root index"));
+    let index_text = fs::read_to_string(dir.join("ods.toml"))
+        .unwrap_or_else(|_| fs::read_to_string(dir.join("ods.toml")).expect("root index"));
     assert!(
-        index_text.contains("aliases:") && index_text.contains("Objective"),
+        (index_text.contains("aliases") || index_text.contains("[aliases]"))
+            && index_text.contains("Objective"),
         "{index_text}"
     );
 
@@ -390,7 +391,7 @@ fn mv_and_undo_snapshot_roundtrip() {
         "---\nprofile: note\nstatus: draft\ndepends:\n  - a.md\n---\n\n# B\n",
     )
     .unwrap();
-    let _ = ods().args(["index", root]).output();
+    let _ = ods().args(["lint", root]).output();
 
     // Create snapshot via bench strip --dry or explicit strip path
     let _ = ods().args(["bench", "snapshot", root]).output();
@@ -451,7 +452,7 @@ fn stats_text_and_json() {
         "---\nprofile: note\nstatus: draft\ntags:\n  - alpha\n---\n\n# N\n",
     )
     .unwrap();
-    let _ = ods().args(["index", root]).output();
+    let _ = ods().args(["lint", root]).output();
 
     let out = ods().args(["stats", root]).output().unwrap();
     assert!(out.status.success(), "{:?}", out);
@@ -481,7 +482,7 @@ fn tree_and_clean_and_completion() {
         "---\nprofile: note\nstatus: draft\n---\n\n# A\n",
     )
     .unwrap();
-    let _ = ods().args(["index", root]).output();
+    let _ = ods().args(["lint", root]).output();
 
     let out = ods().args(["tree", root]).output().unwrap();
     assert!(out.status.success(), "{:?}", out);
@@ -644,7 +645,7 @@ fn find_fmt_doctor_coverage_paths() {
         "---\nprofile: note\nstatus: draft\ntags:\n  - x\n---\n\n# N\n",
     )
     .unwrap();
-    let _ = ods().args(["index", root]).output();
+    let _ = ods().args(["lint", root]).output();
 
     let out = ods().args(["find", root, "--tag", "x"]).output().unwrap();
     let _ = out.status;

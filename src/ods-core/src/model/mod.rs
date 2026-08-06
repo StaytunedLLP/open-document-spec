@@ -17,19 +17,18 @@ pub enum Severity {
     Warning,
 }
 
-/// Which validation rules to enforce. Standard mode checks frontmatter shape; Strict mode enforces full graph integrity.
+/// Workspace compliance outcome (binary — no Level 0–3 ladder).
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum WorkspaceCompliance {
+    Compliant,
+    NonCompliant,
+}
+
+/// Lint always runs the full integrity rule set (binary compliance — no partial modes).
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
 pub enum ComplianceMode {
     #[default]
-    Strict,
-    Standard,
-}
-
-impl ComplianceMode {
-    #[allow(non_upper_case_globals)]
-    pub const Level3: Self = Self::Strict;
-    #[allow(non_upper_case_globals)]
-    pub const Level1: Self = Self::Standard;
+    Full,
 }
 
 pub type LintLevel = ComplianceMode;
@@ -125,6 +124,33 @@ pub struct WorkspaceSpecsConfig {
     pub skills: SpecLintConfig,
 }
 
+/// Eq-safe custom frontmatter value (unknown top-level keys only).
+/// Nested maps are not supported and parse as [`CustomValue::Null`].
+#[derive(Debug, Clone, PartialEq, Eq, Default)]
+pub enum CustomValue {
+    #[default]
+    Null,
+    String(String),
+    List(Vec<String>),
+}
+
+impl CustomValue {
+    /// Scalar / list string values for query matching.
+    pub fn as_query_strings(&self) -> Vec<String> {
+        match self {
+            CustomValue::Null => Vec::new(),
+            CustomValue::String(s) => {
+                if s.is_empty() {
+                    Vec::new()
+                } else {
+                    vec![s.clone()]
+                }
+            }
+            CustomValue::List(items) => items.iter().filter(|s| !s.is_empty()).cloned().collect(),
+        }
+    }
+}
+
 #[derive(Debug, Clone, PartialEq, Eq, Default)]
 pub struct Frontmatter {
     pub profile: Option<String>,
@@ -154,6 +180,9 @@ pub struct Frontmatter {
     pub title: Option<String>,
     pub expected_keys: Vec<String>,
     pub specs: WorkspaceSpecsConfig,
+    /// Non-standard top-level frontmatter keys (custom profiles, domain metadata).
+    /// Keys are stored lowercased. Read-only for query — not rewritten by fmt/migrate.
+    pub custom_keys: BTreeMap<String, CustomValue>,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -215,6 +244,8 @@ impl Default for LoadOptions {
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Workspace {
     pub root: PathBuf,
+    /// Policy from `ods.toml` (or legacy root index migration).
+    pub config: crate::config::WorkspaceConfig,
     pub documents: Vec<Document>,
     pub profiles: ProfileCatalog,
     pub profile_roots: Vec<PathBuf>,
@@ -222,19 +253,17 @@ pub struct Workspace {
     pub by_id: HashMap<String, usize>,
     /// Absolute/normalized path -> index into `documents`.
     pub by_path: HashMap<PathBuf, usize>,
-    /// Directory -> sorted relative child entry strings (same form as index links).
+    /// Directory -> sorted relative child entry strings (for virtual browse).
     pub children: HashMap<PathBuf, Vec<String>>,
     /// Absolute paths of files declared as resources.
     pub resource_paths: HashSet<PathBuf>,
     /// Absolute paths of files declared as code references.
     pub code_paths: HashSet<PathBuf>,
-    /// Workspace-relative path prefixes from root `index.md` `ignore:` (scan/index scope).
+    /// Workspace-relative path prefixes from `ods.toml` `ignore` (scan scope).
     pub ignore: Vec<String>,
-    /// Normalized tag → document ids (observed project tags). Rebuilt with indexes.
+    /// Normalized tag → document ids (observed project tags). Rebuilt with maps.
     pub tag_index: BTreeMap<String, Vec<String>>,
-    /// Absolute directory roots of nested profile catalogs declared via any
-    /// `index.md`'s `profiles:` key. O(1)-checkable substitute for scanning
-    /// `documents` per call — see `fs::is_excluded_profile_catalog`.
+    /// Absolute directory roots of nested profile catalogs from `custom_profiles`.
     pub profile_catalog_paths: HashSet<PathBuf>,
     /// Every directory that is itself, or is an ancestor of, at least one
     /// non-ignored document. O(1)-checkable substitute for scanning
@@ -246,6 +275,7 @@ impl Workspace {
     pub fn empty(root: PathBuf) -> Self {
         Self {
             root,
+            config: crate::config::WorkspaceConfig::default(),
             documents: Vec::new(),
             profiles: ProfileCatalog::default(),
             profile_roots: Vec::new(),

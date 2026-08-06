@@ -121,7 +121,7 @@ fn depends_and_related_references_resolve_without_dangling() {
     let workspace = load_workspace(&temp).expect("workspace");
     let path = temp.join("product.md");
     let diagnostics =
-        ods_core::lint_document_in_workspace(&workspace, &path, ods_core::LintLevel::Level3);
+        ods_core::lint_document_in_workspace(&workspace, &path, ods_core::LintLevel::Full);
     let dangling: Vec<_> = diagnostics
         .iter()
         .filter(|d| d.message.contains("dangling reference"))

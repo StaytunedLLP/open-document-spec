@@ -1,6 +1,6 @@
 use ods_core::{
-    LintLevel, canonicalize_workspace_document_refs, export_workspace_graph, generate_indexes,
-    lint_workspace, lint_workspace_with_ref_style, load_workspace, resolve_context,
+    LintLevel, canonicalize_workspace_document_refs, export_workspace_graph, lint_workspace,
+    lint_workspace_with_ref_style, load_workspace, resolve_context,
 };
 use std::fs;
 
@@ -12,7 +12,7 @@ fn tempdir() -> tempfile::TempDir {
 fn graph_keys_and_context_work_end_to_end() {
     let dir = tempdir();
     fs::write(
-        dir.path().join("index.ods.md"),
+        dir.path().join("ods.toml"),
         "---\nprofile: index\nods: 0.1\n---\n\n# Root\n",
     )
     .unwrap();
@@ -38,7 +38,7 @@ fn graph_keys_and_context_work_end_to_end() {
         "---\nprofile: note\nstatus: archived\n---\n\n# Old\n",
     )
     .unwrap();
-    generate_indexes(&load_workspace(dir.path()).unwrap()).unwrap();
+    /* indexes removed */
     let workspace = load_workspace(dir.path()).unwrap();
     let diags = lint_workspace(&workspace);
     assert!(diags.is_empty(), "{diags:?}");
@@ -61,7 +61,7 @@ fn graph_keys_and_context_work_end_to_end() {
 fn code_refs_are_in_context_and_export() {
     let dir = tempdir();
     fs::write(
-        dir.path().join("index.ods.md"),
+        dir.path().join("ods.toml"),
         "---\nprofile: index\nods: 0.1\n---\n\n# Root\n",
     )
     .unwrap();
@@ -95,39 +95,49 @@ fn code_refs_are_in_context_and_export() {
 
 #[test]
 fn code_files_are_not_indexed_as_document_children() {
-    let dir = tempdir();
+    let temp = tempfile::tempdir().unwrap();
+    let root = temp.path();
     fs::write(
-        dir.path().join("index.ods.md"),
-        "---\nprofile: index\nods: 0.1\n---\n\n# Root\n",
-    )
-    .unwrap();
-    fs::create_dir_all(dir.path().join("src")).unwrap();
-    fs::write(
-        dir.path().join("src/checkout.ts"),
-        "export const checkout = 1;\n",
+        root.join("ods.toml"),
+        "spec = \"0.1\"
+",
     )
     .unwrap();
     fs::write(
-        dir.path().join("feature.md"),
-        "---\nprofile: note\nstatus: draft\ncode:\n  - path: src/checkout.ts\n    role: implementation\n---\n\n# Feature\n",
-    )
-    .unwrap();
+        root.join("doc.md"),
+        "---
+profile: note
+status: draft
+code:
+  - path: src/main.rs
+    role: entrypoint
+---
 
-    generate_indexes(&load_workspace(dir.path()).unwrap()).unwrap();
-    let root_index = fs::read_to_string(dir.path().join("index.ods.md")).unwrap();
-    assert!(root_index.contains("feature.md"), "{root_index}");
-    assert!(!root_index.contains("src/"), "{root_index}");
-    assert!(!dir.path().join("src/index.md").exists());
+# Doc
+",
+    )
+    .unwrap();
+    fs::create_dir_all(root.join("src")).unwrap();
+    fs::write(
+        root.join("src/main.rs"),
+        "fn main() {}
+",
+    )
+    .unwrap();
+    let workspace = load_workspace(root).unwrap();
+    assert!(workspace.document_by_path(&root.join("doc.md")).is_some());
+    assert!(
+        workspace
+            .document_by_path(&root.join("src/main.rs"))
+            .is_none()
+    );
+    assert!(workspace.code_paths.iter().any(|p| p.ends_with("main.rs")));
 }
 
 #[test]
 fn duplicate_ids_and_missing_refs_are_reported() {
     let dir = tempdir();
-    fs::write(
-        dir.path().join("index.ods.md"),
-        "---\nods: 0.1\n---\n\n# R\n",
-    )
-    .unwrap();
+    fs::write(dir.path().join("ods.toml"), "spec = \"0.1\"\n").unwrap();
     fs::write(
         dir.path().join("a.md"),
         "---\nprofile: note\nid: same\nstatus: draft\n---\n\n# A\n",
@@ -157,7 +167,7 @@ fn duplicate_ids_and_missing_refs_are_reported() {
 fn markdown_document_refs_resolve_and_canonical_lint_warns_on_legacy_ids() {
     let dir = tempdir();
     fs::write(
-        dir.path().join("index.ods.md"),
+        dir.path().join("ods.toml"),
         "---\nprofile: index\nods: 0.1\n---\n\n# Root\n",
     )
     .unwrap();
@@ -173,11 +183,11 @@ fn markdown_document_refs_resolve_and_canonical_lint_warns_on_legacy_ids() {
     )
     .unwrap();
 
-    generate_indexes(&load_workspace(dir.path()).unwrap()).unwrap();
+    /* indexes removed */
     let workspace = load_workspace(dir.path()).unwrap();
     let diags = lint_workspace(&workspace);
     assert!(diags.is_empty(), "{diags:?}");
-    let strict = lint_workspace_with_ref_style(&workspace, LintLevel::Level3, true);
+    let strict = lint_workspace_with_ref_style(&workspace, LintLevel::Full, true);
     assert!(
         strict
             .iter()
@@ -197,7 +207,7 @@ fn markdown_document_refs_resolve_and_canonical_lint_warns_on_legacy_ids() {
 fn fmt_md_paths_rewrites_document_refs_only() {
     let dir = tempdir();
     fs::write(
-        dir.path().join("index.ods.md"),
+        dir.path().join("ods.toml"),
         "---\nprofile: index\nods: 0.1\n---\n\n# Root\n",
     )
     .unwrap();

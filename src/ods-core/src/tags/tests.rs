@@ -9,6 +9,53 @@ mod tests {
     }
 
     #[test]
+    fn docs_with_all_tags_intersection() {
+        use crate::model::{Document, Frontmatter, FrontmatterState, Workspace};
+        use std::path::PathBuf;
+
+        let mk = |path: &str, tags: &[&str]| Document {
+            path: PathBuf::from(path),
+            directory: PathBuf::from("."),
+            body: String::new(),
+            headings: Vec::new(),
+            frontmatter: FrontmatterState::Parsed(Frontmatter {
+                tags: tags.iter().map(|t| t.to_string()).collect(),
+                ..Default::default()
+            }),
+        };
+        let mut ws = Workspace::empty(PathBuf::from("."));
+        ws.documents = vec![
+            mk("a.md", &["auth", "billing"]),
+            mk("b.md", &["auth"]),
+            mk("c.md", &["billing", "oncall"]),
+        ];
+        for (i, doc) in ws.documents.iter().enumerate() {
+            let id = crate::parse::document_id(
+                &ws.root,
+                &doc.path,
+                match &doc.frontmatter {
+                    FrontmatterState::Parsed(fm) => Some(fm),
+                    _ => None,
+                },
+            );
+            ws.by_id.insert(id.clone(), i);
+            if let FrontmatterState::Parsed(fm) = &doc.frontmatter {
+                for tag in &fm.tags {
+                    ws.tag_index.entry(tag.clone()).or_default().push(id.clone());
+                }
+            }
+        }
+
+        assert!(docs_with_all_tags(&ws, &[]).is_empty());
+        let only_auth = docs_with_all_tags(&ws, &["auth".into()]);
+        assert_eq!(only_auth.len(), 2);
+        let both = docs_with_all_tags(&ws, &["auth".into(), "billing".into()]);
+        assert_eq!(both.len(), 1);
+        let none = docs_with_all_tags(&ws, &["auth".into(), "missing".into()]);
+        assert!(none.is_empty());
+    }
+
+    #[test]
     fn normalize_list_dedupes() {
         assert_eq!(
             normalize_tag_list(["Billing", "billing", "oncall", ""]),

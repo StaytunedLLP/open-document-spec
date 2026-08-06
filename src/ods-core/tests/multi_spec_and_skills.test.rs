@@ -200,11 +200,7 @@ fn skills_parse_folded_description_and_unknown_keys() {
 fn detect_hybrid_workspace_and_skill_roots() {
     let td = tempdir();
     let root = td.path();
-    fs::write(
-        root.join("index.ods.md"),
-        "---\nprofile: index\nods: 0.1\n---\n\n# R\n",
-    )
-    .unwrap();
+    fs::write(root.join("ods.toml"), "spec = \"0.1\"\n").unwrap();
     let sk = root.join("skills").join("demo");
     fs::create_dir_all(&sk).unwrap();
     fs::write(
@@ -247,8 +243,15 @@ fn resolve_engines_auto_activation_from_root_config() {
     let td = tempdir();
     let root = td.path();
     fs::write(
-        root.join("index.ods.md"),
-        "---\nods: 0.1\nspecs:\n  okf:\n    enabled: true\n  skills:\n    enabled: true\n---\n\n# R\n",
+        root.join("ods.toml"),
+        r#"spec = "0.1"
+
+[specs.okf]
+enabled = true
+
+[specs.skills]
+enabled = true
+"#,
     )
     .unwrap();
 

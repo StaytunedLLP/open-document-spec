@@ -41,12 +41,12 @@ ods init --okf   # OKF bundle (okf_version: "0.2")
 |---|---|
 | Docs describe **software systems** (services, guides, RFCs, APIs) | Docs describe **data/knowledge assets** (tables, metrics, playbooks, policies) |
 | You need **typed graph edges** (`depends`, `related`) and **code bindings** | You need **trust signals** (who generated/verified) and **staleness** |
-| Progressive disclosure via **ODS indexes** + profiles | Progressive disclosure via OKF **index.md** / **log.md** conventions |
-| Workspace root is an engineering repo | Bundle is a knowledge pack (often agent-maintained) |
+| Progressive disclosure via **CLI discovery** (`overview` / `find` / `context`) + profiles | Progressive disclosure via OKF **index.md** / **log.md** conventions |
+| Workspace root is an engineering repo (`ods.toml`) | Bundle is a knowledge pack (often agent-maintained) |
 
 | Command on hybrid | Behavior |
 |---|---|
-| bare `lint` / `doctor` / `audit` | **ODS only** (or **ODS + OKF** if `specs.okf.enabled: true` in `index.ods.md`) |
+| bare `lint` / `doctor` / `audit` | **ODS only** (or **ODS + OKF** if `ods.toml` has `[specs.okf] enabled = true`) |
 | same with `--okf` | **ODS + OKF** |
 | pure OKF tree without `--okf` | Error with hint to pass `--okf` |
 | ODS-only cmds (`mv`, `tags`, …) | ODS engine |
@@ -55,17 +55,12 @@ ods init --okf   # OKF bundle (okf_version: "0.2")
 
 By default, OKF validation enforces required keys such as `type` and `runtime` (for `Attested Computation`). If your team or workflow does not require frontmatter key enforcement for OKF concepts, you can suppress key linting via:
 
-1. **Declarative Root `index.ods.md` Frontmatter**:
-   ```yaml
-   ---
-   ods: 0.1
-   specs:
-     okf:
-       enabled: true
-       lint:
-         check_keys: false                  # Disable required key presence checks
-         ignore_keys: ["runtime", "sources"] # Or suppress specific keys
-   ---
+1. **Declarative root `ods.toml`**:
+   ```toml
+   [specs.okf]
+   enabled = true
+   check_keys = false
+   ignore_keys = ["runtime", "sources"]
    ```
 2. **CLI Flags**:
    - `ods lint --okf --skip-frontmatter-keys` (disables key requirement checks)

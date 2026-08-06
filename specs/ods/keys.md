@@ -62,9 +62,17 @@ ods:
 | :--- | :--- | :--- |
 | **Universal (common)** | **Top-level** only | Any YAML consumer can read it (SSGs, Obsidian, Hugo, Docusaurus, Astro, CMS, agents) |
 | **ODS engine** | Nested under **`ods:`** only | Profile, lifecycle, graph, share, assets, context |
-| **Root index only** | Top-level on **root** `index.ods.md` (or `index.md`) | Workspace boundary, packs, ignore, multi-spec config |
+| **ods.toml only** | Top-level on **root** `ods.toml` | Workspace boundary, packs, ignore, multi-spec config |
 
 **Why the split:** universal keys stay visible to non-ODS tools; engine keys stay in a private namespace so they do not collide with SSG reserved keys.
+
+### Multi-tool frontmatter interoperability (normative)
+
+ODS enforces a **non-destructive frontmatter policy** so Hugo, Astro, Jekyll, Docusaurus, Next.js, Obsidian, and custom pipelines can coexist with ODS on the same files.
+
+- **Unknown / non-ODS keys** (e.g. Hugo `layout`, Astro `hero_image`, Jekyll `permalink`, custom `author`) MUST be preserved through parse, lint, and CLI mutations (`ods status`, `ods tag`, `ods fmt`, `ods adopt`, `ods fmt --migrate`).
+- Mutations MUST change **only** native keys for the active dialect(s): ODS by default; OKF / Skills only when those engines are enabled. They MUST NOT delete, alter values of, or invent foreign keys.
+- Surgical mutators (status, tags) preserve relative order of other keys. `ods fmt --migrate` may reorder **engine** keys under `ods:` and normalize blank lines between frontmatter and body; it MUST still re-emit every non-engine top-level block and any unknown nested keys under `ods:`.
 
 ### Where does this key go?
 
@@ -72,7 +80,7 @@ ods:
 | :--- | :--- |
 | `description`, `tags`, `owner`, `created`, `updated` | **Top-level (common)** |
 | `profile`, `status`, `id`, `share`, `depends`, `related`, `resources`, `code`, `context` | **Under `ods:`** |
-| `ods`, `custom-profiles`, `profiles` (legacy), `packs`, `ignore`, `aliases`, `specs` | **Root index only** |
+| `spec`, `custom_profiles`, `packs`, `ignore`, `aliases`, `specs`, `service` | **`ods.toml` only** |
 
 ### Tags placement (normative)
 
@@ -247,9 +255,9 @@ Parsers MUST NOT error if order differs; only emit tooling enforces sequence.
 
 ---
 
-## 4. Root index keys only
+## 4. ods.toml keys only
 
-Appear at the **top level of the workspace root index** (`index.ods.md` preferred). Ordinary documents MUST NOT use them as workspace markers.
+Appear at the **top level of the workspace ods.toml** (`ods.toml` preferred). Ordinary documents MUST NOT use them as workspace markers.
 
 ### `ods` (spec version)
 
@@ -370,27 +378,22 @@ Use this guide when processing customer refunds.
 
 ---
 
-## 6. Root index example
+## 6. ods.toml example
 
-```yaml
----
-profile: index
-ods: 0.1
-custom-profiles:
-  - docs/profiles/rfc.md
-packs:
-  - vendor/engineering-pack
-ignore:
-  - src
-  - app-web
-specs:
-  okf:
-    enabled: false
-  skills:
-    enabled: false
----
+```toml
+# ods.toml — repository root only (workspace marker)
+spec = "0.1"
 
-# Product Documentation
+ignore = ["src", "app-web"]
+custom_profiles = ["docs/profiles/rfc.md"]
+packs = ["vendor/engineering-pack"]
+
+[specs.okf]
+enabled = false
+
+[specs.skills]
+enabled = false
 ```
 
-See [indexes.md](indexes.md) for index body rules and scan defaults.
+See [indexes.md](indexes.md) for workspace config fields and progressive CLI discovery (indexes are not generated).
+

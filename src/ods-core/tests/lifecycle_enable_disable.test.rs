@@ -16,6 +16,7 @@ fn init_then_disable_round_trip_preserves_body() {
     assert!(ods_enabled(&dir));
     assert!(en.initialized || en.already_initialized);
     assert!(!en.adopted.is_empty());
+    assert!(dir.join("ods.toml").exists());
 
     let note = fs::read_to_string(dir.join("note.md")).unwrap();
     assert!(note.contains("profile:"));
@@ -40,7 +41,7 @@ fn init_then_disable_round_trip_preserves_body() {
         },
     )
     .unwrap();
-    assert!(!applied.edited.is_empty());
+    assert!(!applied.edited.is_empty() || !applied.deleted.is_empty());
     assert!(!ods_enabled(&dir));
 
     let note = fs::read_to_string(dir.join("note.md")).unwrap();
@@ -50,7 +51,7 @@ fn init_then_disable_round_trip_preserves_body() {
 }
 
 #[test]
-fn disable_keep_frontmatter_only_drops_ods_marker() {
+fn disable_strip_root_policy_removes_ods_toml() {
     let dir = temp_workspace();
     init_workspace(&dir, InitOptions { adopt: false }).unwrap();
     fs::write(
@@ -74,12 +75,11 @@ fn disable_keep_frontmatter_only_drops_ods_marker() {
     assert!(!ods_enabled(&dir));
     let doc = fs::read_to_string(dir.join("doc.md")).unwrap();
     assert!(doc.contains("profile: note"));
-    let root = fs::read_to_string(dir.join("index.ods.md")).unwrap();
-    assert!(!root.lines().any(|l| l.trim().starts_with("ods:")));
+    assert!(!dir.join("ods.toml").exists());
 }
 
 #[test]
-fn disable_remove_indexes_deletes_non_root_index() {
+fn disable_remove_indexes_deletes_legacy_nested_index() {
     let dir = temp_workspace();
     init_workspace(&dir, InitOptions { adopt: false }).unwrap();
     fs::create_dir_all(dir.join("nested")).unwrap();
@@ -107,7 +107,6 @@ fn disable_remove_indexes_deletes_non_root_index() {
     .unwrap();
 
     assert!(!ods_enabled(&dir));
-    assert!(dir.join("index.ods.md").exists());
     assert!(!dir.join("nested/index.ods.md").exists());
     assert!(dir.join("nested/doc.md").exists());
     assert!(
@@ -126,45 +125,39 @@ fn ods_enabled_false_without_marker() {
 }
 
 #[test]
-fn init_on_existing_index_injects_ods() {
+fn init_writes_ods_toml() {
     let dir = temp_workspace();
-    fs::write(
-        dir.join("index.ods.md"),
-        "---\nprofile: index\n---\n\n# Docs\n\n",
-    )
-    .unwrap();
     assert!(!ods_enabled(&dir));
     init_workspace(&dir, InitOptions::default()).unwrap();
     assert!(ods_enabled(&dir));
-    let root = fs::read_to_string(dir.join("index.ods.md")).unwrap();
+    let root = fs::read_to_string(dir.join("ods.toml")).unwrap();
     assert!(
-        root.contains(&format!("ods: {}", current_ods_spec_version())),
+        root.contains(&format!("spec = \"{}\"", current_ods_spec_version())),
         "{root}"
     );
     let _ = load_workspace(&dir).unwrap();
 }
 
 #[test]
-fn init_on_existing_index_updates_stale_ods_version() {
+fn init_migrates_legacy_index_to_toml() {
     let dir = temp_workspace();
     fs::write(
         dir.join("index.ods.md"),
-        "---\nprofile: index\nods: draft-1\n---\n\n# Docs\n\n",
+        "---\nprofile: index\nods: 0.1\nignore:\n  - foo\n---\n\n# Docs\n\n",
     )
     .unwrap();
 
     init_workspace(&dir, InitOptions::default()).unwrap();
 
-    let root = fs::read_to_string(dir.join("index.ods.md")).unwrap();
-    assert!(
-        root.contains(&format!("ods: {}", current_ods_spec_version())),
-        "{root}"
-    );
-    assert!(!root.contains("ods: draft-1"), "{root}");
+    assert!(dir.join("ods.toml").exists());
+    assert!(!dir.join("index.ods.md").exists());
+    let root = fs::read_to_string(dir.join("ods.toml")).unwrap();
+    assert!(root.contains("spec = \"0.1\""), "{root}");
+    assert!(root.contains("foo"), "{root}");
 }
 
 #[test]
-fn disable_workspace_remove_root_index_and_already_disabled() {
+fn disable_workspace_remove_root_config() {
     let dir = temp_workspace();
     init_workspace(&dir, InitOptions::default()).unwrap();
     assert!(ods_enabled(&dir));
@@ -179,7 +172,7 @@ fn disable_workspace_remove_root_index_and_already_disabled() {
     )
     .unwrap();
     assert!(!rep.deleted.is_empty());
-    assert!(!dir.join("index.md").exists());
+    assert!(!dir.join("ods.toml").exists());
 
     // Second call: already disabled
     let rep2 = disable_workspace(&dir, DisableOptions::default()).unwrap();

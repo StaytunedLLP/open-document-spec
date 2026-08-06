@@ -8,5 +8,6 @@ pub mod schema;
 
 pub use schema::{
     KeyDefinition, KeyPlacement, KeyType, SchemaIssue, SpecKind, SpecSchema, SpecSchemaRegistry,
-    generate_ods_json_schema, validate_ods_frontmatter,
+    evaluate_document_key_query, evaluate_single_key_clause, filter_documents_by_keys,
+    generate_ods_json_schema, get_document_key_values, validate_ods_frontmatter,
 };

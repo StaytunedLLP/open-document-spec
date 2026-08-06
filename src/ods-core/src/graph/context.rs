@@ -374,3 +374,29 @@ pub fn resolve_context_start(workspace: &Workspace, query: &str) -> Option<PathB
 
     None
 }
+
+#[cfg(test)]
+mod tests_context {
+    use super::*;
+
+    #[test]
+    fn test_resolve_context_start_empty_and_missing() {
+        let ws = Workspace::empty(PathBuf::from("/nonexistent_ws_root"));
+        assert_eq!(resolve_context_start(&ws, ""), None);
+        assert_eq!(resolve_context_start(&ws, "   "), None);
+        assert_eq!(resolve_context_start(&ws, "missing_doc_xyz"), None);
+    }
+
+    #[test]
+    fn test_is_ignored_edge_cases() {
+        let root = Path::new("/workspace");
+        let path = Path::new("/workspace/vendor/lib.md");
+
+        assert!(is_ignored(path, root, &["vendor".to_string()]));
+        assert!(!is_ignored(
+            path,
+            root,
+            &["".to_string(), "other".to_string()]
+        ));
+    }
+}

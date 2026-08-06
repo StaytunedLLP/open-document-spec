@@ -40,7 +40,15 @@ fn dispatch_ods_command(args: &[String]) -> Result<ExitCode, CliError> {
             Ok(ExitCode::from(0))
         }
         "lint" => run_lint_command(args),
-        "index" => run_index_command(args),
+        "index" => {
+            if args.iter().any(|a| a == "--okf") {
+                run_okf_index_command(args)
+            } else {
+                eprintln!("error: ods index was removed for ODS (use overview/find/tree/context)");
+                eprintln!("Next: ods overview  |  for OKF: ods index --okf");
+                Ok(ExitCode::from(2))
+            }
+        }
         "profile" | "profiles" => {
             let sub = args.get(2).map(String::as_str).unwrap_or("");
             match sub {
@@ -79,12 +87,14 @@ fn dispatch_ods_command(args: &[String]) -> Result<ExitCode, CliError> {
         "audit" => run_ods_audit_command(args),
         "coverage" => run_coverage_command(args),
         "stats" => run_stats_command(args),
+        "overview" | "summary" => run_overview_command(args),
         "completion" => run_completion_command(args),
         "schema" => run_schema_command(args),
         "tree" => run_tree_command(args),
         "diff" => run_diff_command(args),
         "clean" => run_clean_command(args),
         "lsp" => run_lsp_command(args),
+        "read" => run_read_command(args),
         "undo" => run_undo_command(args),
         "update" => run_update_command(args),
         "upgrade" => run_upgrade_command(args),

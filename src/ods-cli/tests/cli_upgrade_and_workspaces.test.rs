@@ -18,14 +18,17 @@ fn upgrade_rewrites_ods_cli_pin() {
             .unwrap()
             .success()
     );
-    let index = dir.path().join("index.ods.md");
+    let index = dir.path().join("ods.toml");
     let out = Command::new(ods_bin())
         .args(["upgrade", path, "--write"])
         .output()
         .unwrap();
     assert!(out.status.success(), "{:?}", out);
     let after = fs::read_to_string(&index).unwrap();
-    assert!(after.contains("ods: 0.1"), "{after}");
+    assert!(
+        after.contains("spec = \"0.1\"") || after.contains("ods: 0.1"),
+        "{after}"
+    );
 
     let check = Command::new(ods_bin())
         .args(["upgrade", path, "--check"])
@@ -135,7 +138,7 @@ fn find_by_tag() {
     .unwrap();
     assert!(
         Command::new(ods_bin())
-            .args(["index", path])
+            .args(["lint", path])
             .status()
             .unwrap()
             .success()

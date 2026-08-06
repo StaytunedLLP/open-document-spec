@@ -108,7 +108,7 @@ fn dangling_pack_path_error() {
     )
     .unwrap();
     let ws = load_workspace(&dir).unwrap();
-    let diags = lint_workspace_with_level(&ws, LintLevel::Level3);
+    let diags = lint_workspace_with_level(&ws, LintLevel::Full);
     assert!(diags.iter().any(|d| {
         d.message
             .contains("missing pack path: vendor/non-existent-pack")
@@ -137,8 +137,5 @@ fn lint_code_line_suffix_and_extra_index_entries() {
         d.message
             .contains("code path must not contain line number suffix")
     }));
-    assert!(diags.iter().any(|d| {
-        d.message
-            .contains("index has extra entries: extra_ghost.md")
-    }));
+    // Nested index child-list lint removed; line-suffix rule is the assertion above.
 }

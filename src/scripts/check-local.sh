@@ -87,7 +87,7 @@ FIXTURES=(
 
 for fixture in "${FIXTURES[@]}"; do
   if [ -d "${fixture}" ]; then
-    run "${ODS_CMD[@]}" index --check "${fixture}"
+    run "${ODS_CMD[@]}" overview --check "${fixture}"
     run "${ODS_CMD[@]}" lint "${fixture}"
   fi
 done

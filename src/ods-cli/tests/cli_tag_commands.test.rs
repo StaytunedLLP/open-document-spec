@@ -32,7 +32,7 @@ fn fmt_refs_md_paths_and_canonical_lint_flag() {
     .unwrap();
     assert!(
         Command::new(ods_bin())
-            .args(["index", root])
+            .args(["lint", root])
             .output()
             .unwrap()
             .status
@@ -57,6 +57,72 @@ fn fmt_refs_md_paths_and_canonical_lint_flag() {
     assert!(out.status.success(), "{:?}", out);
     let body = fs::read_to_string(dir.join("feature.md")).unwrap();
     assert!(body.contains("  - website/cart-checkout.md"), "{body}");
+}
+
+#[test]
+fn status_and_fmt_migrate_preserve_third_party_frontmatter_keys() {
+    let dir = temp_workspace();
+    let root = dir.to_str().unwrap();
+    assert!(
+        Command::new(ods_bin())
+            .args(["init", root])
+            .output()
+            .unwrap()
+            .status
+            .success()
+    );
+    fs::write(
+        dir.join("post.md"),
+        "---\nlayout: post\nauthor: Alice\nhero_image: /img.png\ntags:\n  - rust\nprofile: note\nstatus: draft\n---\n\n# Post\n",
+    )
+    .unwrap();
+
+    let out = Command::new(ods_bin())
+        .current_dir(&dir)
+        .args(["status", "post.md", "stable"])
+        .output()
+        .unwrap();
+    assert!(out.status.success(), "{:?}", out);
+    let after_status = fs::read_to_string(dir.join("post.md")).unwrap();
+    assert!(after_status.contains("layout: post"), "{after_status}");
+    assert!(after_status.contains("author: Alice"), "{after_status}");
+    assert!(
+        after_status.contains("hero_image: /img.png"),
+        "{after_status}"
+    );
+    assert!(
+        after_status.contains("status: stable") || after_status.contains("  status: stable"),
+        "{after_status}"
+    );
+
+    let out = Command::new(ods_bin())
+        .args(["fmt", "--migrate", root])
+        .output()
+        .unwrap();
+    assert!(out.status.success(), "{:?}", out);
+    let after_fmt = fs::read_to_string(dir.join("post.md")).unwrap();
+    assert!(after_fmt.contains("layout: post"), "{after_fmt}");
+    assert!(after_fmt.contains("author: Alice"), "{after_fmt}");
+    assert!(after_fmt.contains("hero_image: /img.png"), "{after_fmt}");
+    assert!(
+        after_fmt.contains("ods:\n  profile: note\n  status: stable")
+            || after_fmt.contains("ods:\n  profile: note\n  status: draft"),
+        "{after_fmt}"
+    );
+
+    let out = Command::new(ods_bin())
+        .current_dir(&dir)
+        .args(["tag", "rename", "rust", "systems", "--write"])
+        .output()
+        .unwrap();
+    assert!(out.status.success(), "{:?}", out);
+    let after_tag = fs::read_to_string(dir.join("post.md")).unwrap();
+    assert!(after_tag.contains("layout: post"), "{after_tag}");
+    assert!(after_tag.contains("author: Alice"), "{after_tag}");
+    assert!(
+        after_tag.contains("systems") || after_tag.contains("- systems"),
+        "{after_tag}"
+    );
 }
 
 #[test]
@@ -170,8 +236,8 @@ fn fmt_migrate_skips_root_index() {
             .status
             .success()
     );
-    let root_index_before = fs::read_to_string(dir.join("index.ods.md")).unwrap();
-    assert!(root_index_before.contains("ods: "));
+    let root_index_before = fs::read_to_string(dir.join("ods.toml")).unwrap();
+    assert!(root_index_before.contains("spec"));
 
     assert!(
         Command::new(ods_bin())
@@ -182,6 +248,6 @@ fn fmt_migrate_skips_root_index() {
             .success()
     );
 
-    let root_index_after = fs::read_to_string(dir.join("index.ods.md")).unwrap();
+    let root_index_after = fs::read_to_string(dir.join("ods.toml")).unwrap();
     assert_eq!(root_index_before, root_index_after);
 }

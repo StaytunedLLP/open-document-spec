@@ -39,15 +39,15 @@ The `ods` CLI surfaces failures as short, directive messages (`error:` or `usage
 | No `ods.depends` cycles | 3 | error |
 | Resource, `context.load`, and root `packs:` paths resolve | 3 | error |
 | `ods.code` path exists (3) and `role` is standard (1+) | 1+ / 3 | error |
-| Index lists exactly its directory's current children | 3 | error |
+| ~~Index child lists~~ (removed — no nested indexes) | — | — |
 | Body Markdown links do not dangle | 3 | error |
 | Profile expected sections present | 3 | warning |
 
-Tools SHOULD support selecting lint strictness (e.g. Level 1 vs Level 3) for gradual adoption.
+Lint is binary: **compliant** (exit 0) or **non-compliant** (exit 1). There are no Level 1/3 modes.
 
 Tools MUST normalize enum-like values (`status`, `profile`, `share`) to lowercase. For migration, tools MUST fall back to legacy flat engine keys when the nested `ods:` map is absent.
 
-A workspace claims Level 3 by enforcing these rules in CI. Stable documents that fail Level 3 SHOULD be demoted to draft until fixed.
+A workspace is **compliant** when `ods lint` reports no errors in CI. Stable documents that fail lint SHOULD be demoted to draft until fixed.
 
 ### 1.1 Unknown content
 
@@ -67,7 +67,7 @@ A workspace claims Level 3 by enforcing these rules in CI. Stable documents that
 
 ```bash
 ods lint .
-ods index --check .
+ods overview
 ods context support/refund-guide.md
 ods pack list
 ```
@@ -81,7 +81,7 @@ Optional tools MAY implement:
 - **Report / dry-run**: scan Markdown; report missing frontmatter, unknown profiles, alias suggestions; no writes.
 - **Write mode**: draft minimal frontmatter (`profile`, `status: draft`) for docs without frontmatter; MAY infer profile from headings.
 
-Adoption never rewrites body prose. Level 0 remains valid without frontmatter.
+Adoption never rewrites body prose. Plain Markdown remains valid without frontmatter.
 
 ---
 

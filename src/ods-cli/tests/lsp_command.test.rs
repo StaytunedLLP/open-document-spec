@@ -113,8 +113,9 @@ fn test_lsp_document_lifecycle_hover_definition_and_diagnostics() {
 
     // Minimal ODS workspace
     fs::write(
-        root.join("index.ods.md"),
-        "---\nprofile: index\nods: 0.1\n---\n\n# Root\n\nSee [note](note.md).\n",
+        root.join("ods.toml"),
+        "spec = \"0.1\"
+",
     )
     .unwrap();
     fs::write(
@@ -182,7 +183,7 @@ fn test_lsp_document_lifecycle_hover_definition_and_diagnostics() {
     let _ = read_until_id_or_method(&mut reader, 0, Some("textDocument/publishDiagnostics"));
 
     // Open index for hover/definition
-    let index_text = fs::read_to_string(root.join("index.ods.md")).unwrap();
+    let index_text = fs::read_to_string(root.join("ods.toml")).unwrap();
     let index_esc = index_text
         .replace('\\', "\\\\")
         .replace('"', "\\\"")
@@ -199,7 +200,7 @@ fn test_lsp_document_lifecycle_hover_definition_and_diagnostics() {
     write_jsonrpc_msg(
         stdin,
         &format!(
-            r#"{{"jsonrpc":"2.0","id":10,"method":"textDocument/hover","params":{{"textDocument":{{"uri":"file://{root_s}/index.ods.md"}},"position":{{"line":1,"character":0}}}}}}"#
+            r#"{{"jsonrpc":"2.0","id":10,"method":"textDocument/hover","params":{{"textDocument":{{"uri":"file://{root_s}/broken.md"}},"position":{{"line":1,"character":0}}}}}}"#
         ),
     );
     let hover = read_until_id_or_method(&mut reader, 10, None);
@@ -388,7 +389,7 @@ fn test_lsp_okf_hover_and_diagnostics() {
     let root_s = root.to_str().unwrap().replace('\\', "/");
 
     fs::write(
-        root.join("index.ods.md"),
+        root.join("ods.toml"),
         "---\nokf_version: \"0.2\"\ntype: Metric\nstale_after: \"2099-01-01\"\n---\n\n# OKF Root\n",
     )
     .unwrap();
@@ -412,7 +413,7 @@ fn test_lsp_okf_hover_and_diagnostics() {
     );
     let _ = read_jsonrpc_msg(&mut reader);
 
-    let text = fs::read_to_string(root.join("index.ods.md")).unwrap();
+    let text = fs::read_to_string(root.join("ods.toml")).unwrap();
     let esc = text
         .replace('\\', "\\\\")
         .replace('"', "\\\"")

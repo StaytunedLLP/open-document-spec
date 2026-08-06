@@ -1,8 +1,7 @@
 //! Final coverage push: force index fallback paths, lint helpers, rewrite edges.
 use ods_core::{
     FrontmatterState, LintLevel, PathChange, apply_path_changes, compute_path_change_edits,
-    generate_indexes, index_directories, lint_workspace, lint_workspace_with_level, load_workspace,
-    render_index,
+    lint_workspace, lint_workspace_with_level, load_workspace,
 };
 use std::fs;
 use std::path::PathBuf;
@@ -13,68 +12,29 @@ fn tempdir() -> tempfile::TempDir {
 
 fn seed(root: &std::path::Path) {
     fs::write(
-        root.join("index.ods.md"),
-        "---\nprofile: index\nods: 0.1\nignore:\n  - vendor\npacks:\n  - my-pack\nprofiles:\n  - ods-profiles\n---\n\n# Root\n\nIntro prose stays.\n",
+        root.join("ods.toml"),
+        "spec = \"0.1\"\nignore = [\"vendor\"]\npacks = [\"my-pack\"]\ncustom_profiles = [\"ods-profiles\"]\n",
     )
     .unwrap();
 }
 
 #[test]
-fn render_index_fallback_when_children_cache_empty() {
+fn index_render_is_noop_after_removal() {
     let td = tempdir();
     let root = td.path();
     seed(root);
     fs::create_dir_all(root.join("area/nested")).unwrap();
     fs::write(
         root.join("area/a.md"),
-        "---\nprofile: note\nstatus: draft\ndescription: Alpha desc\nresources:\n  - path: sheet.csv\n---\n\n# A\n",
+        "---\nprofile: note\nstatus: draft\ndescription: Alpha desc\n---\n\n# A\n",
     )
     .unwrap();
-    fs::write(root.join("area/sheet.csv"), "x,y\n").unwrap();
-    fs::write(
-        root.join("area/nested/b.md"),
-        "---\nprofile: note\nstatus: draft\n---\n\n# B\n",
-    )
-    .unwrap();
-    fs::write(root.join("area/skip.bin"), "bin").unwrap();
-    fs::create_dir_all(root.join("ods-profiles")).unwrap();
-    fs::write(
-        root.join("ods-profiles/x.md"),
-        "---\nname: x\n---\n\n# X\n\n## S\n",
-    )
-    .unwrap();
-    fs::create_dir_all(root.join("vendor/hidden")).unwrap();
-    fs::write(root.join("vendor/hidden/h.md"), "# h\n").unwrap();
 
-    let mut ws = load_workspace(root).unwrap();
-    // Force filesystem fallback in index/checker::directory_children
-    ws.children.clear();
-
-    let rendered = render_index(&ws, root, None);
-    assert!(rendered.contains("profile:"), "{rendered}");
-    assert!(rendered.contains("ods:"), "{rendered}");
-
-    let area = root.join("area");
-    let existing = "---\nprofile: index\n---\n\n# Area Custom\n\nHeader stays.\n\n- [old](gone.md)\n\nFooter stays.\n";
-    let rendered = render_index(&ws, &area, Some(existing));
-    assert!(
-        rendered.contains("Area") || rendered.contains("a.md") || rendered.contains("Alpha"),
-        "{rendered}"
-    );
-
-    // nested with empty children + existing prose extract
-    let nested = root.join("area/nested");
-    let r2 = render_index(
-        &ws,
-        &nested,
-        Some("---\nprofile: index\n---\n\n# Nested\n\n- [b](b.md)\n"),
-    );
-    assert!(!r2.is_empty());
-
-    // empty / missing directory
-    let missing = root.join("does-not-exist-dir");
-    let r3 = render_index(&ws, &missing, None);
-    assert!(r3.contains("---") || r3.contains("#"));
+    let _ws = load_workspace(root).unwrap();
+    /* indexes removed */
+    /* indexes removed */
+    /* indexes removed */
+    /* indexes removed */
 }
 
 #[test]
@@ -109,23 +69,15 @@ fn lint_helpers_extra_and_missing_with_resources_and_code() {
         .map(|d| d.message.as_str())
         .collect::<Vec<_>>()
         .join("\n");
-    assert!(
-        text.contains("missing")
-            || text.contains("extra")
-            || text.contains("index")
-            || !diags.is_empty(),
-        "{text}"
-    );
+    // Index child-list lint removed; workspace should still load cleanly or only non-index diags.
+    let _ = text;
 
     // Clear children and re-lint via regenerate path
     let mut ws = load_workspace(root).unwrap();
     ws.children.clear();
-    let dirs = index_directories(&ws);
-    for d in dirs {
-        let _ = render_index(&ws, &d, None);
-    }
-    let _ = lint_workspace_with_level(&ws, LintLevel::Level1);
-    let _ = lint_workspace_with_level(&ws, LintLevel::Level3);
+
+    let _ = lint_workspace_with_level(&ws, LintLevel::Full);
+    let _ = lint_workspace_with_level(&ws, LintLevel::Full);
 }
 
 #[test]
@@ -149,7 +101,7 @@ fn compute_path_change_edits_dir_move_apply_and_errors() {
         "---\nprofile: note\nstatus: draft\ndepends:\n  - a\n---\n\n# R\n\n[a](from_dir/a.md)\n",
     )
     .unwrap();
-    generate_indexes(&load_workspace(root).unwrap()).unwrap();
+    /* indexes removed */
 
     // not yet moved on disk
     let changes = vec![PathChange::DirMoved {
@@ -179,7 +131,7 @@ fn compute_path_change_edits_dir_move_apply_and_errors() {
 }
 
 #[test]
-fn root_index_preserves_packs_profiles_ignore_on_render() {
+fn ods_toml_loads_packs_profiles_ignore() {
     let td = tempdir();
     let root = td.path();
     seed(root);
@@ -197,17 +149,9 @@ fn root_index_preserves_packs_profiles_ignore_on_render() {
     .unwrap();
 
     let ws = load_workspace(root).unwrap();
-    let existing = fs::read_to_string(root.join("index.ods.md")).unwrap();
-    let out = render_index(&ws, root, Some(&existing));
-    assert!(
-        out.contains("packs:") || out.contains("my-pack") || out.contains("ignore:"),
-        "{out}"
-    );
-    // clear cache and render again
-    let mut ws = ws;
-    ws.children.clear();
-    let out2 = render_index(&ws, root, Some(&existing));
-    assert!(!out2.is_empty());
+    assert_eq!(ws.config.packs, vec!["my-pack".to_string()]);
+    assert!(ws.config.ignore.iter().any(|i| i == "vendor"));
+    /* indexes removed */
 }
 
 #[test]

@@ -1,8 +1,8 @@
 //! Wave 3 pure-logic coverage: renames, path-change edits, lint edges, profiles.
 use ods_core::{
-    LintLevel, PathChange, TreeSnapshot, compute_path_change_edits, generate_indexes,
-    lint_workspace, lint_workspace_with_level, load_profile_catalog, load_workspace,
-    observe_renames, profile_catalog_roots, render_profile_template, rewrite_references_in_text,
+    LintLevel, PathChange, TreeSnapshot, compute_path_change_edits, lint_workspace,
+    lint_workspace_with_level, load_profile_catalog, load_workspace, observe_renames,
+    profile_catalog_roots, render_profile_template, rewrite_references_in_text,
     standard_profile_catalog,
 };
 use std::collections::BTreeMap;
@@ -90,7 +90,7 @@ fn compute_path_change_edits_file_and_dir_and_traversal() {
         "---\nprofile: note\nstatus: draft\ndepends:\n  - a\n---\n\n# B\n\nSee [a](a.md).\n",
     )
     .unwrap();
-    generate_indexes(&load_workspace(root).unwrap()).unwrap();
+    /* indexes removed */
 
     // file move with disk not yet moved
     let changes = vec![PathChange::FileMoved {
@@ -178,8 +178,8 @@ fn lint_strict_and_level1_edge_workspace() {
     fs::write(root.join("nested/child.md"), "# plain\n").unwrap();
 
     let ws = load_workspace(root).unwrap();
-    let d1 = lint_workspace_with_level(&ws, LintLevel::Level1);
-    let d3 = lint_workspace_with_level(&ws, LintLevel::Level3);
+    let d1 = lint_workspace_with_level(&ws, LintLevel::Full);
+    let d3 = lint_workspace_with_level(&ws, LintLevel::Full);
     let d = lint_workspace(&ws);
     assert!(!d3.is_empty() || !d.is_empty() || d1.is_empty() || !d1.is_empty());
 }
@@ -361,8 +361,6 @@ fn resolve_profile_by_directory_and_headings() {
 
 #[test]
 fn index_checker_stale_and_resource_refs() {
-    use ods_core::{index_directories, indexes_are_current, render_index};
-
     let td = tempdir();
     let root = td.path();
     seed(root);
@@ -376,24 +374,20 @@ fn index_checker_stale_and_resource_refs() {
     fs::write(root.join("g/code.rs"), "fn foo() {}").unwrap();
     fs::write(root.join("g/extra.md"), "# Extra plain\n").unwrap();
 
-    let ws = load_workspace(root).unwrap();
-    generate_indexes(&ws).unwrap();
-    let ws = load_workspace(root).unwrap();
-    assert!(indexes_are_current(&ws).unwrap());
+    let _ws = load_workspace(root).unwrap();
+    /* indexes removed */
+    let _ws = load_workspace(root).unwrap();
+    /* indexes removed */
 
     // stale: hand-edit index
     let idx = root.join("g/index.md");
     if idx.exists() {
         fs::write(&idx, "# hand edited stale\n").unwrap();
-        let ws = load_workspace(root).unwrap();
-        assert!(!indexes_are_current(&ws).unwrap());
+        let _ws = load_workspace(root).unwrap();
+        /* indexes removed */
     }
 
-    let ws = load_workspace(root).unwrap();
-    for d in index_directories(&ws) {
-        let _ = render_index(&ws, &d, Some("# custom\n"));
-        let _ = render_index(&ws, &d, None);
-    }
+    let _ws = load_workspace(root).unwrap();
 }
 
 #[test]

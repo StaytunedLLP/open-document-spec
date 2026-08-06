@@ -8,7 +8,10 @@ Rules for coding agents in the **Open Document Spec** monorepo.
 
 - Binary: **`ods`** — bare `ods <cmd>` is ODS (there is **no** `--ods` flag)
 - Extra specs: **`--okf`**, **`--skills`** only — never namespaces `ods okf` / `ods ods`
-- Editors: **`ods lsp`** · Watcher: `ods serve` / `ods start` (not LSP)
+- Workspace marker: **`ods.toml`** at repo root (not nested `index.ods.md`)
+- Compliance: **compliant | non-compliant** only (no Level 0–3)
+- Discovery: `ods overview` / `find` / `ls` / `tree` / `context` / `read` — progressive CLI, not folder indexes
+- Editors: **`ods lsp`** · Watcher: `ods serve` / `ods start` (not LSP); serve target **≤10 MB** RSS (`service.max_rss_mb`)
 - Do not invent `odc:` or `ods-cli:` frontmatter keys
 - Specs live at repo-root **`specs/{ods,okf,skills}/`** — start at `intro.md` + `keys.md`
 - Subcommands: name after the verb (`ods profile init <name>` → name at argv index **3**)
@@ -28,9 +31,10 @@ CLI/engine user copy lives in **`src/ods-core/src/error/messages.rs`** (not ad-h
 
 ## Token & context reliability
 
-- Prefer `ods context <id>` (`--max-tokens N`, `--print`). Read **only** returned paths.
+- Cold-start: `ods overview` → `ods tag list` / `ods schema keys` → `ods find --key …` → `ods context <id>`.
+- Prefer `ods read <id>` (`--section <heading>`, `--summary`, `--max-tokens N`) or `ods context <id>` (`--max-tokens N`, `--print`). Read **only** returned sections or paths.
 - Context walks **depends + context.load** (not `related`). `--include-code` is opt-in.
-- If context errors: **stop** — use `ods find <query>`; do not dump the repo or full graph export.
+- If context errors: **stop** — use `ods find <query>` / `--key`; do not dump the repo or full graph export.
 - `ods export` defaults to `.ods/graph.md` (not routine AI prompts).
 - Do not load `skills/ods/references/*` and `specs/ods/*` duplicates in one turn.
 
@@ -71,7 +75,10 @@ Full policy: `.agents/rules/40-quality-gates.md`. Multi-step work: `.agents/skil
 | Schema smoke | `./src/scripts/check-schema-keys.sh` |
 | Lint ODS/OKF/Skills | `ods lint` / `--okf` / `--skills` |
 | Context | `ods context <id> [--max-tokens N] [--print]` |
-| Find id | `ods find <query>` |
+| Find docs | `ods find [--tag t] [--key k] [query]` |
+| Tag catalog | `ods tag list` / `ods tag show <tag>` |
+| Schema keys | `ods schema keys` |
+| Workspace overview | `ods overview` |
 | JSON Schema | `ods schema` |
 
 Maintainer entry: `.agents/README.md`.

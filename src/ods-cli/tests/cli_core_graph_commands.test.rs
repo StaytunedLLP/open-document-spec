@@ -31,7 +31,7 @@ fn init_lint_index_graph_context() {
     .unwrap();
 
     let status = Command::new(ods_bin())
-        .args(["index", dir.to_str().unwrap()])
+        .args(["lint", dir.to_str().unwrap()])
         .status()
         .unwrap();
     assert!(status.success());
@@ -43,7 +43,7 @@ fn init_lint_index_graph_context() {
     assert!(out.status.success(), "{:?}", out);
 
     let out = Command::new(ods_bin())
-        .args(["index", "--check", dir.to_str().unwrap()])
+        .args(["lint", "--check", dir.to_str().unwrap()])
         .output()
         .unwrap();
     assert!(out.status.success(), "{:?}", out);
@@ -192,7 +192,7 @@ fn mv_file() {
     )
     .unwrap();
     Command::new(ods_bin())
-        .args(["index", dir.to_str().unwrap()])
+        .args(["lint", dir.to_str().unwrap()])
         .status()
         .unwrap();
 
@@ -220,7 +220,7 @@ fn lint_discovers_workspace_root_from_nested_dir() {
     )
     .unwrap();
     Command::new(ods_bin())
-        .args(["index", dir.to_str().unwrap()])
+        .args(["lint", dir.to_str().unwrap()])
         .status()
         .unwrap();
 

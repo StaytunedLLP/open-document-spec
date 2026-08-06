@@ -1,6 +1,6 @@
 # Agent Skills (other-spec)
 
-Author-facing dialect docs: [`specs/skills/`](../../specs/skills/index.ods.md) (`intro.md`, `keys.md`).
+Author-facing dialect docs: [`specs/skills/`](../../specs/skills/) (`intro.md`, `keys.md`).
 
 Normative format for Agent Skills packages (upstream: [agentskills.io](https://agentskills.io/llms.txt)).
 

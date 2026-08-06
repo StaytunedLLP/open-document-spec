@@ -204,7 +204,7 @@ case "${COMMAND}" in
     ARGS=("lint" "${INPUT_PATH}" "--level" "${INPUT_LEVEL}" "--format" "${INPUT_FORMAT}")
     ;;
   index-check|index_check)
-    ARGS=("index" "${INPUT_PATH}" "--check")
+    ARGS=("overview" "${INPUT_PATH}" "--check")
     ;;
   doctor)
     ARGS=("doctor" "${INPUT_PATH}")

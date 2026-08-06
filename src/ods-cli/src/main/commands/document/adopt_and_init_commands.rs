@@ -78,7 +78,7 @@ fn run_init_command(args: &[String]) -> Result<ExitCode, CliError> {
             if !report.adopted.is_empty() {
                 println!("adopted {} document(s)", report.adopted.len());
             }
-            println!("indexes: {} file(s)", report.indexes.len());
+            println!("workspace: ods.toml ready");
             println!("next: ods lint   # or: ods watch");
         }
         OutputFormat::Json | OutputFormat::Sarif => {
@@ -88,7 +88,7 @@ fn run_init_command(args: &[String]) -> Result<ExitCode, CliError> {
                 report.initialized,
                 report.already_initialized,
                 report.adopted.len(),
-                report.indexes.len()
+                0
             );
         }
     }

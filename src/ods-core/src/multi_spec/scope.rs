@@ -74,7 +74,7 @@ pub fn parse_extra_spec_flags<'a>(
 ///
 /// Policy (locked):
 /// - ODS runs when `detected.ods` (default product — no flag).
-/// - OKF / Skills run when their flags are set OR when declared enabled in root `index.ods.md` `specs:`.
+/// - OKF / Skills run when their flags are set OR when declared enabled in root `ods.toml` `[specs.*]`.
 /// - Pure other-spec trees: flags alone enable that engine.
 /// - If nothing to run: `NotOdsWorkspace` (with hints when markers suggest other specs).
 ///
@@ -122,16 +122,8 @@ pub fn resolve_engines_with_config(
 }
 
 pub fn load_root_specs_config(root: &std::path::Path) -> crate::model::WorkspaceSpecsConfig {
-    let index_paths = [root.join("index.ods.md"), root.join("index.md")];
-    for idx_path in &index_paths {
-        if idx_path.is_file() {
-            if let Ok(text) = std::fs::read_to_string(idx_path) {
-                let doc = crate::parse::parse_document_text(root, idx_path.clone(), &text, false);
-                if let crate::model::FrontmatterState::Parsed(fm) = doc.frontmatter {
-                    return fm.specs;
-                }
-            }
-        }
+    if let Ok(cfg) = crate::config::load_workspace_config(root) {
+        return cfg.to_workspace_specs();
     }
     crate::model::WorkspaceSpecsConfig::default()
 }

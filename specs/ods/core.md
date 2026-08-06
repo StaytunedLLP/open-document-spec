@@ -53,26 +53,27 @@ Frontmatter MUST NOT contain a `title:` key. The document title exists only as t
 
 | Concept | Description |
 | :--- | :--- |
-| **Workspace** | Directory tree marked by a root `index.ods.md` (or `index.md`) with scalar `ods:` (spec version, e.g. `0.1`). |
+| **Workspace** | Directory tree marked by a root `ods.toml` (or `index.md`) with scalar `ods:` (spec version, e.g. `0.1`). |
 | **Document** | A Markdown file (`.md`), optionally with YAML frontmatter. |
-| **Index** | Generated navigation file listing a directory's **immediate** children (`index.ods.md` preferred). |
+| **Index** | Generated navigation file listing a directory's **immediate** children (`ods.toml` preferred). |
 | **Resource** | Any non-Markdown file referenced via `ods.resources` (CSV, PNG, PDF, OpenAPI, …). |
 
 There are no other core concepts. Bundles, archives, and groups are ordinary directories. `collection` is not a core concept.
 
 ---
 
-## Conformance levels
+## Compliance (binary)
 
-Each level below is fully valid under ODS.
+ODS workspaces are either **compliant** or **non-compliant**. There is no Level 0–3 ladder.
 
-### Level 0 — plain Markdown
+| State | Meaning |
+| :--- | :--- |
+| **ODS workspace** | Root `ods.toml` with `spec` present |
+| **Compliant** | `ods lint` reports zero errors (graph integrity, refs, assets, profiles) |
+| **Non-compliant** | One or more lint errors; fix and re-lint |
+| **Plain Markdown** | `.md` without workspace marker — not an ODS workspace until `ods init` |
 
-Any `.md` file, with or without frontmatter, is valid. Tools MUST accept frontmatter-less documents and MUST NOT require fields on creation.
-
-### Level 1 — typed
-
-Identity frontmatter under the nested `ods:` map:
+Example document frontmatter:
 
 ```markdown
 ---
@@ -82,19 +83,9 @@ ods:
 ---
 
 # Checkout Setup
-
-Steps for configuring checkout in a local development environment.
 ```
 
-Parsers MUST accept legacy top-level flat `profile` / `status` for migration; canonical emit nests them under `ods:`.
-
-### Level 2 — linked
-
-Graph relationships ([graph.md](graph.md)) inside an indexed workspace ([indexes.md](indexes.md)).
-
-### Level 3 — validated
-
-Structural integrity and lint rules locally and in CI: no dangling refs, no duplicate IDs, profiles resolve, indexes current, assets exist. Documents marked `status: stable` or listed in an index SHOULD be held to Level-3 ("creation is free; promotion has rules"). See [validation.md](validation.md).
+Parsers MUST accept legacy top-level flat `profile` / `status` for migration; canonical emit nests them under `ods:`. See [validation.md](validation.md) and [indexes.md](indexes.md) (`ods.toml` + CLI discovery).
 
 ---
 
@@ -118,9 +109,9 @@ Structural integrity and lint rules locally and in CI: no dangling refs, no dupl
 
 Tools MUST support four atomic document operations:
 
-1. **Scaffold (`ods new <path>`)** — create Level-1 frontmatter (`profile`, `status: draft`, optional `description`), path-derived ID, profile section placeholders, update parent index.
+1. **Scaffold (`ods new <path>`)** — create Level-1 frontmatter (`profile`, `status: draft`, optional `description`), path-derived ID, profile section placeholders, keep graph refs current.
 2. **Relocate (`ods mv <from> <to>`)** — move/rename while rewriting path-derived IDs, prose links, `depends`, `related`, `code[].path`, and index entries.
-3. **Archive (`ods archive <path-or-id>`)** — set `status: archived`, update indexes, preserve graph edges (implementation MAY move under `archive/`).
+3. **Archive (`ods archive <path-or-id>`)** — set `status: archived`, keep graph edges current, preserve graph edges (implementation MAY move under `archive/`).
 4. **Delete (`ods rm <path-or-id>`)** — remove file, drop from parent indexes, scrub ID from all `depends` / `related` arrays.
 
 ### Smart profile inference

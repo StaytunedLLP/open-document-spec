@@ -33,13 +33,13 @@ pub fn skills_enabled(root: impl AsRef<Path>) -> bool {
 ///
 /// Discovers SKILL.md packages by:
 /// 1. Recursively walking workspace directory for any `SKILL.md` file at any depth.
-/// 2. Reading explicit `skills:` array from root `index.ods.md` / `index.md` frontmatter (if defined).
+/// 2. Reading explicit skills paths from workspace config / legacy root index frontmatter (if defined).
 pub fn skill_package_roots(workspace: impl AsRef<Path>) -> Vec<PathBuf> {
     let workspace = workspace.as_ref();
     let mut out = Vec::new();
     let mut seen = std::collections::HashSet::new();
 
-    // 1. Check explicit skills: in root index.ods.md / index.md frontmatter
+    // 1. Legacy: explicit skills: in root index frontmatter (prefer ods.toml packs/config).
     let index_paths = [workspace.join("index.ods.md"), workspace.join("index.md")];
     for idx_path in &index_paths {
         if idx_path.is_file() {
@@ -125,11 +125,7 @@ mod tests {
     #[test]
     fn detect_ods_marker() {
         let td = tempdir().unwrap();
-        fs::write(
-            td.path().join("index.ods.md"),
-            "---\nprofile: index\nods: 0.1\n---\n\n# R\n",
-        )
-        .unwrap();
+        fs::write(td.path().join("ods.toml"), "spec = \"0.1\"\n").unwrap();
         let d = detect_workspace(td.path());
         assert!(d.ods);
         assert!(!d.okf);

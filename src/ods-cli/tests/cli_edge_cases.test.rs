@@ -13,8 +13,9 @@ fn test_coverage_listing_non_compliant_files() {
 
     // Create ODS index.md
     fs::write(
-        root.join("index.md"),
-        "---\nprofile: index\nods: 0.1\n---\n\n# Index\n",
+        root.join("ods.toml"),
+        "spec = \"0.1\"
+",
     )
     .unwrap();
 
@@ -73,8 +74,9 @@ fn test_bench_agent_subcommand() {
     let root = dir.path();
 
     fs::write(
-        root.join("index.md"),
-        "---\nprofile: index\nods: 0.1\n---\n\n# Index\n",
+        root.join("ods.toml"),
+        "spec = \"0.1\"
+",
     )
     .unwrap();
 
@@ -138,8 +140,9 @@ fn test_friction_free_ods_mv_and_rm_dry_run() {
     let root = dir.path();
 
     fs::write(
-        root.join("index.md"),
-        "---\nprofile: index\nods: 0.1\n---\n\n# Index\n",
+        root.join("ods.toml"),
+        "spec = \"0.1\"
+",
     )
     .unwrap();
 

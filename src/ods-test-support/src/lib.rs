@@ -1,8 +1,72 @@
 use std::ffi::OsStr;
 use std::fs;
-use std::ops::Deref;
+use std::ops::{Deref, DerefMut};
 use std::path::{Path, PathBuf};
+use std::process::Child;
+use std::time::Duration;
 use tempfile::TempDir;
+
+/// RAII guard that **always** terminates a spawned child on drop (SIGTERM then kill).
+///
+/// Use for `ods serve` / `ods watch` integration tests so processes cannot leak
+/// after panics or early returns.
+pub struct ChildGuard {
+    child: Option<Child>,
+}
+
+impl ChildGuard {
+    pub fn new(child: Child) -> Self {
+        Self { child: Some(child) }
+    }
+
+    pub fn child_mut(&mut self) -> Option<&mut Child> {
+        self.child.as_mut()
+    }
+
+    /// Graceful terminate (Unix SIGTERM) then hard kill; wait for exit.
+    pub fn terminate(mut self) -> std::io::Result<std::process::ExitStatus> {
+        if let Some(mut child) = self.child.take() {
+            terminate_child(&mut child);
+            child.wait()
+        } else {
+            Err(std::io::Error::other("child already taken"))
+        }
+    }
+}
+
+impl Drop for ChildGuard {
+    fn drop(&mut self) {
+        if let Some(mut child) = self.child.take() {
+            terminate_child(&mut child);
+            let _ = child.wait();
+        }
+    }
+}
+
+impl Deref for ChildGuard {
+    type Target = Child;
+    fn deref(&self) -> &Self::Target {
+        self.child.as_ref().expect("ChildGuard empty")
+    }
+}
+
+impl DerefMut for ChildGuard {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        self.child.as_mut().expect("ChildGuard empty")
+    }
+}
+
+fn terminate_child(child: &mut Child) {
+    #[cfg(unix)]
+    {
+        // SAFETY: signal delivery only; valid pid from Child::id().
+        unsafe {
+            libc::kill(child.id() as libc::pid_t, libc::SIGTERM);
+        }
+        std::thread::sleep(Duration::from_millis(300));
+    }
+    let _ = child.kill();
+}
 
 #[derive(Debug)]
 pub struct TempWorkspace(TempDir);
@@ -35,6 +99,16 @@ impl AsRef<OsStr> for TempWorkspace {
 
 pub fn temp_workspace() -> TempWorkspace {
     TempWorkspace(tempfile::tempdir().expect("temp workspace"))
+}
+
+/// Write a minimal `ods.toml` workspace marker (spec 0.1).
+pub fn write_ods_toml(root: &Path) {
+    write_ods_toml_with(root, "spec = \"0.1\"\n");
+}
+
+/// Write `ods.toml` with custom body.
+pub fn write_ods_toml_with(root: &Path, body: &str) {
+    fs::write(root.join("ods.toml"), body).expect("write ods.toml");
 }
 
 pub fn fixture_root() -> PathBuf {

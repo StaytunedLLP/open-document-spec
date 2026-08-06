@@ -140,17 +140,8 @@ mod tests_move_b {
         blanks
     }
 
+    #[allow(deprecated)]
     fn tempfile_dir() -> PathBuf {
-        let dir = std::env::temp_dir().join(format!(
-            "ods-mv-{}-{}",
-            std::process::id(),
-            std::time::SystemTime::now()
-                .duration_since(std::time::UNIX_EPOCH)
-                .unwrap()
-                .as_nanos()
-        ));
-        let _ = fs::remove_dir_all(&dir);
-        fs::create_dir_all(&dir).unwrap();
-        dir
+        tempfile::tempdir().unwrap().into_path()
     }
 }

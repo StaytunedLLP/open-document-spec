@@ -1,5 +1,5 @@
 ---
-description: "Complete reference for frontmatter keys, root index configuration, profiles vs packs, AI context, and CLI commands."
+description: "Complete reference for frontmatter keys, ods.toml configuration, profiles vs packs, AI context, and CLI commands."
 status: "stable"
 order: 9
 ods:
@@ -36,13 +36,95 @@ Misplaced nested `tags` under `ods:`: `ods lint` warns; repair with `ods fmt --m
 
 ---
 
-## 2. Root `index.md` Configuration Keys
+## 2. Root `ods.toml` Configuration Keys
 
-| Field | Type | Scope | Purpose |
+The root `ods.toml` file serves as the single workspace marker and policy home for an ODS workspace. Below is the complete reference of all supported configuration sections, keys, default values, and their exact operational effects.
+
+### Top-Level Workspace Settings
+
+| Key | Type | Default | Operational Effect & Behavior |
 | :--- | :--- | :--- | :--- |
-| **`ods`** | string | Root `index.md` | **Workspace Spec Marker**: Declares ODS workspace boundary and version (`ods: 0.1`). Not the CLI binary name. |
-| **`ods`** | string | Root `index.md` | **CLI Requirement**: Minimum Open Document Spec CLI version (`ods: ">=0.0.1"`). Replaces legacy `ods-cli:`. |
-| **`custom-profiles`** | list of paths | Root `index.md` | **Custom Profile Catalogs**: Workspace paths to custom profile schemas (`[".ods/profiles/rfc.md"]`). |
-| **`packs`** | list of paths | Root `index.md` | **Imported ODS Packs**: Reusable workspace bundles containing profiles, skills, and SOPs (`["vendor/engineering-pack"]`). |
-| **`ignore`** | list of paths | Root `index.md` | **Workspace Excludes**: Workspace-relative path prefixes excluded from scan (`["src/", "dist/"]`). |
-| **`aliases`** | map | Root `index.md` | **Section Heading Aliases**: Workspace-wide H2 section aliases (`Goal: [Objective, Purpose]`). |
+| **`spec`** | string | `"0.1"` | **Workspace Spec Marker & Version**: Declares the ODS workspace root boundary and specification version (`spec = "0.1"`). Essential for `ods` commands (`ods lint`, `ods find`, `ods context`, `ods overview`) to identify the workspace root. *(Serde alias: `ods`)* |
+| **`ignore`** | array of strings | `[]` | **Workspace Scan Excludes**: Paths or glob pattern prefixes excluded from scanner operations (`["src/", "dist/", "target/"]`). Skips these paths during `ods lint`, `ods overview`, `ods find`, and graph context indexing. |
+| **`custom_profiles`** | array of strings | `[]` | **Custom Profile Schemas**: Workspace-relative Markdown file paths registering custom profile schemas (`[".ods/profiles/rfc.md"]`). Loaded automatically during `ods profile list`, `ods profile show`, and document structure validation in `ods lint`. *(Serde alias: `custom-profiles`)* |
+| **`packs`** | array of strings | `[]` | **Imported ODS Packs**: Relative folder paths to imported ODS Pack bundles (`["vendor/engineering-pack"]`). Automatically merges packed profiles, skills, and assets into workspace discovery. |
+
+---
+
+### Section Heading Aliases (`[aliases]`)
+
+| Key | Type | Purpose & Effect |
+| :--- | :--- | :--- |
+| **`[aliases]`** | table (heading → string[]) | **Workspace H2 Section Heading Mapping**: Maps canonical H2 profile section titles to acceptable synonym headings (e.g. `Goal = ["Objective", "Purpose"]`). When validating document profile sections in `ods lint`, any section matching an alias is accepted as satisfying the required section. |
+
+---
+
+### Extra Spec Engines (`[specs.okf]` & `[specs.skills]`)
+
+Declaratively enables multi-spec validation during bare `ods lint` without requiring explicit CLI flags (`--okf`, `--skills`).
+
+| Section & Key | Type | Default | Operational Effect & Behavior |
+| :--- | :--- | :--- | :--- |
+| **`[specs.okf].enabled`** | boolean | `false` | When `true`, bare `ods lint` automatically runs OKF specification validation alongside standard ODS linting. |
+| **`[specs.okf].check_keys`** | boolean | `true` | Validates frontmatter keys against the OKF schema registry. |
+| **`[specs.okf].ignore_keys`** | array of strings | `[]` | List of frontmatter key names to ignore during OKF key linting. |
+| **`[specs.skills].enabled`** | boolean | `false` | When `true`, bare `ods lint` automatically validates Agent Skill definitions alongside standard ODS linting. |
+| **`[specs.skills].check_keys`** | boolean | `true` | Validates skill frontmatter keys against the Agent Skills schema registry. |
+| **`[specs.skills].ignore_keys`** | array of strings | `[]` | List of skill frontmatter key names to ignore during skills key linting. |
+
+---
+
+### Service & Memory Ceiling (`[service]`)
+
+Controls background daemon behavior for `ods serve` and `ods start`.
+
+| Key | Type | Default | Operational Effect & Behavior |
+| :--- | :--- | :--- | :--- |
+| **`[service].mode`** | string | `"poll"` | **Watcher Mode**: Daemon change monitoring strategy. Options: `"poll"` (low memory polling), `"watch"` (filesystem event watching), or `"auto"` (auto-select based on system resources). |
+| **`[service].poll_secs`** | integer | `2` | **Polling Interval**: Sleep duration in seconds between directory scans when `mode = "poll"`. |
+| **`[service].max_rss_mb`** | integer | `10` | **Soft Memory Ceiling**: Maximum Resident Set Size in megabytes target for `ods serve` / `ods start` background processes (`<= 10 MB`). |
+
+---
+
+### Complete `ods.toml` Example
+
+Below is a complete reference `ods.toml` showcasing all supported configuration blocks:
+
+```toml
+# ODS workspace configuration
+spec = "0.1"
+
+ignore = [
+  "target",
+  "dist",
+  "node_modules"
+]
+
+custom_profiles = [
+  ".ods/profiles/rfc.md",
+  ".ods/profiles/sop.md"
+]
+
+packs = [
+  "vendor/engineering-pack"
+]
+
+[aliases]
+Goal = ["Objective", "Purpose"]
+Architecture = ["Design", "System Design"]
+
+[specs.okf]
+enabled = true
+check_keys = true
+ignore_keys = ["custom_okf_meta"]
+
+[specs.skills]
+enabled = true
+check_keys = true
+ignore_keys = []
+
+[service]
+mode = "poll"
+poll_secs = 2
+max_rss_mb = 10
+```

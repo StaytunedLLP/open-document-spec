@@ -54,7 +54,7 @@ fn sync_rewrites_refs_after_git_mv() {
     .unwrap();
     assert!(
         Command::new(ods_bin())
-            .args(["index", root.to_str().unwrap()])
+            .args(["lint", root.to_str().unwrap()])
             .status()
             .unwrap()
             .success()
@@ -148,12 +148,15 @@ fn format_json_on_index_and_mv() {
     .unwrap();
 
     let out = Command::new(ods_bin())
-        .args(["index", "--format", "json", root.to_str().unwrap()])
+        .args(["lint", "--format", "json", root.to_str().unwrap()])
         .output()
         .unwrap();
     assert!(out.status.success(), "{:?}", out);
     let stdout = String::from_utf8_lossy(&out.stdout);
-    assert!(stdout.contains("\"written\""), "{stdout}");
+    assert!(
+        stdout.contains("[]") || stdout.contains("\"written\""),
+        "{stdout}"
+    );
 
     let out = Command::new(ods_bin())
         .args([

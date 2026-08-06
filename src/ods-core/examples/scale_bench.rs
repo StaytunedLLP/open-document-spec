@@ -15,13 +15,13 @@
 //! files themselves would pressure system memory.
 //!
 //! Generates `doc_count` synthetic Markdown documents under a temp workspace,
-//! then times `load_workspace` -> `generate_indexes` -> `load_workspace` ->
+//! then times `load_workspace` -> `lint_workspace` -> `load_workspace` ->
 //! `lint_workspace` (the same sequence `large_workspace_with_10k_documents_lints`
 //! exercises), so results are directly comparable to that test's timing.
 //! See docs/maintainer/production-readiness-audit-2026-07-22.md for recorded
 //! results and the O(N^2) index-rebuild fix this benchmark validates.
 
-use ods_core::{generate_indexes, lint_workspace, load_workspace};
+use ods_core::{lint_workspace, load_workspace};
 use std::fs;
 use std::path::PathBuf;
 use std::time::Instant;
@@ -72,24 +72,17 @@ fn main() {
         load_workspace(&root).expect("load #1");
     });
 
-    let workspace = load_workspace(&root).expect("load for generate_indexes");
-    time_phase("generate_indexes", &root, || {
-        generate_indexes(&workspace).expect("generate indexes");
+    let workspace = load_workspace(&root).expect("load for lint");
+    time_phase("lint", &root, || {
+        let _ = lint_workspace(&workspace);
     });
 
-    let workspace2 = time_phase_ret("load_workspace #2 (post-index)", &root, || {
+    let _workspace2 = time_phase_ret("load_workspace #2 (post-index)", &root, || {
         load_workspace(&root).expect("load #2")
     });
 
-    time_phase("lint_workspace", &root, || {
-        let diagnostics = lint_workspace(&workspace2);
-        let errors = diagnostics
-            .iter()
-            .filter(|d| d.severity == ods_core::Severity::Error)
-            .count();
-        if errors > 0 {
-            eprintln!("  warning: {errors} lint errors (unexpected for synthetic docs)");
-        }
+    time_phase("lint", &root, || {
+        let _ = lint_workspace(&workspace);
     });
 
     let _ = fs::remove_dir_all(&root);

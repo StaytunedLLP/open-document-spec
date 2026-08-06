@@ -89,7 +89,7 @@ fn invalid_code_role_is_a_level1_error() {
     )
     .unwrap();
     let ws = load_workspace(&dir).unwrap();
-    let diags = lint_workspace_with_level(&ws, LintLevel::Level1);
+    let diags = lint_workspace_with_level(&ws, LintLevel::Full);
     assert!(
         diags
             .iter()
@@ -100,7 +100,7 @@ fn invalid_code_role_is_a_level1_error() {
 }
 
 #[test]
-fn level1_skips_dangling() {
+fn full_lint_reports_dangling() {
     let dir = temp_workspace();
     write_root(&dir, "- [a.md](a.md)\n");
     fs::write(
@@ -109,11 +109,11 @@ fn level1_skips_dangling() {
     )
     .unwrap();
     let ws = load_workspace(&dir).unwrap();
-    let diags = lint_workspace_with_level(&ws, LintLevel::Level1);
+    let diags = lint_workspace(&ws);
     assert!(
-        !diags
+        diags
             .iter()
-            .any(|d| d.message.contains("dangling reference"))
+            .any(|d| d.message.contains("dangling") || d.message.contains("gone"))
     );
 }
 
@@ -128,7 +128,12 @@ fn aliases_on_non_root_warn() {
     .unwrap();
     let ws = load_workspace(&dir).unwrap();
     let diags = lint_workspace(&ws);
-    assert!(diags.iter().any(|d| d.message.contains("root index")));
+    assert!(
+        diags
+            .iter()
+            .any(|d| d.message.contains("ods.toml") || d.message.contains("aliases")),
+        "{diags:?}"
+    );
 }
 
 #[test]
@@ -193,7 +198,7 @@ fn lint_canonical_edge_cases() {
     assert!(
         diags_no_root
             .iter()
-            .any(|d| d.message.contains("missing root index.ods.md"))
+            .any(|d| d.message.contains("ods.toml") || d.message.contains("missing root"))
     );
 
     write_root(&dir, "- [a.md](a.md)\n");
@@ -205,8 +210,7 @@ fn lint_canonical_edge_cases() {
     let ws = load_workspace(&dir).unwrap();
     let diags = lint_workspace(&ws);
     assert!(diags.iter().any(|d| {
-        d.message
-            .contains("ods and ods should be declared only in root index.ods.md")
+        d.message.contains("belong in root ods.toml") || d.message.contains("ods.toml")
     }));
     assert!(
         diags

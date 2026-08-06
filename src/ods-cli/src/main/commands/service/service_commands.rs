@@ -189,6 +189,7 @@ mod test_service_commands {
         assert!(err.message().contains("ODS workspace") || err.message().contains("export"));
 
         // Setup ODS workspace
+        std::fs::write(root.join("ods.toml"), "spec = \"0.1\"\n").unwrap();
         std::fs::write(
             root.join("index.ods.md"),
             "---\nprofile: index\nods: 0.1\n---\n\n# Root\n",

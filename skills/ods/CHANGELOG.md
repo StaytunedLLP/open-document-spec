@@ -3,6 +3,7 @@
 ## Unreleased
 
 ### Added
+- AI discovery cold-start: `ods overview` / `summary`, `ods find --key` / `--tag-match`, `ods tag list` / `show`, `ods schema keys`, and unique `ods context --tag`/`--key` fallback. Skill §1 playbook updated.
 - `ods bench` subcommand integration (`stats`, `strip`, `restore`, `run`) for frontmatter snapshot backups and ROI token & cost auditing.
 - Initial `ods` Agent Skill.
 - `SKILL.md`: condensed operational ODS spec (fields, IDs-as-paths, two-edge

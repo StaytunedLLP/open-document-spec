@@ -98,8 +98,8 @@ pub fn scaffold_new_document(
 
     let doc_id = document_id(root, &target_path, None);
 
-    let workspace = load_workspace(root)?;
-    let updated_indexes = generate_indexes(&workspace)?;
+    let _workspace = load_workspace(root)?;
+    let updated_indexes = Vec::new();
 
     Ok(NewDocumentReport {
         created_file: target_path,
@@ -186,8 +186,8 @@ pub fn atomic_delete_document(
         }
     }
 
-    let updated_workspace = load_workspace(root)?;
-    let updated_indexes = generate_indexes(&updated_workspace)?;
+    let _updated_workspace = load_workspace(root)?;
+    let updated_indexes = Vec::new();
 
     Ok(RemoveDocumentReport {
         deleted_file: target_file,

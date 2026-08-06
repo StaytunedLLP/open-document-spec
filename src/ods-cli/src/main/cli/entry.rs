@@ -2,11 +2,11 @@ use ods_core::{
     AdoptOptions, Diagnostic, DisableOptions, FrontmatterState, InitOptions, LintLevel, Severity,
     WatchTree, Workspace, adopt_workspace, apply_document_removes,
     apply_document_upserts, apply_path_changes,
-    canonicalize_workspace_document_refs_with_workspace, disable_workspace, docs_with_any_tag,
-    export_workspace_graph, generate_indexes, heal_orphan_path_ids, indexes_are_current,
+    canonicalize_workspace_document_refs_with_workspace, disable_workspace, docs_with_all_tags,
+    docs_with_any_tag,
+    export_workspace_graph, heal_orphan_path_ids,
     init_workspace, known_profiles, lint_workspace_with_level, lint_workspace_with_ref_style,
     load_options_graph, load_profile_catalog, load_workspace, load_workspace_with_options,
-    profile_catalog_roots,
     migrate_workspace_frontmatter_with_workspace, move_document_and_rewrite_refs_report,
     normalize_workspace_frontmatter_spacing_with_workspace, observe_renames, paired_from_paths,
     parse_paths_parallel, rename_tag_in_workspace, scan_markdown_tree_with_code_paths,
@@ -148,12 +148,15 @@ fn is_ods_document_command(cmd: &str) -> bool {
             | "audit"
             | "coverage"
             | "stats"
+            | "overview"
+            | "summary"
             | "completion"
             | "schema"
             | "tree"
             | "diff"
             | "clean"
             | "lsp"
+            | "read"
             | "undo"
     )
 }

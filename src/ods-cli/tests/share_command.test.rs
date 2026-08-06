@@ -45,7 +45,7 @@ fn share_writes_filtered_directory_by_default() {
     assert!(out.join("public.md").exists());
     assert!(!out.join("secret.md").exists());
     assert!(!out.join("internal.md").exists());
-    assert!(out.join("index.ods.md").exists());
+    assert!(out.join("ods.toml").exists());
 }
 
 #[test]

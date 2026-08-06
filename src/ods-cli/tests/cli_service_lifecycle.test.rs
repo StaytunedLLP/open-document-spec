@@ -1,23 +1,12 @@
-use ods_test_support::temp_workspace;
+use ods_test_support::{ChildGuard, temp_workspace};
 use std::fs;
 use std::io::Read;
 use std::path::PathBuf;
-use std::process::{Child, Command, Stdio};
+use std::process::{Command, Stdio};
 use std::time::Duration;
 
 fn ods_bin() -> PathBuf {
     PathBuf::from(env!("CARGO_BIN_EXE_ods"))
-}
-
-fn terminate_gracefully(child: &mut Child) {
-    #[cfg(unix)]
-    {
-        unsafe {
-            libc::kill(child.id() as libc::pid_t, libc::SIGTERM);
-        }
-        std::thread::sleep(Duration::from_millis(300));
-    }
-    let _ = child.kill();
 }
 
 fn init(dir: &std::path::Path) {
@@ -159,17 +148,19 @@ fn watch_does_not_print_fake_log_stream_banner() {
     let dir = temp_workspace();
     init(&dir);
 
-    let mut child = Command::new(ods_bin())
-        .args(["watch", dir.to_str().unwrap()])
-        .env("ODS_AUTO_UPDATE", "0")
-        .stdout(Stdio::piped())
-        .spawn()
-        .unwrap();
+    let mut guard = ChildGuard::new(
+        Command::new(ods_bin())
+            .args(["watch", dir.to_str().unwrap()])
+            .env("ODS_AUTO_UPDATE", "0")
+            .stdout(Stdio::piped())
+            .spawn()
+            .unwrap(),
+    );
     std::thread::sleep(Duration::from_millis(800));
-    terminate_gracefully(&mut child);
-    let _ = child.wait();
+    let mut stdout_pipe = guard.child_mut().unwrap().stdout.take().unwrap();
+    let _ = guard.terminate();
     let mut stdout = String::new();
-    child.stdout.unwrap().read_to_string(&mut stdout).unwrap();
+    stdout_pipe.read_to_string(&mut stdout).unwrap();
     assert!(
         !stdout.contains("streaming ods serve logs")
             && !stdout.contains("streaming ods serve logs"),

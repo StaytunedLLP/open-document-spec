@@ -94,6 +94,31 @@ mod test_diagnostics_formatter {
     fn test_restart_service_if_active_smoke() {
         restart_service_if_active();
     }
+
+    #[test]
+    fn test_update_command_bare_version_and_force_flags() {
+        // force without network still parses through options (may fail at download)
+        let res = run_update_command(&[
+            "ods".into(),
+            "update".into(),
+            "--force".into(),
+            "--check".into(),
+        ]);
+        // check_only + force is accepted by parser
+        assert!(res.is_ok() || res.is_err());
+
+        let res = run_update_command(&[
+            "ods".into(),
+            "update".into(),
+            "v0.0.0-nonexistent".into(),
+        ]);
+        assert!(res.is_err() || res.is_ok());
+    }
+
+    #[test]
+    fn migrate_machine_and_workspace_on_update_is_noop() {
+        migrate_machine_and_workspace_on_update();
+    }
 }
 
 

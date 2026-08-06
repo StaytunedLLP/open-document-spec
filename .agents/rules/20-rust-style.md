@@ -6,6 +6,11 @@
 - Tests live next to domains under `src/ods-core/tests/` and `src/ods-cli/tests/`
 - **User-facing strings:** `src/ods-core/src/error/messages.rs` only (CLI constructs `CliError` via catalog helpers)
 
+## File Size & Modularity
+
+- **Maximum File Length**: Keep individual Rust source files strictly under **500 lines**, targeting **~300 lines** per file.
+- When a module/file approaches 500 lines, refactor by splitting subcommands or logical sub-domains into dedicated submodules within a folder module directory (e.g. `foo/mod.rs`, `foo/init.rs`, `foo/inspect.rs`).
+
 ## Schema-driven keys
 
 - Dialect keys live in `src/ods-core/src/spec/schema.rs` (`SpecSchemaRegistry`)

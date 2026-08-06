@@ -17,12 +17,7 @@ fn doctor_workspace(root: &Path) -> Result<DoctorReport, CliError> {
         Ok(workspace) => {
             lines.push(format!("documents: {}", workspace.documents.len()));
             json_fields.push(format!(r#""documents":{}"#, workspace.documents.len()));
-            let root_ods = workspace
-                .document_by_path(&workspace.root.join("index.ods.md"))
-                .and_then(|doc| match &doc.frontmatter {
-                    ods_core::FrontmatterState::Parsed(fm) => fm.ods.as_deref(),
-                    _ => None,
-                });
+            let root_ods = Some(workspace.config.spec.as_str()).filter(|s| !s.trim().is_empty());
             match root_ods {
                 Some(version) if version == ods_core::current_ods_spec_version() => {
                     lines.push(format!("root ods spec: {version}"));
@@ -48,18 +43,8 @@ fn doctor_workspace(root: &Path) -> Result<DoctorReport, CliError> {
                     json_fields.push(r#""root_ods_current":false"#.to_string());
                 }
             }
-            let current =
-                indexes_are_current(&workspace).map_err(|err| fail_io("git sync", err))?;
-            lines.push(if current {
-                "indexes: current".to_string()
-            } else {
-                has_error = true;
-                "indexes: stale (run `ods index`)".to_string()
-            });
-            json_fields.push(format!(
-                r#""indexes_current":{}"#,
-                if current { "true" } else { "false" }
-            ));
+            lines.push("workspace marker: ods.toml".to_string());
+            json_fields.push(r#""indexes_current":true"#.to_string());
 
             let conflicts = workspace.profiles.conflicts.len();
             if conflicts > 0 {
