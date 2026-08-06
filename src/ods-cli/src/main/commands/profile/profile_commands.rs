@@ -606,6 +606,36 @@ mod test_profile_commands {
         assert!(out.contains("Overview:"));
         assert!(out.contains("Summary"));
     }
+
+    #[test]
+    fn test_insert_alias_into_ods_toml_and_alias_add_toml() {
+        let text = "version = \"0.1\"\n";
+        let out = insert_alias_into_ods_toml(text, "Overview", "Summary");
+        assert!(out.contains("[aliases]"));
+        assert!(out.contains("Overview = [\"Summary\"]"));
+
+        let text_with_aliases = "[aliases]\nOverview = [\"Intro\"]\n";
+        let out = insert_alias_into_ods_toml(text_with_aliases, "Overview", "Summary");
+        assert!(out.contains("\"Summary\", "));
+
+        let td = tempdir().unwrap();
+        let root = td.path();
+        let toml_path = root.join("ods.toml");
+        fs::write(&toml_path, "version = \"0.1\"\n").unwrap();
+
+        let res = run_alias_add_command(&[
+            "ods".into(),
+            "alias".into(),
+            "add".into(),
+            "Overview".into(),
+            "Summary".into(),
+            root.to_str().unwrap().into(),
+        ]);
+        assert!(res.is_ok());
+        let content = fs::read_to_string(&toml_path).unwrap();
+        assert!(content.contains("[aliases]"));
+        assert!(content.contains("Overview = [\"Summary\"]"));
+    }
 }
 
 

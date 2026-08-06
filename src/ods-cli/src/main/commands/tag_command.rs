@@ -442,4 +442,46 @@ mod test_tag_command {
         ]);
         assert!(res_noop.is_ok());
     }
+
+    #[test]
+    fn test_tag_command_help_and_errors() {
+        // help flag
+        let res_help = run_tag_command(&["ods".into(), "tag".into(), "--help".into()]);
+        assert!(res_help.is_ok());
+
+        // missing subcommand
+        let err_no_sub = run_tag_command(&["ods".into(), "tag".into()]).unwrap_err();
+        assert!(err_no_sub.message().contains("subcommand"));
+
+        // tag list json format
+        let td = tempfile::tempdir().unwrap();
+        let root = td.path().to_str().unwrap().to_string();
+        std::fs::write(
+            td.path().join("index.md"),
+            "---\nprofile: index\nods: 0.1\ntags:\n  - sample\n---\n# Root\n",
+        )
+        .unwrap();
+
+        let res_list_json = run_tag_command(&[
+            "ods".into(),
+            "tag".into(),
+            "list".into(),
+            root.clone(),
+            "--format".into(),
+            "json".into(),
+        ]);
+        assert!(res_list_json.is_ok());
+
+        // tag show json format
+        let res_show_json = run_tag_command(&[
+            "ods".into(),
+            "tag".into(),
+            "show".into(),
+            root,
+            "sample".into(),
+            "--format".into(),
+            "json".into(),
+        ]);
+        assert!(res_show_json.is_ok());
+    }
 }

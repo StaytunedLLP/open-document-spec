@@ -257,4 +257,13 @@ mod test_pack_command {
         let out = remove_pack_from_ods_toml(single, "only");
         assert!(!out.contains("\"only\""), "{out}");
     }
+
+    #[test]
+    fn test_pack_command_unknown_subcommand() {
+        let err = run_pack_command(&["ods".into(), "pack".into(), "unknown_xyz".into()]).unwrap_err();
+        assert!(err.message().contains("unknown"));
+
+        let res_flag = run_pack_command(&["ods".into(), "pack".into(), "--help".into()]);
+        assert!(res_flag.is_ok());
+    }
 }

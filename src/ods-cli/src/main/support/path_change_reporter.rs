@@ -34,3 +34,17 @@ fn sync_git_renames(root: &Path) -> Result<ods_core::PathChangeReport, CliError>
         .collect::<Vec<_>>();
     ods_core::apply_path_changes(root, &changes).map_err(|err| fail_io("apply path changes", err))
 }
+
+#[cfg(test)]
+mod tests_path_change_reporter {
+    use super::*;
+
+    #[test]
+    fn test_sync_git_renames_non_git_repo() {
+        let td = tempfile::tempdir().unwrap();
+        let res = sync_git_renames(td.path());
+        // Since tempdir is not a git repo, git_detect_renames returns None or error
+        assert!(res.is_err());
+    }
+}
+
