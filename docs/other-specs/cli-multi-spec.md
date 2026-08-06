@@ -9,8 +9,8 @@ Authoritative product rules for the `ods` binary.
 
 | Rule | Value |
 |---|---|
-| Default | Bare `ods <cmd>` runs **ODS** (auto-enables `okf`/`skills` if declared in `index.ods.md` `specs:`) |
-| Declarative root config | `specs:` in root `index.ods.md` configures spec activation (`enabled: true`) and key linting (`check_keys: false`, `ignore_keys`) |
+| Default | Bare `ods <cmd>` runs **ODS** (auto-enables `okf`/`skills` if declared in `ods.toml` `[specs.*]`) |
+| Declarative root config | `ods.toml` `[specs.okf]` / `[specs.skills]` configures activation (`enabled = true`) and key linting (`check_keys`, `ignore_keys`) |
 | Force ODS flag | **Does not exist** (`--ods` is rejected) |
 | OKF | `ods <cmd> --okf` |
 | Agent Skills | `ods <cmd> --skills` |

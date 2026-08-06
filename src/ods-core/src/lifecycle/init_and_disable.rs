@@ -40,7 +40,21 @@ const DOC_ODS_KEYS: &[&str] = &[
     "tags",
 ];
 
-const ROOT_ODS_KEYS: &[&str] = &["ods", "ods", "profiles", "custom-profiles", "ignore", "aliases"];
+/// Root/workspace policy keys historically on the root index; now live in `ods.toml`.
+/// Only these may be stripped by disable root-policy (never foreign SSG keys).
+const ROOT_ODS_KEYS: &[&str] = &[
+    "ods",
+    "profiles",
+    "custom-profiles",
+    "packs",
+    "ignore",
+    "aliases",
+    "specs",
+    "okf_lint",
+    "okf-lint",
+    "skills_lint",
+    "skills-lint",
+];
 
 /// Options for `disable_workspace`.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]

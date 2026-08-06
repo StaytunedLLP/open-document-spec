@@ -1,4 +1,4 @@
-// Path moves/renames: rewrite document references and regenerate indexes.
+// Path moves/renames: rewrite document references (in-memory maps rebuilt on next load).
 //
 // Used by `ods mv`, `ods watch`, and `ods serve` / `ods start` (background watch).
 

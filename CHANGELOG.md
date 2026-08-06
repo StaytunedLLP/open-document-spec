@@ -10,12 +10,16 @@ GitHub Releases use GitHub’s auto-generated notes. Edit this file by hand when
 ## [Unreleased]
 
 ### Breaking
-- Workspace marker is **`ods.toml`** only (no nested `index.ods.md` / no `ods index`).
+- Workspace marker is **`ods.toml`** only (no nested `index.ods.md` / no ODS `ods index` generation).
 - Compliance is **compliant | non-compliant** (no Level 0–3 ladder).
 - `ods serve` product RSS budget default **10 MB** (`service.max_rss_mb`).
 - Skill `references/{intro,keys,core,scope}` are pointers to `specs/ods/*` (no forked copies).
 
-
+### Fixed
+- **Non-destructive frontmatter:** `ods fmt --migrate` preserves unknown keys nested under `ods:` (no longer drops foreign nested blocks). Third-party top-level keys (Hugo/Astro/etc.) remain untouched on migrate, tag rewrite, spacing normalize, and disable strip.
+- **CLI honesty after index removal:** help/completions no longer claim ODS `index` lockfile generation; `ods lint --fix` documents no-op (discovery is `overview`/`find`/`tree`); error catalog points at **`ods.toml`** not root `index.ods.md`.
+- Removed accidental committed workspace graph dumps (`graph.md`, `src/ods-cli/graph.md`).
+- `ROOT_ODS_KEYS` strip list no longer duplicated `ods`; includes packs/specs for legacy root-policy disable.
 
 ### Added
 - **`ods read [root] <id-or-path>`:** Fine-grained section extraction (`--section <heading>`), outline summary (`--summary`), and soft token cap controls (`--max-tokens N`, `--format text|json`). Prevents path traversal out of workspace.

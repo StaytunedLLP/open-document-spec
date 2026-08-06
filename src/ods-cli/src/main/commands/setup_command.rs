@@ -3,7 +3,7 @@ fn print_help() {
         "ods — Open Document Spec CLI
 
   ods lint / init / doctor / status …   Manage ODS document graph and profiles
-  ods init                              Initialize ODS workspace (ods: spec marker)
+  ods init                              Initialize ODS workspace (writes ods.toml)
   ods init --okf                        OKF bundle (okf_version: \"0.2\")
 
 Platform & Service:
@@ -13,20 +13,21 @@ Platform & Service:
   skill install            Install skill into an AI agent
   version / help
 
-Root markers: ods: (spec) · okf_version: (OKF)
+Root markers: ods.toml (ODS) · okf_version: (OKF)
 
 Commands:
-  init [path]              Make folder/repo ODS-compliant (root index.ods.md + ods: marker)
+  init [path]              Make folder/repo ODS-compliant (writes root ods.toml)
   disable [path]           Opt-out dry-run: strip ODS metadata (alias: revert)
   disable --write [path]   Apply disable / revert to plain Markdown
   lint [path]              Validate workspace (green message when clean)
-  index [path]             Generate index.ods.md navigation lockfiles
-  index --check [path]     Exit 1 if indexes are stale
+  index --okf [path]       OKF only: generate OKF navigation indexes
+  overview [path]          Compact workspace snapshot (AI cold-start; alias: summary)
+  ls / tree [path]         Progressive discovery (no nested index files)
   profiles [path]          List loaded profiles
-  profile init <name>      Scaffold custom profile (registers under custom-profiles: by default)
+  profile init <name>      Scaffold custom profile (registers under custom_profiles in ods.toml)
   profile show <name>      Show profile layer, sections, expected keys
   aliases [path]           List workspace section-heading aliases
-  alias add <Can> <Syn>    Add a section alias on the root index
+  alias add <Can> <Syn>    Add a section alias in ods.toml [aliases]
   tags [path]              List root-level project tags (observed) with use counts
   tags --all [path]        Include unused default ODS tags
   tag list [path]          List observed workspace tags with document counts
@@ -35,7 +36,7 @@ Commands:
                            Nested tags under ods: are invalid — run: ods fmt --migrate
   find [path] [--tag t] [--key k] [q]  Find docs by tag, schema/custom keys, and/or query
   schema [keys]            Inspect schema keys or generate JSON schema (--write)
-  overview [path]          Compact workspace snapshot for AI cold-start orientation (alias: summary)
+  read <id>                Read document sections / summary with token budget
   setup [path]             Set up machine service for workspace + check updates and workspace health
   context <id>             Bounded reading list (depends + context.load; --explain / --include-related)
   undo [path]              Restore latest frontmatter snapshot (`ods undo --list` to inspect)
@@ -46,8 +47,9 @@ Commands:
   rm <path-or-id>          Atomically delete document and scrub graph references workspace-wide
   status <path> <value>    Set lifecycle status (draft|stable|deprecated|archived)
   archive <path-or-id>     Alias for status … archived
-  mv [path] <from> <to>    Move file/folder and rewrite refs + indexes
+  mv [path] <from> <to>    Move file/folder and rewrite document refs
   fmt [path]               Normalize frontmatter/body blank lines
+  fmt --migrate            Canonical ods: nesting; hoist misplaced tags; preserve non-ODS keys
   fmt --refs md-paths      Also rewrite Document refs to .md paths
   doctor [path]            Report workspace health and version skew
   audit [path]             Inventory plain/invalid/partial Markdown
@@ -70,7 +72,7 @@ Extra specs (ODS is the default — there is no `--ods` flag):
   --okf                    Enable Google OKF v0.2 engine for this command
   --skills                 Enable Agent Skills package engine for this command
 
-  Native in binary ≠ always on: OKF/Skills activate with flags or root specs.*.enabled
+  Native in binary ≠ always on: OKF/Skills activate with flags or ods.toml [specs.*]
   --okf supported: init lint doctor audit adopt index context export fmt watch serve
   ODS-only (no --okf graph rewrite): mv tags status archive pack share graph new rm
   ods lint --okf           Pure OKF or hybrid ODS+OKF lint
@@ -81,14 +83,14 @@ Also: `ods lsp` — JSON-RPC Language Server for editors (stdio; not the same as
 
 Flags:
   --version, -V            Print version and exit
-  --level 1|3              Lint level (default 3)
+  --level 1|3              Lint strictness (default 3)
   --format text|json       Output format for supported commands (default text)
   --okf                    Extra-spec: OKF v0.2
   --skills                 Extra-spec: Agent Skills
   --write                  With adopt / tag rename / disable: apply changes
   --adopt                  With init: also draft frontmatter on plain files
   --keep-frontmatter       With disable: only drop ods: / root policy keys
-  --remove-indexes         With disable: delete non-root index.ods.md files
+  --remove-indexes         With disable: delete leftover non-root index.ods.md files
   --all                    With tags: include unused default ODS tags
   --tag <name>             With find/context: filter by tag (repeatable)
   --tag-match any|all      With find: tag intersection mode (default: any)
@@ -97,15 +99,16 @@ Flags:
   --status <status>        Shortcut for --key status=<status>
   --profile <profile>      Shortcut for --key profile=<profile>
   --owner <owner>          Shortcut for --key owner=<owner>
-  --check                  With index / update: check only
+  --check                  With OKF index / update: check only
   --canonical-refs         With lint: warn on extensionless Document refs
   --refs md-paths          With fmt: rewrite Document refs to .md paths
+  --migrate                With fmt: nested ods: + hoist tags (preserve non-ODS keys)
   --write-report           With audit/coverage: write report file
   --fail-on plain|invalid|any  With audit: CI gate
   --force                  With update: reinstall even if current
   --version <tag>          With update: install exact release tag (e.g. v0.0.13)
   --mode auto|watch|poll   With serve: choose watcher strategy
-  --max-tokens N           With context: cap estimated tokens
+  --max-tokens N           With context/read: cap estimated tokens
   --print                  With context: emit budgeted file contents
   --include-code           With context: expand code: edges
   --help / -h              Command usage (most subcommands)

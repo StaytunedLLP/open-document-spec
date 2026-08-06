@@ -104,6 +104,38 @@ fn migrate_preserves_universal_top_level_owner_list_formatting() {
 }
 
 #[test]
+fn migrate_preserves_third_party_top_level_keys() {
+    let text = "---\nlayout: post\nauthor: Alice\nhero_image: /img.png\nprofile: note\nstatus: draft\n---\n\n# Doc\n";
+    let migrated = migrate_frontmatter_to_canonical(text).expect("should migrate");
+    assert!(migrated.contains("layout: post"), "{migrated}");
+    assert!(migrated.contains("author: Alice"), "{migrated}");
+    assert!(migrated.contains("hero_image: /img.png"), "{migrated}");
+    assert!(
+        migrated.contains("ods:\n  profile: note\n  status: draft"),
+        "{migrated}"
+    );
+}
+
+#[test]
+fn migrate_preserves_unknown_keys_nested_under_ods() {
+    // status before profile forces a rewrite; unknown nested keys must still be re-emitted.
+    let text = "---\nods:\n  status: draft\n  profile: note\n  x_custom: keep-me\n  vendor_meta:\n    - a\n---\n\n# Doc\n";
+    let migrated = migrate_frontmatter_to_canonical(text).expect("should migrate");
+    assert!(
+        migrated.contains("  x_custom: keep-me"),
+        "unknown nested scalar must survive: {migrated}"
+    );
+    assert!(
+        migrated.contains("  vendor_meta:") && migrated.contains("    - a"),
+        "unknown nested list must survive: {migrated}"
+    );
+    assert!(
+        migrated.contains("ods:\n  profile: note\n  status: draft"),
+        "{migrated}"
+    );
+}
+
+#[test]
 fn migrate_workspace_frontmatter_helper_and_edge_cases() {
     let dir = temp_workspace();
     fs::write(

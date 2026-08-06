@@ -62,10 +62,10 @@ Remove `ods lint` / `ods lint` from CI if you no longer want enforcement. Stop a
 | Command | Behavior |
 | --- | --- |
 | `ods setup` | Check updates, workspace state, service, and doctor |
-| `ods init` | Create/ensure root `ods.toml` + `ods:` |
+| `ods init` | Create/ensure root `ods.toml` |
 | `ods adopt` / `--write` | Dry-run or draft minimal frontmatter |
-| `ods lint` | Generate indexes / CI stale check |
-| `ods lint` | Validate |
+| `ods lint` | Validate graph / links (CI gate) |
+| `ods overview` / `find` / `tree` | Progressive discovery (no nested indexes) |
 | `ods start` / `stop` | Background watch service |
 | `ods watch` | Foreground automation |
 | `ods mv` | Offline move + rewrite |
@@ -78,9 +78,10 @@ Remove `ods lint` / `ods lint` from CI if you no longer want enforcement. Stop a
 
 Practical rules:
 
-- Generated index **child lists** beat hand-maintained maps.
+- Do **not** commit nested `index.ods.md` lockfiles — discovery is CLI-only.
 - With `ods start` or `ods watch`, renames keep refs and graph intact.
 - Markdown language servers are optional and **not** required for ODS.
+- Non-ODS frontmatter keys (SSG metadata) are preserved; mutations only touch ODS keys.
 
 ---
 

@@ -4,9 +4,9 @@ fn run_lint_command(args: &[String]) -> Result<ExitCode, CliError> {
             "ods lint [path] [flags]\n\n\
              Validate the ODS document graph (and optionally OKF/Skills).\n\n\
              Flags:\n\
-               --level 1|3 | --mode standard|strict   Compliance level (default 3/strict)\n\
+               --level 1|3 | --mode standard|strict   Lint strictness (default 3/strict)\n\
                --format text|json|sarif\n\
-               --fix                              Regenerate indexes (does not invent missing docs)\n\
+               --fix                              No-op for ODS (nested indexes removed; use overview/find/tree)\n\
                --canonical-refs                     Warn on extensionless document refs\n\
                --okf / --skills                     Extra dialect engines\n\
                --skip-frontmatter-keys              Suppress key-requirement lint\n"
@@ -36,13 +36,10 @@ fn run_lint_command(args: &[String]) -> Result<ExitCode, CliError> {
         let workspace = load_workspace_with_options(&root, load_options_graph())
             .map_err(|err| fail_load(&root, err))?;
         let fix = args.iter().any(|arg| arg == "--fix");
-        if fix {
-            let n = 0usize;
-            if matches!(format, OutputFormat::Text) {
-                println!(
-                    "Regenerated {n} index file(s). Note: --fix does not create missing depends targets or rewrite dangling refs."
-                );
-            }
+        if fix && matches!(format, OutputFormat::Text) {
+            println!(
+                "Note: nested index generation was removed. --fix does not rewrite files; use `ods overview` / `ods find` / `ods tree` for discovery, and `ods fmt --migrate` for frontmatter shape."
+            );
         }
         let ods_diags = if canonical_refs {
             lint_workspace_with_ref_style(&workspace, level, true)

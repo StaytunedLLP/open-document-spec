@@ -1,5 +1,5 @@
 ---
-description: "Complete reference for frontmatter keys, root index configuration, profiles vs packs, AI context, and CLI commands."
+description: "Complete reference for frontmatter keys, ods.toml configuration, profiles vs packs, AI context, and CLI commands."
 status: "stable"
 order: 9
 ods:

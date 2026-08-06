@@ -127,3 +127,113 @@ fn parse_refs_mode(args: &[String]) -> Result<Option<&'static str>, CliError> {
 fn wants_migrate(args: &[String]) -> bool {
     args[2..].iter().any(|arg| arg == "--migrate")
 }
+
+#[cfg(test)]
+mod test_fmt_command {
+    use super::*;
+    use tempfile::tempdir;
+
+    #[test]
+    fn parse_refs_and_migrate_flags() {
+        assert!(!wants_migrate(&["ods".into(), "fmt".into()]));
+        assert!(wants_migrate(&[
+            "ods".into(),
+            "fmt".into(),
+            "--migrate".into()
+        ]));
+        assert_eq!(
+            parse_refs_mode(&["ods".into(), "fmt".into(), "--refs".into(), "md-paths".into()])
+                .unwrap(),
+            Some("md-paths")
+        );
+        assert!(parse_refs_mode(&[
+            "ods".into(),
+            "fmt".into(),
+            "--refs".into(),
+            "bad".into()
+        ])
+        .is_err());
+        assert!(parse_refs_mode(&["ods".into(), "fmt".into(), "--refs".into()]).is_err());
+        assert_eq!(
+            parse_refs_mode(&["ods".into(), "fmt".into()]).unwrap(),
+            None
+        );
+    }
+
+    #[test]
+    fn fmt_body_spacing_migrate_and_json() {
+        let td = tempdir().unwrap();
+        let root = td.path();
+        fs::write(root.join("ods.toml"), "spec = \"0.1\"\n").unwrap();
+        fs::write(
+            root.join("a.md"),
+            "---\nlayout: post\nprofile: note\nstatus: draft\n---\n# A\n",
+        )
+        .unwrap();
+
+        let res = run_fmt_command(&[
+            "ods".into(),
+            "fmt".into(),
+            root.to_str().unwrap().into(),
+            "--migrate".into(),
+            "--format".into(),
+            "json".into(),
+        ]);
+        assert!(res.is_ok());
+        let text = fs::read_to_string(root.join("a.md")).unwrap();
+        assert!(text.contains("layout: post"), "{text}");
+        assert!(text.contains("ods:"), "{text}");
+
+        // already clean second pass
+        let res = run_fmt_command(&[
+            "ods".into(),
+            "fmt".into(),
+            root.to_str().unwrap().into(),
+            "--migrate".into(),
+        ]);
+        assert!(res.is_ok());
+    }
+
+    #[test]
+    fn fmt_requires_workspace() {
+        let td = tempdir().unwrap();
+        let err = run_fmt_command(&[
+            "ods".into(),
+            "fmt".into(),
+            td.path().to_str().unwrap().into(),
+        ])
+        .unwrap_err();
+        assert!(
+            err.message().contains("ODS") || err.message().contains("workspace"),
+            "{}",
+            err.message()
+        );
+    }
+
+    #[test]
+    fn fmt_refs_md_paths_and_text_output() {
+        let td = tempdir().unwrap();
+        let root = td.path();
+        fs::write(root.join("ods.toml"), "spec = \"0.1\"\n").unwrap();
+        fs::write(
+            root.join("a.md"),
+            "---\nods:\n  profile: note\n  status: draft\n  depends:\n    - b\n---\n\n# A\n",
+        )
+        .unwrap();
+        fs::write(
+            root.join("b.md"),
+            "---\nods:\n  profile: note\n  status: draft\n---\n\n# B\n",
+        )
+        .unwrap();
+        let res = run_fmt_command(&[
+            "ods".into(),
+            "fmt".into(),
+            root.to_str().unwrap().into(),
+            "--refs".into(),
+            "md-paths".into(),
+        ]);
+        assert!(res.is_ok());
+        let a = fs::read_to_string(root.join("a.md")).unwrap();
+        assert!(a.contains("b.md") || a.contains("depends:"), "{a}");
+    }
+}

@@ -52,7 +52,7 @@ By default, `profile init` appends `.ods/profiles/<name>.md` under root **`custo
 
 ### Section aliases
 
-Workspace **section aliases** live on the root index (`aliases:`) and extend which H2 headings satisfy a profile section check. Standard profiles already ship pipe-alternatives (e.g. `Goal | Objective | Purpose`).
+Workspace **section aliases** live in root **`ods.toml`** under `[aliases]` and extend which H2 headings satisfy a profile section check. Standard profiles already ship pipe-alternatives (e.g. `Goal | Objective | Purpose`).
 
 ```bash
 ods aliases

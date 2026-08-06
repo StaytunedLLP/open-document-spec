@@ -224,4 +224,37 @@ mod test_pack_command {
         assert!(!out.contains("local-pack"));
         assert!(out.contains("other-pack"));
     }
+
+    #[test]
+    fn insert_pack_into_ods_toml_variants() {
+        let empty_packs = "spec = \"0.1\"\npacks = []\n";
+        let out = insert_pack_into_ods_toml(empty_packs, "p1");
+        assert!(out.contains("\"p1\""), "{out}");
+
+        let with_packs = "spec = \"0.1\"\npacks = [\"existing\"]\n";
+        let out = insert_pack_into_ods_toml(with_packs, "p2");
+        assert!(out.contains("\"existing\""), "{out}");
+        assert!(out.contains("\"p2\""), "{out}");
+
+        let no_packs_section = "spec = \"0.1\"\n\n[service]\nmode = \"poll\"\n";
+        let out = insert_pack_into_ods_toml(no_packs_section, "p3");
+        assert!(out.contains("packs = [\"p3\"]"), "{out}");
+        assert!(out.contains("[service]"), "{out}");
+
+        let minimal = "spec = \"0.1\"\n";
+        let out = insert_pack_into_ods_toml(minimal, "p4");
+        assert!(out.contains("packs = [\"p4\"]"), "{out}");
+    }
+
+    #[test]
+    fn remove_pack_from_ods_toml_multiline_and_partial() {
+        let multi = "spec = \"0.1\"\npacks = [\n  \"local-pack\",\n  \"other-pack\",\n]\n";
+        let out = remove_pack_from_ods_toml(multi, "local-pack");
+        assert!(!out.contains("local-pack"), "{out}");
+        assert!(out.contains("other-pack"), "{out}");
+
+        let single = "spec = \"0.1\"\npacks = [\"only\"]\n";
+        let out = remove_pack_from_ods_toml(single, "only");
+        assert!(!out.contains("\"only\""), "{out}");
+    }
 }

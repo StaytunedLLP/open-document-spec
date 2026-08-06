@@ -74,7 +74,7 @@ pub fn parse_extra_spec_flags<'a>(
 ///
 /// Policy (locked):
 /// - ODS runs when `detected.ods` (default product — no flag).
-/// - OKF / Skills run when their flags are set OR when declared enabled in root `index.ods.md` `specs:`.
+/// - OKF / Skills run when their flags are set OR when declared enabled in root `ods.toml` `[specs.*]`.
 /// - Pure other-spec trees: flags alone enable that engine.
 /// - If nothing to run: `NotOdsWorkspace` (with hints when markers suggest other specs).
 ///

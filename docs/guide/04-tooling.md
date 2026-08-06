@@ -35,19 +35,18 @@ Happy path: [Quickstart Guide](/docs/quickstart).
 
 | Command | Mastery Tier | Role & Syntax |
 | --- | --- | --- |
-| `ods init [path]` | 🏁 **Tier 1: Novice** | Make folder/repo ODS-compliant (creates root `ods.toml` + `ods:` spec, generates indexes). `--adopt` drafts frontmatter. |
+| `ods init [path]` | 🏁 **Tier 1: Novice** | Make folder/repo ODS-compliant (writes root `ods.toml`). `--adopt` drafts frontmatter. No nested indexes. |
 | `ods setup [path]` | 🏁 **Tier 1: Novice** | Set up machine background service for workspace, check updates, and run `ods doctor`. `--git-hooks` installs pre-commit hook. `--editor zed\|vscode\|nvim\|cursor` writes `ods lsp` config. |
 | `ods lsp` | 🏁 **Tier 1: Novice** | JSON-RPC Language Server (stdio / `--port`); not the same as `ods serve`. |
 | `ods lint` / `ods lint [path]` | 🏁 **Tier 1: Novice** | Validate graph & schemas (`ods lint\|3`, `--format text\|json\|sarif`, `--canonical-refs`). Generates or clears `.ods/ods-errors.md`. |
 | `ods new <path>` | 🛠️ **Tier 2: Practitioner** | Scaffold a new Markdown document with inferred profile (`guide`, `feature`, etc.) and valid frontmatter. |
-| `ods overview [path]` | 🛠️ **Tier 2: Practitioner** | Generate `ods.toml` lockfiles (`--check` exits 1 if stale in CI). |
 | `ods mv <from> <to>` | 🛠️ **Tier 2: Practitioner** | Offline document move + rewrite graph references workspace-wide. |
 | `ods sync [path]` | 🛠️ **Tier 2: Practitioner** | Reconcile git-tracked renames (`git status --porcelain`) and rewrite graph references. |
 | `ods adopt [path]` | 🛠️ **Tier 2: Practitioner** | Draft frontmatter for existing Markdown files (dry-run; `--write`). |
 | `ods rm <path-or-id>` | 🛠️ **Tier 2: Practitioner** | Atomically delete document and scrub graph references (`depends`/`related`) workspace-wide. Alias: `ods remove`. |
 | `ods status <path> <value>` | 🛠️ **Tier 2: Practitioner** | Set lifecycle status (`draft` \| `stable` \| `deprecated` \| `archived`). Writes nested `ods.status` when an `ods:` map exists. |
 | `ods archive <path-or-id>` | 🛠️ **Tier 2: Practitioner** | Alias for `ods status <path> archived`. |
-| `ods fmt [path]` | 🛠️ **Tier 2: Practitioner** | Reformat YAML frontmatter/body blank-line spacing. `--refs md-paths` converts extensionless IDs to relative `.md` paths. **`--migrate`** rewrites engine keys under `ods:` and hoists misplaced nested `tags` to top-level. |
+| `ods fmt [path]` | 🛠️ **Tier 2: Practitioner** | Reformat YAML frontmatter/body blank-line spacing. `--refs md-paths` converts extensionless IDs to relative `.md` paths. **`--migrate`** rewrites engine keys under `ods:`, hoists misplaced nested `tags`, and **preserves non-ODS keys**. |
 | `ods stats [path]` | 🛠️ **Tier 2: Practitioner** | Display workspace document telemetry, graph density, profile distribution, and health score (`--format text\|json`). |
 | `ods tree [path]` | 🛠️ **Tier 2: Practitioner** | Display visual ASCII/Unicode hierarchy tree of index navigation and dependency graphs (`--format text\|json`). |
 | `ods context [path] <id>` | 📋 **Tier 3: Power User** | Bounded AI reading list. Walks `depends` + `context.load`; `--include-related` / `--include-code` / `--include-private`; `--explain`; `--okf`. Without id: unique `--tag` / `--key` / `--status` only (multi-match → use `ods find`). |
@@ -56,7 +55,7 @@ Happy path: [Quickstart Guide](/docs/quickstart).
 | `ods profiles [path]` | 📋 **Tier 3: Power User** | List standard and custom profiles loaded in workspace and report schema conflicts. |
 | `ods profile init <name>` | 📋 **Tier 3: Power User** | Scaffold `.ods/profiles/<name>.md` and **register** under root `custom_profiles (ods.toml):` (use `--no-register` to skip). |
 | `ods profile show <name>` | 📋 **Tier 3: Power User** | Show profile layer, source, expected sections/keys. |
-| `ods aliases` / `ods alias add` | 📋 **Tier 3: Power User** | List or add **section-heading** aliases on the root index. |
+| `ods aliases` / `ods alias add` | 📋 **Tier 3: Power User** | List or add **section-heading** aliases in root `ods.toml` `[aliases]`. |
 | `ods tags [path]` | 📋 **Tier 3: Power User** | List **top-level** document tags with counts (`--all` includes default unused tags). Tags must not live under `ods:`. |
 | `ods tag list` / `ods tag show <tag>` | 📋 **Tier 3: Power User** | Observed tags with counts or docs for one tag (`--format text\|json`). Complements `ods tags` (which can include unused builtins via `--all`). |
 | `ods tag rename <old> <new>` | 📋 **Tier 3: Power User** | Workspace-wide top-level tag rename (dry-run; `--write`). |
@@ -79,7 +78,7 @@ Happy path: [Quickstart Guide](/docs/quickstart).
 | `ods serve --root <path>` | 🏢 **Tier 4: Enterprise Architect** | Headless daemon loop executed by background service (`--mode auto\|watch\|poll`). |
 | `ods workspaces <subcommand>` | 🏢 **Tier 4: Enterprise Architect** | Manage globally tracked ODS workspaces in `~/.ods/odsconfig.toml` (`add`, `remove`, `list`, `path`). |
 | `ods disable [path]` | 🏢 **Tier 4: Enterprise Architect** | Opt-out / strip ODS metadata (dry-run; `--write`, `--keep-frontmatter`, `--remove-indexes`). Alias: `ods revert`. |
-| `ods doctor [path]` | 🏢 **Tier 4: Enterprise Architect** | Workspace health check (version, doc count, index freshness, profile conflicts, service status). |
+| `ods doctor [path]` | 🏢 **Tier 4: Enterprise Architect** | Workspace health check (version, doc count, `ods.toml`, profile conflicts, service status). |
 | `ods update` | 🏢 **Tier 4: Enterprise Architect** | Self-update CLI binary & restart background user service (`--check`, `--force`, `--version <tag>`). |
 
 ---

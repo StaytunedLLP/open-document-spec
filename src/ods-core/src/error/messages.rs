@@ -320,7 +320,7 @@ pub fn root_index_missing() -> UserMsg {
     UserMsg::new(
         "root_index_missing",
         ErrorStage::Load,
-        "missing root index.ods.md",
+        "missing ods.toml workspace marker",
     )
     .next("run `ods init` then retry")
 }
@@ -709,11 +709,11 @@ pub fn lint_context_ignore_not_found(ignore: &str) -> String {
 }
 
 pub fn lint_root_ods_scope_only() -> String {
-    "ods and ods should be declared only in root index.ods.md".into()
+    "workspace policy keys (spec, ignore, packs, aliases, specs) belong in root ods.toml, not document frontmatter".into()
 }
 
 pub fn lint_aliases_root_only() -> String {
-    "workspace aliases should be declared in the root index.ods.md".into()
+    "workspace aliases should be declared in root ods.toml under [aliases]".into()
 }
 
 pub fn lint_invalid_date(field: &str, value: &str) -> String {
@@ -970,6 +970,128 @@ mod tests {
         let s = load_workspace_failed("/tmp/x", "No such file").render_error();
         assert!(s.contains("could not load workspace"), "{s}");
         assert!(s.contains("ods init"), "{s}");
+    }
+
+    #[test]
+    fn root_marker_and_scope_messages_point_at_ods_toml() {
+        let s = root_index_missing().render_error();
+        assert!(s.contains("ods.toml"), "{s}");
+        assert!(!s.contains("index.ods.md"), "{s}");
+        assert!(s.contains("ods init"), "{s}");
+        assert!(lint_root_ods_scope_only().contains("ods.toml"));
+        assert!(lint_aliases_root_only().contains("ods.toml"));
+        assert!(!lint_root_ods_scope_only().contains("index.ods.md"));
+        assert!(!lint_aliases_root_only().contains("index.ods.md"));
+    }
+
+    #[test]
+    fn catalog_builders_render_nonempty() {
+        // Smoke-call lint/user builders so catalog stays covered as messages evolve.
+        let user_msgs = [
+            unknown_command("x", None).render_error(),
+            unknown_command("lintt", Some("lint")).render_error(),
+            unknown_platform_command("foo").render_error(),
+            unknown_ods_command("bar", None).render_error(),
+            okf_namespace_removed().render_error(),
+            forbidden_ods_flag().render_error(),
+            missing_flag_value("--out", "ods export --out x").render_error(),
+            unknown_flag("--nope", "ods help").render_error(),
+            unknown_subcommand("pack", "zzz", "ods pack list").render_error(),
+            missing_context_id().render_error(),
+            missing_required_arg("path", "ods new <path>").render_error(),
+            not_ods_workspace(false, false).render_error(),
+            not_ods_workspace(true, true).render_error(),
+            not_okf_bundle().render_error(),
+            no_skills_package().render_error(),
+            path_not_found("/nope").render_error(),
+            io_failed("write", "disk full").render_error(),
+            home_dir_unresolved().render_error(),
+            document_not_found_context("q").render_error(),
+            document_not_found("doc").render_error(),
+            concept_not_found("c").render_error(),
+            context_requires_ods_or_okf().render_error(),
+            undo_no_snapshot().render_error(),
+            already_exists("/x").render_error(),
+            scaffold_failed("boom").render_error(),
+            invalid_choice("--format", "xml", "text|json").render_error(),
+        ];
+        for s in user_msgs {
+            assert!(!s.is_empty(), "{s}");
+            assert!(s.contains("error:") || s.contains("usage:"), "{s}");
+        }
+
+        let strings = [
+            lint_invalid_status("nope", None),
+            lint_invalid_status("drft", Some("draft")),
+            lint_invalid_share("public"),
+            lint_title_discouraged(),
+            lint_dangling_reference("x"),
+            lint_dangling_context_reference("y"),
+            lint_depends_cycle("a -> b -> a"),
+            lint_duplicate_document_id("id"),
+            lint_missing_resource("a.csv"),
+            lint_missing_code_path("src/a.rs"),
+            lint_frontmatter_parse("bad"),
+            lint_unknown_profile("zzz"),
+            lint_missing_expected_section("Goal"),
+            lint_tags_misplaced(),
+            lint_index_stale_missing("a.md"),
+            lint_index_stale_extra("b.md"),
+            skills_no_package(),
+            skills_body_too_long(999),
+            skills_prefix("x"),
+            skills_missing_name(),
+            skills_name_too_long(99),
+            skills_name_invalid(),
+            skills_name_dir_mismatch("a", "b"),
+            skills_missing_description(),
+            skills_description_too_long(999),
+            skills_compatibility_too_long(999),
+            okf_version_mismatch("0.1"),
+            okf_missing_version(),
+            okf_missing_frontmatter(),
+            okf_invalid_frontmatter("e"),
+            okf_missing_type(),
+            okf_attested_requires_runtime(),
+            okf_generated_by_required(),
+            okf_verified_by_required(1),
+            okf_sources_resource_required(0),
+            okf_stale_after_format("x"),
+            okf_concept_stale("2020-01-01"),
+            lifecycle_document_exists("a.md"),
+            lifecycle_document_not_found("a.md"),
+            lifecycle_refuse_body_change("a.md"),
+            detail("act", "err"),
+            update_unsupported_platform("haiku", "riscv"),
+            update_asset_not_found("ods.tgz", "v1"),
+            update_checksums_not_found("v1"),
+            update_checksum_entry_missing("ods.tgz"),
+            update_checksum_mismatch("ods.tgz", "aa", "bb"),
+            update_archive_missing_binary("/tmp"),
+            lint_code_path_line_suffix("x.rs"),
+            lint_dangling_body_link("a.md"),
+            lint_missing_pack_path("p"),
+            lint_missing_context_resource("c"),
+            lint_context_ignore_not_found("i"),
+            lint_invalid_date("created", "nope"),
+            lint_missing_expected_key("k", "note"),
+            lint_duplicate_tag("t"),
+            lint_tag_has_spaces("a b", "a-b"),
+            lint_tag_collides_status("draft"),
+            lint_tag_collides_profile("note"),
+            lint_root_version_mismatch("0.0", "0.1"),
+            lint_root_missing_ods_version("0.1"),
+            lint_missing_root_index("0.1"),
+            lint_missing_ods_toml("0.1"),
+            lint_non_canonical_ref("a", "a.md"),
+            lint_non_canonical_context_ref("a", "a.md"),
+            lint_duplicate_profile("p", "a.md", "b.md"),
+            lint_key_typo_suggestion("stauts", "status"),
+            lint_legacy_alias_used("created_at", "created"),
+        ];
+        for s in strings {
+            assert!(!s.is_empty(), "{s}");
+        }
     }
 
     #[test]

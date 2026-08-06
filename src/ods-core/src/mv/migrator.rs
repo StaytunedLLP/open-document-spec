@@ -52,6 +52,8 @@ pub fn migrate_frontmatter_to_canonical(text: &str) -> Option<String> {
         std::collections::BTreeMap::new();
     // Universal keys found under nested `ods:` (e.g. tags) — hoist to root.
     let mut hoisted_universal: Vec<(String, Vec<String>)> = Vec::new();
+    // Unknown nested keys under `ods:` — preserve as opaque blocks (non-destructive policy).
+    let mut unknown_nested: Vec<Vec<String>> = Vec::new();
     let mut had_nested_ods = false;
     let mut had_flat_engine = false;
 
@@ -76,9 +78,10 @@ pub fn migrate_frontmatter_to_canonical(text: &str) -> Option<String> {
                     // Hoist nested universal keys (tags) to root; de-indent from ods nesting.
                     let root_lines = deindent(&sub.lines, 2);
                     hoisted_universal.push((sub.key.clone(), root_lines));
+                } else {
+                    // Preserve foreign / unknown keys nested under ods: (do not drop).
+                    unknown_nested.push(sub.lines);
                 }
-                // Other unknown nested keys under ods: are intentionally not re-emitted
-                // as engine keys (same as before for non-engine unknowns).
             }
         }
     }
@@ -118,12 +121,16 @@ pub fn migrate_frontmatter_to_canonical(text: &str) -> Option<String> {
         }
     }
 
-    if !engine.is_empty() {
+    if !engine.is_empty() || !unknown_nested.is_empty() {
         new_frontmatter_lines.push("ods:".to_string());
         for key in CANONICAL_ODS_KEY_ORDER {
             if let Some((_, lines)) = engine.get(key) {
                 new_frontmatter_lines.extend(lines.iter().cloned());
             }
+        }
+        // Append unknown nested keys after canonical engine keys (original encounter order).
+        for lines in &unknown_nested {
+            new_frontmatter_lines.extend(lines.iter().cloned());
         }
     }
 

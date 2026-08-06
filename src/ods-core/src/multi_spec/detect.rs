@@ -33,7 +33,7 @@ pub fn skills_enabled(root: impl AsRef<Path>) -> bool {
 ///
 /// Discovers SKILL.md packages by:
 /// 1. Recursively walking workspace directory for any `SKILL.md` file at any depth.
-/// 2. Reading explicit `skills:` array from root `index.ods.md` / `index.md` frontmatter (if defined).
+/// 2. Reading explicit skills paths from workspace config / legacy root index frontmatter (if defined).
 pub fn skill_package_roots(workspace: impl AsRef<Path>) -> Vec<PathBuf> {
     let workspace = workspace.as_ref();
     let mut out = Vec::new();

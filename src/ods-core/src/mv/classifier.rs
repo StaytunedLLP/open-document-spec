@@ -34,9 +34,9 @@ pub fn rewrite_refs_after_moves(
     apply_path_changes(root, &changes)
 }
 
-/// No-op: nested indexes removed. Kept for API callers that used to regenerate indexes.
+/// No-op: nested ODS `index.ods.md` generation was removed.
+/// Kept for API compatibility; returns an empty path list after validating the workspace loads.
 pub fn reindex_workspace(root: impl AsRef<Path>) -> io::Result<Vec<PathBuf>> {
-    // Touch load so callers still validate the path is an ODS workspace.
     let _ = load_workspace(root.as_ref())?;
     Ok(Vec::new())
 }

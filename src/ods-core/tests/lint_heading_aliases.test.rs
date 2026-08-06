@@ -128,7 +128,12 @@ fn aliases_on_non_root_warn() {
     .unwrap();
     let ws = load_workspace(&dir).unwrap();
     let diags = lint_workspace(&ws);
-    assert!(diags.iter().any(|d| d.message.contains("root index")));
+    assert!(
+        diags
+            .iter()
+            .any(|d| d.message.contains("ods.toml") || d.message.contains("aliases")),
+        "{diags:?}"
+    );
 }
 
 #[test]
@@ -205,8 +210,7 @@ fn lint_canonical_edge_cases() {
     let ws = load_workspace(&dir).unwrap();
     let diags = lint_workspace(&ws);
     assert!(diags.iter().any(|d| {
-        d.message
-            .contains("ods and ods should be declared only in root index.ods.md")
+        d.message.contains("belong in root ods.toml") || d.message.contains("ods.toml")
     }));
     assert!(
         diags

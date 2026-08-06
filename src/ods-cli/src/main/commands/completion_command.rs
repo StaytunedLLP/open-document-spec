@@ -49,7 +49,7 @@ _ods() {
     local -a commands
     commands=(
         'lint:Validate workspace markdown files and graph consistency'
-        'index:Generate or check navigation index markdown files'
+        'index:OKF only: generate or check OKF navigation indexes (ods index --okf)'
         'profiles:List or initialize document profile schemas'
         'status:Set document lifecycle status (draft|stable|deprecated|archived)'
         'aliases:List or add section-heading aliases'
@@ -64,10 +64,10 @@ _ods() {
         'rm:Remove document and scrub references'
         'archive:Archive document status (alias for status archived)'
         'init:Initialize ODS workspace'
-        'disable:Remove ODS markers and indexes'
+        'disable:Strip ODS metadata / opt out of workspace'
         'doctor:Report workspace health and configuration status'
         'sync:Synchronize git status and workspace metadata'
-        'watch:Watch file system and auto-reindex on changes'
+        'watch:Watch file system and re-lint on changes'
         'logs:View service watcher logs'
         'serve:Run foreground language server / watcher'
         'export:Export graph visualization'
@@ -87,7 +87,7 @@ _ods "$@"
 
 const FISH_COMPLETION: &str = r#"complete -c ods -f
 complete -c ods -n "__fish_use_subcommand" -a "lint" -d "Validate workspace consistency"
-complete -c ods -n "__fish_use_subcommand" -a "index" -d "Generate navigation index.md files"
+complete -c ods -n "__fish_use_subcommand" -a "index" -d "OKF only: generate/check OKF indexes (ods index --okf)"
 complete -c ods -n "__fish_use_subcommand" -a "stats" -d "Display document telemetry and health score"
 complete -c ods -n "__fish_use_subcommand" -a "overview" -d "AI cold-start workspace snapshot"
 complete -c ods -n "__fish_use_subcommand" -a "summary" -d "Alias for overview"
