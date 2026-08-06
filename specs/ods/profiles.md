@@ -30,8 +30,8 @@ Key: `ods.profile` — see [keys.md](keys.md).
 
 Rules:
 
-- `ods.profile` is optional; default is **`note`**. On ordinary documents it lives under the nested `ods:` map. On indexes, `profile: index` is typically top-level for compatibility with generators.
-- **Canonical registration:** root index `custom-profiles:` lists profile definition files. Legacy root `profiles:` catalog roots MAY still be accepted.
+- `ods.profile` is optional; default is **`note`**. On ordinary documents it lives under the nested `ods:` map.
+- **Canonical registration:** root `ods.toml` `custom_profiles` lists profile definition files. Legacy root-index `profiles:` / `custom-profiles:` MAY still be accepted during migration.
 - **No folder auto-discovery:** tools MUST NOT implicitly scan `ods-profiles/` or `.ods/profiles/` unless those paths are listed or imported via packs.
 - An **ODS Pack** is a versioned directory/repo with reusable profiles (`ods-profiles/`), skills, or templates. Remote packs sync under `~/.ods/packs/`; local packs use relative paths.
 - Resolution order: Standard → explicit `custom-profiles:` paths → packs.

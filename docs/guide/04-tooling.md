@@ -135,26 +135,24 @@ ods lint --level 3
 
 ## Hybrid Workspaces & Declarative Multi-Spec Configuration
 
-Bare `ods lint` runs **ODS only** by default. However, workspaces can declaratively enable extra specs (`okf`, `skills`) directly in the root `ods.toml` (or `ods.toml`) frontmatter:
+Bare `ods lint` runs **ODS only** by default. However, workspaces can declaratively enable extra specs (`okf`, `skills`) directly in the root `ods.toml`:
 
-```yaml
----
+```toml
+# root ods.toml
 spec = "0.1"
-title: Documentation Root
-specs:
-  okf:
-    enabled: true
-    lint:
-      check_keys: false                  # Suppress required OKF frontmatter key enforcement
-      ignore_keys: ["runtime", "sources"] # Or ignore specific frontmatter keys
-  skills:
-    enabled: true
-    lint:
-      check_keys: true
----
+
+[specs.okf]
+enabled = true
+check_keys = true
+ignore_keys = ["runtime", "sources"]
+
+[specs.skills]
+enabled = true
+check_keys = true
+ignore_keys = []
 ```
 
-When extra specs are set to `enabled: true` in root `ods.toml`, bare `ods lint` automatically validates those declared specs without requiring extra CLI flags.
+When extra specs are set to `enabled: true` in root `ods.toml`, bare `ods lint` automatically validates those declared specs without requiring extra CLI flags. For full details on all supported root configuration options, see [ODS Features & Configuration Keys](/docs/guide/features.md#2-root-odstoml-configuration-keys).
 
 ### Imperative CLI Flags & Key Suppression
 

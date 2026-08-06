@@ -47,7 +47,7 @@ When assisting users inside an ODS workspace, follow these operational directive
 - 🚨 **ERRORS**: CLI prints `error:`/`usage:` + `Next:` (sometimes `Hint:`). Surface that Next line to the user; do not invent a different recovery. Common: not a workspace → `ods init`; miss → `ods find`; tags under `ods:` → `ods fmt --migrate`.
 - 👥 **WHO**: Operate seamlessly on behalf of non-technical or developer users without requiring manual terminal commands.
 - 📍 **WHERE**: Open `references/keys.md` only when authoring frontmatter; do not preload all references every turn.
-- ⏰ **WHEN**: Run `ods lint` after structural edits (`--fix` only regenerates indexes — it does not invent missing docs). Use `ods mv` for renames.
+- ⏰ **WHEN**: Run `ods lint` after structural edits (`--fix` is a no-op for ODS nested indexes — use `overview` / `find` / `tree`; `ods fmt --migrate` for frontmatter shape). Use `ods mv` for renames.
 - 🛡️ **SAFETY**: Prefer H1 for titles (FM `title:` is a lint **warning**, value kept). Navigation is CLI discovery (`overview` / `find` / `tree` / `context`) — never recreate nested `index.ods.md`. Workspace marker is **`ods.toml`**. Non-ODS keys (e.g. Hugo `layout`, Astro `hero_image`) are preserved across mutations; only ODS (or `--okf` / `--skills`) keys change.
 - 🛠️ **HOW**: `ods context <id>` from workspace root; optional `--include-code`, `--include-private`, `--root <dir>`.
 
@@ -105,16 +105,16 @@ Custom profiles define domain schemas, required frontmatter keys, and starter te
 
 ### Single-Source Registration (`custom_profiles` in root `ods.toml`)
 
-Custom profiles can be explicitly registered in root `ods.toml` under `custom_profiles` or auto-discovered:
+Custom profiles are registered in root `ods.toml` under `custom_profiles` (and via packs):
 
-```yaml
----
-profile: index
-ods: 0.1
-custom-profiles:
-  - .ods/profiles/rfc.md
-  - docs/profiles/api_endpoint.md
----
+```toml
+# root ods.toml
+spec = "0.1"
+
+custom_profiles = [
+  ".ods/profiles/rfc.md",
+  "docs/profiles/api_endpoint.md",
+]
 ```
 
 ---
@@ -167,7 +167,7 @@ custom-profiles:
 | **`ods archive <path>`** | 🛠️ Tier 2 (Practitioner) | Set `status: archived` in frontmatter in place. |
 | **`ods fmt [path]`** | 🛠️ Tier 2 (Practitioner) | Reformat YAML frontmatter and body spacing (`--refs md-paths` converts IDs to relative `.md` paths). |
 | **`ods stats [path]`** | 🛠️ Tier 2 (Practitioner) | Workspace document telemetry, graph density, profile distribution, and health score %. |
-| **`ods tree [path]`** | 🛠️ Tier 2 (Practitioner) | Visual ASCII/Unicode hierarchy tree of index navigation and dependency graphs. |
+| **`ods tree [path]`** | 🛠️ Tier 2 (Practitioner) | Visual ASCII/Unicode hierarchy tree of workspace folders and dependency graphs. |
 | **`ods context <id>`** | 📋 Tier 3 (Power User) | Bounded list (depends + context.load). `--max-tokens N`, `--print`, `--include-code`, `--tag`, `--key`. |
 | **`ods find [path]`** | 📋 Tier 3 (Power User) | Find docs by tag (`--tag`), schema/custom keys (`--key`, `--status`, `--profile`, `--owner`), and query (`--format text\|json`). |
 | **`ods tag list` / `show`** | 📋 Tier 3 (Power User) | List observed tags with doc counts or inspect docs matching a tag (`--format text\|json`). |
@@ -188,5 +188,5 @@ custom-profiles:
 | **`ods coverage [path]`** | 🏢 Tier 4 (Architect) | Documentation health % (`--write-report` → `.ods/coverage.md`). |
 | **`ods start / stop`** | 🏢 Tier 4 (Architect) | Manage background user OS service (`systemd` / `launchd` / Windows Scheduled Task). |
 | **`ods serve --root <path>`**| 🏢 Tier 4 (Architect) | Headless daemon loop executed by background service. |
-| **`ods doctor [path]`** | 🏢 Tier 4 (Architect) | Workspace health check (version, doc count, index freshness, profile conflicts, service status). |
+| **`ods doctor [path]`** | 🏢 Tier 4 (Architect) | Workspace health check (version, doc count, `ods.toml`, profile conflicts, service status). |
 | **`ods update`** | 🏢 Tier 4 (Architect) | Self-update CLI binary & restart background user service. |

@@ -20,6 +20,7 @@ GitHub Releases use GitHub’s auto-generated notes. Edit this file by hand when
 - **CLI honesty after index removal:** help/completions no longer claim ODS `index` lockfile generation; `ods lint --fix` documents no-op (discovery is `overview`/`find`/`tree`); error catalog points at **`ods.toml`** not root `index.ods.md`.
 - Removed accidental committed workspace graph dumps (`graph.md`, `src/ods-cli/graph.md`).
 - `ROOT_ODS_KEYS` strip list no longer duplicated `ods`; includes packs/specs for legacy root-policy disable.
+- Docs/skill residual “regenerate indexes” / root-index wording cleaned; profile CLI split into `profile/{inspect,init,aliases,tests}.rs`; workspace config keys registered as `WorkspaceConfigOnly`.
 
 ### Added
 - **`ods read [root] <id-or-path>`:** Fine-grained section extraction (`--section <heading>`), outline summary (`--summary`), and soft token cap controls (`--max-tokens N`, `--format text|json`). Prevents path traversal out of workspace.
@@ -30,7 +31,7 @@ GitHub Releases use GitHub’s auto-generated notes. Edit this file by hand when
 - **`ods context` filter fallback:** when the positional id is omitted, `--tag` / `--key` / `--status` may resolve a target **only if the match is unique**; multi-match fails with a short id list and `Next: ods find …`. Classic `ods context <id>` is unchanged.
 - **`ods profile init --register` (default):** scaffolds `.ods/profiles/<name>.md` and appends it under root `custom-profiles:` (use `--no-register` to skip). **`ods profile show <name>`** prints layer, sections, expected keys.
 - **`ods status <path-or-id> <draft|stable|deprecated|archived>`** lifecycle setter; **`ods archive`** remains an alias for `status … archived`.
-- **`ods aliases` / `ods alias add <Canonical> <Synonym>`** for workspace section-heading aliases on the root index.
+- **`ods aliases` / `ods alias add <Canonical> <Synonym>`** for workspace section-heading aliases in root `ods.toml` `[aliases]` (legacy root index still accepted).
 - **`ods context --explain`** / **`--include-related`**; hybrid **`--okf`** merges OKF link neighborhood after ODS depends/load; respects root `specs.okf.enabled`.
 - **`ods undo --list`** lists machine backup snapshots; help clarifies undo is snapshot/bench restore, not full git undo.
 - Guide clarity: multi-spec flag rules in quickstart; context depends/related/load recipe; packs v1 = profile catalogs (honest scope); `--okf` command matrix in CLI help.

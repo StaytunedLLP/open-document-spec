@@ -39,7 +39,7 @@ pub fn skill_package_roots(workspace: impl AsRef<Path>) -> Vec<PathBuf> {
     let mut out = Vec::new();
     let mut seen = std::collections::HashSet::new();
 
-    // 1. Check explicit skills: in root index.ods.md / index.md frontmatter
+    // 1. Legacy: explicit skills: in root index frontmatter (prefer ods.toml packs/config).
     let index_paths = [workspace.join("index.ods.md"), workspace.join("index.md")];
     for idx_path in &index_paths {
         if idx_path.is_file() {

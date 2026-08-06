@@ -31,6 +31,7 @@ fn run_pack_list(args: &[String]) -> Result<ExitCode, CliError> {
     let root = resolve_root_path(path);
     let workspace = load_workspace(&root).map_err(|e| fail_load(&root, e))?;
 
+    // Prefer ods.toml packs; fall back to legacy root index frontmatter.
     let mut packs = workspace.config.packs.clone();
     if packs.is_empty()
         && let Some(doc) = workspace

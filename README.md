@@ -155,16 +155,16 @@ Custom profiles define domain document schemas, expected frontmatter keys, and s
 
 ### Single-Source Registration in Root `ods.toml`
 
-Custom profiles are registered explicitly in root `ods.toml` under `custom_profiles (ods.toml):`:
+Custom profiles are registered explicitly in root `ods.toml` under `custom_profiles`:
 
-```yaml
----
-profile: index
+```toml
+# root ods.toml
 spec = "0.1"
-custom_profiles (ods.toml):
-  - .ods/profiles/rfc.md
-  - docs/profiles/api_endpoint.md
----
+
+custom_profiles = [
+  ".ods/profiles/rfc.md",
+  "docs/profiles/api_endpoint.md"
+]
 ```
 
 ### Custom Profile Schema Definition File (`docs/profiles/api_endpoint.md`)

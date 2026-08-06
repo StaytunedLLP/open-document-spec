@@ -39,7 +39,7 @@ Optional `Hint:` lines appear only when they prevent a second failure (for examp
 | Context filter ambiguous | `error: context filter matched N documents…` | Narrow with `ods find --tag` / `--key`, then `ods context <id>` |
 | Missing context id | `usage: missing document id` | `ods context <id-or-path>` (or unique `--tag`/`--key`/`--status`) |
 | Load failure | `error: could not load workspace at '…'` | Check path or `ods init` |
-| Missing root index | `error: missing ods.toml` | `ods init` then retry |
+| Missing workspace marker | `error: missing ods.toml` | `ods init` then retry |
 | Nothing to undo | `error: nothing to undo (no snapshot found)` | Snapshots come from bulk writes (adopt/fmt) |
 | Update failed | `error: update failed: …` | Check GitHub network access or install from Releases |
 | Service start/stop failed | `error: start service: …` / `stop service: …` | Permissions; `ods start --status`; guide § daemon troubleshooting |
@@ -61,7 +61,8 @@ ods doctor
 # Step 2: Validate graph relationships, schemas, and references
 ods lint --level 3
 
-# Step 3: Check index lockfile freshness
+# Step 3: Re-lint after fixes (discovery is overview/find/tree — no index lockfiles)
+ods overview
 ods lint
 ```
 
@@ -149,19 +150,14 @@ Below is the complete catalog of errors and warnings reported by `ods lint`, alo
 
 ## 3. Git Operations & Merge Conflict Resolution
 
-### Merge Conflicts in `ods.toml` Lockfiles
-Because `ods.toml` files act like lockfiles for directory listings, Git merges between active feature branches can occasionally produce merge conflicts in `ods.toml` child lists.
+### Merge Conflicts in `ods.toml`
+Root `ods.toml` is the workspace marker (spec, ignore, packs, aliases, specs). Merges between branches can conflict on that file — resolve it like any TOML config, then re-validate.
 
 **Resolution**:
 ```bash
-# Accept either side of the merge conflict in ods.toml
-git checkout --ours **/ods.toml
-
-# Regenerate exact indexes deterministically from the merged files
+# Resolve the conflict in ods.toml (ours/theirs or manual edit), then:
 ods lint
-
-# Stage the resolved indexes
-git add **/ods.toml
+git add ods.toml
 ```
 
 ### Reconciling Git Renames (`ods sync`)

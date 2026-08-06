@@ -13,7 +13,7 @@ ODS adoption is **enrichment**, never migration. Plain Markdown is already 100% 
 
 > [!TIP]
 > **Zero-Effort Adoption in 10 Seconds**:
-> Run `ods setup .` once. ODS automatically adopts existing files, starts the OS background service (`ods serve`), and indexes your workspace. From that moment on, the background service and your AI assistant (`ods skill`) maintain frontmatter, indexes, and links **automatically with zero extra effort from you**.
+> Run `ods setup .` once. ODS writes **`ods.toml`**, can adopt plain Markdown, and can start the OS background service (`ods serve`). Discovery is CLI-only (`overview` / `find` / `tree` / `context`) — **no nested index lockfiles**. From that moment on, the service and your AI assistant (`ods skill`) help keep frontmatter and links consistent.
 
 Empty tree? Use [Quickstart Guide](/docs/quickstart) first.
 
@@ -35,13 +35,13 @@ Installing `ods`  does **not** change Markdown until you opt in. Plain files sta
 
 | Step | Action |
 | --- | --- |
-| 1 | `ods setup` — check/update path and create or repair root `ods:` |
-| 2 | `ods init .` — explicit opt-in alternative for root `ods:` + indexes |
+| 1 | `ods setup` — check/update path and create or repair root `ods.toml` |
+| 2 | `ods init .` — explicit opt-in (writes root `ods.toml`) |
 | 3 | Optional: `ods init . --adopt` or `ods adopt --write` — draft `profile` + `status: draft` |
-| 4 | Root `ignore:` for code trees if needed, then `ods overview` / `ods find` |
+| 4 | Root `ignore` in `ods.toml` for code trees if needed, then `ods overview` / `ods find` |
 | 5 | Add `depends` / `related` where you know relationships |
 | 6 | `ods setup` or `ods start .` — ensure background service |
-| 7 | CI: `ods lint` + `ods lint` |
+| 7 | CI: `ods lint` |
 
 ---
 
@@ -90,7 +90,7 @@ Practical rules:
 | When | Add |
 | --- | --- |
 | Day 0 | Plain Markdown |
-| Day 1 | Root `ods.toml` + `ods:` via `ods init` |
+| Day 1 | Root `ods.toml` via `ods init` |
 | Early | `profile` + `status` |
 | As you link | `depends` / `related` |
 | When skimming | `description` |

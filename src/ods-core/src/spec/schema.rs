@@ -23,9 +23,9 @@ pub enum KeyPlacement {
     TopLevel,
     /// ODS engine keys nested under the `ods:` map.
     NestedEngineMap,
-    /// Only valid in workspace `ods.toml` (formerly root index only).
+    /// Deprecated alias for [`WorkspaceConfigOnly`] (legacy name: root index).
     RootIndexOnly,
-    /// Only valid in workspace `ods.toml`.
+    /// Only valid in workspace `ods.toml` (not ordinary document frontmatter).
     WorkspaceConfigOnly,
 }
 
@@ -275,53 +275,53 @@ impl SpecSchemaRegistry {
             schema.add_key(def);
         }
 
-        // Root index only
+        // Workspace config only (ods.toml; RootIndexOnly kept as enum alias for API stability)
         for def in [
             KeyDefinition::new(
                 "ods",
-                KeyPlacement::RootIndexOnly,
+                KeyPlacement::WorkspaceConfigOnly,
                 KeyType::String,
                 false,
-                "ODS spec version marker on root index",
+                "ODS spec version marker (ods.toml `spec` / legacy root pin)",
             ),
             KeyDefinition::new(
                 "custom-profiles",
-                KeyPlacement::RootIndexOnly,
+                KeyPlacement::WorkspaceConfigOnly,
                 KeyType::List,
                 false,
                 "Workspace custom profile schema definitions",
             ),
             KeyDefinition::new(
                 "profiles",
-                KeyPlacement::RootIndexOnly,
+                KeyPlacement::WorkspaceConfigOnly,
                 KeyType::List,
                 false,
                 "Legacy profile catalog roots",
             ),
             KeyDefinition::new(
                 "packs",
-                KeyPlacement::RootIndexOnly,
+                KeyPlacement::WorkspaceConfigOnly,
                 KeyType::List,
                 false,
                 "Imported ODS packs",
             ),
             KeyDefinition::new(
                 "ignore",
-                KeyPlacement::RootIndexOnly,
+                KeyPlacement::WorkspaceConfigOnly,
                 KeyType::List,
                 false,
                 "Ignore path prefixes",
             ),
             KeyDefinition::new(
                 "aliases",
-                KeyPlacement::RootIndexOnly,
+                KeyPlacement::WorkspaceConfigOnly,
                 KeyType::Map,
                 false,
                 "Vocabulary section aliases",
             ),
             KeyDefinition::new(
                 "specs",
-                KeyPlacement::RootIndexOnly,
+                KeyPlacement::WorkspaceConfigOnly,
                 KeyType::Map,
                 false,
                 "Multi-spec activation and lint config",
