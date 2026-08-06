@@ -238,6 +238,7 @@ mod test_lint_index_commands {
     fn lint_fix_canonical_skills_and_index_check() {
         let td = tempdir().unwrap();
         let root = td.path();
+        fs::write(root.join("ods.toml"), "spec = \"0.1\"\n").unwrap();
         fs::write(
             root.join("index.ods.md"),
             "---\nprofile: index\nods: 0.1\n---\n\n# R\n",
@@ -287,25 +288,21 @@ mod test_lint_index_commands {
         }
 
         let path = root.to_str().unwrap().to_string();
-        let res = run_index_command(&["ods".into(), "index".into(), path.clone()]);
+        let res = run_overview_command(&["ods".into(), "overview".into(), path.clone()]);
         assert!(res.is_ok());
-        let res = run_index_command(&[
+        let res = run_find_command(&[
             "ods".into(),
-            "index".into(),
+            "find".into(),
+            "--root".into(),
             path.clone(),
-            "--check".into(),
+            "--key".into(),
+            "status=draft".into(),
         ]);
         assert!(res.is_ok());
-        let res = run_index_command(&[
-            "ods".into(),
-            "index".into(),
-            path.clone(),
-            "--format".into(),
-            "json".into(),
-        ]);
+        let res = run_tree_command(&["ods".into(), "tree".into(), path.clone()]);
         assert!(res.is_ok());
 
-        // fmt command and index --strip-indexes
+        // fmt command
         let res = run_fmt_command(&["ods".into(), "fmt".into(), path.clone()]);
         assert!(res.is_ok());
 
@@ -315,14 +312,6 @@ mod test_lint_index_commands {
             path.clone(),
             "--format".into(),
             "json".into(),
-        ]);
-        assert!(res.is_ok());
-
-        let res = run_index_command(&[
-            "ods".into(),
-            "index".into(),
-            path,
-            "--strip-indexes".into(),
         ]);
         assert!(res.is_ok());
     }

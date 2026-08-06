@@ -70,9 +70,7 @@ fn poll_serve_prints_memory_report() {
     );
     // Product SLA: service.max_rss_mb = 10. Debug builds may be larger; allow
     // ODS_MEM_TEST_RELAXED=1 or non-release to use a 32MB soft cap.
-    let limit_kb: u64 = if cfg!(debug_assertions)
-        || std::env::var("ODS_MEM_TEST_RELAXED").is_ok()
-    {
+    let limit_kb: u64 = if cfg!(debug_assertions) || std::env::var("ODS_MEM_TEST_RELAXED").is_ok() {
         32_768
     } else {
         10_240

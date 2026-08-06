@@ -113,7 +113,8 @@ fn test_lsp_document_lifecycle_hover_definition_and_diagnostics() {
 
     // Minimal ODS workspace
     fs::write(
-        root.join("ods.toml"), "spec = \"0.1\"
+        root.join("ods.toml"),
+        "spec = \"0.1\"
 ",
     )
     .unwrap();
@@ -199,7 +200,7 @@ fn test_lsp_document_lifecycle_hover_definition_and_diagnostics() {
     write_jsonrpc_msg(
         stdin,
         &format!(
-            r#"{{"jsonrpc":"2.0","id":10,"method":"textDocument/hover","params":{{"textDocument":{{"uri":"file://{root_s}/index.ods.md"}},"position":{{"line":1,"character":0}}}}}}"#
+            r#"{{"jsonrpc":"2.0","id":10,"method":"textDocument/hover","params":{{"textDocument":{{"uri":"file://{root_s}/broken.md"}},"position":{{"line":1,"character":0}}}}}}"#
         ),
     );
     let hover = read_until_id_or_method(&mut reader, 10, None);

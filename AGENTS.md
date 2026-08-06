@@ -10,7 +10,7 @@ Rules for coding agents in the **Open Document Spec** monorepo.
 - Extra specs: **`--okf`**, **`--skills`** only — never namespaces `ods okf` / `ods ods`
 - Workspace marker: **`ods.toml`** at repo root (not nested `index.ods.md`)
 - Compliance: **compliant | non-compliant** only (no Level 0–3)
-- Discovery: `ods overview` / `find` / `ls` / `tree` / `context` — progressive CLI, not folder indexes
+- Discovery: `ods overview` / `find` / `ls` / `tree` / `context` / `read` — progressive CLI, not folder indexes
 - Editors: **`ods lsp`** · Watcher: `ods serve` / `ods start` (not LSP); serve target **≤10 MB** RSS (`service.max_rss_mb`)
 - Do not invent `odc:` or `ods-cli:` frontmatter keys
 - Specs live at repo-root **`specs/{ods,okf,skills}/`** — start at `intro.md` + `keys.md`
@@ -32,7 +32,7 @@ CLI/engine user copy lives in **`src/ods-core/src/error/messages.rs`** (not ad-h
 ## Token & context reliability
 
 - Cold-start: `ods overview` → `ods tag list` / `ods schema keys` → `ods find --key …` → `ods context <id>`.
-- Prefer `ods context <id>` (`--max-tokens N`, `--print`). Read **only** returned paths.
+- Prefer `ods read <id>` (`--section <heading>`, `--summary`, `--max-tokens N`) or `ods context <id>` (`--max-tokens N`, `--print`). Read **only** returned sections or paths.
 - Context walks **depends + context.load** (not `related`). `--include-code` is opt-in.
 - If context errors: **stop** — use `ods find <query>` / `--key`; do not dump the repo or full graph export.
 - `ods export` defaults to `.ods/graph.md` (not routine AI prompts).

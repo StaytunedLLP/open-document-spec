@@ -168,6 +168,7 @@ mod test_overview_command {
     #[test]
     fn test_overview_temp_workspace_with_custom_keys() {
         let td = tempfile::tempdir().unwrap();
+        std::fs::write(td.path().join("ods.toml"), "spec = \"0.1\"\n").unwrap();
         std::fs::write(
             td.path().join("index.md"),
             "---\nprofile: index\nods: 0.1\n---\n\n# R\n",

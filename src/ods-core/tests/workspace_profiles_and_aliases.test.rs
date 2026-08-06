@@ -1,7 +1,6 @@
 use ods_core::{
-    lint_workspace, load_workspace,
-    move_document_and_rewrite_refs, profile_section_labels, resolve_context,
-    workspace_alias_suggestions, workspace_aliases,
+    lint_workspace, load_workspace, move_document_and_rewrite_refs, profile_section_labels,
+    resolve_context, workspace_alias_suggestions, workspace_aliases,
 };
 use ods_test_support::{copy_fixture_to_temp, temp_workspace};
 use std::fs;
@@ -31,27 +30,24 @@ fn sample_workspace_lints_cleanly() {
 #[test]
 fn lint_document_in_workspace_unparsed_frontmatter() {
     let dir = ods_test_support::temp_workspace();
-    std::fs::write(
-        dir.join("index.ods.md"),
-        "spec = \"0.1\"\n",
-    )
-    .unwrap();
+    std::fs::write(dir.join("index.ods.md"), "spec = \"0.1\"\n").unwrap();
     std::fs::write(dir.join("plain.md"), "# Plain\n").unwrap();
 
     let ws = load_workspace(&dir).unwrap();
-    let diags = ods_core::lint_document_in_workspace(
-        &ws,
-        &dir.join("plain.md"),
-        ods_core::LintLevel::Full,
-    );
+    let diags =
+        ods_core::lint_document_in_workspace(&ws, &dir.join("plain.md"), ods_core::LintLevel::Full);
     assert!(diags.is_empty());
 }
 
 #[test]
 fn context_resolution_follows_depends_chain_deterministically() {
     let temp = temp_workspace();
-    fs::write(temp.join("ods.toml"), "spec = \"0.1\"
-").expect("toml");
+    fs::write(
+        temp.join("ods.toml"),
+        "spec = \"0.1\"
+",
+    )
+    .expect("toml");
     fs::write(
         temp.join("checkout.md"),
         "---\nprofile: feature\nstatus: stable\nid: checkout\ndepends:\n  - pricing\n---\n\n# Checkout\n",
@@ -81,16 +77,24 @@ fn context_resolution_follows_depends_chain_deterministically() {
 fn index_generation_matches_workspace_children() {
     let dir = tempfile::tempdir().unwrap();
     let root = dir.path();
-    fs::write(root.join("ods.toml"), "spec = \"0.1\"
-").unwrap();
-    fs::write(root.join("a.md"), "---
+    fs::write(
+        root.join("ods.toml"),
+        "spec = \"0.1\"
+",
+    )
+    .unwrap();
+    fs::write(
+        root.join("a.md"),
+        "---
 profile: note
 status: draft
 ---
 
 # A
-").unwrap();
-    let ws = load_workspace(root).unwrap();
+",
+    )
+    .unwrap();
+    let _ws = load_workspace(root).unwrap();
     /* indexes removed */
     /* indexes removed */
 }
@@ -178,7 +182,13 @@ fn custom_profiles_are_loaded_from_workspace_catalogs() {
             .iter()
             .any(|label| label == "Summary")
     );
-    assert!(workspace.config.custom_profiles.iter().any(|c| c.contains("ods-profiles")));
+    assert!(
+        workspace
+            .config
+            .custom_profiles
+            .iter()
+            .any(|c| c.contains("ods-profiles"))
+    );
 }
 
 #[test]

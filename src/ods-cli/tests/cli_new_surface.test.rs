@@ -260,7 +260,8 @@ fn profile_fmt_disable_doctor_and_flag_matrix() {
     let index_text = fs::read_to_string(dir.join("ods.toml"))
         .unwrap_or_else(|_| fs::read_to_string(dir.join("ods.toml")).expect("root index"));
     assert!(
-        index_text.contains("aliases:") && index_text.contains("Objective"),
+        (index_text.contains("aliases") || index_text.contains("[aliases]"))
+            && index_text.contains("Objective"),
         "{index_text}"
     );
 

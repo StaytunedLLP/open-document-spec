@@ -111,15 +111,23 @@ pub fn init_workspace(root: impl AsRef<Path>, options: InitOptions) -> io::Resul
     };
 
     let toml = ods_toml_path(&root);
-    if ods_toml_enabled(&root) {
-        report.already_initialized = true;
+    if toml.is_file() {
+        if let Ok(mut cfg) = crate::config::load_workspace_config(&root) {
+            if cfg.spec.trim() != crate::model::current_ods_spec_version() {
+                cfg.spec = crate::model::current_ods_spec_version().to_string();
+                let _ = write_ods_toml(&root, &cfg);
+                report.initialized = true;
+            } else {
+                report.already_initialized = true;
+            }
+        } else {
+            report.already_initialized = true;
+        }
     } else if let Some(_path) = migrate_root_index_to_toml(&root)? {
         report.initialized = true;
-    } else if !toml.is_file() {
+    } else {
         write_ods_toml(&root, &WorkspaceConfig::new_workspace())?;
         report.initialized = true;
-    } else {
-        report.already_initialized = true;
     }
 
     let workspace = load_workspace(&root)?;
@@ -157,17 +165,11 @@ pub fn disable_workspace(
     let root_index = root.join("index.ods.md");
     let root_toml = ods_toml_path(&root);
 
-    if options.remove_root_index || options.strip_root_policy {
-        if root_toml.is_file() {
-            report.would_delete.push(root_toml.clone());
-            if options.write && options.remove_root_index {
-                fs::remove_file(&root_toml)?;
-                report.deleted.push(root_toml.clone());
-            } else if options.write && options.strip_root_policy && !options.remove_root_index {
-                // strip = delete config when disabling policy
-                fs::remove_file(&root_toml)?;
-                report.deleted.push(root_toml.clone());
-            }
+    if (options.remove_root_index || options.strip_root_policy) && root_toml.is_file() {
+        report.would_delete.push(root_toml.clone());
+        if options.write {
+            fs::remove_file(&root_toml)?;
+            report.deleted.push(root_toml.clone());
         }
     }
 

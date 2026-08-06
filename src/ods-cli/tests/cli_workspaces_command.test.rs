@@ -219,7 +219,8 @@ fn git_detect_renames_in_git_repo() {
         .output();
 
     fs::write(
-        root.join("ods.toml"), "spec = \"0.1\"
+        root.join("ods.toml"),
+        "spec = \"0.1\"
 ",
     )
     .unwrap();

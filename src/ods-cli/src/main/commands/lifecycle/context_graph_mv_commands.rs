@@ -314,6 +314,7 @@ mod test_context_graph_mv {
     fn test_context_command_routing_and_execution() {
         let td = tempdir().unwrap();
         let root = td.path();
+        fs::write(root.join("ods.toml"), "spec = \"0.1\"\n").unwrap();
         let index_path = root.join("index.ods.md");
         fs::write(
             &index_path,
@@ -364,6 +365,7 @@ mod test_context_graph_mv {
     fn test_graph_command_routing_and_execution() {
         let td = tempdir().unwrap();
         let root = td.path();
+        fs::write(root.join("ods.toml"), "spec = \"0.1\"\n").unwrap();
         let index_path = root.join("index.ods.md");
         fs::write(
             &index_path,
@@ -391,6 +393,7 @@ mod test_context_graph_mv {
     fn test_mv_command_routing_and_execution() {
         let td = tempdir().unwrap();
         let root = td.path();
+        fs::write(root.join("ods.toml"), "spec = \"0.1\"\n").unwrap();
         let index_path = root.join("index.ods.md");
         fs::write(
             &index_path,
@@ -469,6 +472,7 @@ mod test_context_graph_mv {
 
         let td = tempfile::tempdir().unwrap();
         let root = td.path();
+        std::fs::write(root.join("ods.toml"), "spec = \"0.1\"\n").unwrap();
         std::fs::write(
             root.join("index.md"),
             "---\nprofile: index\nods: 0.1\n---\n\n# Root\n",
@@ -491,6 +495,7 @@ mod test_context_graph_mv {
     #[test]
     fn test_context_filter_unique_and_ambiguous() {
         let td = tempfile::tempdir().unwrap();
+        std::fs::write(td.path().join("ods.toml"), "spec = \"0.1\"\n").unwrap();
         std::fs::write(
             td.path().join("index.md"),
             "---\nprofile: index\nods: 0.1\n---\n\n# R\n",

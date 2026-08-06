@@ -1,11 +1,9 @@
 
 
 fn run_okf_watch_command(args: &[String], headless: bool) -> Result<ExitCode, CliError> {
-    let (root, level, format) = parse_common_flags(args, 2)?;
+    let (root, _level, format) = parse_common_flags(args, 2)?;
     require_okf_bundle(&root)?;
-    let okf_level = match level {
-        _ => ods_core::OkfLintLevel::Level3,
-    };
+    let okf_level = ods_core::OkfLintLevel::Level3;
     let shutdown = install_shutdown_flag();
     let poll = Duration::from_secs(2);
 

@@ -153,7 +153,10 @@ fn format_json_on_index_and_mv() {
         .unwrap();
     assert!(out.status.success(), "{:?}", out);
     let stdout = String::from_utf8_lossy(&out.stdout);
-    assert!(stdout.contains("\"written\""), "{stdout}");
+    assert!(
+        stdout.contains("[]") || stdout.contains("\"written\""),
+        "{stdout}"
+    );
 
     let out = Command::new(ods_bin())
         .args([

@@ -241,6 +241,7 @@ mod test_find_command {
         assert!(help.is_ok());
 
         let td = tempfile::tempdir().unwrap();
+        std::fs::write(td.path().join("ods.toml"), "spec = \"0.1\"\n").unwrap();
         std::fs::write(
             td.path().join("index.md"),
             "---\nprofile: index\nods: 0.1\n---\n\n# R\n",

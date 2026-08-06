@@ -10,7 +10,7 @@ fn run_tree_command(args: &[String]) -> Result<ExitCode, CliError> {
                 let v = args
                     .get(i + 1)
                     .ok_or_else(|| usage_msg(ods_core::missing_flag_value("--depth", "`ods tree --depth 2`")))?;
-                max_depth = v.parse().unwrap_or(2).max(0);
+                max_depth = v.parse().unwrap_or(2);
                 i += 2;
             }
             _ => i += 1,

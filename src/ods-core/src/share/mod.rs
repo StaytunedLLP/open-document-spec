@@ -145,7 +145,7 @@ pub fn publish_workspace(
     if out_cfg.spec.trim().is_empty() {
         out_cfg.spec = crate::model::current_ods_spec_version().to_string();
     }
-    let _ = crate::config::write_ods_toml(out.as_ref(), &out_cfg);
+    let _ = crate::config::write_ods_toml(out, &out_cfg);
 
     Ok(report)
 }

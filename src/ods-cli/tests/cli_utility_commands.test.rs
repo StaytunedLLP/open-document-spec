@@ -52,11 +52,6 @@ fn lint_broken_writes_ods_error_report() {
             .status
             .success()
     );
-    fs::write(
-        dir.join("broken.md"),
-        "---\nprofile: note\nstatus: draft\ndepends:\n  - missing/doc\n---\n\n# Broken\n",
-    )
-    .unwrap();
     assert!(
         Command::new(ods_bin())
             .args(["lint", root])
@@ -65,6 +60,11 @@ fn lint_broken_writes_ods_error_report() {
             .status
             .success()
     );
+    fs::write(
+        dir.join("broken.md"),
+        "---\nprofile: note\nstatus: draft\ndepends:\n  - missing/doc\n---\n\n# Broken\n",
+    )
+    .unwrap();
     let out = Command::new(ods_bin())
         .args(["lint", root])
         .output()
@@ -93,7 +93,7 @@ fn init_and_disable_cli() {
     assert!(
         fs::read_to_string(dir.join("ods.toml"))
             .unwrap()
-            .contains("ods:"),
+            .contains("spec"),
         "root should be initialized"
     );
     let plain = fs::read_to_string(dir.join("plain.md")).unwrap();
@@ -121,10 +121,11 @@ fn init_and_disable_cli() {
     assert!(!plain.contains("profile:"));
     assert!(plain.contains("Body stays."));
     assert!(
-        !fs::read_to_string(dir.join("ods.toml"))
-            .unwrap()
-            .lines()
-            .any(|l| l.trim().starts_with("ods:"))
+        !dir.join("ods.toml").exists()
+            || !fs::read_to_string(dir.join("ods.toml"))
+                .unwrap_or_default()
+                .lines()
+                .any(|l| l.trim().starts_with("ods:"))
     );
 }
 

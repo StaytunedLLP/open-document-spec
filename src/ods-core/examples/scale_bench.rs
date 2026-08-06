@@ -73,9 +73,11 @@ fn main() {
     });
 
     let workspace = load_workspace(&root).expect("load for lint");
-    time_phase("lint", &root, || { let _ = lint_workspace(&workspace); });
+    time_phase("lint", &root, || {
+        let _ = lint_workspace(&workspace);
+    });
 
-    let workspace2 = time_phase_ret("load_workspace #2 (post-index)", &root, || {
+    let _workspace2 = time_phase_ret("load_workspace #2 (post-index)", &root, || {
         load_workspace(&root).expect("load #2")
     });
 

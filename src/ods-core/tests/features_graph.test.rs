@@ -1,6 +1,6 @@
 use ods_core::{
-    LintLevel, canonicalize_workspace_document_refs, export_workspace_graph,
-    lint_workspace, lint_workspace_with_ref_style, load_workspace, resolve_context,
+    LintLevel, canonicalize_workspace_document_refs, export_workspace_graph, lint_workspace,
+    lint_workspace_with_ref_style, load_workspace, resolve_context,
 };
 use std::fs;
 
@@ -97,8 +97,12 @@ fn code_refs_are_in_context_and_export() {
 fn code_files_are_not_indexed_as_document_children() {
     let temp = tempfile::tempdir().unwrap();
     let root = temp.path();
-    fs::write(root.join("ods.toml"), "spec = \"0.1\"
-").unwrap();
+    fs::write(
+        root.join("ods.toml"),
+        "spec = \"0.1\"
+",
+    )
+    .unwrap();
     fs::write(
         root.join("doc.md"),
         "---
@@ -114,22 +118,26 @@ code:
     )
     .unwrap();
     fs::create_dir_all(root.join("src")).unwrap();
-    fs::write(root.join("src/main.rs"), "fn main() {}
-").unwrap();
+    fs::write(
+        root.join("src/main.rs"),
+        "fn main() {}
+",
+    )
+    .unwrap();
     let workspace = load_workspace(root).unwrap();
     assert!(workspace.document_by_path(&root.join("doc.md")).is_some());
-    assert!(workspace.document_by_path(&root.join("src/main.rs")).is_none());
+    assert!(
+        workspace
+            .document_by_path(&root.join("src/main.rs"))
+            .is_none()
+    );
     assert!(workspace.code_paths.iter().any(|p| p.ends_with("main.rs")));
 }
 
 #[test]
 fn duplicate_ids_and_missing_refs_are_reported() {
     let dir = tempdir();
-    fs::write(
-        dir.path().join("ods.toml"),
-        "spec = \"0.1\"\n",
-    )
-    .unwrap();
+    fs::write(dir.path().join("ods.toml"), "spec = \"0.1\"\n").unwrap();
     fs::write(
         dir.path().join("a.md"),
         "---\nprofile: note\nid: same\nstatus: draft\n---\n\n# A\n",

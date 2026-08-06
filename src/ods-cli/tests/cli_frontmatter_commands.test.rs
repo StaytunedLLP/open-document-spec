@@ -117,11 +117,7 @@ fn setup_inside_workspace_runs_doctor_without_test_service_start() {
 #[test]
 fn setup_updates_stale_root_ods_version() {
     let dir = temp_workspace();
-    fs::write(
-        dir.join("ods.toml"),
-        "---\nprofile: index\nods: draft-1\n---\n\n# Root\n\n",
-    )
-    .unwrap();
+    fs::write(dir.join("ods.toml"), "spec = \"draft-1\"\n").unwrap();
 
     let out = Command::new(ods_bin())
         .env("ODS_AUTO_UPDATE", "0")
@@ -132,18 +128,13 @@ fn setup_updates_stale_root_ods_version() {
     assert!(out.status.success(), "{:?}", out);
 
     let root = fs::read_to_string(dir.join("ods.toml")).unwrap();
-    assert!(root.contains("ods: 0.1"), "{root}");
-    assert!(!root.contains("ods: draft-1"), "{root}");
+    assert!(root.contains("spec = \"0.1\""), "{root}");
 }
 
 #[test]
 fn doctor_reports_stale_root_ods_version() {
     let dir = temp_workspace();
-    fs::write(
-        dir.join("ods.toml"),
-        "---\nprofile: index\nods: draft-1\n---\n\n# Root\n\n",
-    )
-    .unwrap();
+    fs::write(dir.join("ods.toml"), "spec = \"draft-1\"\n").unwrap();
 
     let out = Command::new(ods_bin())
         .args(["doctor", dir.to_str().unwrap()])

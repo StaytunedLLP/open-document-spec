@@ -25,7 +25,10 @@ fn upgrade_rewrites_ods_cli_pin() {
         .unwrap();
     assert!(out.status.success(), "{:?}", out);
     let after = fs::read_to_string(&index).unwrap();
-    assert!(after.contains("ods: 0.1"), "{after}");
+    assert!(
+        after.contains("spec = \"0.1\"") || after.contains("ods: 0.1"),
+        "{after}"
+    );
 
     let check = Command::new(ods_bin())
         .args(["upgrade", path, "--check"])

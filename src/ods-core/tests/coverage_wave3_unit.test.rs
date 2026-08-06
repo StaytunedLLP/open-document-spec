@@ -1,8 +1,8 @@
 //! Wave 3 pure-logic coverage: renames, path-change edits, lint edges, profiles.
 use ods_core::{
-    LintLevel, PathChange, TreeSnapshot, compute_path_change_edits,
-    lint_workspace, lint_workspace_with_level, load_profile_catalog, load_workspace,
-    observe_renames, profile_catalog_roots, render_profile_template, rewrite_references_in_text,
+    LintLevel, PathChange, TreeSnapshot, compute_path_change_edits, lint_workspace,
+    lint_workspace_with_level, load_profile_catalog, load_workspace, observe_renames,
+    profile_catalog_roots, render_profile_template, rewrite_references_in_text,
     standard_profile_catalog,
 };
 use std::collections::BTreeMap;
@@ -361,8 +361,6 @@ fn resolve_profile_by_directory_and_headings() {
 
 #[test]
 fn index_checker_stale_and_resource_refs() {
-    use ods_core::{};
-
     let td = tempdir();
     let root = td.path();
     seed(root);
@@ -376,21 +374,20 @@ fn index_checker_stale_and_resource_refs() {
     fs::write(root.join("g/code.rs"), "fn foo() {}").unwrap();
     fs::write(root.join("g/extra.md"), "# Extra plain\n").unwrap();
 
-    let ws = load_workspace(root).unwrap();
+    let _ws = load_workspace(root).unwrap();
     /* indexes removed */
-    let ws = load_workspace(root).unwrap();
+    let _ws = load_workspace(root).unwrap();
     /* indexes removed */
 
     // stale: hand-edit index
     let idx = root.join("g/index.md");
     if idx.exists() {
         fs::write(&idx, "# hand edited stale\n").unwrap();
-        let ws = load_workspace(root).unwrap();
+        let _ws = load_workspace(root).unwrap();
         /* indexes removed */
     }
 
-    let ws = load_workspace(root).unwrap();
-    
+    let _ws = load_workspace(root).unwrap();
 }
 
 #[test]

@@ -125,11 +125,7 @@ mod tests {
     #[test]
     fn detect_ods_marker() {
         let td = tempdir().unwrap();
-        fs::write(
-            td.path().join("ods.toml"),
-            "spec = \"0.1\"\n",
-        )
-        .unwrap();
+        fs::write(td.path().join("ods.toml"), "spec = \"0.1\"\n").unwrap();
         let d = detect_workspace(td.path());
         assert!(d.ods);
         assert!(!d.okf);

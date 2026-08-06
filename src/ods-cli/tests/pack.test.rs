@@ -38,7 +38,7 @@ fn test_pack_subcommands_end_to_end() {
 
     // Verify packs: is written to root index.ods.md
     let root_index_content = fs::read_to_string(root.join("ods.toml")).unwrap();
-    assert!(root_index_content.contains("packs:"));
+    assert!(root_index_content.contains("packs"));
     assert!(root_index_content.contains("my-custom-pack"));
 
     // 4. Run `ods pack list`

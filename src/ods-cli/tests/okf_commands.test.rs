@@ -190,11 +190,11 @@ fn hybrid_bare_lint_runs_both_engines() {
     );
     // Add OKF root marker alongside ODS
     let index = dir.path().join("index.ods.md");
-    let mut text = std::fs::read_to_string(&index).unwrap();
-    if !text.contains("okf_version:") {
-        text = text.replacen("---\n", "---\nokf_version: \"0.2\"\n", 1);
-        std::fs::write(&index, text).unwrap();
-    }
+    std::fs::write(
+        &index,
+        "---\nods: 0.1\nokf_version: \"0.2\"\n---\n\n# Root\n",
+    )
+    .unwrap();
     let out = Command::new(ods_bin())
         .args(["lint", path])
         .output()
@@ -223,15 +223,17 @@ fn hybrid_bare_index_requires_explicit_namespace() {
             .success()
     );
     let index = dir.path().join("index.ods.md");
-    let mut text = std::fs::read_to_string(&index).unwrap();
-    text = text.replacen("---\n", "---\nokf_version: \"0.2\"\n", 1);
-    std::fs::write(&index, text).unwrap();
+    std::fs::write(
+        &index,
+        "---\nods: 0.1\nokf_version: \"0.2\"\n---\n\n# Root\n",
+    )
+    .unwrap();
 
     let out = Command::new(ods_bin())
         .args(["index", path])
         .output()
         .unwrap();
-    assert!(out.status.success(), "{:?}", out);
+    assert!(!out.status.success(), "{:?}", out);
 }
 
 #[test]

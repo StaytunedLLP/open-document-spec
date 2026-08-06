@@ -18,9 +18,11 @@ pub fn profile_catalog_roots(root: &Path, root_index: Option<&Document>) -> Vec<
     if let Some(root_index) = root_index
         && let FrontmatterState::Parsed(frontmatter) = &root_index.frontmatter
     {
-        let mut cfg = crate::config::WorkspaceConfig::default();
-        cfg.custom_profiles = frontmatter.profiles.clone();
-        cfg.packs = frontmatter.packs.clone();
+        let cfg = crate::config::WorkspaceConfig {
+            custom_profiles: frontmatter.profiles.clone(),
+            packs: frontmatter.packs.clone(),
+            ..Default::default()
+        };
         return profile_catalog_roots_from_config(root, &cfg);
     }
     Vec::new()

@@ -39,6 +39,7 @@ include!("main/commands/schema_command.rs");
 include!("main/commands/tree_command.rs");
 include!("main/commands/diff_command.rs");
 include!("main/commands/clean_command.rs");
+include!("main/commands/read_command.rs");
 include!("main/commands/undo_command.rs");
 
 // --- support (formatters, loaders, helpers) ---

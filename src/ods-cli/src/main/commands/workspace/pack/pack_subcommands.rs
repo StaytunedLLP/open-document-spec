@@ -8,21 +8,22 @@ fn run_pack_remove(args: &[String]) -> Result<ExitCode, CliError> {
 
     let root = resolve_root_path(root_path);
     let root_index_path = if root.join("index.ods.md").exists() {
-        root.join("index.ods.md")
+        Some(root.join("index.ods.md"))
+    } else if root.join("index.md").exists() {
+        Some(root.join("index.md"))
     } else {
-        root.join("index.md")
+        None
     };
 
-    if !root_index_path.exists() {
-        return Err(fail_msg(ods_core::root_index_missing()));
+    if let Some(ref p) = root_index_path {
+        let text = fs::read_to_string(p).map_err(|e| fail_io("pack", e))?;
+        let target_line = format!("  - {name}");
+        let updated = text.lines().filter(|line| *line != target_line).collect::<Vec<_>>().join("\n");
+        fs::write(p, updated).map_err(|e| fail_io("pack", e))?;
+        println!("Removed ODS Pack reference '{}' from root index.", name);
+    } else {
+        println!("Removed ODS Pack reference '{}'.", name);
     }
-
-    let text = fs::read_to_string(&root_index_path).map_err(|e| fail_io("pack", e))?;
-    let target_line = format!("  - {name}");
-    let updated = text.lines().filter(|line| *line != target_line).collect::<Vec<_>>().join("\n");
-
-    fs::write(&root_index_path, updated).map_err(|e| fail_io("pack", e))?;
-    println!("Removed ODS Pack reference '{}' from root index.ods.md.", name);
     Ok(ExitCode::from(0))
 }
 
@@ -60,6 +61,9 @@ fn run_pack_init(args: &[String]) -> Result<ExitCode, CliError> {
     fs::create_dir_all(&ods_profiles_dir).map_err(|e| fail_io("pack", e))?;
     fs::create_dir_all(&skills_dir).map_err(|e| fail_io("pack", e))?;
 
+    let toml_content = format!("spec = \"0.1\"\nname = \"{name}\"\n");
+    fs::write(root.join("ods.toml"), toml_content).map_err(|e| fail_io("pack", e))?;
+
     let root_index = format!(
         "---\nprofile: index\nods: 0.1\ndescription: Reusable ODS Pack for {name}.\n---\n\n# {name}\n\n- [ods-profiles/](ods-profiles/index.ods.md) - Custom Profile schemas\n- [skills/](skills/index.ods.md) - AI Agent skills\n"
     );
@@ -72,6 +76,7 @@ fn run_pack_init(args: &[String]) -> Result<ExitCode, CliError> {
     fs::write(skills_dir.join("index.ods.md"), skills_index).map_err(|e| fail_io("pack", e))?;
 
     println!("Scaffolding new ODS Pack at {}:", root.display());
+    println!("  ✓ Created ods.toml (workspace marker)");
     println!("  ✓ Created index.ods.md (root marker)");
     println!("  ✓ Created ods-profiles/ (profile schema directory)");
     println!("  ✓ Created skills/ (AI agent skills directory)");

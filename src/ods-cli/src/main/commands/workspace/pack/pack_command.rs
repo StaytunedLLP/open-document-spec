@@ -66,6 +66,32 @@ fn run_pack_list(args: &[String]) -> Result<ExitCode, CliError> {
     Ok(ExitCode::from(0))
 }
 
+fn insert_pack_into_ods_toml(text: &str, pack_entry: &str) -> String {
+    if text.contains("packs =") {
+        if let Some(idx) = text.find("packs =") {
+            let after = &text[idx..];
+            if let Some(bracket) = after.find('[') {
+                let abs = idx + bracket;
+                let rest = &text[abs + 1..];
+                if let Some(end) = rest.find(']') {
+                    let abs_end = abs + 1 + end;
+                    let insert = if text[abs + 1..abs_end].trim().is_empty() {
+                        format!("\n  \"{pack_entry}\",\n")
+                    } else {
+                        format!("\n  \"{pack_entry}\",")
+                    };
+                    return format!("{}{}{}", &text[..abs_end], insert, &text[abs_end..]);
+                }
+            }
+        }
+    }
+    if let Some(first_section_idx) = text.find("\n[") {
+        format!("{}\npacks = [\"{pack_entry}\"]{}", &text[..first_section_idx], &text[first_section_idx..])
+    } else {
+        format!("{}\npacks = [\"{pack_entry}\"]\n", text.trim_end())
+    }
+}
+
 fn run_pack_add(args: &[String]) -> Result<ExitCode, CliError> {
     let positionals = positional_args(args, 3);
     let (root_path, source) = match positionals.as_slice() {
@@ -81,13 +107,16 @@ fn run_pack_add(args: &[String]) -> Result<ExitCode, CliError> {
         .unwrap_or_else(|| String::from("daily"));
 
     let root = resolve_root_path(root_path);
+    let toml_path = root.join("ods.toml");
     let root_index_path = if root.join("index.ods.md").exists() {
-        root.join("index.ods.md")
+        Some(root.join("index.ods.md"))
+    } else if root.join("index.md").exists() {
+        Some(root.join("index.md"))
     } else {
-        root.join("index.md")
+        None
     };
 
-    if !root_index_path.exists() {
+    if !toml_path.exists() && root_index_path.is_none() {
         return Err(fail_msg(ods_core::root_index_missing()));
     }
 
@@ -144,17 +173,29 @@ fn run_pack_add(args: &[String]) -> Result<ExitCode, CliError> {
     };
     let _ = save_pack_entry(entry);
 
-    // Append pack_entry to root index.md frontmatter
-    let text = fs::read_to_string(&root_index_path).map_err(|e| fail_io("pack", e))?;
-    if text.contains(&format!("- {pack_entry}")) || text.contains(&format!("- \"{pack_entry}\"")) {
-        println!("Pack '{}' is already registered in root index.md.", pack_entry);
-        return Ok(ExitCode::from(0));
+    // Append pack_entry to root index frontmatter if present, or to ods.toml
+    let toml_path = root.join("ods.toml");
+    if toml_path.is_file() {
+        let text = fs::read_to_string(&toml_path).map_err(|e| fail_io("pack", e))?;
+        if !text.contains(&format!("\"{pack_entry}\"")) {
+            let updated = insert_pack_into_ods_toml(&text, &pack_entry);
+            fs::write(&toml_path, updated).map_err(|e| fail_io("pack", e))?;
+        }
+        println!("Added ODS Pack '{}' to ods.toml.", pack_entry);
+    } else if let Some(ref p) = root_index_path {
+        let text = fs::read_to_string(p).map_err(|e| fail_io("pack", e))?;
+        if text.contains(&format!("- {pack_entry}")) || text.contains(&format!("- \"{pack_entry}\"")) {
+            println!("Pack '{}' is already registered in root index.md.", pack_entry);
+            return Ok(ExitCode::from(0));
+        }
+
+        let updated_text = insert_pack_into_root_index(&text, &pack_entry);
+        fs::write(p, updated_text).map_err(|e| fail_io("pack", e))?;
+
+        println!("Added ODS Pack '{}' to root index.md frontmatter.", pack_entry);
+    } else {
+        println!("Added ODS Pack '{}' to workspace.", pack_entry);
     }
-
-    let updated_text = insert_pack_into_root_index(&text, &pack_entry);
-    fs::write(&root_index_path, updated_text).map_err(|e| fail_io("pack", e))?;
-
-    println!("Added ODS Pack '{}' to root index.md frontmatter.", pack_entry);
     Ok(ExitCode::from(0))
 }
 

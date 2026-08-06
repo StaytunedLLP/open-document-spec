@@ -171,7 +171,7 @@ fn fmt_migrate_skips_root_index() {
             .success()
     );
     let root_index_before = fs::read_to_string(dir.join("ods.toml")).unwrap();
-    assert!(root_index_before.contains("ods: "));
+    assert!(root_index_before.contains("spec"));
 
     assert!(
         Command::new(ods_bin())

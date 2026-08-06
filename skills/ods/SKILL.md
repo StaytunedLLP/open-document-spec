@@ -18,9 +18,10 @@ description: >-
 | **`ods:` frontmatter** | ODS format root/nested engine keys (`ods: { profile: rfc, status: draft }`) |
 | **`custom_profiles`** | `ods.toml` array declaring custom profile schema definitions |
 | **`ods context`** | Bounded AI reading list: target doc + `depends` + `context.load` (not full-repo, not full graph export) |
+| **`ods read`** | Fine-grained section extraction (`--section`), outline summary (`--summary`), and token cap controls (`--max-tokens N`) |
 | **`ods export graph`** | Full-workspace graph snapshot — use rarely for audits, **not** for routine AI prompts |
 
-ODS is plain Markdown with **permissive** YAML frontmatter, powered by a native Rust engine binary named **`ods`**. A **workspace** is any directory tree whose root **`ods.toml`** has `spec` (e.g. `"0.1"`). Compliance is **compliant | non-compliant** (no Level ladder). Discovery: `overview` → `find` / `tag` / `ls` → `context`.
+ODS is plain Markdown with **permissive** YAML frontmatter, powered by a native Rust engine binary named **`ods`**. A **workspace** is any directory tree whose root **`ods.toml`** has `spec` (e.g. `"0.1"`). Compliance is **compliant | non-compliant** (no Level ladder). Discovery: `overview` → `find` / `tag` / `ls` / `tree` → `read` / `context`.
 
 ---
 
@@ -41,7 +42,7 @@ There is **no** `--ods` flag and **no** `ods okf` / `ods ods` namespaces (`ods o
 When assisting users inside an ODS workspace, follow these operational directives:
 
 - ❓ **WHAT**: Recognize ODS workspaces by root `ods.toml` (`spec`). Keep files as `.md`. Title is H1 only (no FM `title:`); optional top-level `name:` is fine.
-- 💡 **WHY (token discipline)**: Prefer `ods context <id> [--max-tokens N] [--print]` for a **bounded** list (depends + `context.load` only — **not** `related`). Read only those paths. Never dump the repo or use full graph export for routine Q&A. On “document not found”, run `ods find <query>` / `ods find --key …` — do not load all markdown.
+- 💡 **WHY (token discipline)**: Prefer `ods read <id> [--section <heading>] [--summary] [--max-tokens N]` or `ods context <id> [--max-tokens N] [--print]` for a **bounded** read (depends + `context.load` only — **not** `related`). Read only those sections/paths. Never dump the repo or use full graph export for routine Q&A. On “document not found”, run `ods find <query>` / `ods find --key …` — do not load all markdown.
 - 🧭 **COLD-START**: New workspace turn → `ods overview` (snapshot) → `ods tag list` / `ods schema keys` if needed → `ods find --tag` / `--key` to locate a target → `ods context <id>`. Do not replace context with overview for deep work.
 - 🚨 **ERRORS**: CLI prints `error:`/`usage:` + `Next:` (sometimes `Hint:`). Surface that Next line to the user; do not invent a different recovery. Common: not a workspace → `ods init`; miss → `ods find`; tags under `ods:` → `ods fmt --migrate`.
 - 👥 **WHO**: Operate seamlessly on behalf of non-technical or developer users without requiring manual terminal commands.

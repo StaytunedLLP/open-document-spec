@@ -1,7 +1,7 @@
 //! Final coverage push: force index fallback paths, lint helpers, rewrite edges.
 use ods_core::{
-    FrontmatterState, LintLevel, PathChange, apply_path_changes, compute_path_change_edits, lint_workspace,
-    lint_workspace_with_level, load_workspace,
+    FrontmatterState, LintLevel, PathChange, apply_path_changes, compute_path_change_edits,
+    lint_workspace, lint_workspace_with_level, load_workspace,
 };
 use std::fs;
 use std::path::PathBuf;
@@ -30,7 +30,7 @@ fn index_render_is_noop_after_removal() {
     )
     .unwrap();
 
-    let ws = load_workspace(root).unwrap();
+    let _ws = load_workspace(root).unwrap();
     /* indexes removed */
     /* indexes removed */
     /* indexes removed */
@@ -75,7 +75,7 @@ fn lint_helpers_extra_and_missing_with_resources_and_code() {
     // Clear children and re-lint via regenerate path
     let mut ws = load_workspace(root).unwrap();
     ws.children.clear();
-    
+
     let _ = lint_workspace_with_level(&ws, LintLevel::Full);
     let _ = lint_workspace_with_level(&ws, LintLevel::Full);
 }

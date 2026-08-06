@@ -270,7 +270,11 @@ fn insert_custom_profile_into_ods_toml(text: &str, rel_entry: &str) -> String {
             }
         }
     }
-    format!("{}\ncustom_profiles = [\"{rel_entry}\"]\n", text.trim_end())
+    if let Some(first_section_idx) = text.find("\n[") {
+        format!("{}\ncustom_profiles = [\"{rel_entry}\"]{}", &text[..first_section_idx], &text[first_section_idx..])
+    } else {
+        format!("{}\ncustom_profiles = [\"{rel_entry}\"]\n", text.trim_end())
+    }
 }
 
 fn run_aliases_command(args: &[String]) -> Result<ExitCode, CliError> {
@@ -328,6 +332,24 @@ fn run_aliases_list_command(args: &[String], flag_start: usize) -> Result<ExitCo
     Ok(ExitCode::from(0))
 }
 
+fn insert_alias_into_ods_toml(text: &str, canonical: &str, synonym: &str) -> String {
+    if text.contains("[aliases]") {
+        let target = format!("{canonical} = [");
+        if text.contains(&target) {
+            if let Some(idx) = text.find(&target) {
+                let rest = &text[idx..];
+                if let Some(end) = rest.find(']') {
+                    let abs_end = idx + end;
+                    return format!("{}\"{synonym}\", {}", &text[..abs_end], &text[abs_end..]);
+                }
+            }
+        }
+        let insert = format!("{canonical} = [\"{synonym}\"]\n");
+        return text.replace("[aliases]", &format!("[aliases]\n{insert}"));
+    }
+    format!("{}\n\n[aliases]\n{canonical} = [\"{synonym}\"]\n", text.trim_end())
+}
+
 fn run_alias_add_command(args: &[String]) -> Result<ExitCode, CliError> {
     // ods alias add <Canonical> <Synonym> [root]
     let positionals: Vec<&String> = args
@@ -351,20 +373,24 @@ fn run_alias_add_command(args: &[String]) -> Result<ExitCode, CliError> {
     };
     let root = resolve_root_path(root);
     let index_path = if root.join("index.ods.md").is_file() {
-        root.join("index.ods.md")
+        Some(root.join("index.ods.md"))
     } else if root.join("index.md").is_file() {
-        root.join("index.md")
+        Some(root.join("index.md"))
+    } else if root.join("ods.toml").is_file() {
+        Some(root.join("ods.toml"))
     } else {
         return Err(fail_msg(ods_core::root_index_missing()));
     };
 
-    let text = fs::read_to_string(&index_path).map_err(|e| fail_io("alias", e))?;
-    let updated = insert_section_alias_into_root_index(&text, &canonical, &synonym);
-    fs::write(&index_path, updated).map_err(|e| fail_io("alias", e))?;
-    println!(
-        "added section alias {canonical} ← {synonym} in {}",
-        index_path.display()
-    );
+    let p = index_path.unwrap();
+    let text = fs::read_to_string(&p).map_err(|e| fail_io("alias", e))?;
+    let updated = if p.extension().is_some_and(|ext| ext == "toml") {
+        insert_alias_into_ods_toml(&text, &canonical, &synonym)
+    } else {
+        insert_section_alias_into_root_index(&text, &canonical, &synonym)
+    };
+    fs::write(&p, updated).map_err(|e| fail_io("alias", e))?;
+    println!("registered section alias: {canonical} -> {synonym}");
     Ok(ExitCode::from(0))
 }
 

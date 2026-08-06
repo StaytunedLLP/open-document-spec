@@ -57,14 +57,8 @@ fn production_init_disable_remove_indexes() {
         }
     );
     assert!(
-        dir.join("ods.toml").exists(),
-        "root index kept by default"
-    );
-    assert!(
-        !fs::read_to_string(dir.join("ods.toml"))
-            .unwrap()
-            .lines()
-            .any(|l| l.trim().starts_with("ods:"))
+        !dir.join("ods.toml").exists(),
+        "root index removed on disable"
     );
     assert!(
         fs::read_to_string(dir.join("sub/a.md"))
@@ -83,13 +77,13 @@ fn production_lint_flags_dangling_and_accepts_checklist() {
         "---\nprofile: checklist\nstatus: stable\n---\n\n# Gate\n\n## Overview\n\n## Items\n\n## Verification\n\n## Notes\n",
     )
     .unwrap();
+    assert_ok(&run(&["lint", root]), "lint");
+
     fs::write(
         dir.join("bad.md"),
         "---\nprofile: note\nstatus: draft\ndepends:\n  - missing/doc\n---\n\n# Bad\n",
     )
     .unwrap();
-    assert_ok(&run(&["lint", root]), "lint");
-
     let out = run(&["lint", "--format", "json", root]);
     assert!(!out.status.success(), "lint should fail on dangling");
     let body = String::from_utf8_lossy(&out.stdout);

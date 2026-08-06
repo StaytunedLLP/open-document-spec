@@ -191,8 +191,9 @@ fn lint_canonical_edge_cases() {
     let ws_no_root = load_workspace(&dir).unwrap();
     let diags_no_root = ods_core::lint_workspace(&ws_no_root);
     assert!(
-        diags_no_root.iter().any(|d| d.message.contains("ods.toml")
-            || d.message.contains("missing root"))
+        diags_no_root
+            .iter()
+            .any(|d| d.message.contains("ods.toml") || d.message.contains("missing root"))
     );
 
     write_root(&dir, "- [a.md](a.md)\n");

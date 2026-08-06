@@ -2,12 +2,12 @@
 use ods_core::{
     BenchStripOptions, InitOptions, LoadOptions, NewDocumentOptions, RemoveDocumentOptions,
     ShareOptions, atomic_delete_document, bench_calculate_stats, bench_strip_workspace,
-    export_workspace_graph, find_workspace_root,
-    init_workspace, lint_workspace, load_options_graph, load_profile_catalog, load_workspace,
-    load_workspace_with_options, move_document_and_rewrite_refs, normalize_tag, observed_tags,
-    path_matches_workspace_ignore, publish_workspace, rename_tag_in_workspace, render_graph_json,
-    render_graph_markdown, render_profile_template, rewrite_references_in_text,
-    scaffold_new_document, standard_profile_catalog, tag_usage,
+    export_workspace_graph, find_workspace_root, init_workspace, lint_workspace,
+    load_options_graph, load_profile_catalog, load_workspace, load_workspace_with_options,
+    move_document_and_rewrite_refs, normalize_tag, observed_tags, path_matches_workspace_ignore,
+    publish_workspace, rename_tag_in_workspace, render_graph_json, render_graph_markdown,
+    render_profile_template, rewrite_references_in_text, scaffold_new_document,
+    standard_profile_catalog, tag_usage,
 };
 use std::fs;
 use std::path::Path;
@@ -69,7 +69,7 @@ fn export_workspace_graph_under_workspace_regenerates_indexes() {
         "---\nprofile: note\nstatus: draft\n---\n\n# Note\n",
     )
     .unwrap();
-    let ws = load_workspace(root).unwrap();
+    let _ws = load_workspace(root).unwrap();
     /* indexes removed */
 
     let out = root.join("docs/graph-export.md");
@@ -113,11 +113,11 @@ fn index_and_lint_with_resources() {
     .unwrap();
     fs::write(root.join("specs/data.csv"), "x\n").unwrap();
 
-    let ws = load_workspace(root).unwrap();
+    let _ws = load_workspace(root).unwrap();
     /* indexes removed */
-    let ws = load_workspace(root).unwrap();
-    
-    let _ = lint_workspace(&ws);
+    let _ws = load_workspace(root).unwrap();
+
+    let _ = lint_workspace(&_ws);
 }
 
 #[test]
@@ -405,8 +405,6 @@ outputs:
 
 #[test]
 fn index_render_and_checker_paths() {
-    use ods_core::{};
-
     let td = tempdir();
     let root = td.path();
     seed_ods(root);
@@ -423,11 +421,11 @@ fn index_render_and_checker_paths() {
     )
     .unwrap();
 
-    let ws = load_workspace(root).unwrap();
+    let _ws = load_workspace(root).unwrap();
     /* indexes removed */
-    let ws = load_workspace(root).unwrap();
-    
-    let _ = lint_workspace(&ws);
+    let _ws = load_workspace(root).unwrap();
+
+    let _ = lint_workspace(&_ws);
 }
 
 #[test]

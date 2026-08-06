@@ -47,21 +47,12 @@ impl Default for ServiceConfig {
     }
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Default, PartialEq, Eq, Serialize, Deserialize)]
 pub struct SpecsToml {
     #[serde(default)]
     pub okf: SpecEngineToml,
     #[serde(default)]
     pub skills: SpecEngineToml,
-}
-
-impl Default for SpecsToml {
-    fn default() -> Self {
-        Self {
-            okf: SpecEngineToml::default(),
-            skills: SpecEngineToml::default(),
-        }
-    }
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
@@ -224,10 +215,7 @@ pub fn load_workspace_config(root: &Path) -> io::Result<WorkspaceConfig> {
     if toml_path.is_file() {
         let text = fs::read_to_string(&toml_path)?;
         return parse_ods_toml(&text).map_err(|e| {
-            io::Error::new(
-                io::ErrorKind::InvalidData,
-                format!("invalid ods.toml: {e}"),
-            )
+            io::Error::new(io::ErrorKind::InvalidData, format!("invalid ods.toml: {e}"))
         });
     }
     if let Some(cfg) = load_legacy_root_index_config(root) {

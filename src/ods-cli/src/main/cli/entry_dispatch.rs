@@ -94,6 +94,7 @@ fn dispatch_ods_command(args: &[String]) -> Result<ExitCode, CliError> {
         "diff" => run_diff_command(args),
         "clean" => run_clean_command(args),
         "lsp" => run_lsp_command(args),
+        "read" => run_read_command(args),
         "undo" => run_undo_command(args),
         "update" => run_update_command(args),
         "upgrade" => run_upgrade_command(args),

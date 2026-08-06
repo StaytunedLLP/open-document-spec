@@ -169,8 +169,8 @@ fn meta_from_document_standalone(root: &Path, doc: &Document) -> Option<DocMeta>
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::config::write_ods_toml;
     use crate::config::WorkspaceConfig;
+    use crate::config::write_ods_toml;
     use crate::fs::load_workspace;
     use tempfile::tempdir;
 
@@ -202,12 +202,7 @@ mod tests {
         store
             .apply_patch(StorePatch::Remove(root.join("a.md")))
             .unwrap();
-        assert!(
-            store
-                .by_path
-                .values()
-                .any(|m| m.path.ends_with("b.md"))
-        );
+        assert!(store.by_path.values().any(|m| m.path.ends_with("b.md")));
         assert!(!store.by_path.contains_key(&root.join("a.md")));
     }
 

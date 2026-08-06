@@ -96,6 +96,7 @@ mod test_disable_command {
         assert!(res.is_ok());
 
         // create valid workspace
+        fs::write(root.join("ods.toml"), "spec = \"0.1\"\n").unwrap();
         fs::write(
             root.join("index.ods.md"),
             "---\nprofile: index\nods: 0.1\n---\n\n# Root\n",

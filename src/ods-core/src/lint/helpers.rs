@@ -81,7 +81,6 @@ fn lint_code_refs(document: &Document, frontmatter: &crate::model::Frontmatter) 
 
 
 /// Links from top-level markdown list items only (`- [label](target)`).
-
 fn extract_markdown_links(body: &str) -> BTreeSet<String> {
     let mut links = BTreeSet::new();
     let mut in_code_block = false;

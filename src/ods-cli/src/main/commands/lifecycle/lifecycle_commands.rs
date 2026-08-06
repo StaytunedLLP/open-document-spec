@@ -449,6 +449,7 @@ mod test_lifecycle_helpers {
     fn test_run_new_rm_archive_restore_and_logs() {
         let td = tempfile::tempdir().unwrap();
         let root = td.path();
+        fs::write(root.join("ods.toml"), "spec = \"0.1\"\n").unwrap();
         let index_path = root.join("index.ods.md");
         fs::write(
             &index_path,

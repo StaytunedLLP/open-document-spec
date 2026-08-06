@@ -28,7 +28,7 @@ fn large_workspace_with_10k_documents_lints() {
 
     // Generate indexes first (root + every group directory) so the hand-written
     // root marker above doesn't leave dangling links to ungenerated children.
-    let workspace = load_workspace(&temp).expect("workspace");
+    let _workspace = load_workspace(&temp).expect("workspace");
     /* indexes removed */
 
     let workspace = load_workspace(&temp).expect("workspace");
@@ -82,8 +82,12 @@ fn test_case_insensitive_ids() {
 fn test_index_generation_with_description() {
     let dir = tempfile::tempdir().unwrap();
     let root = dir.path();
-    fs::write(root.join("ods.toml"), "spec = \"0.1\"
-").unwrap();
+    fs::write(
+        root.join("ods.toml"),
+        "spec = \"0.1\"
+",
+    )
+    .unwrap();
     fs::write(
         root.join("doc.md"),
         "---
@@ -96,7 +100,7 @@ description: Hello there
 ",
     )
     .unwrap();
-    let ws = load_workspace(root).unwrap();
+    let _ws = load_workspace(root).unwrap();
     /* indexes removed */
     /* indexes removed */
 }
@@ -132,15 +136,23 @@ fn test_case_insensitive_relative_reference() {
 fn test_index_generation_preserves_prose() {
     let dir = tempfile::tempdir().unwrap();
     let root = dir.path();
-    fs::write(root.join("ods.toml"), "spec = \"0.1\"
-").unwrap();
-    fs::write(root.join("doc.md"), "---
+    fs::write(
+        root.join("ods.toml"),
+        "spec = \"0.1\"
+",
+    )
+    .unwrap();
+    fs::write(
+        root.join("doc.md"),
+        "---
 profile: note
 status: draft
 ---
 
 # Doc
-").unwrap();
-    let ws = load_workspace(root).unwrap();
+",
+    )
+    .unwrap();
+    let _ws = load_workspace(root).unwrap();
     /* indexes removed */
 }
