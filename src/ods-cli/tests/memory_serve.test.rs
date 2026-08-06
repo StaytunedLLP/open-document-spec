@@ -1,28 +1,11 @@
+use ods_test_support::ChildGuard;
 use std::io::Read;
 use std::path::PathBuf;
-use std::process::{Child, Command, Stdio};
+use std::process::{Command, Stdio};
 use std::time::Duration;
 
 fn ods_bin() -> PathBuf {
     PathBuf::from(env!("CARGO_BIN_EXE_ods"))
-}
-
-/// Ask the child to shut down gracefully (`SIGTERM` on Unix, where `ods` now
-/// installs a handler for it) rather than `SIGKILL`ing it — a killed process
-/// never runs its normal-exit path, so e.g. coverage instrumentation data for
-/// everything it executed is silently lost. Falls back to a hard kill on
-/// non-Unix or if the process hasn't exited shortly after the signal.
-fn terminate_gracefully(child: &mut Child) {
-    #[cfg(unix)]
-    {
-        // SAFETY: `kill(2)` with a valid pid and the SIGTERM signal number;
-        // no memory is touched, only signal delivery.
-        unsafe {
-            libc::kill(child.id() as libc::pid_t, libc::SIGTERM);
-        }
-        std::thread::sleep(Duration::from_millis(300));
-    }
-    let _ = child.kill();
 }
 
 #[test]
@@ -34,26 +17,33 @@ fn poll_serve_prints_memory_report() {
         .output()
         .unwrap();
     assert!(init.status.success(), "{init:?}");
-    let mut child = Command::new(ods_bin())
-        .args([
-            "serve",
-            "--mode",
-            "poll",
-            "--memory-report",
-            "--poll-secs",
-            "60",
-            "--root",
-            dir.path().to_str().unwrap(),
-        ])
-        .env("ODS_AUTO_UPDATE", "0")
-        .stderr(Stdio::piped())
-        .spawn()
-        .unwrap();
+    let mut guard = ChildGuard::new(
+        Command::new(ods_bin())
+            .args([
+                "serve",
+                "--mode",
+                "poll",
+                "--memory-report",
+                "--poll-secs",
+                "60",
+                "--root",
+                dir.path().to_str().unwrap(),
+            ])
+            .env("ODS_AUTO_UPDATE", "0")
+            .stderr(Stdio::piped())
+            .spawn()
+            .unwrap(),
+    );
     std::thread::sleep(Duration::from_secs(2));
-    terminate_gracefully(&mut child);
-    let _ = child.wait();
+    let mut stderr_pipe = guard
+        .child_mut()
+        .expect("child")
+        .stderr
+        .take()
+        .expect("stderr");
+    let _ = guard.terminate();
     let mut stderr = String::new();
-    child.stderr.unwrap().read_to_string(&mut stderr).unwrap();
+    stderr_pipe.read_to_string(&mut stderr).unwrap();
     assert!(stderr.contains("mode=poll"), "{stderr}");
     assert!(stderr.contains("rss_kb="), "{stderr}");
 

@@ -1,5 +1,8 @@
 /// Strip ODS keys from a full document text.
 /// Returns (new_text, changed).
+///
+/// Key lists are **schema-driven** (`SpecSchema::document_disable_strip_keys` /
+/// `workspace_policy_strip_keys`) so disable never invents ad-hoc SSG key names.
 pub fn strip_ods_from_document_text(
     text: &str,
     strip_doc_keys: bool,
@@ -10,16 +13,26 @@ pub fn strip_ods_from_document_text(
         return (text.to_string(), false);
     };
 
-    let mut drop_keys: Vec<&str> = Vec::new();
-    if strip_doc_keys {
-        drop_keys.extend_from_slice(DOC_ODS_KEYS);
-    }
-    if strip_root_keys {
-        drop_keys.extend_from_slice(ROOT_ODS_KEYS);
-    }
-    if drop_keys.is_empty() {
+    let registry = crate::spec::SpecSchemaRegistry::with_defaults();
+    let schema = registry
+        .get("ods")
+        .expect("default ODS schema is always registered");
+    let owned: Vec<String> = match (strip_doc_keys, strip_root_keys) {
+        (false, false) => Vec::new(),
+        (true, false) => schema.document_disable_strip_keys(),
+        (false, true) => schema.workspace_policy_strip_keys(),
+        (true, true) => {
+            let mut v = schema.document_disable_strip_keys();
+            v.extend(schema.workspace_policy_strip_keys());
+            v.sort();
+            v.dedup();
+            v
+        }
+    };
+    if owned.is_empty() {
         return (text.to_string(), false);
     }
+    let drop_keys: Vec<&str> = owned.iter().map(String::as_str).collect();
 
     let (kept, removed_any) = strip_keys_from_frontmatter_block(fm, &drop_keys);
     if !removed_any {

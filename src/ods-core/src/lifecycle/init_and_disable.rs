@@ -24,38 +24,6 @@ pub fn ods_enabled_for_path(path: impl AsRef<Path>) -> bool {
         .unwrap_or(false)
 }
 
-const DOC_ODS_KEYS: &[&str] = &[
-    "ods",
-    "profile",
-    "status",
-    "share",
-    "id",
-    "description",
-    "depends",
-    "related",
-    "resources",
-    "code",
-    "context",
-    "owner",
-    "tags",
-];
-
-/// Root/workspace policy keys historically on the root index; now live in `ods.toml`.
-/// Only these may be stripped by disable root-policy (never foreign SSG keys).
-const ROOT_ODS_KEYS: &[&str] = &[
-    "ods",
-    "profiles",
-    "custom-profiles",
-    "packs",
-    "ignore",
-    "aliases",
-    "specs",
-    "okf_lint",
-    "okf-lint",
-    "skills_lint",
-    "skills-lint",
-];
-
 /// Options for `disable_workspace`.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct DisableOptions {

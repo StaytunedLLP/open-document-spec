@@ -21,6 +21,7 @@ GitHub Releases use GitHub’s auto-generated notes. Edit this file by hand when
 - Removed accidental committed workspace graph dumps (`graph.md`, `src/ods-cli/graph.md`).
 - `ROOT_ODS_KEYS` strip list no longer duplicated `ods`; includes packs/specs for legacy root-policy disable.
 - Docs/skill residual “regenerate indexes” / root-index wording cleaned; profile CLI split into `profile/{inspect,init,aliases,tests}.rs`; workspace config keys registered as `WorkspaceConfigOnly`.
+- **Schema-driven disable strip lists** (`document_disable_strip_keys` / `workspace_policy_strip_keys`); shared `ChildGuard` for serve/watch test teardown (no leaked processes).
 
 ### Added
 - **`ods read [root] <id-or-path>`:** Fine-grained section extraction (`--section <heading>`), outline summary (`--summary`), and soft token cap controls (`--max-tokens N`, `--format text|json`). Prevents path traversal out of workspace.

@@ -1,5 +1,8 @@
 /// Canonical order of ODS engine keys inside the nested `ods:` map
 /// (specs/ods/keys.md "Canonical Key Sequence Rule").
+///
+/// Keep in lockstep with [`crate::spec::SpecSchema::canonical_engine_key_order`]
+/// (asserted in schema unit tests).
 const CANONICAL_ODS_KEY_ORDER: [&str; 9] = [
     "profile",
     "status",

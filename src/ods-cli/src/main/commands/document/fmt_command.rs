@@ -211,6 +211,26 @@ mod test_fmt_command {
     }
 
     #[test]
+    fn fmt_already_clean_text_and_json_empty_changed() {
+        let td = tempdir().unwrap();
+        let root = td.path();
+        fs::write(root.join("ods.toml"), "spec = \"0.1\"\n").unwrap();
+        fs::write(
+            root.join("a.md"),
+            "---\nods:\n  profile: note\n  status: draft\n---\n\n# A\n",
+        )
+        .unwrap();
+        let res = run_fmt_command(&[
+            "ods".into(),
+            "fmt".into(),
+            root.to_str().unwrap().into(),
+            "--format".into(),
+            "json".into(),
+        ]);
+        assert!(res.is_ok());
+    }
+
+    #[test]
     fn fmt_refs_md_paths_and_text_output() {
         let td = tempdir().unwrap();
         let root = td.path();

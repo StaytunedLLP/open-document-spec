@@ -604,6 +604,7 @@ dependencies = [
 name = "ods-test-support"
 version = "0.0.20"
 dependencies = [
+ "libc",
  "tempfile",
 ]
 

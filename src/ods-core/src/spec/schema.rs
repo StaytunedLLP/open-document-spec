@@ -114,6 +114,74 @@ impl SpecSchema {
         out
     }
 
+    /// Document frontmatter keys stripped by `ods disable` (never foreign SSG keys).
+    ///
+    /// Includes the `ods:` map root, all nested engine keys, and universal ODS domain
+    /// keys (`description`, `owner`, `tags`) that disable treats as ODS metadata.
+    pub fn document_disable_strip_keys(&self) -> Vec<String> {
+        /// Universal top-level keys that belong to ODS domain (not SSG-reserved).
+        const UNIVERSAL_ODS_DOMAIN: &[&str] = &["description", "owner", "tags"];
+        let mut out = vec!["ods".to_string()];
+        for def in self.keys.values() {
+            match def.placement {
+                KeyPlacement::NestedEngineMap => out.push(def.name.clone()),
+                KeyPlacement::TopLevel if UNIVERSAL_ODS_DOMAIN.contains(&def.name.as_str()) => {
+                    out.push(def.name.clone());
+                }
+                _ => {}
+            }
+        }
+        out.sort();
+        out.dedup();
+        out
+    }
+
+    /// Workspace/root policy keys stripped by disable root-policy (ods.toml / legacy root).
+    pub fn workspace_policy_strip_keys(&self) -> Vec<String> {
+        /// Dialect lint pins sometimes left on legacy root indexes.
+        const LEGACY_LINT_PINS: &[&str] = &["okf_lint", "okf-lint", "skills_lint", "skills-lint"];
+        let mut out = vec!["ods".to_string()];
+        for def in self.keys.values() {
+            if matches!(
+                def.placement,
+                KeyPlacement::WorkspaceConfigOnly | KeyPlacement::RootIndexOnly
+            ) {
+                out.push(def.name.clone());
+            }
+        }
+        for pin in LEGACY_LINT_PINS {
+            out.push((*pin).to_string());
+        }
+        out.sort();
+        out.dedup();
+        out
+    }
+
+    /// Nested engine key names in migrate canonical emit order (stable product order).
+    pub fn canonical_engine_key_order(&self) -> Vec<&str> {
+        // Prefer fixed product sequence; only include keys that exist in this schema.
+        const ORDER: &[&str] = &[
+            "profile",
+            "status",
+            "id",
+            "share",
+            "depends",
+            "related",
+            "resources",
+            "code",
+            "context",
+        ];
+        ORDER
+            .iter()
+            .copied()
+            .filter(|name| {
+                self.keys
+                    .get(*name)
+                    .is_some_and(|d| d.placement == KeyPlacement::NestedEngineMap)
+            })
+            .collect()
+    }
+
     pub fn find_similar_key(&self, name: &str) -> Option<&KeyDefinition> {
         let name_lower = name.to_ascii_lowercase();
         let mut best: Option<(&KeyDefinition, usize)> = None;
@@ -1020,6 +1088,46 @@ mod tests {
             let def = ods.keys.get(key).unwrap_or_else(|| panic!("missing {key}"));
             assert_eq!(def.placement, KeyPlacement::NestedEngineMap, "{key}");
         }
+        let order = ods.canonical_engine_key_order();
+        assert_eq!(
+            order,
+            vec![
+                "profile",
+                "status",
+                "id",
+                "share",
+                "depends",
+                "related",
+                "resources",
+                "code",
+                "context",
+            ]
+        );
+        let nested: std::collections::BTreeSet<_> = ods
+            .keys_with_placement(KeyPlacement::NestedEngineMap)
+            .into_iter()
+            .map(|k| k.name.as_str())
+            .collect();
+        let ordered: std::collections::BTreeSet<_> = order.into_iter().collect();
+        assert_eq!(
+            nested, ordered,
+            "migrator order must cover all nested engine keys"
+        );
+    }
+
+    #[test]
+    fn disable_strip_key_lists_are_schema_driven_and_exclude_ssg() {
+        let registry = SpecSchemaRegistry::with_defaults();
+        let ods = registry.get("ods").unwrap();
+        let doc = ods.document_disable_strip_keys();
+        assert!(doc.contains(&"ods".into()));
+        assert!(doc.contains(&"profile".into()));
+        assert!(doc.contains(&"tags".into()));
+        assert!(!doc.iter().any(|k| k == "layout" || k == "hero_image"));
+        let root = ods.workspace_policy_strip_keys();
+        assert!(root.contains(&"ignore".into()) || root.contains(&"custom-profiles".into()));
+        assert!(root.contains(&"okf_lint".into()));
+        assert!(!root.iter().any(|k| k == "layout"));
     }
 
     #[test]
