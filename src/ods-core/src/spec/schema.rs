@@ -113,6 +113,32 @@ impl SpecSchema {
         out.sort_by(|a, b| a.name.cmp(&b.name));
         out
     }
+
+    pub fn find_similar_key(&self, name: &str) -> Option<&KeyDefinition> {
+        let name_lower = name.to_ascii_lowercase();
+        let mut best: Option<(&KeyDefinition, usize)> = None;
+
+        for key in self.keys.values() {
+            let d = crate::error::edit_distance(&name_lower, &key.name.to_ascii_lowercase());
+            if d > 0 && d <= 2 {
+                match best {
+                    Some((_, bd)) if d >= bd => {}
+                    _ => best = Some((key, d)),
+                }
+            }
+
+            for alias in &key.aliases {
+                let da = crate::error::edit_distance(&name_lower, &alias.to_ascii_lowercase());
+                if da > 0 && da <= 2 {
+                    match best {
+                        Some((_, bd)) if da >= bd => {}
+                        _ => best = Some((key, da)),
+                    }
+                }
+            }
+        }
+        best.map(|(k, _)| k)
+    }
 }
 
 #[derive(Debug, Default, Clone)]
@@ -613,6 +639,26 @@ pub fn validate_ods_frontmatter(frontmatter: &Frontmatter) -> Vec<SchemaIssue> {
             severity: Severity::Warning,
             message: crate::error::lint_title_discouraged(),
         });
+    }
+
+    for key_name in frontmatter.custom_keys.keys() {
+        if let Some(similar) = schema.find_similar_key(key_name) {
+            if similar
+                .aliases
+                .iter()
+                .any(|a| a.eq_ignore_ascii_case(key_name))
+            {
+                issues.push(SchemaIssue {
+                    severity: Severity::Warning,
+                    message: crate::error::lint_legacy_alias_used(key_name, &similar.name),
+                });
+            } else {
+                issues.push(SchemaIssue {
+                    severity: Severity::Warning,
+                    message: crate::error::lint_key_typo_suggestion(key_name, &similar.name),
+                });
+            }
+        }
     }
 
     // tags_misplaced is reported by tags::lint_document_tags (single message).

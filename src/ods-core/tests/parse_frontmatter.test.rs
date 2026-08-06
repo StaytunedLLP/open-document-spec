@@ -251,3 +251,33 @@ specs:
     assert!(fm.specs.skills.enabled);
     assert!(fm.specs.skills.check_keys);
 }
+
+#[test]
+fn test_hybrid_frontmatter_preservation_on_mutation() {
+    let root = PathBuf::from("/ws");
+    let text = r#"---
+layout: post
+author: Alice
+tags:
+  - rust
+  - ods
+status: draft
+---
+
+# My Post
+"#;
+    let doc = parse_document_text(&root, root.join("post.md"), text, true);
+    let FrontmatterState::Parsed(fm) = doc.frontmatter else {
+        panic!("parse failed");
+    };
+
+    // Verify third-party custom keys parsed into custom_keys map
+    assert!(fm.custom_keys.contains_key("layout"));
+    assert!(fm.custom_keys.contains_key("author"));
+    assert_eq!(fm.status.as_deref(), Some("draft"));
+
+    // Verify fuzzy typo diagnostic checks
+    let issues = ods_core::validate_ods_frontmatter(&fm);
+    // Hugo layout & author keys are preserved without non-matching typo false positives
+    assert!(issues.iter().all(|i| !i.message.contains("layout")));
+}

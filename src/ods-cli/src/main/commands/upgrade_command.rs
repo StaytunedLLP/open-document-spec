@@ -198,11 +198,8 @@ fn run_ods_audit_command(args: &[String]) -> Result<ExitCode, CliError> {
                 lines.push(format!("- `{rel}` — {err}"));
             }
             FrontmatterState::Parsed(fm) => {
-                // root index with ods: counts as compliant shape for audit inventory
                 let has_profile = fm.profile.as_deref().map(|p| !p.is_empty()).unwrap_or(false);
-                if doc.path == root.join("index.ods.md") {
-                    compliant += 1;
-                } else if !has_profile {
+                if !has_profile {
                     partial += 1;
                     lines.push(format!("- `{rel}` — missing profile"));
                 } else {

@@ -17,21 +17,7 @@ fn doctor_workspace(root: &Path) -> Result<DoctorReport, CliError> {
         Ok(workspace) => {
             lines.push(format!("documents: {}", workspace.documents.len()));
             json_fields.push(format!(r#""documents":{}"#, workspace.documents.len()));
-            let root_ods = workspace
-                .document_by_path(&workspace.root.join("ods.toml"))
-                .or_else(|| workspace.document_by_path(&workspace.root.join("index.ods.md")))
-                .or_else(|| workspace.document_by_path(&workspace.root.join("index.md")))
-                .and_then(|doc| match &doc.frontmatter {
-                    ods_core::FrontmatterState::Parsed(fm) => fm.ods.as_deref(),
-                    _ => None,
-                })
-                .or_else(|| {
-                    if !workspace.config.spec.trim().is_empty() {
-                        Some(workspace.config.spec.as_str())
-                    } else {
-                        None
-                    }
-                });
+            let root_ods = Some(workspace.config.spec.as_str()).filter(|s| !s.trim().is_empty());
             match root_ods {
                 Some(version) if version == ods_core::current_ods_spec_version() => {
                     lines.push(format!("root ods spec: {version}"));

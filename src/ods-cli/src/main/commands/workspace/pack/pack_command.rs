@@ -31,13 +31,12 @@ fn run_pack_list(args: &[String]) -> Result<ExitCode, CliError> {
     let root = resolve_root_path(path);
     let workspace = load_workspace(&root).map_err(|e| fail_load(&root, e))?;
 
-    let root_index_doc = workspace
-        .documents
-        .iter()
-        .find(|d| d.path == root.join("index.ods.md"));
-
-    let mut packs = Vec::new();
-    if let Some(doc) = root_index_doc
+    let mut packs = workspace.config.packs.clone();
+    if packs.is_empty()
+        && let Some(doc) = workspace
+            .documents
+            .iter()
+            .find(|d| d.path == root.join("index.ods.md"))
         && let FrontmatterState::Parsed(fm) = &doc.frontmatter
     {
         packs = fm.packs.clone();
@@ -45,7 +44,7 @@ fn run_pack_list(args: &[String]) -> Result<ExitCode, CliError> {
 
     println!("ODS Workspace Packs (root: {}):", root.display());
     if packs.is_empty() {
-        println!("  (no external packs imported in root index.md)");
+        println!("  (no external packs imported)");
     } else {
         for pack in packs {
             let pack_path = root.join(&pack);
@@ -214,13 +213,12 @@ fn run_pack_sync(args: &[String]) -> Result<ExitCode, CliError> {
     let root = resolve_root_path(env::current_dir().unwrap_or_else(|_| PathBuf::from(".")));
     let workspace = load_workspace(&root).map_err(|e| fail_load(&root, e))?;
 
-    let root_index_doc = workspace
-        .documents
-        .iter()
-        .find(|d| d.path == root.join("index.ods.md"));
-
-    let mut packs = Vec::new();
-    if let Some(doc) = root_index_doc
+    let mut packs = workspace.config.packs.clone();
+    if packs.is_empty()
+        && let Some(doc) = workspace
+            .documents
+            .iter()
+            .find(|d| d.path == root.join("index.ods.md"))
         && let FrontmatterState::Parsed(fm) = &doc.frontmatter
     {
         packs = fm.packs.clone();

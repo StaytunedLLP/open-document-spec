@@ -778,6 +778,14 @@ pub fn lint_duplicate_profile(name: &str, kept: impl Display, ignored: impl Disp
     format!("duplicate profile definition: {name} (kept {kept}, ignored {ignored})")
 }
 
+pub fn lint_key_typo_suggestion(typo: &str, suggestion: &str) -> String {
+    format!("unknown frontmatter key '{typo}' (did you mean '{suggestion}'?)")
+}
+
+pub fn lint_legacy_alias_used(alias: &str, canonical: &str) -> String {
+    format!("legacy key alias '{alias}' used (canonical key is '{canonical}')")
+}
+
 // ===========================================================================
 // Command suggestion helper
 // ===========================================================================
@@ -863,7 +871,7 @@ pub fn suggest_command(input: &str) -> Option<&'static str> {
     best.map(|(c, _)| c)
 }
 
-fn edit_distance(a: &str, b: &str) -> usize {
+pub fn edit_distance(a: &str, b: &str) -> usize {
     let a: Vec<char> = a.chars().collect();
     let b: Vec<char> = b.chars().collect();
     let (m, n) = (a.len(), b.len());

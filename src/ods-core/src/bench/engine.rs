@@ -75,12 +75,7 @@ pub fn bench_strip_workspace(
 
     let mut total_profiles_removed = 0;
     if options.strip_profiles || options.full {
-        let root_doc = workspace.documents.iter().find(|d| {
-            d.path.parent() == Some(&root)
-                && (d.path.file_name().and_then(|n| n.to_str()) == Some("index.ods.md")
-                    || d.path.file_name().and_then(|n| n.to_str()) == Some("index.md"))
-        });
-        let prof_roots = crate::profiles::profile_catalog_roots(&root, root_doc);
+        let prof_roots = crate::profiles::profile_catalog_roots_from_config(&root, &workspace.config);
         for dir_name in &prof_roots {
             if dir_name.exists() {
                 for path in collect_files_recursive(dir_name) {

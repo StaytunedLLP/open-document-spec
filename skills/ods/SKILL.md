@@ -48,7 +48,7 @@ When assisting users inside an ODS workspace, follow these operational directive
 - 👥 **WHO**: Operate seamlessly on behalf of non-technical or developer users without requiring manual terminal commands.
 - 📍 **WHERE**: Open `references/keys.md` only when authoring frontmatter; do not preload all references every turn.
 - ⏰ **WHEN**: Run `ods lint` after structural edits (`--fix` only regenerates indexes — it does not invent missing docs). Use `ods mv` for renames.
-- 🛡️ **SAFETY**: Prefer H1 for titles (FM `title:` is a lint **warning**, value kept). Navigation is CLI discovery — do not recreate nested indexes.
+- 🛡️ **SAFETY**: Prefer H1 for titles (FM `title:` is a lint **warning**, value kept). Navigation is CLI discovery — do not recreate nested indexes. Non-ODS keys (e.g. Hugo `layout`, Astro `hero_image`) are preserved 100% untouched across all mutations.
 - 🛠️ **HOW**: `ods context <id>` from workspace root; optional `--include-code`, `--include-private`, `--root <dir>`.
 
 ---

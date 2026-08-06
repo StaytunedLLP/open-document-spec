@@ -161,7 +161,7 @@ fn directory_children_for(workspace: &Workspace, directory: &Path) -> Vec<String
             if file_type.is_dir() {
                 let is_doc_dir = workspace.doc_dirs.contains(&path);
                 if is_doc_dir {
-                    Some(format!("{name}/index.ods.md"))
+                    Some(name)
                 } else {
                     None
                 }

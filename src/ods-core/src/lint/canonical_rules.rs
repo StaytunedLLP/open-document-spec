@@ -90,16 +90,11 @@ pub(super) fn lint_references(
 }
 
 pub(super) fn lint_ods_scope(
-    workspace: &Workspace,
+    _workspace: &Workspace,
     document: &Document,
     frontmatter: &crate::model::Frontmatter,
 ) -> Vec<Diagnostic> {
-    if (frontmatter.ods.is_none() && frontmatter.ods.is_none())
-        || document.path == workspace.root.join("index.ods.md")
-    {
-        return Vec::new();
-    }
-    if document.path.file_name().is_some_and(|name| name == "index.ods.md") {
+    if frontmatter.ods.is_none() {
         return Vec::new();
     }
 
@@ -111,15 +106,11 @@ pub(super) fn lint_ods_scope(
 }
 
 pub(super) fn lint_alias_scope(
-    workspace: &Workspace,
+    _workspace: &Workspace,
     document: &Document,
     frontmatter: &crate::model::Frontmatter,
 ) -> Vec<Diagnostic> {
     if frontmatter.aliases.is_empty() {
-        return Vec::new();
-    }
-
-    if document.path == workspace.root.join("index.ods.md") {
         return Vec::new();
     }
 

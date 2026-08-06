@@ -66,6 +66,13 @@ ods:
 
 **Why the split:** universal keys stay visible to non-ODS tools; engine keys stay in a private namespace so they do not collide with SSG reserved keys.
 
+### Multi-Tool Interoperability & Preserved Frontmatter Keys (normative)
+
+`ods` strictly respects third-party and static site generator (SSG) frontmatter metadata (e.g. Hugo `layout`, `slug`, Astro `hero_image`, Jekyll `permalink`).
+
+- `ods` commands and parsers MUST preserve all non-ODS keys, YAML comments, and custom fields during reading, linting, formatting, and mutation operations.
+- CLI lifecycle operations (e.g. `ods status`, `ods tag`, `ods adopt`) MUST update ONLY native ODS/OKF/Skills keys line-for-line without re-ordering or corrupting external metadata.
+
 ### Where does this key go?
 
 | Keys | Level |

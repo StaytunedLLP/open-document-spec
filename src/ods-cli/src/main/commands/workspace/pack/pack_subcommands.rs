@@ -7,24 +7,55 @@ fn run_pack_remove(args: &[String]) -> Result<ExitCode, CliError> {
     };
 
     let root = resolve_root_path(root_path);
-    let root_index_path = if root.join("index.ods.md").exists() {
-        Some(root.join("index.ods.md"))
-    } else if root.join("index.md").exists() {
-        Some(root.join("index.md"))
+    let toml_path = root.join("ods.toml");
+    if toml_path.exists() {
+        if let Ok(text) = fs::read_to_string(&toml_path) {
+            let updated = remove_pack_from_ods_toml(&text, &name);
+            fs::write(&toml_path, updated).map_err(|e| fail_io("pack", e))?;
+            println!("Removed ODS Pack reference '{}' from ods.toml.", name);
+        }
     } else {
-        None
-    };
+        let root_index_path = if root.join("index.ods.md").exists() {
+            Some(root.join("index.ods.md"))
+        } else if root.join("index.md").exists() {
+            Some(root.join("index.md"))
+        } else {
+            None
+        };
 
-    if let Some(ref p) = root_index_path {
-        let text = fs::read_to_string(p).map_err(|e| fail_io("pack", e))?;
-        let target_line = format!("  - {name}");
-        let updated = text.lines().filter(|line| *line != target_line).collect::<Vec<_>>().join("\n");
-        fs::write(p, updated).map_err(|e| fail_io("pack", e))?;
-        println!("Removed ODS Pack reference '{}' from root index.", name);
-    } else {
-        println!("Removed ODS Pack reference '{}'.", name);
+        if let Some(ref p) = root_index_path {
+            let text = fs::read_to_string(p).map_err(|e| fail_io("pack", e))?;
+            let target_line = format!("  - {name}");
+            let updated = text.lines().filter(|line| *line != target_line).collect::<Vec<_>>().join("\n");
+            fs::write(p, updated).map_err(|e| fail_io("pack", e))?;
+            println!("Removed ODS Pack reference '{}' from root index.", name);
+        } else {
+            println!("Removed ODS Pack reference '{}'.", name);
+        }
     }
     Ok(ExitCode::from(0))
+}
+
+fn remove_pack_from_ods_toml(text: &str, pack_name: &str) -> String {
+    let mut out_lines = Vec::new();
+    for line in text.lines() {
+        let trimmed = line.trim();
+        if trimmed.starts_with("packs") && trimmed.contains('[') && trimmed.contains(']') {
+            let replaced = line
+                .replace(&format!("\"{pack_name}\", "), "")
+                .replace(&format!(", \"{pack_name}\""), "")
+                .replace(&format!("\"{pack_name}\""), "");
+            out_lines.push(replaced);
+        } else if trimmed.contains(&format!("\"{pack_name}\""))
+            || trimmed.contains(&format!("'{pack_name}'"))
+            || trimmed == format!("- {pack_name}")
+        {
+            continue;
+        } else {
+            out_lines.push(line.to_string());
+        }
+    }
+    out_lines.join("\n")
 }
 
 fn run_pack_preview(args: &[String]) -> Result<ExitCode, CliError> {
@@ -64,20 +95,8 @@ fn run_pack_init(args: &[String]) -> Result<ExitCode, CliError> {
     let toml_content = format!("spec = \"0.1\"\nname = \"{name}\"\n");
     fs::write(root.join("ods.toml"), toml_content).map_err(|e| fail_io("pack", e))?;
 
-    let root_index = format!(
-        "---\nprofile: index\nods: 0.1\ndescription: Reusable ODS Pack for {name}.\n---\n\n# {name}\n\n- [ods-profiles/](ods-profiles/index.ods.md) - Custom Profile schemas\n- [skills/](skills/index.ods.md) - AI Agent skills\n"
-    );
-    fs::write(root.join("index.ods.md"), root_index).map_err(|e| fail_io("pack", e))?;
-
-    let profile_index = "---\nprofile: index\n---\n\n# Profile Schemas\n";
-    fs::write(ods_profiles_dir.join("index.ods.md"), profile_index).map_err(|e| fail_io("pack", e))?;
-
-    let skills_index = "---\nprofile: index\n---\n\n# AI Agent Skills\n";
-    fs::write(skills_dir.join("index.ods.md"), skills_index).map_err(|e| fail_io("pack", e))?;
-
     println!("Scaffolding new ODS Pack at {}:", root.display());
     println!("  ✓ Created ods.toml (workspace marker)");
-    println!("  ✓ Created index.ods.md (root marker)");
     println!("  ✓ Created ods-profiles/ (profile schema directory)");
     println!("  ✓ Created skills/ (AI agent skills directory)");
 
@@ -107,8 +126,9 @@ mod test_pack_command {
         ]);
         assert!(res_init.is_ok());
 
-        assert!(pack_path.join("index.ods.md").exists());
-        assert!(pack_path.join("ods-profiles/index.ods.md").exists());
+        assert!(pack_path.join("ods.toml").exists());
+        assert!(pack_path.join("ods-profiles").is_dir());
+        assert!(pack_path.join("skills").is_dir());
 
         let res_prev = run_pack_preview(&[
             "ods".into(),
@@ -120,7 +140,7 @@ mod test_pack_command {
 
         let ws = td.path().join("ws");
         std::fs::create_dir_all(&ws).unwrap();
-        std::fs::write(ws.join("index.ods.md"), "---\nprofile: index\nods: 0.1\n---\n\n# Root\n").unwrap();
+        std::fs::write(ws.join("ods.toml"), "spec = \"0.1\"\n").unwrap();
 
         let prev = std::env::current_dir().ok();
         let _ = std::env::set_current_dir(&ws);
@@ -167,6 +187,11 @@ mod test_pack_command {
         let ws = td.path().join("ws");
         std::fs::create_dir_all(&ws).unwrap();
         std::fs::write(
+            ws.join("ods.toml"),
+            "spec = \"0.1\"\npacks = [\"local-pack\"]\n",
+        )
+        .unwrap();
+        std::fs::write(
             ws.join("index.ods.md"),
             "---\nprofile: index\nods: 0.1\npacks:\n  - local-pack\n---\n\n# R\n",
         )
@@ -190,5 +215,13 @@ mod test_pack_command {
         if let Some(p) = prev {
             let _ = std::env::set_current_dir(p);
         }
+    }
+
+    #[test]
+    fn test_remove_pack_from_ods_toml() {
+        let text = "spec = \"0.1\"\npacks = [\"local-pack\", \"other-pack\"]\n";
+        let out = remove_pack_from_ods_toml(text, "local-pack");
+        assert!(!out.contains("local-pack"));
+        assert!(out.contains("other-pack"));
     }
 }

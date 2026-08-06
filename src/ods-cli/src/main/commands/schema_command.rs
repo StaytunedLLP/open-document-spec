@@ -80,7 +80,18 @@ fn run_schema_command(args: &[String]) -> Result<ExitCode, CliError> {
                 keys.sort_by(|a, b| a.name.cmp(&b.name));
                 for k in keys {
                     let req = if k.required { "[required]" } else { "[optional]" };
-                    println!("  {:<20} {:<18} {:<10} {}", k.name, format!("{:?}", k.placement), req, k.description);
+                    let placement_str = match k.placement {
+                        ods_core::KeyPlacement::TopLevel => "top-level",
+                        ods_core::KeyPlacement::NestedEngineMap => "nested (ods:)",
+                        ods_core::KeyPlacement::RootIndexOnly
+                        | ods_core::KeyPlacement::WorkspaceConfigOnly => "ods.toml only",
+                    };
+                    let alias_str = if k.aliases.is_empty() {
+                        "".to_string()
+                    } else {
+                        format!(" (aliases: {})", k.aliases.join(", "))
+                    };
+                    println!("  {:<20} {:<18} {:<10} {}{}", k.name, placement_str, req, k.description, alias_str);
                 }
             }
             OutputFormat::Json | OutputFormat::Sarif => {
@@ -88,12 +99,19 @@ fn run_schema_command(args: &[String]) -> Result<ExitCode, CliError> {
                     .keys
                     .values()
                     .map(|k| {
+                        let placement_str = match k.placement {
+                            ods_core::KeyPlacement::TopLevel => "top-level",
+                            ods_core::KeyPlacement::NestedEngineMap => "nested (ods:)",
+                            ods_core::KeyPlacement::RootIndexOnly
+                            | ods_core::KeyPlacement::WorkspaceConfigOnly => "ods.toml only",
+                        };
                         serde_json::json!({
                             "name": k.name,
-                            "placement": format!("{:?}", k.placement),
+                            "placement": placement_str,
                             "key_type": format!("{:?}", k.key_type),
                             "required": k.required,
                             "description": k.description,
+                            "aliases": k.aliases,
                         })
                     })
                     .collect();

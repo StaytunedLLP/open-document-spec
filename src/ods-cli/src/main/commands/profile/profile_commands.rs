@@ -196,7 +196,7 @@ ods:
             }
             Ok(RegisterResult::NoRootIndex) => {
                 println!(
-                    "warning: no root index.ods.md / index.md — profile not registered"
+                    "warning: missing ods.toml — profile not registered"
                 );
                 println!("Next: ods init  then re-run: ods profile init {profile_name}");
             }
@@ -372,12 +372,12 @@ fn run_alias_add_command(args: &[String]) -> Result<ExitCode, CliError> {
         }
     };
     let root = resolve_root_path(root);
-    let index_path = if root.join("index.ods.md").is_file() {
+    let index_path = if root.join("ods.toml").is_file() {
+        Some(root.join("ods.toml"))
+    } else if root.join("index.ods.md").is_file() {
         Some(root.join("index.ods.md"))
     } else if root.join("index.md").is_file() {
         Some(root.join("index.md"))
-    } else if root.join("ods.toml").is_file() {
-        Some(root.join("ods.toml"))
     } else {
         return Err(fail_msg(ods_core::root_index_missing()));
     };

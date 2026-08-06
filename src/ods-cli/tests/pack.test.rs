@@ -26,7 +26,7 @@ fn test_pack_subcommands_end_to_end() {
         .unwrap();
     assert!(status.success());
     assert!(pack_dir.join("ods.toml").exists());
-    assert!(pack_dir.join("ods-profiles/index.ods.md").exists());
+    assert!(pack_dir.join("ods-profiles").is_dir());
 
     // 3. Run `ods pack add ./my-custom-pack` from workspace root
     let status = ods_bin()

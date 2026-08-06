@@ -25,6 +25,8 @@ Your files stay plain `.md`. You add optional YAML frontmatter when you want str
 
 **Why it exists:** flat Markdown folders drift, links break, and AI tools waste tokens searching the whole repo. ODS makes identity, relationships, and context **explicit and lintable**, so docs stay trustworthy as code changes.
 
+**Coexistence with SSGs:** ODS is designed for zero-friction coexistence alongside Hugo, Astro, Jekyll, Docusaurus, Next.js, and Obsidian. Non-ODS frontmatter keys, custom metadata, and comments are preserved untouched across all CLI operations.
+
 **How it is used:** the `ods` CLI is the default engine (no `--ods` flag). Extra dialects use flags only: `--okf` (Google OKF v0.2) and `--skills` (Agent Skills packages). Sibling dialects: [`../`](../).
 
 ---

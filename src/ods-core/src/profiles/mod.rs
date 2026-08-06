@@ -25,6 +25,9 @@ pub fn profile_catalog_roots(root: &Path, root_index: Option<&Document>) -> Vec<
         };
         return profile_catalog_roots_from_config(root, &cfg);
     }
+    if let Ok(cfg) = crate::config::load_workspace_config(root) {
+        return profile_catalog_roots_from_config(root, &cfg);
+    }
     Vec::new()
 }
 
