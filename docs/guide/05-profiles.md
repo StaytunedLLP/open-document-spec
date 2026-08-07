@@ -1,7 +1,5 @@
 ---
 description: "Standard profiles, custom profiles, precedence rules, profile mapping matrix, and ODS Packs."
-status: "stable"
-order: 5
 ods:
   profile: "note"
   status: "stable"

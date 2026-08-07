@@ -1,7 +1,5 @@
 ---
 description: "AI agent context scope: load, ignore, max-depth, and share filtering."
-status: "stable"
-order: 5
 ods:
   profile: "note"
   status: "stable"

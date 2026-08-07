@@ -1,7 +1,5 @@
 ---
 description: "Enterprise ODS Pack distribution, multi-repo governance, CI/CD pipelines, security controls, and ROI modeling."
-status: "stable"
-order: 8
 ods:
   profile: "note"
   status: "stable"

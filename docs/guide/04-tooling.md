@@ -1,7 +1,5 @@
 ---
 description: "CLI command matrix, service daemon vs watch comparison, CI integration, and updates."
-status: "stable"
-order: 4
 ods:
   profile: "note"
   status: "stable"

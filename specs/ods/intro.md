@@ -1,7 +1,5 @@
 ---
 description: "What Open Document Spec is, why it exists, core concepts, and a reading map of every ODS module."
-status: "stable"
-order: 0
 ods:
   profile: "note"
   status: "stable"

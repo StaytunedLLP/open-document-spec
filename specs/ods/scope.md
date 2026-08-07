@@ -1,7 +1,5 @@
 ---
 description: "What ODS intentionally excludes from core design — boundaries by module theme."
-status: "stable"
-order: 9
 ods:
   profile: "note"
   status: "stable"

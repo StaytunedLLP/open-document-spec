@@ -1,7 +1,5 @@
 ---
 description: "ODS lint rules, unknown-content behavior, and tooling contract."
-status: "stable"
-order: 8
 ods:
   profile: "note"
   status: "stable"

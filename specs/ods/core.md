@@ -1,7 +1,5 @@
 ---
 description: "Open Document Spec Working Draft 1 — format model, conformance levels, and lifecycle operations."
-status: "stable"
-order: 2
 ods:
   profile: "note"
   status: "stable"

@@ -1,7 +1,5 @@
 ---
 description: "What Google OKF v0.2 is, when to use it with the ods CLI, and how it differs from ODS."
-status: "stable"
-order: 0
 ods:
   profile: "note"
   status: "stable"

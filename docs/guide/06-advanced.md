@@ -1,7 +1,5 @@
 ---
 description: "AI agent reading patterns, multi-workspace tracking, daemon execution modes, and large workspaces."
-status: "stable"
-order: 6
 ods:
   profile: "note"
   status: "stable"

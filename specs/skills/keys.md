@@ -1,7 +1,5 @@
 ---
 description: "SKILL.md frontmatter keys validated by ods lint --skills."
-status: "stable"
-order: 1
 ods:
   profile: "note"
   status: "stable"

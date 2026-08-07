@@ -1,7 +1,5 @@
 ---
 description: "Installation options, workspace initialization, service background daemon, validation, and AI context commands."
-status: "stable"
-order: 2
 ods:
   profile: "note"
   status: "stable"

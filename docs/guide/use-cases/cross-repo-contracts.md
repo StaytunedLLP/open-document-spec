@@ -1,7 +1,5 @@
 ---
 description: "Managing cross-repository API contracts and shared governance using ODS Packs."
-status: "stable"
-order: 14
 ods:
   profile: "note"
   status: "stable"

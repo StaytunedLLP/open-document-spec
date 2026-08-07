@@ -1,7 +1,5 @@
 ---
 description: "Frequently asked questions about file extensions, adoption, profiles vs tags, renames, and background services."
-status: "stable"
-order: 11
 ods:
   profile: "note"
   status: "stable"

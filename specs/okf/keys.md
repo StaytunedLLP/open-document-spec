@@ -1,7 +1,5 @@
 ---
 description: "OKF v0.2 frontmatter keys: purpose and examples as used by the ods CLI."
-status: "stable"
-order: 1
 ods:
   profile: "note"
   status: "stable"

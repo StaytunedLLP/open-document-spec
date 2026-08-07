@@ -1,7 +1,5 @@
 ---
 description: "Standard document profiles, custom catalogs, ODS packs, and section header mapping."
-status: "stable"
-order: 3
 ods:
   profile: "note"
   status: "stable"

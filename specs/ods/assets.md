@@ -1,7 +1,5 @@
 ---
 description: "How non-Markdown resources and source code bindings are mapped in ODS."
-status: "stable"
-order: 7
 ods:
   profile: "note"
   status: "stable"
