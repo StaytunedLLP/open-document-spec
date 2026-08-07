@@ -1,7 +1,5 @@
 ---
 description: "Agent Skills packages: purpose, layout, and how the ods CLI validates them."
-status: "stable"
-order: 0
 ods:
   profile: "note"
   status: "stable"

@@ -1,7 +1,5 @@
 ---
 description: "Diagnostic workflow, complete error catalog for .ods/ods-errors.md, git merge conflicts, and daemon troubleshooting."
-status: "stable"
-order: 7
 ods:
   profile: "note"
   status: "stable"

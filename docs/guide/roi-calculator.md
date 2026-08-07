@@ -1,7 +1,5 @@
 ---
 description: "Quantifying context window optimization, developer productivity gains, and API cost reduction."
-status: "stable"
-order: 10
 ods:
   profile: "note"
   status: "stable"

@@ -1,7 +1,5 @@
 ---
 description: "ODS frontmatter key dictionary: placement rules, purpose, examples, and common mistakes for every key."
-status: "stable"
-order: 1
 ods:
   profile: "note"
   status: "stable"

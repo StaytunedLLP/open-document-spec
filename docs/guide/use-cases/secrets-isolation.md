@@ -1,7 +1,5 @@
 ---
 description: "Isolating confidential internal information using ODS 3-tier visibility control and share-cascading."
-status: "stable"
-order: 15
 ods:
   profile: "note"
   status: "stable"

@@ -7,10 +7,7 @@ ignore = [
   "skills",
   "docs/plan/archive",
   "app-web",
-  "src/ods-cli",
-  "src/ods-core",
-  "src/ods-test-support",
-  "src/scripts",
+  "src"
 ]
 
 custom_profiles = [

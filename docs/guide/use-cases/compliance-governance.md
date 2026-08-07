@@ -1,7 +1,5 @@
 ---
 description: "Using ODS policy profiles, status enums, and level-3 CI checks for enterprise governance."
-status: "stable"
-order: 13
 ods:
   profile: "note"
   status: "stable"

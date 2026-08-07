@@ -1,7 +1,5 @@
 ---
 description: "Enriching existing Markdown repositories progressively without migration overhead."
-status: "stable"
-order: 3
 ods:
   profile: "note"
   status: "stable"

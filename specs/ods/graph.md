@@ -1,7 +1,5 @@
 ---
 description: "Identity, single source of truth rules, and graph relationships in ODS."
-status: "stable"
-order: 4
 ods:
   profile: "note"
   status: "stable"
