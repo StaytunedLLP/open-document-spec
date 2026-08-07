@@ -1,5 +1,7 @@
 ---
 description: "Principles, binary compliance, learning path, and core benefits of Open Document Spec."
+status: "stable"
+order: 1
 ods:
   profile: "note"
   status: "stable"

@@ -1,5 +1,7 @@
 ---
 description: "Indexes removed — workspace marker is ods.toml; discovery is CLI-only."
+status: "stable"
+order: 6
 ods:
   profile: "note"
   status: "stable"
