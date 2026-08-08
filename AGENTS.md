@@ -63,8 +63,14 @@ Full policy: `.agents/rules/40-quality-gates.md`. Multi-step work: `.agents/skil
 | **This file** | Hand-maintained (this monorepo). **Do not** run `ods agents sync` at repo root — it skips overwrite when `.agents/rules/` exists. |
 | `.agents/rules/*` | Always-on short rules |
 | `.agents/skills/*` | Task skills (maintainer) |
-| `skills/ods/` | **End-user** product skill only (no CI/coverage process) |
+| `skills/ods/` | **End-user** product skill only (no CI/coverage process). **SoT after extract:** [open-doc-spec/ods-skills](https://github.com/open-doc-spec/ods-skills) (first-cut: in-tree mirror) |
+| `specs/` | Normative docs mirror; **SoT after extract:** [open-doc-spec/ods-spec](https://github.com/open-doc-spec/ods-spec) |
+| `app-web/` | Site mirror; **SoT after extract:** [open-doc-spec/opendocify.com](https://github.com/open-doc-spec/opendocify.com) (**private**) |
+| `src/fixtures/benchmarks/` | Fixture mirror; **SoT after extract:** [open-doc-spec/ods-benchmarks](https://github.com/open-doc-spec/ods-benchmarks) |
+| `action.yml` + `src/action/` | Action mirror; **SoT after extract:** [open-doc-spec/ods-action](https://github.com/open-doc-spec/ods-action) |
 | Nested `**/AGENTS.md` | Crate/folder specifics |
+
+Satellite map: `docs/maintainer/satellite-repos.md`.
 
 ## Useful commands
 
